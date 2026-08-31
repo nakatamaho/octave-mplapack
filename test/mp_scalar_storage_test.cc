@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -11,6 +12,7 @@
 #include <mplapack_mpfr.h>
 
 #include "mp_scalar_storage.h"
+#include "mp_precision.h"
 
 using octave_mplapack::MpfrScalarStorage;
 
@@ -115,6 +117,78 @@ test_precision_and_parsing ()
 }
 
 void
+test_double_construction_and_special_values ()
+{
+  const mpfr_prec_t precision
+    = octave_mplapack::default_precision_bits ();
+  assert (precision == octave_mplapack::initial_default_precision_bits);
+  assert (precision == 128);
+
+  MpfrScalarStorage decimal_text ("0.1", precision);
+  MpfrScalarStorage binary64 (0.1, precision);
+  assert (! decimal_text.exactly_equal (binary64));
+  assert (decimal_text.exactly_equal_string ("0.1"));
+  assert (! decimal_text.exactly_equal_double (0.1));
+  assert (binary64.exactly_equal_double (0.1));
+
+  MpfrScalarStorage dyadic_text ("0.125", precision);
+  MpfrScalarStorage dyadic_binary64 (0.125, precision);
+  assert (dyadic_text.exactly_equal (dyadic_binary64));
+  assert (dyadic_binary64.exactly_equal_double (0.125));
+
+  MpfrScalarStorage smallest_normal (
+    std::numeric_limits<double>::min (), precision);
+  MpfrScalarStorage largest_finite (
+    std::numeric_limits<double>::max (), precision);
+  MpfrScalarStorage smallest_subnormal (
+    std::numeric_limits<double>::denorm_min (), precision);
+  assert (smallest_normal.exactly_equal_double (
+    std::numeric_limits<double>::min ()));
+  assert (largest_finite.exactly_equal_double (
+    std::numeric_limits<double>::max ()));
+  assert (smallest_subnormal.exactly_equal_double (
+    std::numeric_limits<double>::denorm_min ()));
+
+  MpfrScalarStorage positive_zero (0.0, precision);
+  MpfrScalarStorage negative_zero (-0.0, precision);
+  assert (positive_zero.is_zero () && ! positive_zero.signbit ());
+  assert (negative_zero.is_zero () && negative_zero.signbit ());
+
+  MpfrScalarStorage positive_infinity (
+    std::numeric_limits<double>::infinity (), precision);
+  MpfrScalarStorage negative_infinity (
+    -std::numeric_limits<double>::infinity (), precision);
+  MpfrScalarStorage not_a_number (
+    std::numeric_limits<double>::quiet_NaN (), precision);
+  assert (positive_infinity.is_infinite ()
+          && ! positive_infinity.signbit ());
+  assert (negative_infinity.is_infinite ()
+          && negative_infinity.signbit ());
+  assert (not_a_number.is_nan ());
+
+  MpfrScalarStorage copied (negative_zero);
+  assert (copied.is_zero () && copied.signbit ());
+  MpfrScalarStorage moved (std::move (positive_infinity));
+  assert (moved.is_infinite () && ! moved.signbit ());
+}
+
+void
+test_constructor_rounding_is_explicit ()
+{
+  const mpfr_rnd_t saved_rounding = mpfr_get_default_rounding_mode ();
+  mpfr_set_default_rounding_mode (MPFR_RNDD);
+  MpfrScalarStorage downward_text ("0.1", 128);
+  MpfrScalarStorage downward_double (0.1, 128);
+  mpfr_set_default_rounding_mode (MPFR_RNDU);
+  MpfrScalarStorage upward_text ("0.1", 128);
+  MpfrScalarStorage upward_double (0.1, 128);
+  mpfr_set_default_rounding_mode (saved_rounding);
+
+  assert (downward_text.exactly_equal (upward_text));
+  assert (downward_double.exactly_equal (upward_double));
+}
+
+void
 test_contiguous_container_and_stress ()
 {
   constexpr std::size_t iterations = 10000;
@@ -160,6 +234,8 @@ main ()
 {
   test_basic_ownership ();
   test_precision_and_parsing ();
+  test_double_construction_and_special_values ();
+  test_constructor_rounding_is_explicit ();
   test_contiguous_container_and_stress ();
   return 0;
 }

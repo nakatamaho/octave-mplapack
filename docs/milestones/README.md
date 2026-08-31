@@ -8,7 +8,7 @@ documented gate passes.
 | M00 | Repository bootstrap | Passed |
 | M01 | Native build probe | Passed |
 | M02 | Internal native MPFR scalar storage | Passed |
-| M03 | Constructors | Planned |
+| M03 | Public scalar constructor and wrapper | Passed |
 | M04 | Precision API | Planned |
 | M05 | Conversion/display | Planned |
 | M06 | Element-wise arithmetic | Planned |

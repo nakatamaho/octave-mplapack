@@ -30,6 +30,16 @@ this distinction.
 Bits are the canonical internal precision unit. The primary API is `mpbits()`
 and `mpbits(n)`; `mpdigits()` is a convenience API.
 
+The initial project-owned default through M03 is 128 bits.  Constructors read
+that value from the internal precision component and pass it explicitly to
+each new native scalar; normal construction does not use MPFR's mutable
+process-global default.  M04 will expose this same project-owned default
+through `mpbits` and `mpdigits` rather than introduce a second setting.
+
+M03 scalar construction uses explicit MPFR round-to-nearest (`MPFR_RNDN`) for
+both decimal parsing and conversion of an incoming binary64 value.  It does
+not inherit a caller-modified MPFR process default rounding mode.
+
 ## Decimal-digit conversion
 
 `mpdigits(n)` must convert decimal digits to a sufficiently large MPFR bit

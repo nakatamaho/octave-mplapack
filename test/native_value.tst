@@ -110,7 +110,7 @@
 %!error <precision must be an integer>
 %! __mplapack_core__ ("scalar_test_create", "1", Inf);
 
-%!error <invalid mpfr_class string>
+%!error <invalid scalar text>
 %! __mplapack_core__ ("scalar_test_create", "not-a-number", 128);
 
 %!error <expected an internal MPLAPACK MPFR scalar>
@@ -125,7 +125,7 @@
 %!error <expected an internal MPLAPACK MPFR scalar>
 %! __mplapack_core__ ("scalar_test_equal_string", {1}, "1");
 
-%!error <invalid mpfr_class string>
+%!error <invalid scalar text>
 %! v = __mplapack_core__ ("scalar_test_create", "1.5", 256);
 %! __mplapack_core__ ("scalar_test_equal_string", v, "invalid");
 

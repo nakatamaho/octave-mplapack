@@ -4,7 +4,8 @@ MPLAPACK_PC ?= mplapack_mpfr
 CXX ?= c++
 
 TARGET = __mplapack_core__.oct
-SOURCE = octave_bridge.cc mp_value.cc mp_scalar_storage.cc
+SOURCE = octave_bridge.cc mp_value.cc mp_scalar_storage.cc mp_precision.cc
+HEADERS = mp_value.h mp_scalar_storage.h mp_precision.h
 STORAGE_TEST = .build-m02/mp_scalar_storage_test
 MPLAPACK_VERSION := $(shell $(PKG_CONFIG) --modversion $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
@@ -17,17 +18,18 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 
 all: $(TARGET)
 
-$(TARGET): $(SOURCE) | check-deps
+$(TARGET): $(SOURCE) $(HEADERS) | check-deps
 	@echo "Building $(TARGET) with MKOCTFILE=$(MKOCTFILE)"
 	$(MKOCTFILE) $(PACKAGE_CXXFLAGS) $(MPLAPACK_CFLAGS) $(SOURCE) \
 	  $(MPLAPACK_LIBS) -o $@
 
 $(STORAGE_TEST): ../test/mp_scalar_storage_test.cc \
-  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+  mp_scalar_storage.cc mp_scalar_storage.h mp_precision.cc mp_precision.h \
+  | check-deps
 	mkdir -p $(dir $@)
 	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
 	  $(MPLAPACK_CFLAGS) -I. ../test/mp_scalar_storage_test.cc \
-	  mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+	  mp_scalar_storage.cc mp_precision.cc $(MPLAPACK_LIBS) -o $@
 
 check-storage-sanitized: $(STORAGE_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \

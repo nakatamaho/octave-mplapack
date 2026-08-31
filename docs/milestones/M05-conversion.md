@@ -7,7 +7,8 @@ Implement `char(A)`, `double(A)`, and `disp(A)`.
 # Scope
 
 Deterministic multiprecision textual output, explicit conversion to binary64,
-and normal interactive display for real `mp` scalars and matrices.
+and normal interactive display for the real `mp` scalars available before
+M07.  Matrix conversion/display is extended after dense storage exists.
 
 # Non-goals
 
@@ -23,16 +24,16 @@ explicit and its expected precision loss must be documented.
 
 # Implementation tasks
 
-- Define stable scalar and matrix textual forms.
+- Define a stable scalar textual form.
 - Implement `char` directly from native values.
-- Implement explicit, dimension-preserving `double` conversion.
+- Implement explicit scalar `double` conversion.
 - Implement `disp` using multiprecision formatting.
 
 # Required tests
 
-Test scalar, matrix, empty, precision-sensitive, and special-value output as
-supported. Verify deterministic text, explicit binary64 conversion and expected
-loss, and absence of hidden binary64 display conversion.
+Test scalar precision-sensitive and special-value output. Verify deterministic
+text, explicit binary64 conversion and expected loss, and absence of hidden
+binary64 display conversion.
 
 # Gate
 

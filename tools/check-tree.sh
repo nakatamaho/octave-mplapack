@@ -32,6 +32,8 @@ CONTRIBUTING.md
 DESCRIPTION
 INDEX
 inst/@mp/mp.m
+inst/@mp/horzcat.m
+inst/@mp/vertcat.m
 inst/@mp/disp.m
 inst/@mp/char.m
 inst/@mp/double.m
@@ -49,6 +51,8 @@ inst/mplapack_version.m
 src/Makefile
 src/mp_scalar_storage.h
 src/mp_scalar_storage.cc
+src/mp_precision.h
+src/mp_precision.cc
 src/mp_value.h
 src/mp_value.cc
 src/mp_convert.cc
@@ -60,6 +64,7 @@ test/run_tests.m
 test/build_probe.tst
 test/native_value.tst
 test/native_lifetime.m
+test/public_lifetime.m
 test/mp_scalar_storage_test.cc
 test/constructor.tst
 test/precision.tst
@@ -73,6 +78,7 @@ tools/local-ci.sh
 tools/build-package.sh
 docs/architecture.md
 docs/native-value-design.md
+docs/public-mp-design.md
 docs/precision-semantics.md
 docs/packaging.md
 docs/milestones/README.md
@@ -140,9 +146,9 @@ if ! cmp LICENSE COPYING; then
   exit 1
 fi
 
-if grep -Eq '__mplapack_core__|scalar_test_' INDEX; then
-  echo "FAIL: private M02 native APIs must not appear in INDEX" >&2
+if grep -Eq '__mplapack_core__|scalar_' INDEX; then
+  echo "FAIL: private native APIs must not appear in INDEX" >&2
   exit 1
 fi
 
-echo "PASS: M00/M01/M02 tree checks"
+echo "PASS: M00/M01/M02/M03 tree checks"

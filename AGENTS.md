@@ -75,6 +75,10 @@ These rules apply throughout this repository.
     type metadata or values may depend on it.
 41. Destructive LAPACK calls must use operation-owned copies rather than
     mutate shared public values.
+42. Do not represent dense `mp` matrices as arrays or cells of scalar `mp`
+    wrapper objects.
+43. Dense matrix representation, matrix construction, and matrix shape are
+    owned by M07.
 
 ## Required final milestone report
 

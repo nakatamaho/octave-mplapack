@@ -13,4 +13,9 @@
   per-object precision and immutable Octave custom-value ownership.
 - Added deep-copy, module-lifetime, sanitizer, clear/shutdown, and installed-
   package lifecycle QA for the internal native value.
-- Multiprecision user values and arithmetic are not implemented yet.
+- Added the public scalar `mp` class with direct decimal-text and exact
+  binary64 constructors at an initial project default of 128 bits.
+- Added signed-zero and special-value preservation, matrix-construction
+  firewalls, and installed public-wrapper lifecycle QA.
+- Dense multiprecision matrices, conversion, precision control, and arithmetic
+  are not implemented yet.

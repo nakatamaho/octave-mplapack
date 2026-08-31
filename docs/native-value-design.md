@@ -82,8 +82,9 @@ C++ `std::once_flag` so repeated calls cannot allocate new type identities.
 MPLAPACK's installed `mplapack_mpfr.h` declares real routines in terms of
 `mpfrxx::mpfr_class`, and `mplapack_arithmetic_params_mpfr.h` defines
 `REAL` as the same type.  The project-owned scalar storage class therefore
-contains one `mpfrxx::mpfr_class` constructed from decimal text at an explicit
-MPFR precision.
+contains one `mpfrxx::mpfr_class` initialized at an explicit MPFR precision.
+M03 sets decimal text with `mpfr_set_str` and binary64 input with `mpfr_set_d`,
+both using explicit `MPFR_RNDN` rounding.
 
 The wrapper is kept free of Octave headers.  This lets ownership and container
 behavior be tested independently under sanitizers and keeps the Octave ABI
@@ -183,7 +184,8 @@ re-audit before supporting an Octave release other than 11.1.
 
 ## Known limitations
 
-- The public `mp` constructor remains the M03 not-implemented stub.
+- M03 wraps one native scalar in a private classdef property; this document
+  continues to describe the underlying M02 value mechanics.
 - User-visible conversion and display are not implemented.
 - Matrix storage, indexing, arithmetic, and operator registration are not
   implemented.

@@ -1,9 +1,9 @@
 # octave-mplapack
 
-**Status: under development.** M00, M01, and M02 pass. M03 constructors are
-planned. M02 provides internal native MPFR scalar storage and lifecycle QA,
-but multiprecision user values, matrix arithmetic, and other numerical
-operations are not implemented yet.
+**Status: under development.** M00 through M03 pass. M04 precision control is
+planned. M03 provides a public real `mp` scalar with native MPFR storage, but
+dense matrices, conversion, arithmetic, and other numerical operations are
+not implemented yet.
 
 ## Goal
 
@@ -24,12 +24,15 @@ With the current source package installed:
 ```octave
 pkg load mplapack
 info = mplapack_version()
+
+a = mp("0.1");
+b = mp(0.1);
 ```
 
 This loads the private native module, reports the Octave, MPLAPACK, and MPFR
-versions, and executes the MPLAPACK MPFR `Rlamch_mpfr` probe. Internal scalar
-ownership is implemented and tested, but `mp()` remains an M03 stub and no
-public multiprecision value or arithmetic API is available.
+versions, and executes the MPLAPACK MPFR `Rlamch_mpfr` probe. The constructor
+creates immutable public `1 x 1` scalar values at the current internal default
+of 128 bits. Public precision configuration arrives in M04.
 
 ## Intended future API
 
@@ -60,9 +63,10 @@ mp("0.1")
 mp(0.1)
 ```
 
-The string form will parse decimal text directly at the target MPFR precision.
-The numeric form receives an already-rounded IEEE binary64 value and must
-preserve that value when converting to MPFR. See
+The string form parses decimal text directly at the target MPFR precision.
+The numeric form receives an already-rounded IEEE binary64 value and preserves
+that exact value when converting to MPFR. Thus the two `0.1` values above are
+intentionally different. See
 [`docs/precision-semantics.md`](docs/precision-semantics.md).
 
 ## Non-goals for 0.1.0
@@ -80,7 +84,7 @@ preserve that value when converting to MPFR. See
 M00  Bootstrap
 M01  Native build probe
 M02  Native mp storage
-M03  Constructors
+M03  Public scalar constructor
 M04  Precision
 M05  Conversion/display
 M06  Element-wise arithmetic
@@ -92,6 +96,6 @@ M10  First functional baseline
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M02 are complete. M03 remains planned. Consult
+M00 through M03 are complete. M04 remains planned. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

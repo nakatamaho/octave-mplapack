@@ -24,7 +24,8 @@ contract before implementation.
 
 # Implementation tasks
 
-- Define a validated default-precision configuration.
+- Expose and validate the project-owned default-precision configuration
+  established in M03.
 - Implement bit queries and updates.
 - Implement and document decimal-digit conversion.
 - Ensure newly constructed objects capture the current default.
