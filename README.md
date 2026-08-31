@@ -77,6 +77,6 @@ M10  First functional baseline
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-Only M00 is active in this bootstrap. Consult
+M00 is complete. M01 remains planned and has not started. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

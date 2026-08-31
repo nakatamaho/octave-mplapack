@@ -49,6 +49,8 @@ and correct remote exist, `topic/m00-bootstrap` exists, required files exist,
 all M00 QA passes, no unexplained artifacts remain, a commit exists, and a
 normal push succeeds. A mandatory dependency or command cannot be skipped.
 
+Result: `G00 PASS`.
+
 # Expected commit
 
 `M00: bootstrap octave-mplapack repository`

@@ -5,7 +5,7 @@ documented gate passes.
 
 | Milestone | Purpose | Status |
 |-----------|---------|--------|
-| M00 | Repository bootstrap | Active |
+| M00 | Repository bootstrap | Passed |
 | M01 | Native build probe | Planned |
 | M02 | Native `mp` storage | Planned |
 | M03 | Constructors | Planned |
