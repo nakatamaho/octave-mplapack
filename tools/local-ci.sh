@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M01 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M02 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M01 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M02 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,9 +34,14 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M01 prerequisites"
+echo "PASS: mandatory M02 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
+
+make -C src clean
+make -C src check-storage-sanitized
+echo "PASS: M02 ASan/UBSan storage and contiguous-container QA"
+make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
   root = getenv ("M01_REPO_ROOT");
@@ -192,6 +197,38 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
 
 echo "PASS: direct native/public runtime probes"
 
+M02_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
+  root = getenv ("M02_REPO_ROOT");
+  addpath (fullfile (root, "inst"));
+  addpath (fullfile (root, "src"));
+  run (fullfile (root, "test", "native_lifetime.m"));
+'
+
+M02_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
+  root = getenv ("M02_REPO_ROOT");
+  addpath (fullfile (root, "src"));
+  values = cell (1, 250);
+  for i = 1:numel (values)
+    values{i} = __mplapack_core__ (
+      "scalar_test_create", "0.125", [128, 256, 512](mod (i - 1, 3) + 1));
+  endfor
+  assert (__mplapack_core__ ("module_test_locked"));
+  fprintf ("PASS: native values left for interpreter-shutdown destruction\n");
+'
+
+M02_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
+  root = getenv ("M02_REPO_ROOT");
+  addpath (fullfile (root, "inst"));
+  try
+    mp ("1.0");
+    error ("M02 public mp constructor unexpectedly succeeded");
+  catch exception
+    assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
+    assert (! isempty (strfind (exception.message, "M03")));
+  end_try_catch
+'
+echo "PASS: M02 source lifecycle, shutdown, and public mp stub QA"
+
 make -C src clean
 negative_log=$qa_root/negative-dependency.log
 if make -C src check-deps \
@@ -212,12 +249,19 @@ make -C src
 M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
   octave --no-gui --quiet --no-init-file --eval '
     root = getenv ("M01_REPO_ROOT");
+    addpath (fullfile (root, "inst"));
     addpath (fullfile (root, "src"));
     info = __mplapack_core__ ("version");
     assert (strcmp (info.mplapack, getenv ("MPLAPACK_EXPECTED_VERSION")));
     assert (info.probe_ok);
+    run (fullfile (root, "test", "run_tests.m"));
+    value = __mplapack_core__ ("scalar_test_create", "0.1", 512);
+    value_info = __mplapack_core__ ("scalar_test_info", value);
+    assert (value_info.precision_bits == 512);
+    assert (__mplapack_core__ (
+      "scalar_test_equal_string", value, "0.1"));
   '
-echo "PASS: clean rebuild and re-test"
+echo "PASS: clean rebuild #2 and M01/M02 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -240,14 +284,17 @@ if [ "$(cut -d/ -f1 "$archive_listing" | LC_ALL=C sort -u)" != "$package_dir" ];
   exit 1
 fi
 
-for required_path in DESCRIPTION COPYING INDEX inst/ src/; do
+for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
+  src/mp_scalar_storage.h src/mp_scalar_storage.cc \
+  src/mp_value.h src/mp_value.cc test/native_value.tst \
+  test/native_lifetime.m test/mp_scalar_storage_test.cc; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -266,11 +313,9 @@ mkdir -p "$test_home" "$neutral_dir"
 
 (
   cd "$neutral_dir"
-  HOME=$test_home M01_REPO_ROOT=$repo_root M01_ARCHIVE=$archive \
-    MPLAPACK_EXPECTED_VERSION=$mplapack_version \
+  HOME=$test_home M01_ARCHIVE=$archive \
     octave --no-gui --quiet --no-init-file --eval '
       archive = getenv ("M01_ARCHIVE");
-      root = getenv ("M01_REPO_ROOT");
       pkg ("install", "-verbose", archive);
       [description, status] = pkg ("describe", "mplapack");
       assert (numel (description) == 1);
@@ -278,6 +323,15 @@ mkdir -p "$test_home" "$neutral_dir"
       metadata = description{1};
       required = {"name", "version", "date", "description"};
       assert (all (isfield (metadata, required)));
+    '
+)
+
+(
+  cd "$neutral_dir"
+  HOME=$test_home M01_REPO_ROOT=$repo_root \
+    MPLAPACK_EXPECTED_VERSION=$mplapack_version \
+    octave --no-gui --quiet --no-init-file --eval '
+      root = getenv ("M01_REPO_ROOT");
       pkg ("load", "mplapack");
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
@@ -291,6 +345,33 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (strcmp (info.backend, "mpfr"));
       assert (! isempty (info.mpfr));
       assert (info.probe_ok);
+      assert (__mplapack_core__ ("module_test_locked"));
+      run (fullfile (root, "test", "native_lifetime.m"));
+      assert (__mplapack_core__ ("module_test_locked"));
+      assert (test (fullfile (root, "test", "native_value.tst")));
+      assert (isempty (which ("scalar_test_create")));
+      try
+        mp ("1.0");
+        error ("M02 public mp constructor unexpectedly succeeded");
+      catch exception
+        assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
+        assert (! isempty (strfind (exception.message, "M03")));
+      end_try_catch
+      unload_value = __mplapack_core__ (
+        "scalar_test_create", "-2.25", 512);
+      pkg ("unload", "mplapack");
+      assert (strcmp (typeinfo (unload_value),
+                      "mplapack_mpfr_scalar_internal"));
+      disp (unload_value);
+      clear unload_value;
+      pkg ("load", "mplapack");
+      reloaded_value = __mplapack_core__ (
+        "scalar_test_create", "1.5", 256);
+      reloaded_info = __mplapack_core__ (
+        "scalar_test_info", reloaded_value);
+      assert (reloaded_info.precision_bits == 256);
+      assert (__mplapack_core__ ("module_test_locked"));
+      clear reloaded_value;
       pkg ("unload", "mplapack");
       pkg ("uninstall", "mplapack");
     '
@@ -306,10 +387,17 @@ mkdir -p "$test_home" "$neutral_dir"
 
 (
   cd "$neutral_dir"
-  HOME=$test_home M01_REPO_ROOT=$repo_root M01_ARCHIVE=$archive \
-    MPLAPACK_EXPECTED_VERSION=$mplapack_version \
+  HOME=$test_home M01_ARCHIVE=$archive \
     octave --no-gui --quiet --no-init-file --eval '
       pkg ("install", getenv ("M01_ARCHIVE"));
+    '
+)
+
+(
+  cd "$neutral_dir"
+  HOME=$test_home M01_REPO_ROOT=$repo_root \
+    MPLAPACK_EXPECTED_VERSION=$mplapack_version \
+    octave --no-gui --quiet --no-init-file --eval '
       pkg ("load", "mplapack");
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
@@ -319,11 +407,20 @@ mkdir -p "$test_home" "$neutral_dir"
       info = mplapack_version ();
       assert (strcmp (info.mplapack, getenv ("MPLAPACK_EXPECTED_VERSION")));
       assert (info.probe_ok);
+      shutdown_value = __mplapack_core__ (
+        "scalar_test_create", "0.1", 512);
+      shutdown_info = __mplapack_core__ (
+        "scalar_test_info", shutdown_value);
+      assert (shutdown_info.precision_bits == 512);
+      assert (__mplapack_core__ (
+        "scalar_test_equal_string", shutdown_value, "0.1"));
+      assert (__mplapack_core__ ("module_test_locked"));
       fprintf ("reinstalled mplapack_version: %s\n", public_path);
       fprintf ("reinstalled __mplapack_core__: %s\n", native_path);
+      fprintf ("PASS: installed value left for shutdown destruction\n");
     '
 )
 
-echo "PASS: isolated package install, metadata, load, uninstall, and reinstall"
+echo "PASS: isolated package M01/M02 install, unload safety, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M01 local CI"
+echo "PASS: M02 local CI"

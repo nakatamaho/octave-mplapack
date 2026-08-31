@@ -39,4 +39,16 @@ if [ "$failed" -ne 0 ]; then
   exit 1
 fi
 
-echo "PASS: M00/M01 formatting and sanity checks"
+for source in src/*.cc src/*.h test/*.cc; do
+  if ! grep -Fq 'SPDX-License-Identifier: BSD-2-Clause' "$source"; then
+    echo "FAIL: C++ source lacks BSD-2-Clause SPDX identifier: $source" >&2
+    failed=1
+  fi
+done
+
+if [ "$failed" -ne 0 ]; then
+  echo "FAIL: M02 source sanity checks failed" >&2
+  exit 1
+fi
+
+echo "PASS: M00/M01/M02 formatting and sanity checks"

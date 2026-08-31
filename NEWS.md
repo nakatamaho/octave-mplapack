@@ -9,4 +9,8 @@
   `mplapack_version()` diagnostic.
 - Added an MPLAPACK MPFR `Rlamch_mpfr` runtime probe, dependency/linkage QA,
   deterministic source-package generation, and isolated package-install QA.
+- Added internal RAII-backed MPLAPACK MPFR scalar storage with explicit
+  per-object precision and immutable Octave custom-value ownership.
+- Added deep-copy, module-lifetime, sanitizer, clear/shutdown, and installed-
+  package lifecycle QA for the internal native value.
 - Multiprecision user values and arithmetic are not implemented yet.

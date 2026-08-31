@@ -36,25 +36,39 @@ binary128 backends are outside this baseline.
 
 ## Native representation and ownership
 
-M00 deliberately does not fix a native representation or inheritance
-hierarchy. Before M02 chooses custom-value mechanics, it must inspect the
-installed Octave 11.x headers, the Octave 11.1 extension APIs, examples shipped
-with that installed version, and its supported custom-value mechanisms. It
-must not rely on obsolete tutorials. If Octave 8 support is later required,
-compatibility logic must be isolated instead of scattering version conditionals
-through numerical code.
+M02 establishes an internal scalar class derived from Octave 11.1's installed
+`octave_base_dld_value` API. Its registered identity is
+`mplapack_mpfr_scalar_internal`, not the future public `mp` class. The Octave
+representation owns a project `MpfrScalarStorage`, which in turn owns the same
+RAII `mpfrxx::mpfr_class` type used as MPLAPACK MPFR `REAL`. The pure storage
+layer is independent of Octave headers.
 
-The eventual native representation must:
+The native scalar:
 
-- use deterministic RAII ownership;
-- initialize and clear every MPFR value correctly;
-- copy safely and move safely when moves are used;
-- remain safe for Octave temporaries, assignments, and error paths;
-- avoid leaks and double-free defects;
-- preserve explicit precision metadata;
-- represent matrix dimensions explicitly;
-- distinguish scalar metadata from matrix storage where appropriate; and
-- avoid process-global raw-pointer registries and user-visible integer handles.
+- uses deterministic RAII ownership;
+- initializes and clears every MPFR value exactly once;
+- copies and moves safely, with copy assignment preserving source precision;
+- remains safe for Octave temporaries, assignments, and error paths;
+- stores explicit per-object precision;
+- is immutable at the Octave boundary and reports shape `1 x 1`; and
+- uses neither a process-global object registry nor user-visible pointer
+  handles.
+
+Octave assignment may share an immutable representation. `clone()` and the M02
+explicit clone diagnostic deep-copy value and precision. Future destructive
+LAPACK operations must copy public inputs into operation-owned storage. The
+matrix container, dimensions, and column-major layout remain M07 decisions;
+the selected native scalar is safe in contiguous C++ containers.
+
+Every representation's DLD-aware base retains an `octave::auto_shlib` reference
+to the containing module, including the prototype stored by type registration.
+The DLD function object is also locked when the internal type is initialized.
+Ordinary clear cannot invalidate live values. Octave 11.1 package unload
+removes the function name, but isolated lifecycle QA proves that a live value
+retains usable type/vtable metadata and is destroyed safely; package reload
+reasserts the lock without duplicate registration. Octave-specific subclass,
+type-registration, checked-cast, and function-locking code remains localized
+for future compatibility work.
 
 ## Dependency and build boundary
 
@@ -83,3 +97,9 @@ MPLAPACK MPFR backend. The private `version` command calls
 diagnostic result. The source package is generated explicitly and tested by
 installation under an isolated Octave HOME. M01 does not choose a native `mp`
 representation or implement arithmetic.
+
+M02 proves that an immutable custom Octave scalar can own, copy, clone, and
+destroy explicit-precision MPLAPACK MPFR storage safely. The private
+`__mplapack_core__` test commands exercise lifecycle behavior only. The public
+`mp()` constructor and all arithmetic remain unimplemented until later
+milestones.

@@ -7,7 +7,7 @@ documented gate passes.
 |-----------|---------|--------|
 | M00 | Repository bootstrap | Passed |
 | M01 | Native build probe | Passed |
-| M02 | Native `mp` storage | Planned |
+| M02 | Internal native MPFR scalar storage | Passed |
 | M03 | Constructors | Planned |
 | M04 | Precision API | Planned |
 | M05 | Conversion/display | Planned |

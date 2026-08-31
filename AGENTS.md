@@ -64,6 +64,18 @@ These rules apply throughout this repository.
 35. Keep compatibility code localized.
 36. Update documentation whenever public behavior changes.
 
+## Native value invariants
+
+37. Native Octave payloads are immutable.
+38. Native storage ownership remains RAII-based with explicit per-object
+    precision.
+39. Public values must never expose raw native pointers or integerized pointer
+    handles.
+40. The native module must remain safe and resident while registered native
+    type metadata or values may depend on it.
+41. Destructive LAPACK calls must use operation-owned copies rather than
+    mutate shared public values.
+
 ## Required final milestone report
 
 End every milestone report with:
