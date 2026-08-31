@@ -1,0 +1,16 @@
+name: M00 structural CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  structural-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Check required tree
+        run: tools/check-tree.sh
+      - name: Check formatting and metadata sanity
+        run: tools/check-format.sh
