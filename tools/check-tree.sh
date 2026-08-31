@@ -25,6 +25,7 @@ required_files='
 AGENTS.md
 README.md
 LICENSE
+COPYING
 NEWS.md
 CONTRIBUTING.md
 .gitignore
@@ -54,6 +55,7 @@ src/mp_blas.cc
 src/mp_lapack.cc
 src/octave_bridge.cc
 test/run_tests.m
+test/build_probe.tst
 test/constructor.tst
 test/precision.tst
 test/conversion.tst
@@ -63,6 +65,7 @@ test/gesv.tst
 tools/check-format.sh
 tools/check-tree.sh
 tools/local-ci.sh
+tools/build-package.sh
 docs/architecture.md
 docs/precision-semantics.md
 docs/packaging.md
@@ -102,7 +105,8 @@ for path in $required_files; do
   fi
 done
 
-for path in tools/check-tree.sh tools/check-format.sh tools/local-ci.sh; do
+for path in tools/check-tree.sh tools/check-format.sh tools/local-ci.sh \
+  tools/build-package.sh; do
   if [ -f "$path" ] && [ ! -x "$path" ]; then
     echo "FAIL: required script is not executable: $path" >&2
     failed=1
@@ -125,4 +129,9 @@ if [ "$failed" -ne 0 ]; then
   exit 1
 fi
 
-echo "PASS: M00 tree checks"
+if ! cmp LICENSE COPYING; then
+  echo "FAIL: LICENSE and COPYING differ" >&2
+  exit 1
+fi
+
+echo "PASS: M00/M01 tree checks"

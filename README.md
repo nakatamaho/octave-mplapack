@@ -1,7 +1,8 @@
 # octave-mplapack
 
-**Status: under development.** M00 provides the project scaffold and contracts;
-it does not provide working multiprecision arithmetic.
+**Status: under development.** M00 and M01 pass. M02, native `mp` value
+storage, is planned and has not started. Multiprecision user values, matrix
+arithmetic, and other numerical operations are not implemented yet.
 
 ## Goal
 
@@ -15,10 +16,22 @@ user-facing programming model.
 The initial backend is **MPFR real arithmetic**. MPLAPACK remains a separately
 installed dependency discovered with `pkg-config`; it is not vendored here.
 
-## Intended initial API
+## Working diagnostic
 
-The following is the target workflow through M10 and is not implemented at
-M00:
+With the M01 source package installed:
+
+```octave
+pkg load mplapack
+info = mplapack_version()
+```
+
+This loads the private native module, reports the Octave, MPLAPACK, and MPFR
+versions, and executes the MPLAPACK MPFR `Rlamch_mpfr` probe. It does not
+provide an `mp` numeric type.
+
+## Intended future API
+
+The following is the target workflow through M10 and is not implemented yet:
 
 ```octave
 pkg load mplapack
@@ -77,6 +90,6 @@ M10  First functional baseline
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 is complete. M01 remains planned and has not started. Consult
+M00 and M01 are complete. M02 remains planned. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

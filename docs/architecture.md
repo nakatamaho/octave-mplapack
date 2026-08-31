@@ -72,8 +72,14 @@ establishes a better boundary. M01 must record which installation is used and
 prove that no MPLAPACK source or build tree is required.
 
 The native bridge will use Octave's normal external-module mechanism and the
-provisional private name `__mplapack_core__.oct`. Package tooling supplies
-`mkoctfile`, and the build must respect `MKOCTFILE` rather than hard-coding an
-executable. Explicit `MPLAPACK_CFLAGS` and `MPLAPACK_LIBS` overrides may be
-supported later, but `pkg-config` remains the default. M00 introduces no CMake
-project and no native build implementation.
+private name `__mplapack_core__.oct`. Package tooling supplies `mkoctfile`, and
+the build respects `MKOCTFILE` rather than hard-coding an executable. Explicit
+`MPLAPACK_CFLAGS` and `MPLAPACK_LIBS` overrides are supported, while
+`pkg-config` remains the default.
+
+M01 proves that an Octave `.oct` module can link to and call the installed
+MPLAPACK MPFR backend. The private `version` command calls
+`Rlamch_mpfr("E")`; the public `mplapack_version()` wrapper only reports the
+diagnostic result. The source package is generated explicitly and tested by
+installation under an isolated Octave HOME. M01 does not choose a native `mp`
+representation or implement arithmetic.
