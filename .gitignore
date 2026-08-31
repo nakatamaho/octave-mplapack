@@ -8,6 +8,7 @@
 autom4te.cache/
 
 # Package archives
+dist/
 *.tar.gz
 *.tar.bz2
 *.tar.xz

@@ -7,7 +7,7 @@ cd "$repo_root"
 
 failed=0
 
-for file in $(find . -type f ! -path './.git/*' | LC_ALL=C sort); do
+for file in $(git ls-files --cached --others --exclude-standard | LC_ALL=C sort); do
   if LC_ALL=C grep -n '[[:blank:]]$' "$file" >/dev/null; then
     echo "FAIL: trailing whitespace in $file" >&2
     LC_ALL=C grep -n '[[:blank:]]$' "$file" >&2
@@ -39,4 +39,4 @@ if [ "$failed" -ne 0 ]; then
   exit 1
 fi
 
-echo "PASS: M00 formatting and sanity checks"
+echo "PASS: M00/M01 formatting and sanity checks"

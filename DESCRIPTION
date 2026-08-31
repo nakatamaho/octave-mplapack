@@ -5,4 +5,5 @@ Title: Multiple-Precision Linear Algebra with MPLAPACK
 Author: MPLAPACK contributors
 Maintainer: MPLAPACK contributors
 Description: GNU Octave interface to MPLAPACK multiple-precision linear algebra.
+Depends: octave (>= 11.1.0)
 License: BSD-2-Clause
