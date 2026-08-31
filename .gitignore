@@ -1,0 +1,18 @@
+# Native and Octave build products
+*.o
+*.oct
+*.lo
+*.la
+.libs/
+.deps/
+autom4te.cache/
+
+# Package archives
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+
+# Editor and operating-system noise
+*~
+*.swp
+.DS_Store

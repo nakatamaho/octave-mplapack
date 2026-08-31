@@ -1,0 +1,8 @@
+Name: mplapack
+Version: 0.1.0-dev
+Date: 2026-08-31
+Title: Multiple-Precision Linear Algebra with MPLAPACK
+Author: MPLAPACK contributors
+Maintainer: MPLAPACK contributors
+Description: GNU Octave interface to MPLAPACK multiple-precision linear algebra.
+License: BSD-2-Clause
