@@ -16,6 +16,7 @@ constexpr mpfr_prec_t initial_default_precision_bits = 512;
 
 mpfr_prec_t default_precision_bits () noexcept;
 void set_default_precision_bits (mpfr_prec_t precision_bits);
+void synchronize_current_thread_precision ();
 
 mpfr_prec_t bits_for_decimal_digits (precision_count_t decimal_digits);
 precision_count_t decimal_digits_for_bits (mpfr_prec_t precision_bits);

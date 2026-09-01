@@ -1,11 +1,13 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M07 pass. M08 matrix multiplication
-is planned. The package provides a public real `mp` scalar and dense matrix with
+**Status: under development.** M00 through M08 pass. M09 linear solve is next.
+The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and scalar `+`, `-`, `.*`, and
 `./`. Dense matrices use one private column-major contiguous native payload;
-matrix arithmetic and indexing are not implemented yet.
+`mtimes` uses MPLAPACK MPFR `Rgemm` under a uniform operation-precision
+calling scope. Matrix indexing, element-wise arithmetic, and matrix conversion
+remain deferred.
 
 ## Goal
 
@@ -54,6 +56,8 @@ B = mp ([1, 2;
          3, 4]);
 size (A)
 % 2 2
+C = A * A
+% native MPLAPACK MPFR Rgemm result
 ```
 
 This loads the private native module, reports the Octave, MPLAPACK, and MPFR
@@ -77,12 +81,16 @@ M07 matrix constructors preserve the same source distinction element by
 element.  A real double matrix transfers each existing binary64 value
 directly, while a text-cell matrix parses each decimal directly.  Each matrix
 has one immutable precision, contiguous column-major MPFR storage, and normal
-two-dimensional shape metadata.  `A * B`, `A \ B`, matrix element-wise
-arithmetic, indexing, and matrix conversion/display remain unimplemented.
+two-dimensional shape metadata.  M08 implements dense real `A * B` through
+MPLAPACK MPFR `Rgemm`, with result precision equal to the maximum operand
+precision and a temporary current-thread precision scope.  `A \ B`, matrix
+element-wise arithmetic, indexing, and matrix conversion/display remain
+unimplemented.
 
 ## Intended future API
 
-The following is the target workflow through M10 and is not implemented yet:
+The following workflow is available through M08; the linear solve remains
+deferred to M09:
 
 ```octave
 pkg load mplapack
@@ -97,7 +105,7 @@ x = A \ b;
 ```
 
 The completed baseline will additionally use normal Octave matrix operations
-such as `*`, `\`, and transpose. Native backend entry points stay private.
+such as `\` and transpose. Native backend entry points stay private.
 
 ## Precision warning
 
@@ -141,6 +149,6 @@ M10  First functional baseline
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M07 are complete. M08 remains planned. Consult
+M00 through M08 are complete. M09 is next. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

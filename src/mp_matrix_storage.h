@@ -28,6 +28,9 @@ public:
   MpfrMatrixStorage (std::size_t rows, std::size_t columns,
                      mpfr_prec_t precision_bits,
                      const std::vector<std::string>& column_major_values);
+  MpfrMatrixStorage (std::size_t rows, std::size_t columns,
+                     mpfr_prec_t precision_bits,
+                     const MpfrMatrixStorage& source);
   MpfrMatrixStorage (const MpfrMatrixStorage&) = default;
   MpfrMatrixStorage (MpfrMatrixStorage&&) noexcept = default;
   ~MpfrMatrixStorage () = default;

@@ -73,6 +73,7 @@ find $source_roots -type f \
   ! -path '*/.build-m02/*' \
   ! -path '*/.build-m06/*' \
   ! -path '*/.build-m07/*' \
+  ! -path '*/.build-m08/*' \
   ! -path '*/.libs/*' \
   ! -path '*/.deps/*' \
   -print | LC_ALL=C sort > "$manifest"

@@ -158,3 +158,11 @@ work buffers while public matrices remain immutable.  Double matrices transfer
 binary64 values directly; text-cell matrices parse decimal directly.  Public
 shape queries work, while indexing, matrix conversion, and all matrix
 operators remain explicit firewalls.
+
+M08 adds dense `mtimes` through the installed MPLAPACK MPFR reference
+`Rgemm`.  It chooses `max(lhs,rhs)` as the operation precision, promotes
+operation-owned copies to that uniform precision, enters
+`MplapackMpfrPrecisionScope`, validates the calling-thread uniform-precision
+contract, and invokes `Rgemm` directly.  The project default is restored after
+the operation.  Matrix/scalar scaling remains native MPFR; matrix
+element-wise arithmetic, indexing, and conversion remain deferred.

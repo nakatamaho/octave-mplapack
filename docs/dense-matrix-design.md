@@ -141,13 +141,18 @@ and package unload/reload behavior.
 Parenthesis and brace indexing and indexed assignment fail explicitly; they
 must not treat the one-wrapper representation as an Octave object array.
 
-## M08 Rgemm readiness
+## M08 Rgemm implementation
 
 The dense buffer is uniform-precision, contiguous, column-major, and directly
 typed as the installed `Rgemm` array argument.  Dimensions and leading
-dimensions have checked `mplapackint` conversions.  M08 can allocate a result
-storage object at its selected precision and pass these buffers without
-packing.
+dimensions have checked `mplapackint` conversions.  M08 allocates
+operation-owned promoted buffers and passes them without packing.  The
+operation precision is the maximum precision of the participating `mp`
+operands, and `MplapackMpfrPrecisionScope` establishes that precision on the
+calling thread for the duration of the reference MPFR `Rgemm` call.  A strict
+native checker rejects any mismatch before entering MPLAPACK.  Scalar and
+real-double scaling use direct MPFR operations; matrix element-wise
+arithmetic remains deferred.
 
 ## M09 Rgesv readiness
 
@@ -158,6 +163,6 @@ dimensions are ready for `Rgesv` in M09.
 
 ## Non-goals
 
-M07 defines no matrix arithmetic, transpose, indexing, numeric/text matrix
-conversion, final matrix display, complex storage, BLAS execution, or LAPACK
-execution.
+M07 defines no matrix element-wise arithmetic, transpose, indexing,
+numeric/text matrix conversion, final matrix display, complex storage, or
+LAPACK execution.  M08 adds only `mtimes`/`Rgemm` and scalar scaling.

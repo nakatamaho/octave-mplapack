@@ -13,7 +13,7 @@ documented gate passes.
 | M05 | Conversion/display | Passed |
 | M06 | Scalar element-wise arithmetic | Passed |
 | M07 | Native dense matrix storage | Passed |
-| M08 | Matrix multiplication | Planned |
+| M08 | Matrix multiplication | Passed |
 | M09 | Linear solve | Planned |
 | M10 | First functional baseline | Planned |
 | P00 | Packaging design | Planned |

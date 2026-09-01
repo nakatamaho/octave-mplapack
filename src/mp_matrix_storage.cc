@@ -73,6 +73,19 @@ MpfrMatrixStorage::MpfrMatrixStorage (
       throw std::invalid_argument ("invalid matrix element text");
 }
 
+MpfrMatrixStorage::MpfrMatrixStorage (
+  std::size_t rows, std::size_t columns, mpfr_prec_t precision_bits,
+  const MpfrMatrixStorage& source)
+  : MpfrMatrixStorage (rows, columns, precision_bits)
+{
+  if (source.rows () != rows || source.columns () != columns)
+    throw std::invalid_argument ("matrix promotion shape mismatch");
+
+  for (std::size_t index = 0; index < m_values.size (); ++index)
+    mpfr_set (m_values[index].mpfr_data (), source.m_values[index].mpfr_data (),
+              MPFR_RNDN);
+}
+
 MpfrMatrixStorage&
 MpfrMatrixStorage::operator= (MpfrMatrixStorage other) noexcept
 {

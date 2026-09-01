@@ -20,8 +20,9 @@ and backend-path evidence.
 Use the intended MPLAPACK MPFR GEMM routine directly on native storage. The
 result follows documented mixed-precision semantics, and tests must distinguish
 the backend path from an ordinary double implementation.
-M06 deliberately leaves even scalar `*` unsupported so `mtimes` receives one
-coherent scalar-and-matrix public contract here.
+M08 extends the scalar native multiplication path to `mtimes` and adds dense
+matrix products.  Matrix products use the uniform MPLAPACK MPFR calling
+contract and the installed reference `Rgemm` implementation.
 
 M07 supplies a uniform-precision contiguous `mpfr_class *` buffer in
 column-major order, checked `mplapackint` dimensions and leading dimensions,
@@ -32,7 +33,8 @@ without packing or changing public inputs.
 
 - Bind the appropriate MPLAPACK MPFR real GEMM entry point privately.
 - Validate dimensions and arrange leading dimensions correctly.
-- Allocate the result at `max(lhs precision, rhs precision)`.
+- Allocate the result at `max(lhs precision, rhs precision)` and establish a
+  temporary current-thread MPLAPACK MPFR precision scope at that value.
 - Add reproducible evidence that the intended backend routine executes.
 
 # Required tests

@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M07 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M08 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M07 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M08 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,15 +34,23 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M07 prerequisites"
+echo "PASS: mandatory M08 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
+
+mplapack_include_dir=$(pkg-config --variable=includedir mplapack_mpfr)
+if [ ! -f "$mplapack_include_dir/mplapack_mpfr_precision.h" ]; then
+  echo "FAIL: installed MPLAPACK precision scope header is unavailable" >&2
+  exit 1
+fi
+echo "PASS: installed MPLAPACK uniform-precision scope header"
 
 make -C src clean
 make -C src check-storage-sanitized
 make -C src check-arithmetic-sanitized
 make -C src check-matrix-sanitized
-echo "PASS: M02-M07 ASan/UBSan/LSan scalar and matrix QA"
+make -C src check-blas
+echo "PASS: M02-M08 ASan/UBSan/LSan scalar, matrix, and Rgemm QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -130,8 +138,18 @@ if ! nm -D -C "$module" | grep -Eq ' U Rlamch_mpfr\(char const\*\)$'; then
   exit 1
 fi
 
-if nm -D -C "$module" | grep -Eq ' U R(gemm|gesv)\('; then
-  echo "FAIL: M07 native module unexpectedly references Rgemm or Rgesv" >&2
+if ! nm -D -C "$module" | grep -Eq ' U Rgemm\('; then
+  echo "FAIL: M08 native module lacks an unresolved Rgemm reference" >&2
+  exit 1
+fi
+
+if nm -D -C "$module" | grep -Eq ' U Rgesv\('; then
+  echo "FAIL: M08 native module unexpectedly references Rgesv" >&2
+  exit 1
+fi
+
+if readelf -d "$module" | grep NEEDED | grep -q 'libmplapack_mpfr_opt'; then
+  echo "FAIL: M08 native module links the optimized MPFR backend" >&2
   exit 1
 fi
 
@@ -425,7 +443,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M07 re-test"
+echo "PASS: clean rebuild #2 and M01-M08 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -464,16 +482,19 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   src/mp_matrix_value.h src/mp_matrix_value.cc \
   test/mp_matrix_storage_test.cc test/matrix_storage.tst \
   test/matrix_lifetime.m \
+  src/mp_blas.h src/mp_blas.cc test/mp_blas_test.cc test/gemm.tst \
+  docs/matrix-multiplication.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
-  inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m; do
+  inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
+  inst/@mp/mrdivide.m; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -568,6 +589,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "conversion.tst")));
       assert (test (fullfile (root, "test", "arithmetic.tst")));
       assert (test (fullfile (root, "test", "matrix_storage.tst")));
+      assert (test (fullfile (root, "test", "gemm.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -739,6 +761,11 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (__mplapack_core__ (
         "matrix_test_element_equal", installed_text_matrix, 2, 2,
         installed_double_matrix, 2, 2));
+      installed_product = installed_text_matrix * installed_double_matrix;
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal_text", installed_product, 1, 1, "7"));
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal_text", installed_product, 2, 2, "22"));
       fprintf ("reinstalled mplapack_version: %s\n", public_path);
       fprintf ("reinstalled __mplapack_core__: %s\n", native_path);
       fprintf ("reinstalled mp: %s\n", constructor_path);
@@ -756,6 +783,6 @@ mkdir -p "$test_home" "$neutral_dir"
     '
 )
 
-echo "PASS: isolated package M01-M07 install, matrix QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M08 install, matrix/Rgemm QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M07 local CI"
+echo "PASS: M08 local CI"

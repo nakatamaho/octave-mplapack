@@ -215,7 +215,7 @@
 %!                     "mplapack:mp:MatrixUnsupported"));
 %!   end_try_catch
 %! endfor
-%! not_implemented = {@() A * B, @() A \ B};
+%! not_implemented = {@() A \ B};
 %! for index = 1:numel (not_implemented)
 %!   try
 %!     not_implemented{index} ();

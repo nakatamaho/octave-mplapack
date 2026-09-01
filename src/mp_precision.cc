@@ -6,6 +6,9 @@
 #include <cstdint>
 #include <stdexcept>
 
+#include <mplapack_gmpfrxx_mkII_config.h>
+#include <mpfrxx_mkII.h>
+
 namespace octave_mplapack
 {
 
@@ -91,8 +94,23 @@ void
 set_default_precision_bits (mpfr_prec_t precision_bits)
 {
   require_valid_precision (precision_bits);
+  mpfrxx::set_default_precision_bits (precision_bits);
+  if (mpfrxx::default_precision_bits () != precision_bits)
+    throw std::runtime_error (
+      "failed to synchronize the current-thread MPFR default precision");
   current_default_precision_bits.store (precision_bits,
                                         std::memory_order_relaxed);
+}
+
+void
+synchronize_current_thread_precision ()
+{
+  const mpfr_prec_t precision_bits = default_precision_bits ();
+  require_valid_precision (precision_bits);
+  mpfrxx::set_default_precision_bits (precision_bits);
+  if (mpfrxx::default_precision_bits () != precision_bits)
+    throw std::runtime_error (
+      "failed to synchronize the current-thread MPFR default precision");
 }
 
 mpfr_prec_t
