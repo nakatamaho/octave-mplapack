@@ -1,9 +1,10 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M04 pass. M05 conversion and display
-is planned. The package provides a public real `mp` scalar with native MPFR
-storage and public default-precision control, but dense matrices, conversion,
-arithmetic, and other numerical operations are not implemented yet.
+**Status: under development.** M00 through M05 pass. M06 element-wise
+arithmetic is planned. The package provides a public real `mp` scalar with
+native MPFR storage, public default-precision control, canonical scalar text,
+explicit binary64 conversion, and scalar display. Dense matrices, arithmetic,
+and other numerical operations are not implemented yet.
 
 ## Goal
 
@@ -36,6 +37,10 @@ mpbits()
 % 333
 
 c = mp("0.1");
+
+s = char(c)
+d = double(c)
+disp(c)
 ```
 
 This loads the private native module, reports the Octave, MPLAPACK, and MPFR
@@ -43,7 +48,10 @@ versions, and executes the MPLAPACK MPFR `Rlamch_mpfr` probe. The constructor
 creates immutable public `1 x 1` scalar values. A fresh process starts at 512
 bits. `mpbits` controls the canonical bit precision and `mpdigits(n)` selects
 `ceil(n * log2(10))` bits without hidden guard bits. In the example, `a` and
-`b` remain 512-bit values while `c` uses 333 bits.
+`b` remain 512-bit values while `c` uses 333 bits. `char(c)` returns canonical
+decimal text that reconstructs the same MPFR value when parsed at `c`'s
+precision. `double(c)` is an explicit, potentially lossy binary64 conversion;
+`disp(c)` prints the canonical multiprecision text.
 
 ## Intended future API
 
@@ -61,9 +69,9 @@ C = A * A;
 x = A \ b;
 ```
 
-The API will use normal Octave operations such as `+`, `-`, `.*`, `./`, `*`,
-`\`, transpose, conversion, and display. Native backend entry points will stay
-private.
+The completed baseline will additionally use normal Octave operations such as
+`+`, `-`, `.*`, `./`, `*`, `\`, and transpose. Native backend entry points
+will stay private.
 
 ## Precision warning
 
@@ -107,6 +115,6 @@ M10  First functional baseline
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M04 are complete. M05 remains planned. Consult
+M00 through M05 are complete. M06 remains planned. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

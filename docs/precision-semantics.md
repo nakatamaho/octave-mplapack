@@ -100,6 +100,18 @@ b = mp("0.1");
 
 Here `a` retains its original precision and `b` uses the new default.
 
+## Explicit scalar conversion
+
+`char(x)` formats the immutable value using `x`'s stored precision.  The
+canonical decimal is guaranteed to reconstruct the same MPFR value when read
+at that precision with `MPFR_RNDN`; it is not a precision-independent exact
+serialization.  Changing the current default cannot change existing text.
+
+`double(x)` is an explicit, potentially lossy conversion of the stored value
+to IEEE binary64 using `MPFR_RNDN`.  It never converts through decimal text.
+The presence of this explicit method does not authorize implicit binary64
+fallback in arithmetic or generic numeric functions.
+
 ## Mixed precision
 
 The initial operation rule is:

@@ -123,3 +123,14 @@ the digit getter reports `floor(p log10(2))` complete digits.  Directed MPFR
 interval calculations certify both integer conversions.  Atomic native state
 persists across clear and package unload/reload in one process, is never saved
 to disk, and is passed explicitly into each newly constructed immutable value.
+
+M05 adds logically const scalar conversion methods to `MpfrScalarStorage`.
+Canonical decimal text comes directly from `mpfr_get_str` with base 10, its
+precision-derived round-trip digit count, and `MPFR_RNDN`; MPFR-owned text is
+released by project RAII.  Explicit binary64 conversion calls `mpfr_get_d`
+with `MPFR_RNDN` and never passes through text.  Public `char` and `double`
+delegate to checked native bridge commands, while `disp` writes the same
+canonical text without observing Octave's binary64 format setting.  All
+formatting uses the immutable object's precision, not the current default.
+Arithmetic remains unsupported and does not implicitly fall back through
+`double`.

@@ -34,6 +34,8 @@ public:
   bool is_infinite () const noexcept;
   bool is_zero () const noexcept;
   bool signbit () const noexcept;
+  std::string to_canonical_string () const;
+  double to_double () const noexcept;
 
   const NativeScalar& native_value () const noexcept;
 

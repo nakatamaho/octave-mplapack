@@ -85,6 +85,13 @@ These rules apply throughout this repository.
 47. Do not use MPFR's global default precision as project semantics.
 48. `mpdigits(n)` maps to `ceil(n * log2(10))` bits with no hidden guard bits.
 49. A fresh Octave process starts with a 512-bit project default.
+50. `char(mp)` must format the native value without converting through
+    binary64.
+51. Explicit `double(mp)` uses MPFR round-to-nearest, ties-to-even.
+52. `disp(mp)` must not silently reduce precision.
+53. Scalar formatting uses the object's precision, not the current default.
+54. Conversion methods must not mutate an `mp` value or the default precision.
+55. Explicit `double(mp)` must not enable implicit arithmetic fallback.
 
 ## Required final milestone report
 

@@ -10,7 +10,7 @@ documented gate passes.
 | M02 | Internal native MPFR scalar storage | Passed |
 | M03 | Public scalar constructor and wrapper | Passed |
 | M04 | Precision API | Passed |
-| M05 | Conversion/display | Planned |
+| M05 | Conversion/display | Passed |
 | M06 | Element-wise arithmetic | Planned |
 | M07 | Matrix storage | Planned |
 | M08 | Matrix multiplication | Planned |

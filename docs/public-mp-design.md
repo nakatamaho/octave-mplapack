@@ -69,11 +69,13 @@ within one Octave process, while a new process starts at 512 bits.
 
 ## Encapsulation and display
 
-The property is private and hidden.  The minimal M03 `disp` method prints only
-`mp scalar`, so default display does not reveal the property or internal type.
-`char` and `double` remain explicit M05 stubs.  Internal test commands may
-inspect precision, exact equality, signed zero, infinity, and NaN after
-checked extraction of the private payload; they are not listed in `INDEX`.
+The property is private and hidden.  M05 `char` returns a canonical decimal
+representation produced directly from the native MPFR value, and `disp` uses
+the same text without revealing the property or internal type.  Explicit
+`double` conversion calls MPFR's binary64 conversion directly.  Internal test
+commands may inspect precision, exact equality, signed zero, infinity, and NaN
+after checked extraction of the private payload; they are not listed in
+`INDEX`.
 
 ## Scalar and matrix boundary
 
@@ -99,7 +101,6 @@ separators are rejected.
 
 - Public precision applies to subsequent construction only; per-object public
   precision mutation is not provided.
-- Numeric rendering and conversion are not implemented before M05.
 - Arithmetic and comparisons are not implemented in M03.
 - Dense matrix construction and concatenation are not implemented before
   M07.

@@ -88,7 +88,7 @@
 %! assert (columns (value), 1);
 %! assert (numel (value), 1);
 %! assert (isempty (properties (value)));
-%! assert (strcmp (strtrim (evalc ("disp (value)")), "mp scalar"));
+%! assert (strcmp (strtrim (evalc ("disp (value)")), char (value)));
 %! try
 %!   value.payload_;
 %!   error ("M03 private payload unexpectedly accessible");
@@ -164,5 +164,3 @@
 %!error <invalid scalar text> mp ("1,5")
 %!error <input must be scalar decimal text> mp (single (1))
 %!error <input must be scalar decimal text> mp (struct ())
-%!error <not implemented before M05> char (mp ("1"))
-%!error <not implemented before M05> double (mp ("1"))

@@ -21,5 +21,8 @@
   session default.
 - Added decimal-digit convenience control through `mpdigits`, using certified
   upward conversion with no hidden guard bits.
-- Dense multiprecision matrices, conversion, and arithmetic are not
-  implemented yet.
+- Added canonical, source-precision round-trip decimal conversion for scalar
+  `mp` values.
+- Added explicit round-to-nearest IEEE binary64 conversion and canonical
+  scalar multiprecision display.
+- Dense multiprecision matrices and arithmetic are not implemented yet.
