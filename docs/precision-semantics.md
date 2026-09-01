@@ -114,11 +114,15 @@ fallback in arithmetic or generic numeric functions.
 
 ## Mixed precision
 
-The initial operation rule is:
+M06 establishes the scalar `mp`/`mp` operation rule:
 
 ```text
 result precision = max(lhs precision, rhs precision)
 ```
 
-A later milestone may change this only for a strong documented reason, with
-explicit tests and migration notes for any user-visible change.
+For scalar `mp`/`double` arithmetic, result precision is the stored `mp`
+precision.  The binary64 operand is converted directly at that precision, so
+the current project default never participates in arithmetic result
+selection.  All M06 operations explicitly use `MPFR_RNDN`.  A later milestone
+may change these rules only for a strong documented reason, with explicit
+tests and migration notes for any user-visible change.

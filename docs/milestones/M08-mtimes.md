@@ -20,6 +20,8 @@ and backend-path evidence.
 Use the intended MPLAPACK MPFR GEMM routine directly on native storage. The
 result follows documented mixed-precision semantics, and tests must distinguish
 the backend path from an ordinary double implementation.
+M06 deliberately leaves even scalar `*` unsupported so `mtimes` receives one
+coherent scalar-and-matrix public contract here.
 
 # Implementation tasks
 

@@ -92,6 +92,13 @@ These rules apply throughout this repository.
 53. Scalar formatting uses the object's precision, not the current default.
 54. Conversion methods must not mutate an `mp` value or the default precision.
 55. Explicit `double(mp)` must not enable implicit arithmetic fallback.
+56. Scalar arithmetic never uses the current default precision for result
+    selection.
+57. Scalar `mp`/`mp` result precision is `max(lhs, rhs)`.
+58. Scalar `mp`/`double` result precision is the `mp` operand precision.
+59. Arithmetic operands remain immutable, and results must not be constructed
+    through text or binary64 round trips.
+60. `*` remains reserved for M08, and dense matrix arithmetic remains M07+.
 
 ## Required final milestone report
 

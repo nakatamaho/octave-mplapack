@@ -25,4 +25,8 @@
   `mp` values.
 - Added explicit round-to-nearest IEEE binary64 conversion and canonical
   scalar multiprecision display.
-- Dense multiprecision matrices and arithmetic are not implemented yet.
+- Added scalar `mp` addition and subtraction, scalar element-wise
+  multiplication and division, and unary signs.
+- Added mixed `mp`/binary64 scalar arithmetic with operand-derived precision
+  and explicit MPFR round-to-nearest semantics.
+- Dense multiprecision matrices and matrix arithmetic are not implemented yet.

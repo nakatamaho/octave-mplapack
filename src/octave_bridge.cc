@@ -5,6 +5,7 @@
 #include <exception>
 #include <mutex>
 #include <string>
+#include <utility>
 
 #include <octave/oct.h>
 #include <octave/interpreter.h>
@@ -187,6 +188,13 @@ make_internal_scalar (double value, mpfr_prec_t precision_bits)
   return octave_value ();
 }
 
+octave_value
+make_internal_scalar (octave_mplapack::MpfrScalarStorage storage)
+{
+  return octave_value (
+    new octave_mplapack_mpfr_scalar_internal (std::move (storage)));
+}
+
 double
 require_double_scalar (const octave_value& value, const char *description)
 {
@@ -227,6 +235,174 @@ require_scalar_payload (const octave_value& value)
 
   octave_mplapack_mpfr_scalar_internal::checked_value (payload);
   return payload;
+}
+
+bool
+is_mp_value (const octave_value& value)
+{
+  return (value.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+         || (value.is_classdef_object () && value.class_name () == "mp");
+}
+
+octave_value
+require_arithmetic_mp_payload (const octave_value& value)
+{
+  if (value.is_classdef_object () && value.class_name () == "mp"
+      && value.dims () != dim_vector (1, 1))
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "dense mp matrix arithmetic is not implemented before M07");
+
+  return require_scalar_payload (value);
+}
+
+double
+require_arithmetic_double (const octave_value& value)
+{
+  if (value.is_double_type ())
+    {
+      if (! value.isreal ())
+        error_with_id ("mplapack:mp:ComplexUnsupported",
+                       "complex arithmetic is not supported");
+      if (! value.is_real_scalar ())
+        error_with_id ("mplapack:mp:MatrixUnsupported",
+                       "matrix operands are not implemented before M07");
+      return value.double_value ();
+    }
+
+  if (value.isnumeric () && ! value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex arithmetic is not supported");
+
+  error_with_id ("mplapack:mp:UnsupportedOperand",
+                 "scalar arithmetic supports only mp and real double operands");
+  return 0.0;
+}
+
+enum class ScalarBinaryOperation
+{
+  add,
+  subtract,
+  multiply,
+  divide
+};
+
+octave_mplapack::MpfrScalarStorage
+apply_binary_operation (ScalarBinaryOperation operation,
+                        const octave_mplapack::MpfrScalarStorage& lhs,
+                        const octave_mplapack::MpfrScalarStorage& rhs)
+{
+  switch (operation)
+    {
+    case ScalarBinaryOperation::add:
+      return lhs.add (rhs);
+    case ScalarBinaryOperation::subtract:
+      return lhs.subtract (rhs);
+    case ScalarBinaryOperation::multiply:
+      return lhs.multiply (rhs);
+    case ScalarBinaryOperation::divide:
+      return lhs.divide (rhs);
+    }
+
+  throw std::logic_error ("unknown scalar binary operation");
+}
+
+octave_value
+scalar_binary_operation (const octave_value& lhs_value,
+                         const octave_value& rhs_value,
+                         ScalarBinaryOperation operation)
+{
+  const bool lhs_is_mp = is_mp_value (lhs_value);
+  const bool rhs_is_mp = is_mp_value (rhs_value);
+
+  if (! lhs_is_mp && ! rhs_is_mp)
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "scalar arithmetic requires at least one mp operand");
+
+  if (lhs_is_mp && rhs_is_mp)
+    {
+      const octave_value lhs_payload
+        = require_arithmetic_mp_payload (lhs_value);
+      const octave_value rhs_payload
+        = require_arithmetic_mp_payload (rhs_value);
+      const auto& lhs
+        = octave_mplapack_mpfr_scalar_internal::checked_value (
+            lhs_payload).storage ();
+      const auto& rhs
+        = octave_mplapack_mpfr_scalar_internal::checked_value (
+            rhs_payload).storage ();
+      try
+        {
+          return make_internal_scalar (
+            apply_binary_operation (operation, lhs, rhs));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:ArithmeticError", "%s",
+                         exception.what ());
+        }
+    }
+
+  if (lhs_is_mp)
+    {
+      const octave_value lhs_payload
+        = require_arithmetic_mp_payload (lhs_value);
+      const auto& lhs
+        = octave_mplapack_mpfr_scalar_internal::checked_value (
+            lhs_payload).storage ();
+      const double rhs_double = require_arithmetic_double (rhs_value);
+      try
+        {
+          const octave_mplapack::MpfrScalarStorage rhs (
+            rhs_double, lhs.precision_bits ());
+          return make_internal_scalar (
+            apply_binary_operation (operation, lhs, rhs));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:ArithmeticError", "%s",
+                         exception.what ());
+        }
+    }
+
+  const octave_value rhs_payload
+    = require_arithmetic_mp_payload (rhs_value);
+  const auto& rhs
+    = octave_mplapack_mpfr_scalar_internal::checked_value (
+        rhs_payload).storage ();
+  const double lhs_double = require_arithmetic_double (lhs_value);
+  try
+    {
+      const octave_mplapack::MpfrScalarStorage lhs (
+        lhs_double, rhs.precision_bits ());
+      return make_internal_scalar (
+        apply_binary_operation (operation, lhs, rhs));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:ArithmeticError", "%s", exception.what ());
+    }
+
+  return octave_value ();
+}
+
+octave_value
+scalar_negate (const octave_value& value)
+{
+  const octave_value payload = require_arithmetic_mp_payload (value);
+  const auto& native
+    = octave_mplapack_mpfr_scalar_internal::checked_value (
+        payload).storage ();
+  try
+    {
+      return make_internal_scalar (native.negate ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:ArithmeticError", "%s", exception.what ());
+    }
+
+  return octave_value ();
 }
 
 octave_value_list
@@ -412,6 +588,40 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       const auto& value
         = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
       return ovl (value.storage ().to_double ());
+    }
+
+  if (command == "scalar_add")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (scalar_binary_operation (
+        args(1), args(2), ScalarBinaryOperation::add));
+    }
+
+  if (command == "scalar_subtract")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (scalar_binary_operation (
+        args(1), args(2), ScalarBinaryOperation::subtract));
+    }
+
+  if (command == "scalar_multiply")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (scalar_binary_operation (
+        args(1), args(2), ScalarBinaryOperation::multiply));
+    }
+
+  if (command == "scalar_divide")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (scalar_binary_operation (
+        args(1), args(2), ScalarBinaryOperation::divide));
+    }
+
+  if (command == "scalar_negate")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (scalar_negate (args(1)));
     }
 
   if (command == "scalar_test_clone")

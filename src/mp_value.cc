@@ -3,6 +3,7 @@
 #include "mp_value.h"
 
 #include <ostream>
+#include <utility>
 
 #include <octave/error.h>
 #include <octave/ov-typeinfo.h>
@@ -37,6 +38,13 @@ octave_mplapack_mpfr_scalar_internal::
 octave_mplapack_mpfr_scalar_internal (double value,
                                       mpfr_prec_t precision_bits)
   : m_storage (value, precision_bits)
+{
+}
+
+octave_mplapack_mpfr_scalar_internal::
+octave_mplapack_mpfr_scalar_internal (
+  octave_mplapack::MpfrScalarStorage storage)
+  : m_storage (std::move (storage))
 {
 }
 

@@ -26,6 +26,10 @@ dimensions are explicit, and copies and resizing cannot leak or double-free.
 Dense matrices must not be Octave arrays or cells of independent scalar `mp`
 wrapper objects.
 
+M07 extends the operand-derived precision and immutable-result infrastructure
+proven for scalars in M06 to one native dense representation.  It owns matrix
+element-wise operations and scalar expansion decisions; M06 introduces none.
+
 # Implementation tasks
 
 - Select and document storage order, indexing, and leading dimensions.

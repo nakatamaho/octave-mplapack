@@ -6,6 +6,7 @@
 .libs/
 .deps/
 src/.build-m02/
+src/.build-m06/
 autom4te.cache/
 
 # Package archives
