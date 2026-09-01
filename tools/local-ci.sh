@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M04 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M05 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M04 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M05 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,13 +34,13 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M04 prerequisites"
+echo "PASS: mandatory M05 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
 make -C src clean
 make -C src check-storage-sanitized
-echo "PASS: M02/M03/M04 ASan/UBSan storage, constructor, and precision QA"
+echo "PASS: M02/M03/M04/M05 ASan/UBSan/LSan storage and conversion QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -281,6 +281,48 @@ M04_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
 '
 echo "PASS: M04 set-before-object, fresh-process reset, and digit construction QA"
 
+M05_REPO_ROOT=$repo_root LC_ALL=ja_JP.utf8 \
+  octave --no-gui --quiet --no-init-file --eval '
+    root = getenv ("M05_REPO_ROOT");
+    addpath (fullfile (root, "inst"));
+    addpath (fullfile (root, "src"));
+    mpbits (512);
+    value = mp ("0.1");
+    text = char (value);
+    assert (! isempty (strfind (text, ".")));
+    assert (isempty (strfind (text, ",")));
+    reconstructed = mp (text);
+    assert (__mplapack_core__ (
+      "scalar_test_equal", value, reconstructed));
+    fprintf ("PASS: M05 locale-independent canonical text\n");
+  '
+
+M05_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
+  root = getenv ("M05_REPO_ROOT");
+  addpath (fullfile (root, "inst"));
+  addpath (fullfile (root, "src"));
+  precisions = [128, 256, 333, 512, 1024];
+  for i = 1:10000
+    bits = precisions(mod (i - 1, numel (precisions)) + 1);
+    mpbits (bits);
+    value = mp ("0.1");
+    text = char (value);
+    assert (ischar (text) && rows (text) == 1);
+    assert (double (value) == 0.1);
+    if (mod (i, 1000) == 0)
+      reconstructed = mp (text);
+      assert (__mplapack_core__ (
+        "scalar_test_equal", value, reconstructed));
+    endif
+  endfor
+  shutdown_text = mp ("1.234567890123456789");
+  shutdown_double = mp (-0.0);
+  assert (! isempty (char (shutdown_text)));
+  assert (typecast (double (shutdown_double), "uint64")
+          == typecast (-0.0, "uint64"));
+  fprintf ("PASS: M05 10000-operation formatting/conversion stress and shutdown QA\n");
+'
+
 make -C src clean
 negative_log=$qa_root/negative-dependency.log
 if make -C src check-deps \
@@ -321,7 +363,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01/M02/M03/M04 re-test"
+echo "PASS: clean rebuild #2 and M01/M02/M03/M04/M05 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -350,7 +392,9 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   inst/@mp/horzcat.m inst/@mp/vertcat.m test/native_value.tst \
   inst/mpbits.m inst/mpdigits.m test/constructor.tst test/precision.tst \
   test/native_lifetime.m test/public_lifetime.m \
-  test/mp_scalar_storage_test.cc docs/public-mp-design.md; do
+  test/mp_scalar_storage_test.cc docs/public-mp-design.md \
+  test/conversion.tst docs/conversion-display.md \
+  inst/@mp/char.m inst/@mp/double.m inst/@mp/disp.m; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1
@@ -401,16 +445,25 @@ mkdir -p "$test_home" "$neutral_dir"
       constructor_path = which ("mp");
       mpbits_path = which ("mpbits");
       mpdigits_path = which ("mpdigits");
+      char_method_path = file_in_loadpath ("@mp/char.m");
+      double_method_path = file_in_loadpath ("@mp/double.m");
+      disp_method_path = file_in_loadpath ("@mp/disp.m");
       fprintf ("installed mplapack_version: %s\n", public_path);
       fprintf ("installed __mplapack_core__: %s\n", native_path);
       fprintf ("installed mp: %s\n", constructor_path);
       fprintf ("installed mpbits: %s\n", mpbits_path);
       fprintf ("installed mpdigits: %s\n", mpdigits_path);
+      fprintf ("installed @mp/char: %s\n", char_method_path);
+      fprintf ("installed @mp/double: %s\n", double_method_path);
+      fprintf ("installed @mp/disp: %s\n", disp_method_path);
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
       assert (! strncmp (constructor_path, root, length (root)));
       assert (! strncmp (mpbits_path, root, length (root)));
       assert (! strncmp (mpdigits_path, root, length (root)));
+      assert (! strncmp (char_method_path, root, length (root)));
+      assert (! strncmp (double_method_path, root, length (root)));
+      assert (! strncmp (disp_method_path, root, length (root)));
       info = mplapack_version ();
       disp (info);
       assert (strcmp (info.mplapack, getenv ("MPLAPACK_EXPECTED_VERSION")));
@@ -424,6 +477,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "native_value.tst")));
       assert (test (fullfile (root, "test", "constructor.tst")));
       assert (test (fullfile (root, "test", "precision.tst")));
+      assert (test (fullfile (root, "test", "conversion.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -434,9 +488,15 @@ mkdir -p "$test_home" "$neutral_dir"
         "scalar_test_info", state_value);
       assert (state_info.precision_bits == 256);
       unload_value = mp ("-2.25");
+      unload_text = char (unload_value);
+      unload_double = double (unload_value);
+      assert (evalc ("disp (unload_value)"), [unload_text, "\n"]);
       pkg ("unload", "mplapack");
       assert (strcmp (class (unload_value), "mp"));
       pkg ("load", "mplapack");
+      assert (char (unload_value), unload_text);
+      assert (double (unload_value), unload_double);
+      assert (evalc ("disp (unload_value)"), [unload_text, "\n"]);
       assert (mpbits () == uint64 (256));
       assert (mpdigits () == uint64 (77));
       reloaded_state_value = mp ("1");
@@ -497,12 +557,18 @@ mkdir -p "$test_home" "$neutral_dir"
       constructor_path = which ("mp");
       mpbits_path = which ("mpbits");
       mpdigits_path = which ("mpdigits");
+      char_method_path = file_in_loadpath ("@mp/char.m");
+      double_method_path = file_in_loadpath ("@mp/double.m");
+      disp_method_path = file_in_loadpath ("@mp/disp.m");
       root = getenv ("M01_REPO_ROOT");
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
       assert (! strncmp (constructor_path, root, length (root)));
       assert (! strncmp (mpbits_path, root, length (root)));
       assert (! strncmp (mpdigits_path, root, length (root)));
+      assert (! strncmp (char_method_path, root, length (root)));
+      assert (! strncmp (double_method_path, root, length (root)));
+      assert (! strncmp (disp_method_path, root, length (root)));
       assert (mpbits () == uint64 (512));
       assert (mpdigits () == uint64 (154));
       info = mplapack_version ();
@@ -532,15 +598,26 @@ mkdir -p "$test_home" "$neutral_dir"
       precision_info = __mplapack_core__ (
         "scalar_test_info", precision_value);
       assert (precision_info.precision_bits == 333);
+      conversion_value = mp ("0.1");
+      conversion_text = char (conversion_value);
+      conversion_round_trip = mp (conversion_text);
+      assert (__mplapack_core__ (
+        "scalar_test_equal", conversion_value, conversion_round_trip));
+      assert (double (conversion_value), 0.1);
+      assert (evalc ("disp (conversion_value)"),
+              [conversion_text, "\n"]);
       fprintf ("reinstalled mplapack_version: %s\n", public_path);
       fprintf ("reinstalled __mplapack_core__: %s\n", native_path);
       fprintf ("reinstalled mp: %s\n", constructor_path);
       fprintf ("reinstalled mpbits: %s\n", mpbits_path);
       fprintf ("reinstalled mpdigits: %s\n", mpdigits_path);
+      fprintf ("reinstalled @mp/char: %s\n", char_method_path);
+      fprintf ("reinstalled @mp/double: %s\n", double_method_path);
+      fprintf ("reinstalled @mp/disp: %s\n", disp_method_path);
       fprintf ("PASS: installed native/public values left for shutdown destruction\n");
     '
 )
 
-echo "PASS: isolated package M01/M02/M03/M04 install, unload state, uninstall, and reinstall"
+echo "PASS: isolated package M01-M05 install, conversion, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M04 local CI"
+echo "PASS: M05 local CI"

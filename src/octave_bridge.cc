@@ -387,6 +387,33 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       return ovl (info);
     }
 
+  if (command == "scalar_to_canonical_text")
+    {
+      require_argument_count (args, 2, command);
+      const octave_value payload = require_scalar_payload (args(1));
+      const auto& value
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
+
+      try
+        {
+          return ovl (value.storage ().to_canonical_string ());
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:ConversionError", "%s",
+                         exception.what ());
+        }
+    }
+
+  if (command == "scalar_to_double")
+    {
+      require_argument_count (args, 2, command);
+      const octave_value payload = require_scalar_payload (args(1));
+      const auto& value
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
+      return ovl (value.storage ().to_double ());
+    }
+
   if (command == "scalar_test_clone")
     {
       require_argument_count (args, 2, command);

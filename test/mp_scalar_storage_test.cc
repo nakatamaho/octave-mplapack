@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include <cassert>
+#include <cmath>
 #include <cstddef>
+#include <cstdint>
+#include <cstring>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -28,6 +31,15 @@ static_assert (std::is_nothrow_move_assignable_v<MpfrScalarStorage>);
 
 namespace
 {
+
+std::uint64_t
+double_bits (double value)
+{
+  std::uint64_t bits = 0;
+  static_assert (sizeof (bits) == sizeof (value));
+  std::memcpy (&bits, &value, sizeof (bits));
+  return bits;
+}
 
 void
 test_precision_configuration_and_conversion ()
@@ -254,6 +266,97 @@ test_constructor_rounding_is_explicit ()
 }
 
 void
+test_canonical_conversion_and_double_conversion ()
+{
+  MpfrScalarStorage one ("1", 512);
+  MpfrScalarStorage negative_one ("-1", 512);
+  MpfrScalarStorage dyadic ("0.125", 512);
+  assert (one.to_canonical_string () == "1e+0");
+  assert (negative_one.to_canonical_string () == "-1e+0");
+  assert (dyadic.to_canonical_string () == "1.25e-1");
+
+  const mpfr_prec_t precisions[] = {128, 256, 333, 512, 1024};
+  const char *texts[] = {
+    "1", "-1", "0.125", "0.1", "1.234567890123456789",
+    "1e100", "1e-100"
+  };
+  for (const mpfr_prec_t precision : precisions)
+    for (const char *text : texts)
+      {
+        MpfrScalarStorage original (text, precision);
+        const std::string canonical = original.to_canonical_string ();
+        MpfrScalarStorage reconstructed (canonical, precision);
+        assert (original.exactly_equal (reconstructed));
+      }
+
+  MpfrScalarStorage positive_zero (0.0, 512);
+  MpfrScalarStorage negative_zero (-0.0, 512);
+  MpfrScalarStorage positive_infinity (
+    std::numeric_limits<double>::infinity (), 512);
+  MpfrScalarStorage negative_infinity (
+    -std::numeric_limits<double>::infinity (), 512);
+  MpfrScalarStorage not_a_number (
+    std::numeric_limits<double>::quiet_NaN (), 512);
+  assert (positive_zero.to_canonical_string () == "0");
+  assert (negative_zero.to_canonical_string () == "-0");
+  assert (positive_infinity.to_canonical_string () == "Inf");
+  assert (negative_infinity.to_canonical_string () == "-Inf");
+  assert (not_a_number.to_canonical_string () == "NaN");
+  assert (double_bits (positive_zero.to_double ()) == double_bits (0.0));
+  assert (double_bits (negative_zero.to_double ()) == double_bits (-0.0));
+  assert (std::isinf (positive_infinity.to_double ())
+          && positive_infinity.to_double () > 0.0);
+  assert (std::isinf (negative_infinity.to_double ())
+          && negative_infinity.to_double () < 0.0);
+  assert (std::isnan (not_a_number.to_double ()));
+
+  const double binary64_values[] = {
+    0.0,
+    -0.0,
+    1.0,
+    -1.0,
+    0.5,
+    0.1,
+    std::numeric_limits<double>::min (),
+    std::numeric_limits<double>::max (),
+    std::numeric_limits<double>::denorm_min (),
+    std::nextafter (1.0, 2.0)
+  };
+  for (const double value : binary64_values)
+    {
+      MpfrScalarStorage stored (value, 512);
+      assert (double_bits (stored.to_double ()) == double_bits (value));
+    }
+
+  MpfrScalarStorage halfway (
+    "1.00000000000000011102230246251565404236316680908203125", 256);
+  assert (double_bits (halfway.to_double ()) == double_bits (1.0));
+
+  MpfrScalarStorage overflow ("1e10000", 256);
+  MpfrScalarStorage underflow ("1e-10000", 256);
+  MpfrScalarStorage negative_underflow ("-1e-10000", 256);
+  assert (std::isinf (overflow.to_double ()));
+  assert (double_bits (underflow.to_double ()) == double_bits (0.0));
+  assert (double_bits (negative_underflow.to_double ())
+          == double_bits (-0.0));
+
+  const mpfr_rnd_t saved_rounding = mpfr_get_default_rounding_mode ();
+  mpfr_set_default_rounding_mode (MPFR_RNDD);
+  const std::string downward_text = halfway.to_canonical_string ();
+  const std::uint64_t downward_double = double_bits (halfway.to_double ());
+  mpfr_set_default_rounding_mode (MPFR_RNDU);
+  assert (halfway.to_canonical_string () == downward_text);
+  assert (double_bits (halfway.to_double ()) == downward_double);
+  mpfr_set_default_rounding_mode (saved_rounding);
+
+  MpfrScalarStorage large ("0.1", 8192);
+  const std::string large_text = large.to_canonical_string ();
+  MpfrScalarStorage large_round_trip (large_text, 8192);
+  assert (large.exactly_equal (large_round_trip));
+  assert (large.to_double () == 0.1);
+}
+
+void
 test_contiguous_container_and_stress ()
 {
   constexpr std::size_t iterations = 10000;
@@ -270,6 +373,10 @@ test_contiguous_container_and_stress ()
       MpfrScalarStorage copy (values.back ());
       assert (copy.precision_bits () == precision);
       assert (copy.exactly_equal (values.back ()));
+      const std::string canonical = copy.to_canonical_string ();
+      MpfrScalarStorage reconstructed (canonical, precision);
+      assert (copy.exactly_equal (reconstructed));
+      static_cast<void> (copy.to_double ());
 
       if ((i % 17) == 0)
         {
@@ -302,6 +409,7 @@ main ()
   test_precision_and_parsing ();
   test_double_construction_and_special_values ();
   test_constructor_rounding_is_explicit ();
+  test_canonical_conversion_and_double_conversion ();
   test_contiguous_container_and_stress ();
   return 0;
 }

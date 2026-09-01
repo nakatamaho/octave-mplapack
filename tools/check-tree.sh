@@ -79,6 +79,7 @@ tools/build-package.sh
 docs/architecture.md
 docs/native-value-design.md
 docs/public-mp-design.md
+docs/conversion-display.md
 docs/precision-semantics.md
 docs/packaging.md
 docs/milestones/README.md
@@ -151,4 +152,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00/M01/M02/M03/M04 tree checks"
+echo "PASS: M00/M01/M02/M03/M04/M05 tree checks"

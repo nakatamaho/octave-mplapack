@@ -12,3 +12,5 @@ assert (test (fullfile (test_dir, "constructor.tst"), "quiet", stdout));
 fprintf ("PASS: M03 public scalar constructor tests\n");
 assert (test (fullfile (test_dir, "precision.tst"), "quiet", stdout));
 fprintf ("PASS: M04 public precision tests\n");
+assert (test (fullfile (test_dir, "conversion.tst"), "quiet", stdout));
+fprintf ("PASS: M05 scalar conversion and display tests\n");

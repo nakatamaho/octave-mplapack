@@ -2,7 +2,8 @@
 
 # Goal
 
-Implement `char(A)`, `double(A)`, and `disp(A)`.
+Implement scalar `char(A)`, `double(A)`, and `disp(A)` without implicit
+precision loss.
 
 # Scope
 
@@ -18,29 +19,35 @@ M07.  Matrix conversion/display is extended after dense storage exists.
 
 # Design constraints
 
-Display must format native multiprecision values without silently converting
-through binary64. Text must be deterministic enough for tests. `double(A)` is
-explicit and its expected precision loss must be documented.
+Display formats native multiprecision values without converting through
+binary64.  Canonical text uses normalized scientific notation, special forms
+`0`, `-0`, `Inf`, `-Inf`, and `NaN`, and enough base-10 digits for exact
+source-precision reconstruction.  `double(A)` is explicit and uses MPFR RNDN.
 
 # Implementation tasks
 
-- Define a stable scalar textual form.
-- Implement `char` directly from native values.
-- Implement explicit scalar `double` conversion.
-- Implement `disp` using multiprecision formatting.
+- Define a stable normalized scalar textual form.
+- Use `mpfr_get_str` and `mpfr_free_str` through project RAII.
+- Implement `char` directly from immutable native values.
+- Implement explicit scalar `double` with `mpfr_get_d` and `MPFR_RNDN`.
+- Implement `disp` using the canonical text independently of Octave format.
 
 # Required tests
 
-Test scalar precision-sensitive and special-value output. Verify deterministic
-text, explicit binary64 conversion and expected loss, and absence of hidden
-binary64 display conversion.
+Test exact native round-trip at 128, 256, 333, 512, and 1024 bits; signed zero
+and special values; locale and default-precision independence; binary64 bit
+patterns, subnormal/overflow/underflow, and a tie-to-even midpoint; bare and
+explicit display; sanitizer ownership; implicit-conversion and matrix
+firewalls; and isolated installed-package lifecycle.
 
 # Gate
 
-`G05` passes when conversion and display behavior is documented, deterministic
-where required, and never silently substitutes binary64. This gate is planned
-and is not passed by M00.
+`G05` passes when scalar conversion and display behavior is documented,
+source-precision round-trip and binary64 rounding tests pass, no unsupported
+operation silently substitutes binary64, and M01-M04 plus installed-package
+QA remain passing.  G05 passed on the configured Octave 11.1 / MPFR 4.2.2 /
+MPLAPACK 3.0.1 environment.
 
 # Expected commit
 
-`M05: implement mp conversion and display`
+`M05: add scalar conversion and display`
