@@ -16,3 +16,5 @@ assert (test (fullfile (test_dir, "conversion.tst"), "quiet", stdout));
 fprintf ("PASS: M05 scalar conversion and display tests\n");
 assert (test (fullfile (test_dir, "arithmetic.tst"), "quiet", stdout));
 fprintf ("PASS: M06 scalar arithmetic tests\n");
+assert (test (fullfile (test_dir, "matrix_storage.tst"), "quiet", stdout));
+fprintf ("PASS: M07 native dense matrix storage tests\n");

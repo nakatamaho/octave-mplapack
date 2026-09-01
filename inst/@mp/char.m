@@ -11,9 +11,13 @@
 ## @end deftypefn
 
 function text = char (value)
-  if (nargin != 1 || ! isa (value, "mp") || ! isscalar (value))
+  if (nargin != 1 || ! isa (value, "mp"))
     error ("mplapack:mp:InvalidInput", ...
            "char expects one scalar mp value");
+  endif
+  if (__mplapack_core__ ("value_is_matrix", value))
+    error ("mplapack:mp:MatrixConversionUnsupported", ...
+           "char conversion for dense mp matrices is not implemented in M07");
   endif
 
   text = __mplapack_core__ ("scalar_to_canonical_text", value);

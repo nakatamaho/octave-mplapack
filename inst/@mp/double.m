@@ -8,9 +8,13 @@
 ## @end deftypefn
 
 function value = double (input)
-  if (nargin != 1 || ! isa (input, "mp") || ! isscalar (input))
+  if (nargin != 1 || ! isa (input, "mp"))
     error ("mplapack:mp:InvalidInput", ...
            "double expects one scalar mp value");
+  endif
+  if (__mplapack_core__ ("value_is_matrix", input))
+    error ("mplapack:mp:MatrixConversionUnsupported", ...
+           "double conversion for dense mp matrices is not implemented in M07");
   endif
 
   value = __mplapack_core__ ("scalar_to_double", input);

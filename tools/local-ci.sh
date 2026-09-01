@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M06 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M07 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M06 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M07 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,14 +34,15 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M06 prerequisites"
+echo "PASS: mandatory M07 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
 make -C src clean
 make -C src check-storage-sanitized
 make -C src check-arithmetic-sanitized
-echo "PASS: M02-M06 ASan/UBSan/LSan storage, conversion, and arithmetic QA"
+make -C src check-matrix-sanitized
+echo "PASS: M02-M07 ASan/UBSan/LSan scalar and matrix QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -129,6 +130,11 @@ if ! nm -D -C "$module" | grep -Eq ' U Rlamch_mpfr\(char const\*\)$'; then
   exit 1
 fi
 
+if nm -D -C "$module" | grep -Eq ' U R(gemm|gesv)\('; then
+  echo "FAIL: M07 native module unexpectedly references Rgemm or Rgesv" >&2
+  exit 1
+fi
+
 module_relocations=$(ldd -r "$module" 2>&1)
 if printf '%s\n' "$module_relocations" | grep -q 'not found'; then
   printf '%s\n' "$module_relocations" >&2
@@ -204,6 +210,7 @@ M03_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
   addpath (fullfile (root, "src"));
   run (fullfile (root, "test", "native_lifetime.m"));
   run (fullfile (root, "test", "public_lifetime.m"));
+  run (fullfile (root, "test", "matrix_lifetime.m"));
 '
 
 M03_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -351,6 +358,33 @@ M06_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
   fprintf ("PASS: M06 10000-operation public arithmetic stress QA\n");
 '
 
+M07_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
+  root = getenv ("M07_REPO_ROOT");
+  addpath (fullfile (root, "inst"));
+  addpath (fullfile (root, "src"));
+  assert (mpbits () == uint64 (512));
+  for i = 1:1000
+    rows_count = mod (i, 7);
+    columns_count = mod (i * 3, 9);
+    mpbits ([32, 128, 256, 333, 512, 1024](mod (i - 1, 6) + 1));
+    if (rows_count * columns_count == 0)
+      value = zeros (rows_count, columns_count);
+    else
+      value = reshape (1:(rows_count * columns_count),
+                       rows_count, columns_count);
+    endif
+    matrix = mp (value);
+    assert (size (matrix), [rows_count, columns_count]);
+    info = __mplapack_core__ ("matrix_test_info", matrix);
+    assert (info.all_elements_same_precision);
+  endfor
+  large = mp (ones (64, 64));
+  large_copy = mp (large);
+  assert (size (large_copy), [64, 64]);
+  assert (__mplapack_core__ ("module_test_locked"));
+  fprintf ("PASS: M07 1000-matrix lifecycle and 64x64 public smoke QA\n");
+'
+
 make -C src clean
 negative_log=$qa_root/negative-dependency.log
 if make -C src check-deps \
@@ -391,7 +425,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M06 re-test"
+echo "PASS: clean rebuild #2 and M01-M07 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -425,14 +459,21 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   inst/@mp/char.m inst/@mp/double.m inst/@mp/disp.m \
   src/mp_arithmetic.cc test/mp_scalar_arithmetic_test.cc \
   test/arithmetic.tst docs/scalar-arithmetic.md \
-  inst/@mp/uplus.m inst/@mp/uminus.m; do
+  inst/@mp/uplus.m inst/@mp/uminus.m \
+  src/mp_matrix_storage.h src/mp_matrix_storage.cc \
+  src/mp_matrix_value.h src/mp_matrix_value.cc \
+  test/mp_matrix_storage_test.cc test/matrix_storage.tst \
+  test/matrix_lifetime.m \
+  docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
+  inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
+  inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -482,6 +523,8 @@ mkdir -p "$test_home" "$neutral_dir"
       plus_method_path = file_in_loadpath ("@mp/plus.m");
       uplus_method_path = file_in_loadpath ("@mp/uplus.m");
       uminus_method_path = file_in_loadpath ("@mp/uminus.m");
+      size_method_path = file_in_loadpath ("@mp/size.m");
+      subsref_method_path = file_in_loadpath ("@mp/subsref.m");
       fprintf ("installed mplapack_version: %s\n", public_path);
       fprintf ("installed __mplapack_core__: %s\n", native_path);
       fprintf ("installed mp: %s\n", constructor_path);
@@ -493,6 +536,8 @@ mkdir -p "$test_home" "$neutral_dir"
       fprintf ("installed @mp/plus: %s\n", plus_method_path);
       fprintf ("installed @mp/uplus: %s\n", uplus_method_path);
       fprintf ("installed @mp/uminus: %s\n", uminus_method_path);
+      fprintf ("installed @mp/size: %s\n", size_method_path);
+      fprintf ("installed @mp/subsref: %s\n", subsref_method_path);
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
       assert (! strncmp (constructor_path, root, length (root)));
@@ -504,6 +549,8 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (plus_method_path, root, length (root)));
       assert (! strncmp (uplus_method_path, root, length (root)));
       assert (! strncmp (uminus_method_path, root, length (root)));
+      assert (! strncmp (size_method_path, root, length (root)));
+      assert (! strncmp (subsref_method_path, root, length (root)));
       info = mplapack_version ();
       disp (info);
       assert (strcmp (info.mplapack, getenv ("MPLAPACK_EXPECTED_VERSION")));
@@ -513,12 +560,14 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (__mplapack_core__ ("module_test_locked"));
       run (fullfile (root, "test", "native_lifetime.m"));
       run (fullfile (root, "test", "public_lifetime.m"));
+      run (fullfile (root, "test", "matrix_lifetime.m"));
       assert (__mplapack_core__ ("module_test_locked"));
       assert (test (fullfile (root, "test", "native_value.tst")));
       assert (test (fullfile (root, "test", "constructor.tst")));
       assert (test (fullfile (root, "test", "precision.tst")));
       assert (test (fullfile (root, "test", "conversion.tst")));
       assert (test (fullfile (root, "test", "arithmetic.tst")));
+      assert (test (fullfile (root, "test", "matrix_storage.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -529,6 +578,7 @@ mkdir -p "$test_home" "$neutral_dir"
         "scalar_test_info", state_value);
       assert (state_info.precision_bits == 256);
       unload_value = mp ("-2.25");
+      unload_matrix = mp ({"1", "2"; "3", "4"});
       unload_result = unload_value + mp ("0.25");
       unload_result_text = char (unload_result);
       unload_text = char (unload_value);
@@ -536,7 +586,14 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (evalc ("disp (unload_value)"), [unload_text, "\n"]);
       pkg ("unload", "mplapack");
       assert (strcmp (class (unload_value), "mp"));
+      assert (strcmp (class (unload_matrix), "mp"));
       pkg ("load", "mplapack");
+      assert (size (unload_matrix), [2, 2]);
+      unload_matrix_info = __mplapack_core__ (
+        "matrix_test_info", unload_matrix);
+      assert (unload_matrix_info.precision_bits == 256);
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal_text", unload_matrix, 2, 2, "4"));
       assert (char (unload_value), unload_text);
       assert (char (unload_result), unload_result_text);
       assert (double (unload_value), unload_double);
@@ -553,11 +610,14 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (__mplapack_core__ (
         "scalar_test_equal_string", unload_value, "-2.25"));
       clear unload_value unload_result unload_info state_value state_info;
+      clear unload_matrix unload_matrix_info;
       clear reloaded_state_value reloaded_state_info;
       destroy_while_unloaded = mp ("1.5");
+      destroy_matrix_while_unloaded = mp ([1, 2; 3, 4]);
       pkg ("unload", "mplapack");
       assert (strcmp (class (destroy_while_unloaded), "mp"));
       clear destroy_while_unloaded;
+      clear destroy_matrix_while_unloaded;
       pkg ("load", "mplapack");
       reloaded_value = __mplapack_core__ (
         "scalar_test_create", "1.5", 256);
@@ -607,6 +667,8 @@ mkdir -p "$test_home" "$neutral_dir"
       plus_method_path = file_in_loadpath ("@mp/plus.m");
       uplus_method_path = file_in_loadpath ("@mp/uplus.m");
       uminus_method_path = file_in_loadpath ("@mp/uminus.m");
+      size_method_path = file_in_loadpath ("@mp/size.m");
+      subsref_method_path = file_in_loadpath ("@mp/subsref.m");
       root = getenv ("M01_REPO_ROOT");
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
@@ -619,6 +681,8 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (plus_method_path, root, length (root)));
       assert (! strncmp (uplus_method_path, root, length (root)));
       assert (! strncmp (uminus_method_path, root, length (root)));
+      assert (! strncmp (size_method_path, root, length (root)));
+      assert (! strncmp (subsref_method_path, root, length (root)));
       assert (mpbits () == uint64 (512));
       assert (mpdigits () == uint64 (154));
       info = mplapack_version ();
@@ -666,6 +730,15 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (__mplapack_core__ (
         "scalar_test_equal_string", arithmetic_lhs .* arithmetic_rhs,
         "0.625"));
+      installed_text_matrix = mp ({"1", "2"; "3", "4"});
+      installed_double_matrix = mp ([1, 2; 3, 4]);
+      assert (size (installed_text_matrix), [2, 2]);
+      assert (rows (installed_double_matrix), 2);
+      assert (columns (installed_double_matrix), 2);
+      assert (numel (installed_double_matrix), 4);
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal", installed_text_matrix, 2, 2,
+        installed_double_matrix, 2, 2));
       fprintf ("reinstalled mplapack_version: %s\n", public_path);
       fprintf ("reinstalled __mplapack_core__: %s\n", native_path);
       fprintf ("reinstalled mp: %s\n", constructor_path);
@@ -677,10 +750,12 @@ mkdir -p "$test_home" "$neutral_dir"
       fprintf ("reinstalled @mp/plus: %s\n", plus_method_path);
       fprintf ("reinstalled @mp/uplus: %s\n", uplus_method_path);
       fprintf ("reinstalled @mp/uminus: %s\n", uminus_method_path);
-      fprintf ("PASS: installed native/public values left for shutdown destruction\n");
+      fprintf ("reinstalled @mp/size: %s\n", size_method_path);
+      fprintf ("reinstalled @mp/subsref: %s\n", subsref_method_path);
+      fprintf ("PASS: installed scalar/matrix values left for shutdown destruction\n");
     '
 )
 
-echo "PASS: isolated package M01-M06 install, arithmetic, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M07 install, matrix QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M06 local CI"
+echo "PASS: M07 local CI"

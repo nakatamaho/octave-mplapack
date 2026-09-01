@@ -3,18 +3,19 @@
 classdef mp
   ## -*- texinfo -*-
   ## @deftypefn {} {@var{x} =} mp (@var{value})
-  ## Construct a real multiprecision scalar.
+  ## Construct a real multiprecision scalar or dense matrix.
   ##
-  ## @var{value} may be scalar decimal text, a real scalar @code{double}, or
-  ## an existing scalar @code{mp}.  Decimal text is parsed directly at the
-  ## current project precision.  A @code{double} input preserves the exact
-  ## numerical value of the already-rounded IEEE binary64 input.
+  ## @var{value} may be scalar decimal text, a real @code{double} scalar or
+  ## matrix, a two-dimensional cell matrix of scalar decimal text, or an
+  ## existing @code{mp}.  Text is parsed directly at the current project
+  ## precision.  @code{double} input preserves each already-rounded IEEE
+  ## binary64 value exactly when transferring it to MPFR.
   ##
-  ## M06 supports scalars only.  Use @code{mpbits} or @code{mpdigits} to set
-  ## the default precision for subsequent values.  Use @code{char},
-  ## @code{double}, and @code{disp} for explicit scalar conversion and
-  ## display.  Scalar @code{+}, @code{-}, @code{.*}, and @code{./} are
-  ## supported.  Matrices, complex values, and matrix operators are not.
+  ## Empty real matrices retain their two-dimensional shape.  A @code{1x1}
+  ## numeric or text-cell input normalizes to the canonical scalar payload.
+  ## M07 does not implement matrix indexing, matrix arithmetic, matrix
+  ## conversion, transpose, multiplication, or linear solve.  Complex,
+  ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
   ## @end deftypefn
 
   properties (Access = private, Hidden = true)
@@ -30,10 +31,6 @@ classdef mp
       value = varargin{1};
 
       if (isa (value, "mp"))
-        if (! isscalar (value))
-          error ("mplapack:mp:MatrixUnsupported", ...
-                 "dense mp matrices are not implemented before M07");
-        endif
         obj = value;
         return;
       endif
@@ -52,21 +49,43 @@ classdef mp
       endif
 
       if (isa (value, "double"))
-        if (isempty (value) || ! isscalar (value))
-          error ("mplapack:mp:MatrixUnsupported", ...
-                 "dense mp matrices are not implemented before M07");
-        endif
         if (! isreal (value))
-          error ("mplapack:mp:ComplexUnsupported", ...
-                 "complex mp values are not supported");
+          if (isscalar (value))
+            error ("mplapack:mp:ComplexUnsupported", ...
+                   "complex mp values are not supported");
+          else
+            error ("mplapack:mp:ComplexUnsupported", ...
+                   "complex mp matrices are not supported");
+          endif
         endif
-        obj.payload_ = __mplapack_core__ ("scalar_create_double", value);
+        if (ndims (value) != 2)
+          error ("mplapack:mp:MatrixUnsupported", ...
+                 "only two-dimensional mp matrices are supported");
+        endif
+        if (numel (value) == 1)
+          obj.payload_ = __mplapack_core__ ("scalar_create_double", value);
+        else
+          obj.payload_ = __mplapack_core__ ("matrix_create_double", value);
+        endif
         return;
       endif
 
       if (iscell (value))
-        error ("mplapack:mp:MatrixUnsupported", ...
-               "cell-based mp matrices are not implemented before M07");
+        if (ndims (value) != 2)
+          error ("mplapack:mp:MatrixUnsupported", ...
+                 "only two-dimensional mp matrices are supported");
+        endif
+        if (numel (value) == 1)
+          element = value{1};
+          if (! ischar (element) || isempty (element) || rows (element) != 1)
+            error ("mplapack:mp:InvalidInput", ...
+                   "a 1x1 cell constructor requires one nonempty text row");
+          endif
+          obj.payload_ = __mplapack_core__ ("scalar_create_text", element);
+        else
+          obj.payload_ = __mplapack_core__ ("matrix_create_text_cell", value);
+        endif
+        return;
       endif
 
       if (isnumeric (value) && (! isreal (value)))
@@ -75,7 +94,8 @@ classdef mp
       endif
 
       error ("mplapack:mp:InvalidInput", ...
-             "mp input must be scalar decimal text, a real double scalar, or mp");
+             ["mp input must be decimal text, a real double scalar/matrix, ", ...
+              "a text cell matrix, or mp"]);
     endfunction
   endmethods
 endclassdef

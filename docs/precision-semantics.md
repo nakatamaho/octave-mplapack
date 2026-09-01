@@ -34,7 +34,8 @@ M03 initially established the project-owned state at 128 bits.  M04 changes
 the fresh-session initial default to 512 bits and exposes that same state
 through `mpbits` and `mpdigits`; there is no second setting.  Constructors read
 the current value from the internal precision component and pass it explicitly
-to each new native scalar.  Normal construction does not use MPFR's mutable
+to each new native scalar or uniform-precision dense matrix.  Normal
+construction does not use MPFR's mutable
 process-global default.
 
 M03 scalar construction uses explicit MPFR round-to-nearest (`MPFR_RNDN`) for
@@ -99,6 +100,10 @@ b = mp("0.1");
 ```
 
 Here `a` retains its original precision and `b` uses the new default.
+
+M07 applies the same invariant to matrices.  One matrix has one immutable
+precision, every element is explicitly initialized at that precision, and
+later default changes do not alter matrix metadata or element values.
 
 ## Explicit scalar conversion
 

@@ -12,7 +12,7 @@ documented gate passes.
 | M04 | Precision API | Passed |
 | M05 | Conversion/display | Passed |
 | M06 | Scalar element-wise arithmetic | Passed |
-| M07 | Matrix storage | Planned |
+| M07 | Native dense matrix storage | Passed |
 | M08 | Matrix multiplication | Planned |
 | M09 | Linear solve | Planned |
 | M10 | First functional baseline | Planned |

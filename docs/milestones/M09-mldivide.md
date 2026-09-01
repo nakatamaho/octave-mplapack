@@ -25,6 +25,11 @@ status must become a clear Octave-level result or diagnostic.
 M06 deliberately leaves scalar `\` unsupported so this milestone defines one
 coherent public solve contract through the MPLAPACK MPFR backend.
 
+M07 supplies deep native copies with independent contiguous buffers, checked
+`mplapackint` dimensions, column-major layout, and verified leading
+dimensions.  M09 must mutate only those operation-owned work copies so public
+inputs remain immutable.
+
 # Implementation tasks
 
 - Bind the selected MPLAPACK MPFR solve routine privately.
