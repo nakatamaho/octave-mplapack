@@ -23,6 +23,11 @@ the backend path from an ordinary double implementation.
 M06 deliberately leaves even scalar `*` unsupported so `mtimes` receives one
 coherent scalar-and-matrix public contract here.
 
+M07 supplies a uniform-precision contiguous `mpfr_class *` buffer in
+column-major order, checked `mplapackint` dimensions and leading dimensions,
+and operation-owned result allocation primitives.  M08 must use that contract
+without packing or changing public inputs.
+
 # Implementation tasks
 
 - Bind the appropriate MPLAPACK MPFR real GEMM entry point privately.

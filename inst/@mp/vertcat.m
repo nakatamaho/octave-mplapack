@@ -2,5 +2,5 @@
 
 function result = vertcat (varargin)
   error ("mplapack:mp:MatrixUnsupported", ...
-         "mp concatenation is not implemented before M07");
+         "arrays of scalar mp wrappers are forbidden; use the native matrix constructor");
 endfunction

@@ -43,6 +43,14 @@ inst/@mp/times.m
 inst/@mp/rdivide.m
 inst/@mp/uplus.m
 inst/@mp/uminus.m
+inst/@mp/size.m
+inst/@mp/rows.m
+inst/@mp/columns.m
+inst/@mp/numel.m
+inst/@mp/ndims.m
+inst/@mp/isempty.m
+inst/@mp/subsref.m
+inst/@mp/subsasgn.m
 inst/@mp/mtimes.m
 inst/@mp/mldivide.m
 inst/@mp/transpose.m
@@ -59,6 +67,10 @@ src/mp_value.h
 src/mp_value.cc
 src/mp_convert.cc
 src/mp_arithmetic.cc
+src/mp_matrix_storage.h
+src/mp_matrix_storage.cc
+src/mp_matrix_value.h
+src/mp_matrix_value.cc
 src/mp_blas.cc
 src/mp_lapack.cc
 src/octave_bridge.cc
@@ -69,10 +81,13 @@ test/native_lifetime.m
 test/public_lifetime.m
 test/mp_scalar_storage_test.cc
 test/mp_scalar_arithmetic_test.cc
+test/mp_matrix_storage_test.cc
 test/constructor.tst
 test/precision.tst
 test/conversion.tst
 test/arithmetic.tst
+test/matrix_storage.tst
+test/matrix_lifetime.m
 test/gemm.tst
 test/gesv.tst
 tools/check-format.sh
@@ -84,6 +99,7 @@ docs/native-value-design.md
 docs/public-mp-design.md
 docs/conversion-display.md
 docs/scalar-arithmetic.md
+docs/dense-matrix-design.md
 docs/precision-semantics.md
 docs/packaging.md
 docs/milestones/README.md
@@ -156,4 +172,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00/M01/M02/M03/M04/M05/M06 tree checks"
+echo "PASS: M00-M07 tree checks"

@@ -99,6 +99,16 @@ These rules apply throughout this repository.
 59. Arithmetic operands remain immutable, and results must not be constructed
     through text or binary64 round trips.
 60. `*` remains reserved for M08, and dense matrix arithmetic remains M07+.
+61. A dense `mp` matrix is one native dense payload, never an array or cell of
+    scalar `mp` wrappers.
+62. Dense matrix storage is contiguous and column-major, with one uniform
+    explicit precision for every element.
+63. Dense storage must be directly compatible with MPLAPACK MPFR `REAL *`
+    without packing or pointer reinterpretation.
+64. Dense public payloads remain immutable; destructive native algorithms use
+    deep operation-owned copies.
+65. Public matrix indexing is not implemented in M07.
+66. `Rgemm` is forbidden before M08 and `Rgesv` is forbidden before M09.
 
 ## Required final milestone report
 

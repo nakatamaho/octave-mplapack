@@ -1,7 +1,7 @@
 mplapack >> MPLAPACK
 Information
  mplapack_version
-Core scalar type
+Core multiprecision type
  mp
 Precision
  mpbits

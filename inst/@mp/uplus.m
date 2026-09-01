@@ -9,9 +9,9 @@ function result = uplus (value)
     error ("mplapack:mp:InvalidOperands", ...
            "unary mp plus expects exactly one operand");
   endif
-  if (! isscalar (value))
+  if (__mplapack_core__ ("value_is_matrix", value))
     error ("mplapack:mp:MatrixUnsupported", ...
-           "dense mp matrix arithmetic is not implemented before M07");
+           "dense mp matrix arithmetic is not implemented in M07");
   endif
   result = value;
 endfunction

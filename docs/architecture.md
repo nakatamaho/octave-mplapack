@@ -144,3 +144,17 @@ used and the binary64 input is converted directly with `mpfr_set_d`.  The
 current default is neither consulted nor changed.  Public result wrappers are
 formed inside class methods from the validated native payload, without
 calling the public constructor or exposing `payload_`.
+
+M07 adds a second private DLD-aware native type,
+`mplapack_mpfr_matrix_internal`, while preserving one public class `mp`.
+One public matrix wrapper owns one `MpfrMatrixStorage`; matrices are never
+Octave object arrays or cells of scalar wrappers.  Storage is a contiguous
+column-major `std::vector<mpfrxx::mpfr_class>` with one explicit immutable
+precision, checked dimensions, and `ld = rows` (or one for zero rows).  Its
+native pointer is exactly the `mpfr_class *` required by the installed
+MPLAPACK MPFR `Rgemm` and `Rgesv` interfaces, with no packing.  M07 executes
+neither routine.  Native deep copies provide future operation-owned mutable
+work buffers while public matrices remain immutable.  Double matrices transfer
+binary64 values directly; text-cell matrices parse decimal directly.  Public
+shape queries work, while indexing, matrix conversion, and all matrix
+operators remain explicit firewalls.

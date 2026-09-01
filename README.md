@@ -1,10 +1,11 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M06 pass. M07 dense matrix storage
-is planned. The package provides a public real `mp` scalar with
+**Status: under development.** M00 through M07 pass. M08 matrix multiplication
+is planned. The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and scalar `+`, `-`, `.*`, and
-`./`. Dense matrices and matrix operators are not implemented yet.
+`./`. Dense matrices use one private column-major contiguous native payload;
+matrix arithmetic and indexing are not implemented yet.
 
 ## Goal
 
@@ -46,6 +47,13 @@ sum_value = a + b
 difference = a - b
 product = a .* b
 quotient = a ./ b
+
+A = mp ({"1", "2";
+         "3", "4"});
+B = mp ([1, 2;
+         3, 4]);
+size (A)
+% 2 2
 ```
 
 This loads the private native module, reports the Octave, MPLAPACK, and MPFR
@@ -64,6 +72,13 @@ scalar `double`, the `mp` operand precision is used.  The current default does
 not affect an arithmetic result.  For example, `a + 0.1` converts the
 already-rounded binary64 operand directly at `a`'s precision and generally
 differs from `a + mp("0.1")`.
+
+M07 matrix constructors preserve the same source distinction element by
+element.  A real double matrix transfers each existing binary64 value
+directly, while a text-cell matrix parses each decimal directly.  Each matrix
+has one immutable precision, contiguous column-major MPFR storage, and normal
+two-dimensional shape metadata.  `A * B`, `A \ B`, matrix element-wise
+arithmetic, indexing, and matrix conversion/display remain unimplemented.
 
 ## Intended future API
 
@@ -126,6 +141,6 @@ M10  First functional baseline
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M06 are complete. M07 remains planned. Consult
+M00 through M07 are complete. M08 remains planned. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

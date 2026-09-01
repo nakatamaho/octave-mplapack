@@ -1,4 +1,4 @@
-# Public `mp` scalar design
+# Public `mp` design
 
 ## Purpose
 
@@ -32,8 +32,9 @@ native representation.
 
 ## Public wrapper
 
-The public class name is `mp`.  Each M03 object contains one private, hidden
-property holding an `mplapack_mpfr_scalar_internal` value.  Users receive
+The public class name is `mp`.  Each object contains one private, hidden
+property holding either the canonical `mplapack_mpfr_scalar_internal` value or,
+from M07, one `mplapack_mpfr_matrix_internal` value.  Users receive
 neither a raw pointer nor an integer handle, and ordinary property access is
 denied.  The native bridge performs checked class, shape, property, and native
 type validation for internal QA.
@@ -79,14 +80,17 @@ after checked extraction of the private payload; they are not listed in
 
 ## Scalar and matrix boundary
 
-M03 objects always have scalar classdef shape and report `1 x 1`.  Numeric
-arrays, text arrays, cells, empty values, horizontal concatenation, and
-vertical concatenation are rejected.
+M03 objects always have scalar payloads and report `1 x 1`.  M07 deliberately
+lifts the numeric-array, text-cell, and empty-matrix constructor firewalls.
+The classdef wrapper remains one object; public shape methods query the private
+native payload rather than relying on a classdef object array.
 
-Public dense `mp` matrices will not be represented as Octave arrays or cells
-of independent scalar `mp` wrapper objects.  M07 owns the native dense
-representation, matrix constructors, empty representation, dimensions,
-column-major layout, and MPLAPACK-compatible access.
+Public dense `mp` matrices are not represented as Octave arrays or cells of
+independent scalar `mp` wrapper objects.  M07 provides one uniform-precision,
+column-major, contiguous native payload and shape-preserving empty matrices.
+All `1 x 1` input normalizes to the established scalar payload.  Concatenation
+and cell-of-`mp` assembly remain firewalls, as do indexing and indexed
+assignment.
 
 ## Special values
 
@@ -101,6 +105,6 @@ separators are rejected.
 
 - Public precision applies to subsequent construction only; per-object public
   precision mutation is not provided.
-- Arithmetic and comparisons are not implemented in M03.
-- Dense matrix construction and concatenation are not implemented before
-  M07.
+- Matrix indexing, conversion, arithmetic, transpose, multiplication, and
+  linear solve are not implemented in M07.
+- Comparisons remain unimplemented.

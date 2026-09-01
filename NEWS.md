@@ -29,4 +29,9 @@
   multiplication and division, and unary signs.
 - Added mixed `mp`/binary64 scalar arithmetic with operand-derived precision
   and explicit MPFR round-to-nearest semantics.
-- Dense multiprecision matrices and matrix arithmetic are not implemented yet.
+- Added one-native-object dense MPFR matrix storage with uniform precision and
+  contiguous column-major layout.
+- Added construction from real double matrices and decimal-text cell matrices,
+  including shape-preserving empty matrices and public shape metadata.
+- Matrix indexing, matrix conversion/display, and matrix arithmetic are not
+  implemented yet.
