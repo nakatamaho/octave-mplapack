@@ -22,6 +22,8 @@ the appropriate MPLAPACK real MPFR `gesv` routine or equivalent.
 The solver must operate on native MPFR storage without binary64 conversion.
 Input mutation or preservation must be deliberate and documented, and singular
 status must become a clear Octave-level result or diagnostic.
+M06 deliberately leaves scalar `\` unsupported so this milestone defines one
+coherent public solve contract through the MPLAPACK MPFR backend.
 
 # Implementation tasks
 

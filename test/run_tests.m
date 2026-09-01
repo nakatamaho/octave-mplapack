@@ -14,3 +14,5 @@ assert (test (fullfile (test_dir, "precision.tst"), "quiet", stdout));
 fprintf ("PASS: M04 public precision tests\n");
 assert (test (fullfile (test_dir, "conversion.tst"), "quiet", stdout));
 fprintf ("PASS: M05 scalar conversion and display tests\n");
+assert (test (fullfile (test_dir, "arithmetic.tst"), "quiet", stdout));
+fprintf ("PASS: M06 scalar arithmetic tests\n");

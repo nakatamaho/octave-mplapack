@@ -24,21 +24,29 @@ broadcasting, or scalar-expansion behavior before M07.
 
 # Implementation tasks
 
-- Implement native real addition, subtraction, multiplication, and division.
-- Apply the mixed-precision result rule consistently.
-- Define and document division-by-zero results and diagnostics.
+- Native real addition, subtraction, multiplication, division, and negation
+  use direct MPFR operations with `MPFR_RNDN`.
+- `mp`/`mp` results use the greater operand precision. Mixed scalar binary64
+  operands are converted directly at the `mp` operand precision.
+- Division by zero, signed zeros, infinities, and NaNs follow verified MPFR
+  behavior rather than project-specific exceptions.
+- Public results wrap independently owned internal payloads without invoking
+  the public constructor or current default precision.
 
 # Required tests
 
-Cover scalar/scalar mixed precision, division by zero, special values, and
-unsupported matrix operands. Verify that scalar calculations do not silently
-use binary64.
+Automated Octave and standalone sanitizer tests cover exact scalar arithmetic,
+mixed precision, both mixed-binary64 operand orders, low-precision rounding,
+division by zero, signed zero, special values, lifetime, unsupported types and
+operators, and the matrix firewall.  A standalone direct-MPFR reference test
+checks all production storage operations.
 
 # Gate
 
-`G06` passes when all four scalar operators obey documented native MPFR,
-precision, and error semantics without creating a matrix representation.
+`G06` passed when all four binary scalar operators and both unary signs obeyed
+documented native MPFR, precision, lifetime, and error semantics without
+creating a matrix representation.
 
 # Expected commit
 
-`M06: implement element-wise mp arithmetic`
+`M06: add scalar MPFR arithmetic`

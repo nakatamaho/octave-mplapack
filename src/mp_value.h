@@ -20,6 +20,8 @@ public:
                                         mpfr_prec_t precision_bits);
   octave_mplapack_mpfr_scalar_internal (double value,
                                         mpfr_prec_t precision_bits);
+  explicit octave_mplapack_mpfr_scalar_internal (
+    octave_mplapack::MpfrScalarStorage storage);
   octave_mplapack_mpfr_scalar_internal (
     const octave_mplapack_mpfr_scalar_internal&) = default;
   ~octave_mplapack_mpfr_scalar_internal () override = default;

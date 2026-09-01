@@ -72,6 +72,12 @@ MpfrScalarStorage::MpfrScalarStorage (double value,
   mpfr_set_d (m_value.mpfr_data (), value, MPFR_RNDN);
 }
 
+MpfrScalarStorage::MpfrScalarStorage (mpfr_prec_t precision_bits,
+                                      UninitializedTag)
+  : m_value (NativeScalar::with_precision (precision_bits))
+{
+}
+
 MpfrScalarStorage&
 MpfrScalarStorage::operator= (MpfrScalarStorage other) noexcept
 {

@@ -37,9 +37,21 @@ public:
   std::string to_canonical_string () const;
   double to_double () const noexcept;
 
+  MpfrScalarStorage add (const MpfrScalarStorage& rhs) const;
+  MpfrScalarStorage subtract (const MpfrScalarStorage& rhs) const;
+  MpfrScalarStorage multiply (const MpfrScalarStorage& rhs) const;
+  MpfrScalarStorage divide (const MpfrScalarStorage& rhs) const;
+  MpfrScalarStorage negate () const;
+
   const NativeScalar& native_value () const noexcept;
 
 private:
+  struct UninitializedTag
+  {
+  };
+
+  MpfrScalarStorage (mpfr_prec_t precision_bits, UninitializedTag);
+
   NativeScalar m_value;
 };
 

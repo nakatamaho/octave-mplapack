@@ -132,5 +132,15 @@ with `MPFR_RNDN` and never passes through text.  Public `char` and `double`
 delegate to checked native bridge commands, while `disp` writes the same
 canonical text without observing Octave's binary64 format setting.  All
 formatting uses the immutable object's precision, not the current default.
-Arithmetic remains unsupported and does not implicitly fall back through
-`double`.
+Unsupported numerical functions and matrix operators do not implicitly fall
+back through `double`.
+
+M06 adds direct scalar MPFR arithmetic below the Octave method layer.  Native
+storage methods call `mpfr_add`, `mpfr_sub`, `mpfr_mul`, `mpfr_div`, and
+`mpfr_neg` with `MPFR_RNDN`, allocate independent results, and never mutate
+operands.  For two `mp` values result precision is the greater operand
+precision.  For mixed real scalar binary64 arithmetic the `mp` precision is
+used and the binary64 input is converted directly with `mpfr_set_d`.  The
+current default is neither consulted nor changed.  Public result wrappers are
+formed inside class methods from the validated native payload, without
+calling the public constructor or exposing `payload_`.

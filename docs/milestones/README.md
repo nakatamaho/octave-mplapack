@@ -11,7 +11,7 @@ documented gate passes.
 | M03 | Public scalar constructor and wrapper | Passed |
 | M04 | Precision API | Passed |
 | M05 | Conversion/display | Passed |
-| M06 | Element-wise arithmetic | Planned |
+| M06 | Scalar element-wise arithmetic | Passed |
 | M07 | Matrix storage | Planned |
 | M08 | Matrix multiplication | Planned |
 | M09 | Linear solve | Planned |

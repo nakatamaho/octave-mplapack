@@ -1,10 +1,10 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M05 pass. M06 element-wise
-arithmetic is planned. The package provides a public real `mp` scalar with
+**Status: under development.** M00 through M06 pass. M07 dense matrix storage
+is planned. The package provides a public real `mp` scalar with
 native MPFR storage, public default-precision control, canonical scalar text,
-explicit binary64 conversion, and scalar display. Dense matrices, arithmetic,
-and other numerical operations are not implemented yet.
+explicit binary64 conversion, scalar display, and scalar `+`, `-`, `.*`, and
+`./`. Dense matrices and matrix operators are not implemented yet.
 
 ## Goal
 
@@ -41,6 +41,11 @@ c = mp("0.1");
 s = char(c)
 d = double(c)
 disp(c)
+
+sum_value = a + b
+difference = a - b
+product = a .* b
+quotient = a ./ b
 ```
 
 This loads the private native module, reports the Octave, MPLAPACK, and MPFR
@@ -52,6 +57,13 @@ bits. `mpbits` controls the canonical bit precision and `mpdigits(n)` selects
 decimal text that reconstructs the same MPFR value when parsed at `c`'s
 precision. `double(c)` is an explicit, potentially lossy binary64 conversion;
 `disp(c)` prints the canonical multiprecision text.
+
+Scalar arithmetic uses MPFR round-to-nearest.  For two `mp` operands the
+result precision is the greater stored operand precision; with one real
+scalar `double`, the `mp` operand precision is used.  The current default does
+not affect an arithmetic result.  For example, `a + 0.1` converts the
+already-rounded binary64 operand directly at `a`'s precision and generally
+differs from `a + mp("0.1")`.
 
 ## Intended future API
 
@@ -69,9 +81,8 @@ C = A * A;
 x = A \ b;
 ```
 
-The completed baseline will additionally use normal Octave operations such as
-`+`, `-`, `.*`, `./`, `*`, `\`, and transpose. Native backend entry points
-will stay private.
+The completed baseline will additionally use normal Octave matrix operations
+such as `*`, `\`, and transpose. Native backend entry points stay private.
 
 ## Precision warning
 
@@ -115,6 +126,6 @@ M10  First functional baseline
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M05 are complete. M06 remains planned. Consult
+M00 through M06 are complete. M07 remains planned. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

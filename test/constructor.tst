@@ -136,12 +136,11 @@
 %!test
 %! a = mp ("1");
 %! b = mp ("2");
-%! operations = {@() a + b, @() a - b, @() a .* b, @() a ./ b, ...
-%!               @() a * b, @() mldivide (a, b)};
+%! operations = {@() a * b, @() mldivide (a, b)};
 %! for i = 1:numel (operations)
 %!   try
 %!     operations{i} ();
-%!     error ("M03 arithmetic unexpectedly succeeded");
+%!     error ("M03 matrix arithmetic unexpectedly succeeded");
 %!   catch exception
 %!     assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
 %!   end_try_catch
