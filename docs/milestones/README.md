@@ -9,7 +9,7 @@ documented gate passes.
 | M01 | Native build probe | Passed |
 | M02 | Internal native MPFR scalar storage | Passed |
 | M03 | Public scalar constructor and wrapper | Passed |
-| M04 | Precision API | Planned |
+| M04 | Precision API | Passed |
 | M05 | Conversion/display | Planned |
 | M06 | Element-wise arithmetic | Planned |
 | M07 | Matrix storage | Planned |

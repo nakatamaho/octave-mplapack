@@ -3,3 +3,6 @@ Information
  mplapack_version
 Core scalar type
  mp
+Precision
+ mpbits
+ mpdigits

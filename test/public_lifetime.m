@@ -3,6 +3,8 @@
 assert (! isempty (which ("mp")));
 assert (! isempty (which ("__mplapack_core__")));
 
+saved_precision = mpbits ();
+mpbits (128);
 original = mp ("1.25");
 assigned = original;
 copied = mp (original);
@@ -27,4 +29,5 @@ assert (__mplapack_core__ ("module_test_locked"));
 
 clear assigned copied collection record;
 assert (__mplapack_core__ ("module_test_locked"));
+mpbits (saved_precision);
 fprintf ("PASS: public wrapper clear and native payload lifecycle\n");

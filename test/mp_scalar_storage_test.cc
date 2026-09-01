@@ -15,6 +15,8 @@
 #include "mp_precision.h"
 
 using octave_mplapack::MpfrScalarStorage;
+using octave_mplapack::bits_for_decimal_digits;
+using octave_mplapack::decimal_digits_for_bits;
 
 static_assert (
   std::is_same_v<MpfrScalarStorage::NativeScalar, mpfrxx::mpfr_class>);
@@ -28,9 +30,71 @@ namespace
 {
 
 void
+test_precision_configuration_and_conversion ()
+{
+  const mpfr_prec_t mpfr_default = mpfr_get_default_prec ();
+  assert (octave_mplapack::initial_default_precision_bits == 512);
+  assert (octave_mplapack::default_precision_bits () == 512);
+  assert (decimal_digits_for_bits (512) == 154);
+
+  struct Conversion
+  {
+    octave_mplapack::precision_count_t digits;
+    mpfr_prec_t bits;
+  };
+
+  const Conversion conversions[] = {
+    {1, 4}, {10, 34}, {38, 127}, {100, 333}, {1000, 3322}
+  };
+  for (const auto& conversion : conversions)
+    {
+      assert (bits_for_decimal_digits (conversion.digits)
+              == conversion.bits);
+      assert (decimal_digits_for_bits (conversion.bits)
+              == conversion.digits);
+    }
+
+  assert (decimal_digits_for_bits (128) == 38);
+  assert (decimal_digits_for_bits (332) == 99);
+  assert (decimal_digits_for_bits (333) == 100);
+
+  octave_mplapack::set_default_precision_bits (128);
+  assert (octave_mplapack::default_precision_bits () == 128);
+
+  bool invalid_rejected = false;
+  try
+    {
+      octave_mplapack::set_default_precision_bits (0);
+    }
+  catch (const std::invalid_argument&)
+    {
+      invalid_rejected = true;
+    }
+  assert (invalid_rejected);
+  assert (octave_mplapack::default_precision_bits () == 128);
+
+  bool overflow_rejected = false;
+  try
+    {
+      bits_for_decimal_digits (
+        std::numeric_limits<octave_mplapack::precision_count_t>::max ());
+    }
+  catch (const std::overflow_error&)
+    {
+      overflow_rejected = true;
+    }
+  assert (overflow_rejected);
+  assert (octave_mplapack::default_precision_bits () == 128);
+
+  octave_mplapack::set_default_precision_bits (512);
+  assert (mpfr_get_default_prec () == mpfr_default);
+}
+
+void
 test_basic_ownership ()
 {
   MpfrScalarStorage a ("0.125", 128);
+  const mpfr_prec_t initialized_mpfr_default = mpfr_get_default_prec ();
   assert (a.precision_bits () == 128);
   assert (a.exactly_equal_string ("0.125"));
 
@@ -55,6 +119,7 @@ test_basic_ownership ()
   move_assigned = std::move (moved);
   assert (move_assigned.precision_bits () == 128);
   assert (move_assigned.exactly_equal_string ("0.125"));
+  assert (mpfr_get_default_prec () == initialized_mpfr_default);
 }
 
 void
@@ -122,7 +187,7 @@ test_double_construction_and_special_values ()
   const mpfr_prec_t precision
     = octave_mplapack::default_precision_bits ();
   assert (precision == octave_mplapack::initial_default_precision_bits);
-  assert (precision == 128);
+  assert (precision == 512);
 
   MpfrScalarStorage decimal_text ("0.1", precision);
   MpfrScalarStorage binary64 (0.1, precision);
@@ -232,6 +297,7 @@ test_contiguous_container_and_stress ()
 int
 main ()
 {
+  test_precision_configuration_and_conversion ();
   test_basic_ownership ();
   test_precision_and_parsing ();
   test_double_construction_and_special_values ();

@@ -10,3 +10,5 @@ assert (test (fullfile (test_dir, "native_value.tst"), "quiet", stdout));
 fprintf ("PASS: M02 native-value tests\n");
 assert (test (fullfile (test_dir, "constructor.tst"), "quiet", stdout));
 fprintf ("PASS: M03 public scalar constructor tests\n");
+assert (test (fullfile (test_dir, "precision.tst"), "quiet", stdout));
+fprintf ("PASS: M04 public precision tests\n");

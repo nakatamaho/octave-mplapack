@@ -57,15 +57,15 @@ paths.  Text reaches `mpfr_set_str` in base 10 directly.  A `double` reaches
 the explicit round-to-nearest mode `MPFR_RNDN`, so constructor semantics do not
 depend on the mutable MPFR process default rounding mode.
 
-M03 uses the project-owned default precision component, initially 128 bits.
-The component returns an explicit precision for every new native scalar and
-does not change MPFR's process-global default.  M04 will expose this same
-component through `mpbits` and `mpdigits`; M03 provides no public precision
-control or public precision constructor argument.
+M03 established the project-owned default precision component at 128 bits.
+M04 changes its fresh-session initial value to 512 bits and exposes the same
+component through `mpbits` and `mpdigits`.  Every new native scalar receives
+the current bit precision explicitly; changing the default never mutates an
+existing value and never changes MPFR's process-global default.
 
-The M03 component is a process-local constant.  It deliberately introduces no
-thread-local policy; M04 will review mutation and validation semantics around
-the same component.
+The component is process-local and uses atomic access, not thread-local
+precision policy.  Its state survives ordinary clear and package unload/reload
+within one Octave process, while a new process starts at 512 bits.
 
 ## Encapsulation and display
 
@@ -97,7 +97,8 @@ separators are rejected.
 
 ## Known limitations
 
-- Public precision query and configuration are not implemented before M04.
+- Public precision applies to subsequent construction only; per-object public
+  precision mutation is not provided.
 - Numeric rendering and conversion are not implemented before M05.
 - Arithmetic and comparisons are not implemented in M03.
 - Dense matrix construction and concatenation are not implemented before

@@ -5,21 +5,27 @@
 %!endfunction
 
 %!test
-%! assert (__mplapack_core__ ("scalar_default_precision"), int64 (128));
-%! text_value = mp ("0.1");
-%! double_value = mp (0.1);
-%! text_info = __mplapack_core__ ("scalar_test_info", text_value);
-%! double_info = __mplapack_core__ ("scalar_test_info", double_value);
-%! assert (text_info.precision_bits, int64 (128));
-%! assert (double_info.precision_bits, int64 (128));
-%! assert (! __mplapack_core__ (
-%!   "scalar_test_equal", text_value, double_value));
-%! assert (__mplapack_core__ (
-%!   "scalar_test_equal_string", text_value, "0.1"));
-%! assert (! __mplapack_core__ (
-%!   "scalar_test_equal_double", text_value, 0.1));
-%! assert (__mplapack_core__ (
-%!   "scalar_test_equal_double", double_value, 0.1));
+%! saved = mpbits ();
+%! unwind_protect
+%!   mpbits (128);
+%!   assert (__mplapack_core__ ("scalar_default_precision"), int64 (128));
+%!   text_value = mp ("0.1");
+%!   double_value = mp (0.1);
+%!   text_info = __mplapack_core__ ("scalar_test_info", text_value);
+%!   double_info = __mplapack_core__ ("scalar_test_info", double_value);
+%!   assert (text_info.precision_bits, int64 (128));
+%!   assert (double_info.precision_bits, int64 (128));
+%!   assert (! __mplapack_core__ (
+%!     "scalar_test_equal", text_value, double_value));
+%!   assert (__mplapack_core__ (
+%!     "scalar_test_equal_string", text_value, "0.1"));
+%!   assert (! __mplapack_core__ (
+%!     "scalar_test_equal_double", text_value, 0.1));
+%!   assert (__mplapack_core__ (
+%!     "scalar_test_equal_double", double_value, 0.1));
+%! unwind_protect_cleanup
+%!   mpbits (saved);
+%! end_unwind_protect
 
 %!test
 %! text_value = mp ("0.125");
@@ -91,20 +97,26 @@
 %! end_try_catch
 
 %!test
-%! original = mp ("1.25");
-%! assigned = original;
-%! copied = mp (original);
-%! collection = {original, assigned};
-%! record.value = original;
-%! passed = m03_pass_through (original);
-%! clear original;
-%! for value = {assigned, copied, collection{1}, collection{2}, ...
-%!              record.value, passed}
-%!   info = __mplapack_core__ ("scalar_test_info", value{1});
-%!   assert (info.precision_bits, int64 (128));
-%!   assert (__mplapack_core__ (
-%!     "scalar_test_equal_string", value{1}, "1.25"));
-%! endfor
+%! saved = mpbits ();
+%! unwind_protect
+%!   mpbits (128);
+%!   original = mp ("1.25");
+%!   assigned = original;
+%!   copied = mp (original);
+%!   collection = {original, assigned};
+%!   record.value = original;
+%!   passed = m03_pass_through (original);
+%!   clear original;
+%!   for value = {assigned, copied, collection{1}, collection{2}, ...
+%!                record.value, passed}
+%!     info = __mplapack_core__ ("scalar_test_info", value{1});
+%!     assert (info.precision_bits, int64 (128));
+%!     assert (__mplapack_core__ (
+%!       "scalar_test_equal_string", value{1}, "1.25"));
+%!   endfor
+%! unwind_protect_cleanup
+%!   mpbits (saved);
+%! end_unwind_protect
 
 %!test
 %! value = mp ("1");
