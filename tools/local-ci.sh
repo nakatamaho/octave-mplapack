@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M02 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M03 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M02 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M03 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,13 +34,13 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M02 prerequisites"
+echo "PASS: mandatory M03 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
 make -C src clean
 make -C src check-storage-sanitized
-echo "PASS: M02 ASan/UBSan storage and contiguous-container QA"
+echo "PASS: M02/M03 ASan/UBSan storage and constructor QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -197,37 +197,37 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
 
 echo "PASS: direct native/public runtime probes"
 
-M02_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
-  root = getenv ("M02_REPO_ROOT");
+M03_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
+  root = getenv ("M03_REPO_ROOT");
   addpath (fullfile (root, "inst"));
   addpath (fullfile (root, "src"));
   run (fullfile (root, "test", "native_lifetime.m"));
+  run (fullfile (root, "test", "public_lifetime.m"));
 '
 
-M02_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
-  root = getenv ("M02_REPO_ROOT");
+M03_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
+  root = getenv ("M03_REPO_ROOT");
+  addpath (fullfile (root, "inst"));
   addpath (fullfile (root, "src"));
   values = cell (1, 250);
   for i = 1:numel (values)
     values{i} = __mplapack_core__ (
       "scalar_test_create", "0.125", [128, 256, 512](mod (i - 1, 3) + 1));
   endfor
+  public_values = cell (1, 10000);
+  for i = 1:numel (public_values)
+    if (mod (i, 2) == 0)
+      public_values{i} = mp ("0.1");
+    else
+      public_values{i} = mp (0.1);
+    endif
+  endfor
+  assert (! __mplapack_core__ (
+    "scalar_test_equal", public_values{1}, public_values{2}));
   assert (__mplapack_core__ ("module_test_locked"));
-  fprintf ("PASS: native values left for interpreter-shutdown destruction\n");
+  fprintf ("PASS: native/public values left for shutdown destruction\n");
 '
-
-M02_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
-  root = getenv ("M02_REPO_ROOT");
-  addpath (fullfile (root, "inst"));
-  try
-    mp ("1.0");
-    error ("M02 public mp constructor unexpectedly succeeded");
-  catch exception
-    assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
-    assert (! isempty (strfind (exception.message, "M03")));
-  end_try_catch
-'
-echo "PASS: M02 source lifecycle, shutdown, and public mp stub QA"
+echo "PASS: M02/M03 source lifecycle, stress, and shutdown QA"
 
 make -C src clean
 negative_log=$qa_root/negative-dependency.log
@@ -260,8 +260,16 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (value_info.precision_bits == 512);
     assert (__mplapack_core__ (
       "scalar_test_equal_string", value, "0.1"));
+    decimal = mp ("0.1");
+    binary64 = mp (0.1);
+    assert (! __mplapack_core__ (
+      "scalar_test_equal", decimal, binary64));
+    assert (__mplapack_core__ (
+      "scalar_test_equal_string", decimal, "0.1"));
+    assert (__mplapack_core__ (
+      "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01/M02 re-test"
+echo "PASS: clean rebuild #2 and M01/M02/M03 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -286,8 +294,10 @@ fi
 
 for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   src/mp_scalar_storage.h src/mp_scalar_storage.cc \
-  src/mp_value.h src/mp_value.cc test/native_value.tst \
-  test/native_lifetime.m test/mp_scalar_storage_test.cc; do
+  src/mp_precision.h src/mp_precision.cc src/mp_value.h src/mp_value.cc \
+  inst/@mp/horzcat.m inst/@mp/vertcat.m test/native_value.tst \
+  test/constructor.tst test/native_lifetime.m test/public_lifetime.m \
+  test/mp_scalar_storage_test.cc docs/public-mp-design.md; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1
@@ -335,10 +345,13 @@ mkdir -p "$test_home" "$neutral_dir"
       pkg ("load", "mplapack");
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
+      constructor_path = which ("mp");
       fprintf ("installed mplapack_version: %s\n", public_path);
       fprintf ("installed __mplapack_core__: %s\n", native_path);
+      fprintf ("installed mp: %s\n", constructor_path);
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
+      assert (! strncmp (constructor_path, root, length (root)));
       info = mplapack_version ();
       disp (info);
       assert (strcmp (info.mplapack, getenv ("MPLAPACK_EXPECTED_VERSION")));
@@ -347,23 +360,26 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (info.probe_ok);
       assert (__mplapack_core__ ("module_test_locked"));
       run (fullfile (root, "test", "native_lifetime.m"));
+      run (fullfile (root, "test", "public_lifetime.m"));
       assert (__mplapack_core__ ("module_test_locked"));
       assert (test (fullfile (root, "test", "native_value.tst")));
+      assert (test (fullfile (root, "test", "constructor.tst")));
       assert (isempty (which ("scalar_test_create")));
-      try
-        mp ("1.0");
-        error ("M02 public mp constructor unexpectedly succeeded");
-      catch exception
-        assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
-        assert (! isempty (strfind (exception.message, "M03")));
-      end_try_catch
-      unload_value = __mplapack_core__ (
-        "scalar_test_create", "-2.25", 512);
+      assert (isempty (which ("scalar_create_text")));
+      unload_value = mp ("-2.25");
       pkg ("unload", "mplapack");
-      assert (strcmp (typeinfo (unload_value),
-                      "mplapack_mpfr_scalar_internal"));
-      disp (unload_value);
-      clear unload_value;
+      assert (strcmp (class (unload_value), "mp"));
+      pkg ("load", "mplapack");
+      unload_info = __mplapack_core__ (
+        "scalar_test_info", unload_value);
+      assert (unload_info.precision_bits == 128);
+      assert (__mplapack_core__ (
+        "scalar_test_equal_string", unload_value, "-2.25"));
+      clear unload_value unload_info;
+      destroy_while_unloaded = mp ("1.5");
+      pkg ("unload", "mplapack");
+      assert (strcmp (class (destroy_while_unloaded), "mp"));
+      clear destroy_while_unloaded;
       pkg ("load", "mplapack");
       reloaded_value = __mplapack_core__ (
         "scalar_test_create", "1.5", 256);
@@ -380,6 +396,7 @@ mkdir -p "$test_home" "$neutral_dir"
 (
   cd "$neutral_dir"
   HOME=$test_home octave --no-gui --quiet --no-init-file --eval '
+    assert (isempty (which ("mp")));
     assert (isempty (which ("mplapack_version")));
     assert (isempty (which ("__mplapack_core__")));
   '
@@ -401,9 +418,11 @@ mkdir -p "$test_home" "$neutral_dir"
       pkg ("load", "mplapack");
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
+      constructor_path = which ("mp");
       root = getenv ("M01_REPO_ROOT");
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
+      assert (! strncmp (constructor_path, root, length (root)));
       info = mplapack_version ();
       assert (strcmp (info.mplapack, getenv ("MPLAPACK_EXPECTED_VERSION")));
       assert (info.probe_ok);
@@ -415,12 +434,23 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (__mplapack_core__ (
         "scalar_test_equal_string", shutdown_value, "0.1"));
       assert (__mplapack_core__ ("module_test_locked"));
+      decimal = mp ("0.1");
+      binary64 = mp (0.1);
+      assert (strcmp (class (decimal), "mp"));
+      assert (size (decimal), [1, 1]);
+      assert (! __mplapack_core__ (
+        "scalar_test_equal", decimal, binary64));
+      assert (__mplapack_core__ (
+        "scalar_test_equal_string", decimal, "0.1"));
+      assert (__mplapack_core__ (
+        "scalar_test_equal_double", binary64, 0.1));
       fprintf ("reinstalled mplapack_version: %s\n", public_path);
       fprintf ("reinstalled __mplapack_core__: %s\n", native_path);
-      fprintf ("PASS: installed value left for shutdown destruction\n");
+      fprintf ("reinstalled mp: %s\n", constructor_path);
+      fprintf ("PASS: installed native/public values left for shutdown destruction\n");
     '
 )
 
-echo "PASS: isolated package M01/M02 install, unload safety, uninstall, and reinstall"
+echo "PASS: isolated package M01/M02/M03 install, unload safety, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M02 local CI"
+echo "PASS: M03 local CI"

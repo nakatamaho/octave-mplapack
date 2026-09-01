@@ -1,0 +1,104 @@
+# Public `mp` scalar design
+
+## Purpose
+
+M03 exposes the immutable M02 native scalar through a normal GNU Octave
+class.  It deliberately establishes only scalar construction and `1 x 1`
+shape.  Dense storage, matrix construction, indexing, conversion, precision
+control, and arithmetic remain later milestones.
+
+## Octave 11.1 class audit
+
+The selected mechanism is an Octave 11.1 `classdef` value class stored in
+`inst/@mp/mp.m`.  Octave 11.1 supports class definitions in `@` directories,
+private and hidden properties, value-class copy semantics, ordinary method
+dispatch, and explicit `horzcat`/`vertcat` methods.  These capabilities match
+the planned public operators through M10 while allowing M03 to reject object
+array concatenation before M07.
+
+The installed extension headers provide `octave_value::is_classdef_object()`,
+`octave_value::class_name()`, `octave_value::classdef_object_value()`, and
+`octave_classdef::get_property()`.  The private native bridge can therefore
+verify a scalar `mp` object and retrieve its private payload without exposing
+a public accessor.  The compatibility-sensitive header is
+`octave/ov-classdef.h`; this use is localized to the bridge and targets Octave
+11.1.
+
+An old-style `class(struct, "mp")` wrapper was not selected because its
+backing fields do not provide the same property-level encapsulation.  A
+`handle` subclass was also rejected: public values are immutable value
+objects, and M02 already provides safe reference-counted ownership of the
+native representation.
+
+## Public wrapper
+
+The public class name is `mp`.  Each M03 object contains one private, hidden
+property holding an `mplapack_mpfr_scalar_internal` value.  Users receive
+neither a raw pointer nor an integer handle, and ordinary property access is
+denied.  The native bridge performs checked class, shape, property, and native
+type validation for internal QA.
+
+The class is a value class.  Ordinary assignment and `mp(existing_mp)` may
+share the immutable Octave and native representations.  This is safe because
+M02 payloads cannot be mutated at the Octave boundary; explicit native clones
+remain available for lifecycle QA.
+
+The private property directly retains the DLD-aware M02 value, so public
+assignment, cells, structs, function passage, ordinary clear, and interpreter
+shutdown preserve the same module-lifetime guarantees.  Installed-package QA
+keeps a public object alive across `pkg unload`, reloads the package, verifies
+the payload, and also destroys a public object while the package is unloaded.
+
+## Construction and precision
+
+The production native bridge has separate text and binary64 construction
+paths.  Text reaches `mpfr_set_str` in base 10 directly.  A `double` reaches
+`mpfr_set_d` directly and is never formatted as decimal text.  Both paths use
+the explicit round-to-nearest mode `MPFR_RNDN`, so constructor semantics do not
+depend on the mutable MPFR process default rounding mode.
+
+M03 uses the project-owned default precision component, initially 128 bits.
+The component returns an explicit precision for every new native scalar and
+does not change MPFR's process-global default.  M04 will expose this same
+component through `mpbits` and `mpdigits`; M03 provides no public precision
+control or public precision constructor argument.
+
+The M03 component is a process-local constant.  It deliberately introduces no
+thread-local policy; M04 will review mutation and validation semantics around
+the same component.
+
+## Encapsulation and display
+
+The property is private and hidden.  The minimal M03 `disp` method prints only
+`mp scalar`, so default display does not reveal the property or internal type.
+`char` and `double` remain explicit M05 stubs.  Internal test commands may
+inspect precision, exact equality, signed zero, infinity, and NaN after
+checked extraction of the private payload; they are not listed in `INDEX`.
+
+## Scalar and matrix boundary
+
+M03 objects always have scalar classdef shape and report `1 x 1`.  Numeric
+arrays, text arrays, cells, empty values, horizontal concatenation, and
+vertical concatenation are rejected.
+
+Public dense `mp` matrices will not be represented as Octave arrays or cells
+of independent scalar `mp` wrapper objects.  M07 owns the native dense
+representation, matrix constructors, empty representation, dimensions,
+column-major layout, and MPLAPACK-compatible access.
+
+## Special values
+
+Binary64 positive and negative infinity, NaN, and signed zero are preserved
+by direct MPFR construction.  The decimal text syntax is locale-independent,
+uses `.` as the decimal point, and is passed to the backend in base 10.  Text
+special values `Inf`, `-Inf`, and `NaN` are accepted by the installed backend
+parser and covered by tests.  Empty text, malformed decimals, and comma decimal
+separators are rejected.
+
+## Known limitations
+
+- Public precision query and configuration are not implemented before M04.
+- Numeric rendering and conversion are not implemented before M05.
+- Arithmetic and comparisons are not implemented in M03.
+- Dense matrix construction and concatenation are not implemented before
+  M07.

@@ -17,6 +17,7 @@ public:
   using NativeScalar = mpfrxx::mpfr_class;
 
   MpfrScalarStorage (const std::string& text, mpfr_prec_t precision_bits);
+  MpfrScalarStorage (double value, mpfr_prec_t precision_bits);
   MpfrScalarStorage (const MpfrScalarStorage&) = default;
   MpfrScalarStorage (MpfrScalarStorage&&) noexcept = default;
   ~MpfrScalarStorage () = default;
@@ -28,6 +29,11 @@ public:
   mpfr_prec_t precision_bits () const noexcept;
   bool exactly_equal (const MpfrScalarStorage& other) const noexcept;
   bool exactly_equal_string (const std::string& text) const;
+  bool exactly_equal_double (double value) const noexcept;
+  bool is_nan () const noexcept;
+  bool is_infinite () const noexcept;
+  bool is_zero () const noexcept;
+  bool signbit () const noexcept;
 
   const NativeScalar& native_value () const noexcept;
 

@@ -33,6 +33,13 @@ octave_mplapack_mpfr_scalar_internal (const std::string& text,
 {
 }
 
+octave_mplapack_mpfr_scalar_internal::
+octave_mplapack_mpfr_scalar_internal (double value,
+                                      mpfr_prec_t precision_bits)
+  : m_storage (value, precision_bits)
+{
+}
+
 octave_base_value *
 octave_mplapack_mpfr_scalar_internal::clone () const
 {

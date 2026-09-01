@@ -2,12 +2,14 @@
 
 # Goal
 
-Finalize dense real matrix storage before MPLAPACK BLAS/LAPACK kernels are used.
+Implement and harden dense real matrix storage before MPLAPACK BLAS/LAPACK
+kernels are used.
 
 # Scope
 
-Document and harden row/column ordering, leading dimensions, indexing,
-ownership, copy semantics, explicit dimensions, resize policy, transposition,
+Native dense storage, numeric-matrix and textual-cell matrix constructors,
+empty matrix representation, matrix shape, row/column ordering, leading
+dimensions, indexing, ownership, copy semantics, resize policy, transposition,
 and interaction with MPLAPACK array arguments.
 
 # Non-goals
@@ -21,10 +23,14 @@ and interaction with MPLAPACK array arguments.
 Prefer a layout that avoids unnecessary transposition or repacking for
 MPLAPACK. Every MPFR element has deterministic lifetime management, matrix
 dimensions are explicit, and copies and resizing cannot leak or double-free.
+Dense matrices must not be Octave arrays or cells of independent scalar `mp`
+wrapper objects.
 
 # Implementation tasks
 
 - Select and document storage order, indexing, and leading dimensions.
+- Implement numeric matrix, textual cell matrix, and deliberate empty matrix
+  construction on the selected native representation.
 - Harden allocation, copy/move, destruction, and resize behavior.
 - Define transpose and conjugate-transpose behavior for real matrices.
 - Prove direct compatibility with intended MPLAPACK array arguments.

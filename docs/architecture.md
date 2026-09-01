@@ -101,5 +101,17 @@ representation or implement arithmetic.
 M02 proves that an immutable custom Octave scalar can own, copy, clone, and
 destroy explicit-precision MPLAPACK MPFR storage safely. The private
 `__mplapack_core__` test commands exercise lifecycle behavior only. The public
-`mp()` constructor and all arithmetic remain unimplemented until later
-milestones.
+wrapper and all arithmetic remain unimplemented until later milestones.
+
+M03 exposes that scalar as an Octave 11.1 classdef value named `mp`.  Its one
+native payload property is private and hidden; native QA retrieves it through
+localized checked classdef APIs.  Decimal text is parsed directly by MPFR,
+while a double is converted directly from its existing IEEE binary64 value.
+Both paths pass the project-owned 128-bit default explicitly into each scalar.
+The public object reports `1 x 1`, preserves M02 lifetime safety, and provides
+only a nonnumeric placeholder display before M05.
+
+M03 deliberately rejects numeric matrices, text/cell matrices, empty values,
+and concatenation.  Public dense `mp` matrices will not be represented as
+Octave arrays or cells of independent scalar wrapper objects.  M07 owns dense
+native storage, matrix constructors, empty representation, and matrix shape.

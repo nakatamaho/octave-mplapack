@@ -7,6 +7,7 @@
 
 #include <octave/oct.h>
 #include <octave/interpreter.h>
+#include <octave/ov-classdef.h>
 #include <octave/ov-fcn.h>
 #include <octave/pt-eval.h>
 #include <octave/version.h>
@@ -14,6 +15,7 @@
 #include <mplapack_mpfr.h>
 
 #include "mp_value.h"
+#include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
 #error "MPLAPACK_PKG_VERSION must be provided by the build"
@@ -99,10 +101,10 @@ make_internal_scalar (const std::string& text, mpfr_prec_t precision_bits)
       return octave_value (
         new octave_mplapack_mpfr_scalar_internal (text, precision_bits));
     }
-  catch (const std::invalid_argument& exception)
+  catch (const std::invalid_argument&)
     {
-      error_with_id ("mplapack:InvalidScalarText", "%s",
-                     exception.what ());
+      error_with_id ("mplapack:InvalidScalarText",
+                     "invalid scalar text");
     }
   catch (const std::exception& exception)
     {
@@ -110,6 +112,64 @@ make_internal_scalar (const std::string& text, mpfr_prec_t precision_bits)
     }
 
   return octave_value ();
+}
+
+octave_value
+make_internal_scalar (double value, mpfr_prec_t precision_bits)
+{
+  try
+    {
+      return octave_value (
+        new octave_mplapack_mpfr_scalar_internal (value, precision_bits));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:NativeError", "%s", exception.what ());
+    }
+
+  return octave_value ();
+}
+
+double
+require_double_scalar (const octave_value& value, const char *description)
+{
+  if (! value.is_double_type () || ! value.is_real_scalar ())
+    error_with_id ("mplapack:InvalidArguments",
+                   "%s must be a real double scalar", description);
+
+  return value.double_value ();
+}
+
+octave_value
+require_scalar_payload (const octave_value& value)
+{
+  if (value.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    return value;
+
+  if (! value.is_classdef_object () || value.class_name () != "mp"
+      || value.dims () != dim_vector (1, 1))
+    error_with_id ("mplapack:InvalidNativeValue",
+                   "expected an internal MPLAPACK MPFR scalar or public mp scalar");
+
+  octave_classdef *object = value.classdef_object_value (true);
+  if (! object || ! object->is_instance_of ("mp"))
+    error_with_id ("mplapack:InvalidNativeValue",
+                   "invalid public mp scalar representation");
+
+  octave_value payload;
+  try
+    {
+      payload = object->get_property (0, "payload_");
+    }
+  catch (const std::exception&)
+    {
+      error_with_id ("mplapack:InvalidNativeValue",
+                     "public mp scalar has no valid native payload");
+    }
+
+  octave_mplapack_mpfr_scalar_internal::checked_value (payload);
+  return payload;
 }
 
 octave_value_list
@@ -165,11 +225,35 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       return ovl (make_internal_scalar (text, precision_bits));
     }
 
+  if (command == "scalar_create_text")
+    {
+      require_argument_count (args, 2, command);
+      const std::string text = require_string (args(1), "scalar text");
+      return ovl (make_internal_scalar (
+        text, octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "scalar_create_double")
+    {
+      require_argument_count (args, 2, command);
+      const double value = require_double_scalar (args(1), "scalar value");
+      return ovl (make_internal_scalar (
+        value, octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "scalar_default_precision")
+    {
+      require_argument_count (args, 1, command);
+      return ovl (octave_int64 (
+        octave_mplapack::default_precision_bits ()));
+    }
+
   if (command == "scalar_test_info")
     {
       require_argument_count (args, 2, command);
+      const octave_value payload = require_scalar_payload (args(1));
       const auto& value
-        = octave_mplapack_mpfr_scalar_internal::checked_value (args(1));
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
 
       octave_scalar_map info;
       info.assign ("internal_type", value.static_type_name ());
@@ -177,6 +261,10 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
                    octave_int64 (value.storage ().precision_bits ()));
       info.assign ("backend", "mpfr");
       info.assign ("is_scalar", true);
+      info.assign ("is_nan", value.storage ().is_nan ());
+      info.assign ("is_infinite", value.storage ().is_infinite ());
+      info.assign ("is_zero", value.storage ().is_zero ());
+      info.assign ("signbit", value.storage ().signbit ());
       return ovl (info);
     }
 
@@ -199,33 +287,47 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
   if (command == "scalar_test_equal")
     {
       require_argument_count (args, 3, command);
+      const octave_value lhs_payload = require_scalar_payload (args(1));
+      const octave_value rhs_payload = require_scalar_payload (args(2));
       const auto& lhs
-        = octave_mplapack_mpfr_scalar_internal::checked_value (args(1));
+        = octave_mplapack_mpfr_scalar_internal::checked_value (lhs_payload);
       const auto& rhs
-        = octave_mplapack_mpfr_scalar_internal::checked_value (args(2));
+        = octave_mplapack_mpfr_scalar_internal::checked_value (rhs_payload);
       return ovl (lhs.storage ().exactly_equal (rhs.storage ()));
     }
 
   if (command == "scalar_test_equal_string")
     {
       require_argument_count (args, 3, command);
+      const octave_value payload = require_scalar_payload (args(1));
       const auto& value
-        = octave_mplapack_mpfr_scalar_internal::checked_value (args(1));
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
       const std::string text = require_string (args(2), "comparison text");
 
       try
         {
           return ovl (value.storage ().exactly_equal_string (text));
         }
-      catch (const std::invalid_argument& exception)
+      catch (const std::invalid_argument&)
         {
-          error_with_id ("mplapack:InvalidScalarText", "%s",
-                         exception.what ());
+          error_with_id ("mplapack:InvalidScalarText",
+                         "invalid scalar text");
         }
       catch (const std::exception& exception)
         {
           error_with_id ("mplapack:NativeError", "%s", exception.what ());
         }
+    }
+
+  if (command == "scalar_test_equal_double")
+    {
+      require_argument_count (args, 3, command);
+      const octave_value payload = require_scalar_payload (args(1));
+      const auto& value
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
+      const double expected
+        = require_double_scalar (args(2), "comparison value");
+      return ovl (value.storage ().exactly_equal_double (expected));
     }
 
   error_with_id ("mplapack:InvalidCommand",
