@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include <cmath>
+#include <cstdint>
 #include <exception>
 #include <mutex>
 #include <string>
@@ -91,6 +92,62 @@ require_precision (const octave_value& value)
                    "through MPFR_PREC_MAX");
 
   return static_cast<mpfr_prec_t> (precision);
+}
+
+octave_mplapack::precision_count_t
+require_precision_count (const octave_value& value, const char *error_id)
+{
+  using octave_mplapack::precision_count_t;
+
+  if (! value.is_scalar_type () || ! value.isreal () || value.islogical ()
+      || value.is_string ())
+    error_with_id (error_id, "precision must be a real numeric scalar integer");
+
+  precision_count_t result = 0;
+  if (value.is_uint64_type ())
+    result = value.uint64_scalar_value ().value ();
+  else if (value.isinteger ())
+    {
+      if (value.is_uint8_type () || value.is_uint16_type ()
+          || value.is_uint32_type ())
+        result = value.uint64_scalar_value ().value ();
+      else
+        {
+          const std::int64_t supplied
+            = value.int64_scalar_value ().value ();
+          if (supplied <= 0)
+            error_with_id (error_id, "precision must be positive");
+          result = static_cast<precision_count_t> (supplied);
+        }
+    }
+  else if (value.is_double_type () || value.is_single_type ())
+    {
+      const double supplied = value.double_value ();
+      const double exact_integer_limit
+        = value.is_single_type () ? 16777216.0 : 9007199254740992.0;
+      if (! std::isfinite (supplied) || std::trunc (supplied) != supplied)
+        error_with_id (error_id, "precision must be a finite integer");
+      if (supplied <= 0.0)
+        error_with_id (error_id, "precision must be positive");
+      if (supplied > exact_integer_limit)
+        error_with_id (
+          error_id,
+          "floating precision exceeds its contiguous exact-integer range");
+      result = static_cast<precision_count_t> (supplied);
+    }
+  else
+    error_with_id (error_id, "precision must be a real numeric scalar integer");
+
+  if (result == 0)
+    error_with_id (error_id, "precision must be positive");
+
+  return result;
+}
+
+octave_value
+precision_count_value (octave_mplapack::precision_count_t value)
+{
+  return octave_value (octave_uint64 (value));
 }
 
 octave_value
@@ -215,6 +272,68 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 1, command);
       return ovl (module_locked);
+    }
+
+  if (command == "precision_get_bits")
+    {
+      require_argument_count (args, 1, command);
+      return ovl (precision_count_value (
+        octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "precision_set_bits")
+    {
+      require_argument_count (args, 2, command);
+      const auto requested = require_precision_count (
+        args(1), "mplapack:mpbits:InvalidPrecision");
+      if (requested
+          > static_cast<octave_mplapack::precision_count_t> (MPFR_PREC_MAX))
+        error_with_id ("mplapack:mpbits:PrecisionOverflow",
+                       "bit precision exceeds MPFR_PREC_MAX");
+
+      octave_mplapack::set_default_precision_bits (
+        static_cast<mpfr_prec_t> (requested));
+      return ovl (precision_count_value (
+        octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "precision_get_digits")
+    {
+      require_argument_count (args, 1, command);
+      return ovl (precision_count_value (
+        octave_mplapack::decimal_digits_for_bits (
+          octave_mplapack::default_precision_bits ())));
+    }
+
+  if (command == "precision_test_mpfr_global_bits")
+    {
+      require_argument_count (args, 1, command);
+      return ovl (precision_count_value (mpfr_get_default_prec ()));
+    }
+
+  if (command == "precision_set_digits")
+    {
+      require_argument_count (args, 2, command);
+      const auto requested = require_precision_count (
+        args(1), "mplapack:mpdigits:InvalidPrecision");
+
+      try
+        {
+          const mpfr_prec_t converted
+            = octave_mplapack::bits_for_decimal_digits (requested);
+          octave_mplapack::set_default_precision_bits (converted);
+          return ovl (precision_count_value (
+            octave_mplapack::decimal_digits_for_bits (converted)));
+        }
+      catch (const std::overflow_error&)
+        {
+          error_with_id ("mplapack:mpdigits:PrecisionOverflow",
+                         "decimal precision exceeds the MPFR range");
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:NativeError", "%s", exception.what ());
+        }
     }
 
   if (command == "scalar_test_create")

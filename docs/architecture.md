@@ -107,7 +107,7 @@ M03 exposes that scalar as an Octave 11.1 classdef value named `mp`.  Its one
 native payload property is private and hidden; native QA retrieves it through
 localized checked classdef APIs.  Decimal text is parsed directly by MPFR,
 while a double is converted directly from its existing IEEE binary64 value.
-Both paths pass the project-owned 128-bit default explicitly into each scalar.
+Both paths pass the project-owned default explicitly into each scalar.
 The public object reports `1 x 1`, preserves M02 lifetime safety, and provides
 only a nonnumeric placeholder display before M05.
 
@@ -115,3 +115,11 @@ M03 deliberately rejects numeric matrices, text/cell matrices, empty values,
 and concatenation.  Public dense `mp` matrices will not be represented as
 Octave arrays or cells of independent scalar wrapper objects.  M07 owns dense
 native storage, matrix constructors, empty representation, and matrix shape.
+
+M04 exposes the one project-owned default precision state through `mpbits` and
+`mpdigits`.  A fresh Octave process starts at 512 bits.  Bits remain canonical;
+decimal requests map to `ceil(n log2(10))` bits without hidden guard bits, and
+the digit getter reports `floor(p log10(2))` complete digits.  Directed MPFR
+interval calculations certify both integer conversions.  Atomic native state
+persists across clear and package unload/reload in one process, is never saved
+to disk, and is passed explicitly into each newly constructed immutable value.

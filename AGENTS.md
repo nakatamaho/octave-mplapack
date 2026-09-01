@@ -79,6 +79,12 @@ These rules apply throughout this repository.
     wrapper objects.
 43. Dense matrix representation, matrix construction, and matrix shape are
     owned by M07.
+44. Bits are the canonical precision unit.
+45. There is exactly one project-owned default precision state.
+46. Public precision changes affect only subsequently constructed values.
+47. Do not use MPFR's global default precision as project semantics.
+48. `mpdigits(n)` maps to `ceil(n * log2(10))` bits with no hidden guard bits.
+49. A fresh Octave process starts with a 512-bit project default.
 
 ## Required final milestone report
 

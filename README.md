@@ -1,9 +1,9 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M03 pass. M04 precision control is
-planned. M03 provides a public real `mp` scalar with native MPFR storage, but
-dense matrices, conversion, arithmetic, and other numerical operations are
-not implemented yet.
+**Status: under development.** M00 through M04 pass. M05 conversion and display
+is planned. The package provides a public real `mp` scalar with native MPFR
+storage and public default-precision control, but dense matrices, conversion,
+arithmetic, and other numerical operations are not implemented yet.
 
 ## Goal
 
@@ -27,12 +27,23 @@ info = mplapack_version()
 
 a = mp("0.1");
 b = mp(0.1);
+
+mpbits()
+% 512
+
+mpdigits(100);
+mpbits()
+% 333
+
+c = mp("0.1");
 ```
 
 This loads the private native module, reports the Octave, MPLAPACK, and MPFR
 versions, and executes the MPLAPACK MPFR `Rlamch_mpfr` probe. The constructor
-creates immutable public `1 x 1` scalar values at the current internal default
-of 128 bits. Public precision configuration arrives in M04.
+creates immutable public `1 x 1` scalar values. A fresh process starts at 512
+bits. `mpbits` controls the canonical bit precision and `mpdigits(n)` selects
+`ceil(n * log2(10))` bits without hidden guard bits. In the example, `a` and
+`b` remain 512-bit values while `c` uses 333 bits.
 
 ## Intended future API
 
@@ -96,6 +107,6 @@ M10  First functional baseline
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M03 are complete. M04 remains planned. Consult
+M00 through M04 are complete. M05 remains planned. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

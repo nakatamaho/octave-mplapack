@@ -10,8 +10,9 @@ classdef mp
   ## current project precision.  A @code{double} input preserves the exact
   ## numerical value of the already-rounded IEEE binary64 input.
   ##
-  ## M03 supports scalars only.  Matrices, complex values, arithmetic, and
-  ## public precision configuration are not implemented yet.
+  ## M04 supports scalars only.  Use @code{mpbits} or @code{mpdigits} to set
+  ## the default precision for subsequent values.  Matrices, complex values,
+  ## arithmetic, and public conversion are not implemented yet.
   ## @end deftypefn
 
   properties (Access = private, Hidden = true)

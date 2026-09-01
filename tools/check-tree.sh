@@ -151,4 +151,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00/M01/M02/M03 tree checks"
+echo "PASS: M00/M01/M02/M03/M04 tree checks"
