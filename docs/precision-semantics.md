@@ -81,9 +81,9 @@ The project does not call `mpfr_set_default_prec` to represent its state.
 Instead, successful `mpbits(n)` and `mpdigits(n)` setters synchronize the
 calling thread's gmpfrxx/MPFR default through its public setter.  This default
 is an execution context for MPLAPACK MPFR calls, not storage for an existing
-value.  M08 temporarily enters `MplapackMpfrPrecisionScope` at the
-operand-derived operation precision and restores the caller's default on every
-exit.  Explicit-precision construction remains independent of later default
+value. M08 and M09 temporarily enter `MplapackMpfrPrecisionScope` at the
+operand-derived operation precision and restore the caller's default on every
+exit. Explicit-precision construction remains independent of later default
 changes, and no process-wide precision mutation is used.
 
 ## Existing objects

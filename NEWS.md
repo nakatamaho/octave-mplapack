@@ -38,5 +38,7 @@
   scalar/matrix scaling.
 - Synchronized `mpbits`/`mpdigits` with the current-thread MPFR default for
   the MPLAPACK uniform-precision calling contract.
-- Matrix indexing, matrix element-wise arithmetic, matrix conversion/display,
-  and linear solve remain unimplemented.
+- Added dense real `mp` linear solve through MPLAPACK MPFR `Rgesv`, including
+  multiple right-hand sides and operation-owned factorization buffers.
+- Rectangular solve, matrix indexing, matrix element-wise arithmetic, and
+  matrix conversion/display remain unimplemented.

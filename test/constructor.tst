@@ -138,14 +138,8 @@
 %! b = mp ("2");
 %! product = a * b;
 %! assert (__mplapack_core__ ("scalar_test_equal_string", product, "2"));
-%! try
-%!   mldivide (a, b);
-%!   error ("M03 mldivide unexpectedly succeeded");
-%! catch exception
-%!   assert (! strcmp (exception.message, ...
-%!                     "M03 mldivide unexpectedly succeeded"));
-%!   assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
-%! end_try_catch
+%! quotient = mldivide (a, b);
+%! assert (__mplapack_core__ ("scalar_test_equal_string", quotient, "2"));
 
 %!error <expects exactly one scalar input> mp ()
 %!error <expects exactly one scalar input> mp (1, 2)

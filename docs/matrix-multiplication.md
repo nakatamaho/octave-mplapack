@@ -2,7 +2,7 @@
 
 M08 implements dense real `mp` multiplication through the installed
 MPLAPACK MPFR reference `Rgemm` routine.  Scalar `mtimes` and matrix/scalar
-scaling use the native MPFR scalar path; `mldivide` remains M09.
+scaling use the native MPFR scalar path. M09 adds `mldivide` through `Rgesv`.
 
 # MPLAPACK precision boundary
 
@@ -59,5 +59,5 @@ text arithmetic fallback is used.
 
 M08 does not implement matrix indexing, element-wise matrix operators,
 matrix conversion/formatting, transpose-aware GEMM, complex matrices, sparse
-matrices, or `Rgesv`/backslash.  The optimized/threaded MPFR backend is not a
+matrices. The optimized/threaded MPFR backend is not a
 dependency of this path.

@@ -23,6 +23,7 @@
 #include "mp_value.h"
 #include "mp_matrix_value.h"
 #include "mp_blas.h"
+#include "mp_lapack.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -677,6 +678,12 @@ make_mtimes_result (octave_mplapack::MpfrMatrixStorage storage)
 }
 
 octave_value
+make_mldivide_result (octave_mplapack::MpfrMatrixStorage storage)
+{
+  return make_mtimes_result (std::move (storage));
+}
+
+octave_value
 matrix_mtimes_operation (const octave_value& lhs_value,
                          const octave_value& rhs_value)
 {
@@ -882,6 +889,165 @@ mp_mtimes_operation (const octave_value& lhs_value,
 
   return scalar_binary_operation (lhs_value, rhs_value,
                                   ScalarBinaryOperation::multiply);
+}
+
+octave_value
+mp_mldivide_operation (const octave_value& lhs_value,
+                       const octave_value& rhs_value)
+{
+  const bool lhs_is_mp = is_mp_value (lhs_value);
+  const bool rhs_is_mp = is_mp_value (rhs_value);
+  if (! lhs_is_mp && ! rhs_is_mp)
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "left division requires at least one mp operand");
+
+  const bool lhs_is_matrix = lhs_is_mp && is_matrix_payload (lhs_value);
+  const bool rhs_is_matrix = rhs_is_mp && is_matrix_payload (rhs_value);
+  const bool lhs_is_double_matrix = is_double_matrix_operand (lhs_value);
+  const bool rhs_is_double_matrix = is_double_matrix_operand (rhs_value);
+
+  if (lhs_is_double_matrix && ! lhs_value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex matrix left division is not supported");
+  if (rhs_is_double_matrix && ! rhs_value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex matrix left division is not supported");
+
+  try
+    {
+      // Scalar left division is native MPFR arithmetic, not a one-by-one
+      // LAPACK call.  The right-hand matrix remains one native payload.
+      if (! lhs_is_matrix && ! lhs_is_double_matrix)
+        {
+          const double lhs_double
+            = lhs_is_mp ? 0.0 : require_arithmetic_double (lhs_value);
+          std::optional<octave_mplapack::MpfrScalarStorage> lhs_storage;
+          const octave_mplapack::MpfrScalarStorage *lhs_scalar = nullptr;
+          if (lhs_is_mp)
+            {
+              const octave_value payload = require_scalar_payload (lhs_value);
+              lhs_scalar = &octave_mplapack_mpfr_scalar_internal::checked_value (
+                payload).storage ();
+            }
+          else
+            {
+              const octave_value rhs_payload = require_mp_payload (rhs_value);
+              mpfr_prec_t precision_bits = 0;
+              if (rhs_payload.type_id ()
+                  == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+                precision_bits
+                  = octave_mplapack_mpfr_scalar_internal::checked_value (
+                      rhs_payload).storage ().precision_bits ();
+              else
+                precision_bits
+                  = octave_mplapack_mpfr_matrix_internal::checked_value (
+                      rhs_payload).storage ().precision_bits ();
+              lhs_storage.emplace (lhs_double, precision_bits);
+              lhs_scalar = &*lhs_storage;
+            }
+
+          if (rhs_is_matrix)
+            {
+              const octave_value rhs_payload = require_matrix_payload (rhs_value);
+              const auto& rhs
+                = octave_mplapack_mpfr_matrix_internal::checked_value (
+                    rhs_payload).storage ();
+              return make_mldivide_result (
+                octave_mplapack::mplapack_mpfr_matrix_left_divide (
+                  rhs, lhs_scalar->native_value ()));
+            }
+          if (rhs_is_double_matrix)
+            {
+              const mpfr_prec_t precision_bits = lhs_scalar->precision_bits ();
+              const auto rhs = make_double_matrix_storage (
+                rhs_value, precision_bits);
+              return make_mldivide_result (
+                octave_mplapack::mplapack_mpfr_matrix_left_divide (
+                  rhs, lhs_scalar->native_value ()));
+            }
+
+          const octave_mplapack::MpfrScalarStorage rhs_scalar
+            = [&] ()
+            {
+              if (rhs_is_mp)
+                return octave_mplapack_mpfr_scalar_internal::checked_value (
+                  require_scalar_payload (rhs_value)).storage ();
+              const double value = require_arithmetic_double (rhs_value);
+              return octave_mplapack::MpfrScalarStorage (
+                value, lhs_scalar->precision_bits ());
+            } ();
+          return make_internal_scalar (rhs_scalar.divide (*lhs_scalar));
+        }
+
+      // A non-scalar left operand is a square dense matrix.  A raw double
+      // matrix is explicitly converted to the other mp operand's precision.
+      const octave_mplapack::MpfrMatrixStorage *lhs = nullptr;
+      std::optional<octave_mplapack::MpfrMatrixStorage> lhs_owned;
+      if (lhs_is_matrix)
+        lhs = &octave_mplapack_mpfr_matrix_internal::checked_value (
+          require_matrix_payload (lhs_value)).storage ();
+      else if (lhs_is_double_matrix && rhs_is_matrix)
+        {
+          const auto& rhs = octave_mplapack_mpfr_matrix_internal::checked_value (
+            require_matrix_payload (rhs_value)).storage ();
+          lhs_owned.emplace (make_double_matrix_storage (
+            lhs_value, rhs.precision_bits ()));
+          lhs = &*lhs_owned;
+        }
+      else
+        error_with_id ("mplapack:mp:UnsupportedOperand",
+                       "matrix left division requires a dense mp or real double matrix");
+
+      const octave_mplapack::MpfrMatrixStorage *rhs = nullptr;
+      std::optional<octave_mplapack::MpfrMatrixStorage> rhs_owned;
+      if (rhs_is_matrix)
+        rhs = &octave_mplapack_mpfr_matrix_internal::checked_value (
+          require_matrix_payload (rhs_value)).storage ();
+      else if (rhs_is_double_matrix && lhs)
+        {
+          rhs_owned.emplace (make_double_matrix_storage (
+            rhs_value, lhs->precision_bits ()));
+          rhs = &*rhs_owned;
+        }
+      else
+        error_with_id ("mplapack:mp:UnsupportedOperand",
+                       "matrix left division requires a dense mp or real double right-hand side");
+
+      return make_mldivide_result (
+        octave_mplapack::mplapack_mpfr_matrix_solve (*lhs, *rhs));
+    }
+  catch (const octave_mplapack::MpfrRgesvError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrRgesvError::Kind::singular)
+        error_with_id ("mplapack:mp:SingularMatrix",
+                       "mp left division: matrix is singular");
+      error_with_id ("mplapack:mp:RgesvError",
+                     "MPLAPACK Rgesv rejected argument %d",
+                     -exception.info ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      const std::string message = exception.what ();
+      if (message.find ("square") != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      if (message.find ("dimensions") != std::string::npos)
+        error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:MldivideError", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:MldivideError", "%s", exception.what ());
+    }
+
+  return octave_value ();
 }
 
 octave_value
@@ -1101,6 +1267,22 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       return ovl (storage.element_exactly_equal_double (row, column, value));
     }
 
+  if (command == "matrix_test_element_double")
+    {
+      require_argument_count (args, 4, command);
+      const octave_value payload = require_matrix_payload (args(1));
+      const auto& storage
+        = octave_mplapack_mpfr_matrix_internal::checked_value (
+            payload).storage ();
+      const std::size_t row = require_matrix_index (args(2));
+      const std::size_t column = require_matrix_index (args(3));
+      if (row >= storage.rows () || column >= storage.columns ())
+        error_with_id ("mplapack:InvalidArguments",
+                       "matrix test index is out of range");
+      return ovl (mpfr_get_d (storage.at (row, column).mpfr_data (),
+                              MPFR_RNDN));
+    }
+
   if (command == "matrix_test_element_equal")
     {
       require_argument_count (args, 7, command);
@@ -1144,6 +1326,12 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 3, command);
       return ovl (mp_mtimes_operation (args(1), args(2)));
+    }
+
+  if (command == "mldivide")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (mp_mldivide_operation (args(1), args(2)));
     }
 
   if (command == "scalar_test_create")

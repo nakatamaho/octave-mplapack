@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M08 pass. M09 linear solve is next.
+**Status: under development.** M00 through M09 pass. M10 is next.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and scalar `+`, `-`, `.*`, and
@@ -57,7 +57,8 @@ B = mp ([1, 2;
 size (A)
 % 2 2
 C = A * A
-% native MPLAPACK MPFR Rgemm result
+x = A \\ b
+% native MPLAPACK MPFR Rgemm/Rgesv results
 ```
 
 This loads the private native module, reports the Octave, MPLAPACK, and MPFR
@@ -82,15 +83,14 @@ element.  A real double matrix transfers each existing binary64 value
 directly, while a text-cell matrix parses each decimal directly.  Each matrix
 has one immutable precision, contiguous column-major MPFR storage, and normal
 two-dimensional shape metadata.  M08 implements dense real `A * B` through
-MPLAPACK MPFR `Rgemm`, with result precision equal to the maximum operand
-precision and a temporary current-thread precision scope.  `A \ B`, matrix
-element-wise arithmetic, indexing, and matrix conversion/display remain
-unimplemented.
+MPLAPACK MPFR `Rgemm`, and M09 implements square `A \ B` through `Rgesv`,
+with result precision equal to the maximum operand precision and a temporary
+current-thread precision scope.  Matrix element-wise arithmetic, indexing,
+and matrix conversion/display remain unimplemented.
 
 ## Intended future API
 
-The following workflow is available through M08; the linear solve remains
-deferred to M09:
+The following workflow is available through M09:
 
 ```octave
 pkg load mplapack
@@ -149,6 +149,6 @@ M10  First functional baseline
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M08 are complete. M09 is next. Consult
+M00 through M09 are complete. M10 is next. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

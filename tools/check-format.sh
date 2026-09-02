@@ -47,8 +47,8 @@ for source in src/*.cc src/*.h test/*.cc; do
 done
 
 if [ "$failed" -ne 0 ]; then
-  echo "FAIL: M02-M08 source sanity checks failed" >&2
+  echo "FAIL: M02-M09 source sanity checks failed" >&2
   exit 1
 fi
 
-echo "PASS: M00-M08 formatting and sanity checks"
+echo "PASS: M00-M09 formatting and sanity checks"

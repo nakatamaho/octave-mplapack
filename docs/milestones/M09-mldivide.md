@@ -7,9 +7,8 @@ LAPACK.
 
 # Scope
 
-Dense square real `A`, one right-hand side, and multiple right-hand sides when
-naturally supported without architectural distortion. The expected route is
-the appropriate MPLAPACK real MPFR `gesv` routine or equivalent.
+Dense square real `A`, one right-hand side, and multiple right-hand sides are
+supported through the MPLAPACK real MPFR `Rgesv` routine.
 
 # Non-goals
 
@@ -22,8 +21,8 @@ the appropriate MPLAPACK real MPFR `gesv` routine or equivalent.
 The solver must operate on native MPFR storage without binary64 conversion.
 Input mutation or preservation must be deliberate and documented, and singular
 status must become a clear Octave-level result or diagnostic.
-M06 deliberately leaves scalar `\` unsupported so this milestone defines one
-coherent public solve contract through the MPLAPACK MPFR backend.
+Scalar left division uses the existing native MPFR arithmetic path, while
+matrix solves use operation-owned copies and the MPLAPACK MPFR backend.
 
 M07 supplies deep native copies with independent contiguous buffers, checked
 `mplapackint` dimensions, column-major layout, and verified leading
@@ -47,8 +46,7 @@ otherwise, optional multiple right-hand sides, and backend invocation evidence.
 # Gate
 
 `G09` passes when `mldivide` correctly solves the supported systems through the
-MPLAPACK MPFR LAPACK path with documented status and ownership behavior. This
-gate is planned and is not passed by M00.
+MPLAPACK MPFR LAPACK path with documented status and ownership behavior.
 
 # Expected commit
 

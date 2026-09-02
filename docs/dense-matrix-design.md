@@ -154,15 +154,16 @@ native checker rejects any mismatch before entering MPLAPACK.  Scalar and
 real-double scaling use direct MPFR operations; matrix element-wise
 arithmetic remains deferred.
 
-## M09 Rgesv readiness
+## M09 Rgesv implementation
 
 Deep copies provide operation-owned mutable coefficient and right-hand-side
-buffers.  Native mutation of such work copies leaves public immutable inputs
-unchanged.  The same checked dimensions, column-major layout, and leading
-dimensions are ready for `Rgesv` in M09.
+buffers. Native mutation of such work copies leaves public immutable inputs
+unchanged. M09 uses the same checked dimensions, column-major layout, and
+leading dimensions for `Rgesv`; square solves return the operation-owned
+solution buffer and preserve public input values.
 
 ## Non-goals
 
 M07 defines no matrix element-wise arithmetic, transpose, indexing,
-numeric/text matrix conversion, final matrix display, complex storage, or
-LAPACK execution.  M08 adds only `mtimes`/`Rgemm` and scalar scaling.
+numeric/text matrix conversion, final matrix display, or complex storage.
+M08 adds `mtimes`/`Rgemm` and M09 adds square `mldivide`/`Rgesv`.

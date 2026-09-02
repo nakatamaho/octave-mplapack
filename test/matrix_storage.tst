@@ -215,15 +215,6 @@
 %!                     "mplapack:mp:MatrixUnsupported"));
 %!   end_try_catch
 %! endfor
-%! not_implemented = {@() A \ B};
-%! for index = 1:numel (not_implemented)
-%!   try
-%!     not_implemented{index} ();
-%!     error ("M07 future kernel unexpectedly succeeded");
-%!   catch exception
-%!     assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
-%!   end_try_catch
-%! endfor
 
 %!error <char conversion for dense mp matrices> char (mp ([1, 2]))
 %!error <double conversion for dense mp matrices> double (mp ([1, 2]))
