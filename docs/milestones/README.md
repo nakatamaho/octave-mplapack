@@ -14,7 +14,7 @@ documented gate passes.
 | M06 | Scalar element-wise arithmetic | Passed |
 | M07 | Native dense matrix storage | Passed |
 | M08 | Matrix multiplication | Passed |
-| M09 | Linear solve | Planned |
+| M09 | Linear solve | Passed |
 | M10 | First functional baseline | Planned |
 | P00 | Packaging design | Planned |
 | P01 | Debian source package | Planned |

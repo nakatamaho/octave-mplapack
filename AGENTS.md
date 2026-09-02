@@ -110,7 +110,7 @@ These rules apply throughout this repository.
     deep operation-owned copies.
 65. Public matrix indexing is not implemented in M07.
 66. Nondegenerate dense matrix `*` must use MPLAPACK MPFR `Rgemm` under one
-    uniform operation precision; `Rgesv` is forbidden before M09.
+    uniform operation precision; dense square `\` uses `Rgesv` in M09.
 
 ## Required final milestone report
 

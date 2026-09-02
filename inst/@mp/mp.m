@@ -14,9 +14,9 @@ classdef mp
   ## Empty real matrices retain their two-dimensional shape.  A @code{1x1}
   ## numeric or text-cell input normalizes to the canonical scalar payload.
   ## Dense matrix multiplication uses MPLAPACK MPFR @code{Rgemm} under a
-  ## uniform operation-precision scope.  M08 does not implement matrix
-  ## indexing, element-wise matrix arithmetic, matrix conversion, transpose,
-  ## or linear solve.  Complex,
+  ## uniform operation-precision scope.  M09 adds square matrix left division
+  ## through MPLAPACK MPFR Rgesv. Matrix indexing, element-wise matrix
+  ## arithmetic, matrix conversion, and transpose remain deferred. Complex,
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
   ## @end deftypefn
 

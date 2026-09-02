@@ -180,7 +180,7 @@
 %!test
 %! a = mp ("1");
 %! b = mp ("2");
-%! operations = {@() mldivide (a, b), @() sin (a), ...
+%! operations = {@() sin (a), ...
 %!               @() exp (a), @() sqrt (a), @() ["value=", a]};
 %! for i = 1:numel (operations)
 %!   m05_expect_unsupported (operations{i});
