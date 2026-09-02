@@ -142,6 +142,18 @@
 
 %!test
 %! mpbits (256);
+%! A = mp ([1 2 3; 2 4 6; 3 6 9]);
+%! [Q, R, P] = qr (A);
+%! [Qv, Rv, p] = qr (A, "vector");
+%! assert (sort (p), 1:3);
+%! assert (sum (P, 1), ones (1, 3));
+%! assert (sum (P, 2), ones (3, 1));
+%! assert (double (Q * R), double (A * P), 1e-10);
+%! assert (double (Qv * Rv), double (A(:, p)), 1e-10);
+%! mpbits (512);
+
+%!test
+%! mpbits (256);
 %! for x = [4, -4, 0]
 %!   [Q, R, P] = qr (mp (x));
 %!   [Qv, Rv, p] = qr (mp (x), "vector");
