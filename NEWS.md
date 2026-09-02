@@ -44,6 +44,9 @@
   matrix-to-double conversion, and canonical matrix display.
 - Added dense matrix element-wise `+`, `-`, `.*`, and `./`, unary signs, and
   two-dimensional singleton expansion using direct MPFR arithmetic.
+- Added precision-preserving dense matrix transpose, conjugate transpose for
+  real values, and two-dimensional column-major `reshape`, including one
+  inferred dimension.
 - Rectangular solve, matrix assignment, logical indexing, matrix `char`,
-  transpose, concatenation, comparisons, powers, and reductions remain
+  concatenation, comparisons, powers, and reductions remain
   unimplemented.

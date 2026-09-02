@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <algorithm>
+#include <array>
 #include <exception>
 #include <limits>
 #include <mutex>
@@ -26,6 +27,7 @@
 #include "mp_matrix_value.h"
 #include "mp_matrix_inspection.h"
 #include "mp_matrix_arithmetic.h"
+#include "mp_matrix_structure.h"
 #include "mp_blas.h"
 #include "mp_lapack.h"
 #include "mp_precision.h"
@@ -616,6 +618,229 @@ make_inspection_result (octave_mplapack::MpfrMatrixStorage storage)
       return make_internal_scalar (std::move (scalar));
     }
   return make_internal_matrix (std::move (storage));
+}
+
+struct ReshapeDimension
+{
+  bool inferred;
+  std::size_t value;
+};
+
+std::size_t
+parse_reshape_dimension (const octave_value& value, const char *description)
+{
+  if (! value.isnumeric () || value.islogical () || ! value.isreal ()
+      || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s must be a nonnegative integer scalar", description);
+
+  if (value.is_uint64_type ()
+      || (value.isinteger () && (value.is_uint8_type ()
+                                  || value.is_uint16_type ()
+                                  || value.is_uint32_type ())))
+    {
+      const std::uint64_t supplied = value.uint64_scalar_value ().value ();
+      if (supplied > std::numeric_limits<std::size_t>::max ())
+        error_with_id ("mplapack:mp:DimensionOverflow",
+                       "%s exceeds the native dimension range", description);
+      return static_cast<std::size_t> (supplied);
+    }
+
+  if (value.isinteger ())
+    {
+      const std::int64_t supplied = value.int64_scalar_value ().value ();
+      if (supplied < 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "%s must be a nonnegative integer scalar", description);
+      if (static_cast<std::uint64_t> (supplied)
+          > std::numeric_limits<std::size_t>::max ())
+        error_with_id ("mplapack:mp:DimensionOverflow",
+                       "%s exceeds the native dimension range", description);
+      return static_cast<std::size_t> (supplied);
+    }
+
+  const double supplied = value.double_value ();
+  const double exact_integer_limit
+    = value.is_single_type () ? 16777216.0 : 9007199254740992.0;
+  if (! std::isfinite (supplied) || std::trunc (supplied) != supplied
+      || supplied < 0.0 || supplied > exact_integer_limit)
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s must be a nonnegative integer scalar", description);
+
+  const long double wide = static_cast<long double> (supplied);
+  if (wide > static_cast<long double> (
+        std::numeric_limits<std::size_t>::max ()))
+    error_with_id ("mplapack:mp:DimensionOverflow",
+                   "%s exceeds the native dimension range", description);
+
+  return static_cast<std::size_t> (supplied);
+}
+
+ReshapeDimension
+parse_reshape_dimension_spec (const octave_value& value,
+                               const char *description)
+{
+  if (value.isnumeric () && ! value.islogical () && value.isreal ()
+      && value.isempty ())
+    return {true, 0};
+  return {false, parse_reshape_dimension (value, description)};
+}
+
+std::array<ReshapeDimension, 2>
+parse_reshape_vector (const octave_value& value)
+{
+  if (! value.isnumeric () || value.islogical () || ! value.isreal ()
+      || value.ndims () != 2 || value.numel () != 2)
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "reshape dimension vector must contain two real integers");
+
+  const NDArray dimensions = value.array_value ();
+  return {
+    parse_reshape_dimension_spec (dimensions (0), "reshape rows"),
+    parse_reshape_dimension_spec (dimensions (1), "reshape columns")
+  };
+}
+
+std::pair<std::size_t, std::size_t>
+resolve_reshape_dimensions (const octave_value& value,
+                            const octave_value& first,
+                            const octave_value *second)
+{
+  const octave_value payload = require_mp_payload (value);
+  const std::size_t source_numel
+    = payload.type_id () == octave_mplapack_mpfr_scalar_internal::static_type_id ()
+        ? 1
+        : octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ().numel ();
+
+  std::array<ReshapeDimension, 2> dimensions;
+  if (second)
+    {
+      dimensions = {
+        parse_reshape_dimension_spec (first, "reshape rows"),
+        parse_reshape_dimension_spec (*second, "reshape columns")
+      };
+    }
+  else
+    dimensions = parse_reshape_vector (first);
+
+  if (dimensions[0].inferred && dimensions[1].inferred)
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "only one reshape dimension may be inferred");
+
+  if (dimensions[0].inferred)
+    {
+      if (dimensions[1].value == 0 && source_numel != 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape rows cannot be inferred from a zero column dimension");
+      dimensions[0].value = dimensions[1].value == 0
+        ? 0 : source_numel / dimensions[1].value;
+      if (dimensions[1].value != 0
+          && source_numel % dimensions[1].value != 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape rows cannot be inferred from the element count");
+      dimensions[0].inferred = false;
+    }
+  else if (dimensions[1].inferred)
+    {
+      if (dimensions[0].value == 0 && source_numel != 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape columns cannot be inferred from a zero row dimension");
+      dimensions[1].value = dimensions[0].value == 0
+        ? 0 : source_numel / dimensions[0].value;
+      if (dimensions[0].value != 0
+          && source_numel % dimensions[0].value != 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape columns cannot be inferred from the element count");
+      dimensions[1].inferred = false;
+    }
+
+  try
+    {
+      if (octave_mplapack::MpfrMatrixStorage::checked_element_count (
+            dimensions[0].value, dimensions[1].value) != source_numel)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape element count does not match");
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  return {dimensions[0].value, dimensions[1].value};
+}
+
+octave_value
+matrix_transpose_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& source
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      return make_internal_scalar (octave_mplapack::MpfrScalarStorage (
+        octave_mplapack::MpfrScalarStorage::NativeScalar (source.native_value ())));
+    }
+
+  try
+    {
+      return make_internal_matrix (
+        octave_mplapack::mpfr_matrix_transpose (
+          octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ()));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+matrix_reshape_result (const octave_value& value,
+                       const octave_value& first,
+                       const octave_value *second)
+{
+  const octave_value payload = require_mp_payload (value);
+  const auto dimensions = resolve_reshape_dimensions (value, first, second);
+
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      if (dimensions.first != 1 || dimensions.second != 1)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "a scalar mp value can only be reshaped to 1x1");
+      const auto& source
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      return make_internal_scalar (octave_mplapack::MpfrScalarStorage (
+        octave_mplapack::MpfrScalarStorage::NativeScalar (source.native_value ())));
+    }
+
+  try
+    {
+      return make_inspection_result (octave_mplapack::mpfr_matrix_reshape (
+        octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+          .storage (), dimensions.first, dimensions.second));
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidDimension", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
 }
 
 octave_value
@@ -1571,6 +1796,22 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 3, command);
       return ovl (matrix_linear_subscript_result (args(1), args(2)));
+    }
+
+  if (command == "matrix_transpose")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (matrix_transpose_result (args(1)));
+    }
+
+  if (command == "matrix_reshape")
+    {
+      if (args.length () != 3 && args.length () != 4)
+        error_with_id ("mplapack:InvalidArguments",
+                       "__mplapack_core__(\"matrix_reshape\") expects two or three arguments");
+      if (args.length () == 3)
+        return ovl (matrix_reshape_result (args(1), args(2), nullptr));
+      return ovl (matrix_reshape_result (args(1), args(2), &args(3)));
     }
 
   if (command == "matrix_to_double")

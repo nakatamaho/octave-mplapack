@@ -17,8 +17,9 @@ classdef mp
   ## uniform operation-precision scope.  M09 adds square matrix left division
   ## through MPLAPACK MPFR Rgesv. M10 adds read-only matrix indexing,
   ## `double`, and `disp`. M11 adds native element-wise arithmetic with 2-D
-  ## singleton expansion. Matrix assignment, matrix `char`, and transpose
-  ## remain deferred. Complex,
+  ## singleton expansion. M12 adds read-only transpose, conjugate transpose for
+  ## real values, and column-major reshape. Matrix assignment and matrix
+  ## `char` remain deferred. Complex,
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
   ## @end deftypefn
 

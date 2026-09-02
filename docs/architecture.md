@@ -30,7 +30,7 @@ system BLAS and LAPACK also remain untouched. `mp` values are separate numeric
 objects whose MPLAPACK operations work directly on native MPFR-backed storage;
 the project will not use `LD_PRELOAD` or silently route through binary64.
 
-Through M11 the only backend is real MPFR arithmetic. Complex arithmetic and
+Through M12 the only backend is real MPFR arithmetic. Complex arithmetic and
 MPC-valued matrices are future extensions. GMP, DD, QD, binary80, and
 binary128 backends are outside this baseline.
 
@@ -182,3 +182,9 @@ two-dimensional singleton expansion without materializing broadcast copies,
 and rounds directly into destination storage at the operand-derived precision.
 These operations do not call MPLAPACK or enter its precision scope; the
 current default remains unchanged.
+
+M12 adds read-only `transpose`, `ctranspose`, and two-dimensional `reshape`.
+They allocate independent dense storage and copy existing MPFR values directly,
+preserving source precision and column-major linear order. Structural
+operations do not call MPLAPACK, enter a precision scope, or consult the
+current default.

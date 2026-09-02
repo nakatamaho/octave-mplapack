@@ -120,6 +120,12 @@ singleton expansion does not materialize expanded operands, and neither the
 project default nor the current-thread MPFR default participates in result
 precision selection or changes during these operations.
 
+M12 applies the same invariant to structural operations. `transpose`,
+`ctranspose`, and `reshape` copy existing MPFR values at the source object's
+precision and preserve the column-major linear order for reshape. They do not
+perform numerical rounding, use the current-thread MPFR default, or change
+the project default.
+
 ## Explicit scalar conversion
 
 `char(x)` formats the immutable value using `x`'s stored precision.  The
