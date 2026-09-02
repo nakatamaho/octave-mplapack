@@ -47,7 +47,7 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 
 all: $(TARGET)
 
-$(TARGET): $(SOURCE) $(HEADERS) | check-deps
+$(TARGET): $(SOURCE) $(HEADERS) | check-dependency
 	@echo "Building $(TARGET) with MKOCTFILE=$(MKOCTFILE)"
 	$(MKOCTFILE) $(PACKAGE_CXXFLAGS) $(MPLAPACK_CFLAGS) $(SOURCE) \
 	  $(MPLAPACK_LIBS) -o $@
