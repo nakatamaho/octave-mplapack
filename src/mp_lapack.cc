@@ -171,6 +171,109 @@ require_mplapack_mpfr_qr_precision_contract (
       "MPLAPACK MPFR precision contract mismatch at QR boundary");
 }
 
+struct MpfrQrFactorization
+{
+  MpfrMatrixStorage factors;
+  MpfrMatrixStorage tau;
+};
+
+MpfrQrResult
+make_qr_result_from_factorization (MpfrQrFactorization factorization,
+                                   bool economy, bool want_q)
+{
+  MpfrMatrixStorage a_fact = std::move (factorization.factors);
+  MpfrMatrixStorage tau = std::move (factorization.tau);
+  const mpfr_prec_t operation_precision = a_fact.precision_bits ();
+  const std::size_t m = a_fact.rows ();
+  const std::size_t n = a_fact.columns ();
+  const std::size_t k = std::min (m, n);
+  const bool tall_economy = economy && m > n;
+  const std::size_t q_columns = tall_economy ? n : m;
+  const std::size_t r_rows = tall_economy ? n : m;
+
+  MpfrMatrixStorage r (r_rows, n, operation_precision);
+  for (std::size_t column = 0; column < n; ++column)
+    for (std::size_t row = 0; row < r_rows; ++row)
+      {
+        if (row < k && row <= column)
+          mpfr_set (r.at (row, column).mpfr_data (),
+                    a_fact.at (row, column).mpfr_data (), MPFR_RNDN);
+        else
+          mpfr_set_zero (r.at (row, column).mpfr_data (), 0);
+      }
+
+  if (! want_q)
+    return {MpfrMatrixStorage (0, 0, operation_precision), std::move (r)};
+
+  const auto m_arg = MpfrMatrixStorage::checked_mplapack_dimension (m);
+  const auto k_arg = MpfrMatrixStorage::checked_mplapack_dimension (k);
+  const auto q_columns_arg
+    = MpfrMatrixStorage::checked_mplapack_dimension (q_columns);
+  MpfrMatrixStorage query_q (m, q_columns, operation_precision);
+  for (std::size_t column = 0; column < q_columns; ++column)
+    for (std::size_t row = 0; row < m; ++row)
+      {
+        if (column < n)
+          mpfr_set (query_q.at (row, column).mpfr_data (),
+                    a_fact.at (row, column).mpfr_data (), MPFR_RNDN);
+        else
+          mpfr_set_zero (query_q.at (row, column).mpfr_data (), 0);
+      }
+  MpfrMatrixStorage query_tau_q (tau);
+  MpfrMatrixStorage query_orgqr_work (1, 1, operation_precision);
+  MpfrMatrixStorage::MplapackInteger query_orgqr_info = 0;
+  {
+    MplapackMpfrPrecisionScope precision_scope (operation_precision);
+    require_mplapack_mpfr_qr_precision_contract (
+      operation_precision, query_q, query_tau_q, query_orgqr_work);
+    Rorgqr (m_arg, q_columns_arg, k_arg, query_q.data (),
+            query_q.leading_dimension (), query_tau_q.data (),
+            query_orgqr_work.data (), -1, query_orgqr_info);
+    if (mpfrxx::default_precision_bits () != operation_precision)
+      throw std::runtime_error (
+        "MPLAPACK MPFR Rorgqr changed the current-thread default precision");
+  }
+  if (query_orgqr_info != 0)
+    throw std::runtime_error (
+      query_orgqr_info < 0
+        ? "MPLAPACK Rorgqr rejected a workspace query argument"
+        : "MPLAPACK Rorgqr workspace query failed");
+  const auto orgqr_lwork
+    = checked_workspace_length (query_orgqr_work.at (0, 0));
+
+  MpfrMatrixStorage q_work (m, q_columns, operation_precision);
+  for (std::size_t column = 0; column < q_columns; ++column)
+    for (std::size_t row = 0; row < m; ++row)
+      {
+        if (column < n)
+          mpfr_set (q_work.at (row, column).mpfr_data (),
+                    a_fact.at (row, column).mpfr_data (), MPFR_RNDN);
+        else
+          mpfr_set_zero (q_work.at (row, column).mpfr_data (), 0);
+      }
+  MpfrMatrixStorage tau_q (tau);
+  MpfrMatrixStorage orgqr_work (
+    static_cast<std::size_t> (orgqr_lwork), 1, operation_precision);
+  MpfrMatrixStorage::MplapackInteger orgqr_info = 0;
+  {
+    MplapackMpfrPrecisionScope precision_scope (operation_precision);
+    require_mplapack_mpfr_qr_precision_contract (
+      operation_precision, q_work, tau_q, orgqr_work);
+    Rorgqr (m_arg, q_columns_arg, k_arg, q_work.data (),
+            q_work.leading_dimension (), tau_q.data (), orgqr_work.data (),
+            orgqr_lwork, orgqr_info);
+    if (mpfrxx::default_precision_bits () != operation_precision)
+      throw std::runtime_error (
+        "MPLAPACK MPFR Rorgqr changed the current-thread default precision");
+  }
+  if (orgqr_info < 0)
+    throw std::runtime_error ("MPLAPACK Rorgqr rejected an argument");
+  if (orgqr_info > 0)
+    throw std::runtime_error ("MPLAPACK Rorgqr failed");
+
+  return {std::move (q_work), std::move (r)};
+}
+
 MpfrMatrixStorage
 mplapack_mpfr_matrix_solve (const MpfrMatrixStorage& lhs,
                             const MpfrMatrixStorage& rhs)
@@ -547,7 +650,6 @@ mplapack_mpfr_matrix_qr (const MpfrMatrixStorage& input, bool economy,
 
   const auto m_arg = MpfrMatrixStorage::checked_mplapack_dimension (m);
   const auto n_arg = MpfrMatrixStorage::checked_mplapack_dimension (n);
-  const auto k_arg = MpfrMatrixStorage::checked_mplapack_dimension (k);
 
   MpfrMatrixStorage query_a (m, n, operation_precision, input);
   MpfrMatrixStorage query_tau (k, 1, operation_precision);
@@ -592,84 +694,101 @@ mplapack_mpfr_matrix_qr (const MpfrMatrixStorage& input, bool economy,
   if (info > 0)
     throw std::runtime_error ("MPLAPACK Rgeqrf failed");
 
-  MpfrMatrixStorage r (r_rows, n, operation_precision);
+  return make_qr_result_from_factorization (
+    {std::move (a_fact), std::move (tau)}, economy, want_q);
+}
+
+MpfrPivotedQrResult
+mplapack_mpfr_matrix_pivoted_qr (const MpfrMatrixStorage& input, bool economy,
+                                 bool want_q)
+{
+  const mpfr_prec_t operation_precision = input.precision_bits ();
+  validate_precision (operation_precision);
+  const std::size_t m = input.rows ();
+  const std::size_t n = input.columns ();
+  const std::size_t k = std::min (m, n);
+  std::vector<MpfrMatrixStorage::MplapackInteger> permutation (n);
   for (std::size_t column = 0; column < n; ++column)
-    for (std::size_t row = 0; row < r_rows; ++row)
-      {
-        if (row < k && row <= column)
-          mpfr_set (r.at (row, column).mpfr_data (),
-                    a_fact.at (row, column).mpfr_data (), MPFR_RNDN);
-        else
-          mpfr_set_zero (r.at (row, column).mpfr_data (), 0);
-      }
+    permutation[column]
+      = static_cast<MpfrMatrixStorage::MplapackInteger> (column + 1);
 
-  if (! want_q)
-    return {MpfrMatrixStorage (0, 0, operation_precision), std::move (r)};
+  // Avoid passing null or zero-sized arrays to LAPACK for empty shapes.
+  if (m == 0 || n == 0)
+    {
+      const bool tall_economy = economy && m > n;
+      const std::size_t q_columns = tall_economy ? n : m;
+      const std::size_t r_rows = tall_economy ? n : m;
+      MpfrMatrixStorage q (m, q_columns, operation_precision);
+      MpfrMatrixStorage r (r_rows, n, operation_precision);
+      return {std::move (q), std::move (r), std::move (permutation)};
+    }
 
-  const auto q_columns_arg
-    = MpfrMatrixStorage::checked_mplapack_dimension (q_columns);
-  MpfrMatrixStorage query_q (m, q_columns, operation_precision);
-  for (std::size_t column = 0; column < q_columns; ++column)
-    for (std::size_t row = 0; row < m; ++row)
-      {
-        if (column < n)
-          mpfr_set (query_q.at (row, column).mpfr_data (),
-                    a_fact.at (row, column).mpfr_data (), MPFR_RNDN);
-        else
-          mpfr_set_zero (query_q.at (row, column).mpfr_data (), 0);
-      }
-  MpfrMatrixStorage query_tau_q (tau);
-  MpfrMatrixStorage query_orgqr_work (1, 1, operation_precision);
-  MpfrMatrixStorage::MplapackInteger query_orgqr_info = 0;
+  const auto m_arg = MpfrMatrixStorage::checked_mplapack_dimension (m);
+  const auto n_arg = MpfrMatrixStorage::checked_mplapack_dimension (n);
+  MpfrMatrixStorage query_a (m, n, operation_precision, input);
+  MpfrMatrixStorage query_tau (k, 1, operation_precision);
+  MpfrMatrixStorage query_work (1, 1, operation_precision);
+  std::vector<MpfrMatrixStorage::MplapackInteger> query_jpvt (n, 0);
+  MpfrMatrixStorage::MplapackInteger query_info = 0;
+  {
+    // Rgeqp3 overwrites A and uses p_op default-precision REAL temporaries.
+    MplapackMpfrPrecisionScope precision_scope (operation_precision);
+    require_mplapack_mpfr_qr_precision_contract (
+      operation_precision, query_a, query_tau, query_work);
+    Rgeqp3 (m_arg, n_arg, query_a.data (), query_a.leading_dimension (),
+            query_jpvt.data (), query_tau.data (), query_work.data (), -1,
+            query_info);
+    if (mpfrxx::default_precision_bits () != operation_precision)
+      throw std::runtime_error (
+        "MPLAPACK MPFR Rgeqp3 changed the current-thread default precision");
+  }
+  if (query_info != 0)
+    throw std::runtime_error (
+      query_info < 0
+        ? "MPLAPACK Rgeqp3 rejected a workspace query argument"
+        : "MPLAPACK Rgeqp3 workspace query failed");
+  const auto rgeqp3_lwork = checked_workspace_length (query_work.at (0, 0));
+
+  // Recreate destructive inputs after the query.  JPVT is reset to all-free
+  // columns for every public M19 factorization.
+  MpfrMatrixStorage a_fact (m, n, operation_precision, input);
+  MpfrMatrixStorage tau (k, 1, operation_precision);
+  MpfrMatrixStorage rgeqp3_work (
+    static_cast<std::size_t> (rgeqp3_lwork), 1, operation_precision);
+  std::fill (permutation.begin (), permutation.end (), 0);
+  MpfrMatrixStorage::MplapackInteger info = 0;
   {
     MplapackMpfrPrecisionScope precision_scope (operation_precision);
     require_mplapack_mpfr_qr_precision_contract (
-      operation_precision, query_q, query_tau_q, query_orgqr_work);
-    Rorgqr (m_arg, q_columns_arg, k_arg, query_q.data (),
-            query_q.leading_dimension (), query_tau_q.data (),
-            query_orgqr_work.data (), -1, query_orgqr_info);
+      operation_precision, a_fact, tau, rgeqp3_work);
+    Rgeqp3 (m_arg, n_arg, a_fact.data (), a_fact.leading_dimension (),
+            permutation.data (), tau.data (), rgeqp3_work.data (),
+            rgeqp3_lwork, info);
     if (mpfrxx::default_precision_bits () != operation_precision)
       throw std::runtime_error (
-        "MPLAPACK MPFR Rorgqr changed the current-thread default precision");
+        "MPLAPACK MPFR Rgeqp3 changed the current-thread default precision");
   }
-  if (query_orgqr_info != 0)
-    throw std::runtime_error (query_orgqr_info < 0
-                                ? "MPLAPACK Rorgqr rejected a workspace query argument"
-                                : "MPLAPACK Rorgqr workspace query failed");
-  const auto orgqr_lwork
-    = checked_workspace_length (query_orgqr_work.at (0, 0));
+  if (info < 0)
+    throw std::runtime_error ("MPLAPACK Rgeqp3 rejected an argument");
+  if (info > 0)
+    throw std::runtime_error ("MPLAPACK Rgeqp3 failed");
 
-  MpfrMatrixStorage q_work (m, q_columns, operation_precision);
-  for (std::size_t column = 0; column < q_columns; ++column)
-    for (std::size_t row = 0; row < m; ++row)
-      {
-        if (column < n)
-          mpfr_set (q_work.at (row, column).mpfr_data (),
-                    a_fact.at (row, column).mpfr_data (), MPFR_RNDN);
-        else
-          mpfr_set_zero (q_work.at (row, column).mpfr_data (), 0);
-      }
-  MpfrMatrixStorage tau_q (tau);
-  MpfrMatrixStorage orgqr_work (
-    static_cast<std::size_t> (orgqr_lwork), 1, operation_precision);
-  MpfrMatrixStorage::MplapackInteger orgqr_info = 0;
-  {
-    MplapackMpfrPrecisionScope precision_scope (operation_precision);
-    require_mplapack_mpfr_qr_precision_contract (
-      operation_precision, q_work, tau_q, orgqr_work);
-    Rorgqr (m_arg, q_columns_arg, k_arg, q_work.data (),
-            q_work.leading_dimension (), tau_q.data (), orgqr_work.data (),
-            orgqr_lwork, orgqr_info);
-    if (mpfrxx::default_precision_bits () != operation_precision)
-      throw std::runtime_error (
-        "MPLAPACK MPFR Rorgqr changed the current-thread default precision");
-  }
-  if (orgqr_info < 0)
-    throw std::runtime_error ("MPLAPACK Rorgqr rejected an argument");
-  if (orgqr_info > 0)
-    throw std::runtime_error ("MPLAPACK Rorgqr failed");
+  std::vector<bool> seen (n, false);
+  for (std::size_t column = 0; column < n; ++column)
+    {
+      const auto pivot = permutation[column];
+      if (pivot < 1 || pivot > n_arg)
+        throw std::runtime_error ("MPLAPACK Rgeqp3 returned an invalid permutation");
+      const std::size_t source = static_cast<std::size_t> (pivot - 1);
+      if (seen[source])
+        throw std::runtime_error ("MPLAPACK Rgeqp3 returned duplicate pivots");
+      seen[source] = true;
+    }
 
-  return {std::move (q_work), std::move (r)};
+  const auto result = make_qr_result_from_factorization (
+    {std::move (a_fact), std::move (tau)}, economy, want_q);
+  return {std::move (result.q), std::move (result.r),
+          std::move (permutation)};
 }
 
 MpfrMatrixStorage

@@ -1,7 +1,8 @@
 # Dense real `mp` QR factorization
 
 M18 adds non-pivoted dense real QR through the installed MPLAPACK MPFR
-`Rgeqrf` and `Rorgqr` routines:
+`Rgeqrf` and `Rorgqr` routines. M19 adds three-output column-pivoted QR
+through `Rgeqp3` and `Rorgqr` (see `pivoted-qr.md`):
 
 ```octave
 R = qr (A);
@@ -22,5 +23,5 @@ input matrix is never overwritten.  Every result uses the stored precision of
 operation precision.
 
 M18 supports dense real scalar and two-dimensional matrix values only.  Pivoted
-three-output QR, `qr(A,B)`, sparse, complex, N-D, and QR update operations are
-deferred.
+three-output QR is provided by M19. `qr(A,B)`, sparse, complex, N-D, and QR
+update operations remain deferred.

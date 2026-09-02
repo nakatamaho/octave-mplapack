@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M18 pass.
+**Status: under development.** M00 through M19 pass.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -13,7 +13,9 @@ reshape. M13 adds native horizontal and vertical concatenation that returns
 one dense `mp` value. M14 adds value-semantic, in-bounds indexed assignment
 with precision-preserving native copies. M18 adds non-pivoted dense real QR
 through MPLAPACK MPFR `Rgeqrf`/`Rorgqr`; one-output `qr(A)` returns `R` and
-two-output forms return `Q,R` with full or economy shapes.
+two-output forms return `Q,R` with full or economy shapes. M19 adds
+three-output column-pivoted QR through `Rgeqp3`, with builtin-double
+permutation matrix/vector outputs.
 
 ## Goal
 
@@ -73,7 +75,7 @@ double_A = double(A)
 disp(A)
 R = chol (mp ({"4", "2"; "2", "10"}));
 [Q, R] = qr (mp ([1, 2; 3, 4; 5, 7]));
-% native MPLAPACK MPFR Rgemm/Rgesv/Rgelss/Rpotrf/Rgeqrf/Rorgqr results
+% native MPLAPACK MPFR Rgemm/Rgesv/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3 results
 ```
 
 This loads the private native module, reports the Octave, MPLAPACK, and MPFR
@@ -112,11 +114,12 @@ ambient precision default. M17 adds dense real `chol` through MPLAPACK MPFR
 `Rpotrf`, including selected-triangle semantics and optional status output,
 while preserving immutable source values and stored precision. M18 adds
 non-pivoted dense real `qr` through MPLAPACK MPFR `Rgeqrf` and `Rorgqr`;
-one-output `qr(A)` returns `R` and two-output forms return `Q,R`.
+one-output `qr(A)` returns `R` and two-output forms return `Q,R`. M19 adds
+column-pivoted three-output `qr` through `Rgeqp3`, reusing `Rorgqr` for `Q`.
 
 ## Intended future API
 
-The following workflow is available through M18:
+The following workflow is available through M19:
 
 ```octave
 pkg load mplapack
@@ -180,10 +183,11 @@ M15  Full-rank rectangular dense solve
 M16  Rank-deficient rectangular minimum-norm solve
 M17  Dense real Cholesky factorization
 M18  Dense real non-pivoted QR factorization
+M19  Dense real pivoted QR factorization
 
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M18 are complete. Consult
+M00 through M19 are complete. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

@@ -183,8 +183,12 @@
 
 %!test
 %! A = mp ([1, 2; 3, 4]);
-%! fail ("qr (A, \"vector\")", "option");
+%! [Qv, Rv] = qr (A, "vector");
+%! [Qm, Rm] = qr (A, "matrix");
+%! [Qp, Rp, P] = qr (A);
+%! assert (double (Qv * Rv), double (A), 1e-10);
+%! assert (double (Qm * Rm), double (A), 1e-10);
+%! assert (double (Qp * Rp), double (A * P), 1e-10);
 %! fail ("qr (A, \"foo\")", "option");
 %! fail ("qr (A, A)", "qr option");
-%! fail ("[Q, R, P] = qr (A)", "at most Q and R");
 %! mpbits (512);

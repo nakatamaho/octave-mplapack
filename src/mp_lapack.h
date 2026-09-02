@@ -4,6 +4,7 @@
 #define OCTAVE_MPLAPACK_MP_LAPACK_H
 
 #include <stdexcept>
+#include <vector>
 
 #include <mplapack_gmpfrxx_mkII_config.h>
 #include <mplapack_mpfr_precision.h>
@@ -121,6 +122,13 @@ struct MpfrQrResult
   MpfrMatrixStorage r;
 };
 
+struct MpfrPivotedQrResult
+{
+  MpfrMatrixStorage q;
+  MpfrMatrixStorage r;
+  std::vector<MpfrMatrixStorage::MplapackInteger> permutation;
+};
+
 void require_mplapack_mpfr_solve_precision_contract (
   mpfr_prec_t operation_precision,
   const MpfrMatrixStorage& a_work,
@@ -161,6 +169,9 @@ MpfrCholeskyResult mplapack_mpfr_matrix_cholesky (
   const MpfrMatrixStorage& input, bool lower);
 
 MpfrQrResult mplapack_mpfr_matrix_qr (
+  const MpfrMatrixStorage& input, bool economy, bool want_q);
+
+MpfrPivotedQrResult mplapack_mpfr_matrix_pivoted_qr (
   const MpfrMatrixStorage& input, bool economy, bool want_q);
 
 MpfrMatrixStorage mplapack_mpfr_matrix_left_divide (

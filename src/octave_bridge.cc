@@ -1840,6 +1840,82 @@ mp_qr_operation (const octave_value& value, bool economy, bool want_q)
   return ovl ();
 }
 
+octave_value_list
+mp_pivoted_qr_operation (const octave_value& value, bool economy,
+                         bool vector_output)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "qr expects one real mp value");
+
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_value payload = require_mp_payload (value);
+  const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                scalar.native_value ().mpfr_data (), MPFR_RNDN);
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "qr expects one real mp value");
+
+  try
+    {
+      const auto factors
+        = octave_mplapack::mplapack_mpfr_matrix_pivoted_qr (
+            *input, economy, true);
+      const octave_value q = make_mtimes_result (factors.q);
+      const octave_value r = make_mtimes_result (factors.r);
+      const std::size_t n = factors.permutation.size ();
+      if (vector_output)
+        {
+          Matrix p (1, checked_octave_dimension_for_inspection (n));
+          for (std::size_t column = 0; column < n; ++column)
+            p.xelem (0, static_cast<octave_idx_type> (column))
+              = static_cast<double> (factors.permutation[column]);
+          return ovl (q, r, octave_value (p));
+        }
+
+      const octave_idx_type dimension
+        = checked_octave_dimension_for_inspection (n);
+      Matrix p (dimension, dimension);
+      for (std::size_t column = 0; column < n; ++column)
+        {
+          const auto source = factors.permutation[column] - 1;
+          p.xelem (static_cast<octave_idx_type> (source),
+                   static_cast<octave_idx_type> (column))
+            = 1.0;
+        }
+      return ovl (q, r, octave_value (p));
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:QrError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
 octave_value
 matrix_mtimes_operation (const octave_value& lhs_value,
                          const octave_value& rhs_value)
@@ -2663,6 +2739,22 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         error_with_id ("mplapack:mp:InvalidArguments",
                        "qr output mode is invalid");
       return mp_qr_operation (args(1), option == "econ", outputs == "qr");
+    }
+
+  if (command == "qr_pivoted")
+    {
+      require_argument_count (args, 4, command);
+      const std::string option = require_string (args(2), "qr option");
+      const std::string permutation
+        = require_string (args(3), "qr permutation output");
+      if (option != "full" && option != "econ")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "pivoted qr option must be \"full\" or \"econ\"");
+      if (permutation != "matrix" && permutation != "vector")
+        error_with_id ("mplapack:mp:InvalidArguments",
+                       "pivoted qr permutation output is invalid");
+      return mp_pivoted_qr_operation (args(1), option == "econ",
+                                      permutation == "vector");
     }
 
   if (command == "scalar_test_create")

@@ -73,3 +73,7 @@
   `Rgeqrf`/`Rorgqr`, including one-output `R`, full/economy two-output forms,
   deprecated numeric-zero economy compatibility, and precision-preserving
   immutable operation-owned buffers.
+- Added dense real column-pivoted `mp` QR through MPLAPACK MPFR `Rgeqp3` and
+  `Rorgqr`, with Octave-compatible matrix/vector permutation outputs,
+  full/economy forms, precision-safe JPVT handling, and immutable
+  operation-owned buffers. Non-pivoted one/two-output QR remains unchanged.
