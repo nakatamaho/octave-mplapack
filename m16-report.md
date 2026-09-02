@@ -4,8 +4,8 @@ Repository: `nakatamaho/octave-mplapack`
 Remote: `origin` (`https://github.com/nakatamaho/octave-mplapack.git`)
 Branch: `topic/m16-rank-deficient-lstsq`
 Starting commit: `8d5cbc022a1776e94bbbebbb0442513e94d172c4`
-Final commit: `c22ad4d` (implementation; report commit follows)
-PR: pending push/creation
+Final commit: `c22ad4d` (implementation; report/metadata commits follow)
+PR: [#17](https://github.com/nakatamaho/octave-mplapack/pull/17), stacked on M15 PR #16
 
 ## Baseline
 
@@ -324,10 +324,10 @@ The five pre-existing deleted legacy report files remain unstaged.
 
 ## Push
 
-- Push: pending
-- Remote tip: pending
-- Local tip: pending report commit
-- GitHub CI: pending PR creation
+- Push: PASS (`topic/m16-rank-deficient-lstsq` pushed to `origin`)
+- Remote tip: `99e13587b6504a16c96b94cea0d6ae9cc3745cdf` before this metadata update
+- Local tip: `99e13587b6504a16c96b94cea0d6ae9cc3745cdf` before this metadata update
+- GitHub CI: PR #17 `structural-checks` PASS
 
 ## Known limitations
 
