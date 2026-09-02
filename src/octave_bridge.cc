@@ -1223,7 +1223,14 @@ struct PreparedAssignmentLhs
 {
   octave_value payload;
   std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
-  const octave_mplapack::MpfrMatrixStorage *matrix = nullptr;
+
+  const octave_mplapack::MpfrMatrixStorage& matrix_storage () const
+  {
+    if (scalar_matrix)
+      return *scalar_matrix;
+    return octave_mplapack_mpfr_matrix_internal::checked_value (
+      payload).storage ();
+  }
 };
 
 PreparedAssignmentLhs
@@ -1233,12 +1240,7 @@ prepare_assignment_lhs (const octave_value& value)
   prepared.payload = require_mp_payload (value);
   if (prepared.payload.type_id ()
       == octave_mplapack_mpfr_matrix_internal::static_type_id ())
-    {
-      prepared.matrix
-        = &octave_mplapack_mpfr_matrix_internal::checked_value (
-            prepared.payload).storage ();
-      return prepared;
-    }
+    return prepared;
 
   const auto& scalar
     = octave_mplapack_mpfr_scalar_internal::checked_value (
@@ -1246,7 +1248,6 @@ prepare_assignment_lhs (const octave_value& value)
   prepared.scalar_matrix.emplace (1, 1, scalar.precision_bits ());
   mpfr_set (prepared.scalar_matrix->at (0, 0).mpfr_data (),
             scalar.native_value ().mpfr_data (), MPFR_RNDN);
-  prepared.matrix = &*prepared.scalar_matrix;
   return prepared;
 }
 
@@ -1279,10 +1280,11 @@ matrix_two_subscript_assignment_result (const octave_value& value,
                                          const octave_value& rhs_value)
 {
   PreparedAssignmentLhs lhs = prepare_assignment_lhs (value);
+  const auto& lhs_storage = lhs.matrix_storage ();
   const auto row_indices
-    = parse_index_vector (row_spec, lhs.matrix->rows (), "row index");
+    = parse_index_vector (row_spec, lhs_storage.rows (), "row index");
   const auto column_indices
-    = parse_index_vector (column_spec, lhs.matrix->columns (),
+    = parse_index_vector (column_spec, lhs_storage.columns (),
                           "column index");
   PreparedAssignmentOperand rhs = prepare_assignment_rhs (rhs_value);
 
@@ -1290,9 +1292,9 @@ matrix_two_subscript_assignment_result (const octave_value& value,
     {
       return make_inspection_result (
         octave_mplapack::mpfr_matrix_assign_two_subscript (
-          *lhs.matrix, row_indices, column_indices, rhs.descriptor,
+          lhs_storage, row_indices, column_indices, rhs.descriptor,
           assignment_precision_for_selection (
-            *lhs.matrix, rhs.descriptor,
+            lhs_storage, rhs.descriptor,
             row_indices.empty () || column_indices.empty () ? 0 : 1)));
     }
   catch (const std::out_of_range& exception)
@@ -1324,16 +1326,17 @@ matrix_linear_assignment_result (const octave_value& value,
                                  const octave_value& rhs_value)
 {
   PreparedAssignmentLhs lhs = prepare_assignment_lhs (value);
+  const auto& lhs_storage = lhs.matrix_storage ();
   std::vector<std::size_t> indices;
   if (is_colon_index (index_spec))
     {
-      indices.resize (lhs.matrix->numel ());
+      indices.resize (lhs_storage.numel ());
       for (std::size_t index = 0; index < indices.size (); ++index)
         indices[index] = index;
     }
   else
     {
-      indices = parse_index_vector (index_spec, lhs.matrix->numel (),
+      indices = parse_index_vector (index_spec, lhs_storage.numel (),
                                     "linear index");
       if (indices.size () != 1)
         error_with_id ("mplapack:mp:LinearAssignmentUnsupported",
@@ -1344,9 +1347,9 @@ matrix_linear_assignment_result (const octave_value& value,
   try
     {
       return make_inspection_result (octave_mplapack::mpfr_matrix_assign_linear (
-        *lhs.matrix, indices, rhs.descriptor,
+        lhs_storage, indices, rhs.descriptor,
         assignment_precision_for_selection (
-          *lhs.matrix, rhs.descriptor, indices.size ())));
+          lhs_storage, rhs.descriptor, indices.size ())));
     }
   catch (const std::out_of_range& exception)
     {
