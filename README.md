@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M14 pass. M15 is next.
+**Status: under development.** M00 through M16 pass.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -62,6 +62,9 @@ size (A)
 % 2 2
 C = A * A
 x = A \\ b
+R = mp ({"1", "0"; "0", "1"; "1", "1"});
+r = mp ({"0"; "1"; "4"});
+least_squares = R \\ r
 element = A(2, 1)
 column = A(:, 2)
 double_A = double(A)
@@ -91,9 +94,12 @@ element.  A real double matrix transfers each existing binary64 value
 directly, while a text-cell matrix parses each decimal directly.  Each matrix
 has one immutable precision, contiguous column-major MPFR storage, and normal
 two-dimensional shape metadata.  M08 implements dense real `A * B` through
-MPLAPACK MPFR `Rgemm`, and M09 implements square `A \ B` through `Rgesv`,
+MPLAPACK MPFR `Rgemm`, and M09 implements square `A \ B` through `Rgesv`;
+M15 extends full-rank rectangular `A \ B` through `Rgels`,
 with result precision equal to the maximum operand precision and a temporary
-current-thread precision scope. M10 adds read-only indexing, `double(A)`, and
+current-thread precision scope. M16 upgrades rectangular `A \ B` to the
+rank-revealing MPLAPACK MPFR `Rgelss` path for minimum-norm least-squares
+solutions, while square systems remain on `Rgesv`. M10 adds read-only indexing, `double(A)`, and
 canonical matrix display. M11 adds native MPFR matrix `+`, `-`, `.*`, and `./`,
 unary signs, and two-dimensional singleton expansion. M12 adds read-only
 transpose, conjugate transpose for real values, and column-major reshape;
@@ -102,7 +108,7 @@ ambient precision default.
 
 ## Intended future API
 
-The following workflow is available through M09:
+The following workflow is available through M16:
 
 ```octave
 pkg load mplapack
@@ -162,10 +168,12 @@ M11  Dense element-wise arithmetic
 M12  Dense transpose and reshape
 M13  Dense horizontal and vertical concatenation
 M14  Dense indexed assignment with value semantics
+M15  Full-rank rectangular dense solve
+M16  Rank-deficient rectangular minimum-norm solve
 
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M14 are complete. M15 is next. Consult
+M00 through M16 are complete. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

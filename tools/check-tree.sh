@@ -104,8 +104,13 @@ test/matrix_storage.tst
 test/matrix_lifetime.m
 test/gemm.tst
 test/gesv.tst
+test/rgels.tst
+test/rank.tst
 test/mp_lapack_probe.cc
 test/mp_lapack_test.cc
+test/mp_lapack_rgels_test.cc
+test/mp_lapack_rank_test.cc
+test/m16_driver_probe.cc
 test/matrix_inspection.tst
 test/mp_matrix_inspection_test.cc
 test/elementwise.tst
@@ -127,6 +132,7 @@ docs/conversion-display.md
 docs/scalar-arithmetic.md
 docs/dense-matrix-design.md
 docs/linear-solve.md
+docs/rectangular-solve.md
 docs/matrix-inspection.md
 docs/elementwise-arithmetic.md
 docs/matrix-structure.md
@@ -150,6 +156,9 @@ docs/milestones/M12-transpose-reshape.md
 docs/milestones/M13-concatenation.md
 docs/matrix-assignment.md
 docs/milestones/M14-indexed-assignment.md
+docs/milestones/M15-rgels.md
+docs/milestones/M16-rank-deficient-lstsq.md
+docs/rank-deficient-solve.md
 docs/milestones/P00-packaging-design.md
 docs/milestones/P01-debian-source-package.md
 docs/milestones/P02-local-deb-build.md
@@ -208,4 +217,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00-M14 tree checks"
+echo "PASS: M00-M16 tree checks"
