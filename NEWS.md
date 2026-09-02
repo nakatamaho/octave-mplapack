@@ -77,3 +77,7 @@
   `Rorgqr`, with Octave-compatible matrix/vector permutation outputs,
   full/economy forms, precision-safe JPVT handling, and immutable
   operation-owned buffers. Non-pivoted one/two-output QR remains unchanged.
+- Added the M20 complex architecture audit and design freeze. The installed
+  `mpfrxx::mpc_class` backend, uniform-precision contract, future payload
+  variants, complex routine inventory, and real-only PPA boundary are
+  documented; public complex `mp` values remain unimplemented.
