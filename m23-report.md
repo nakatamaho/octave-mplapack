@@ -4,7 +4,7 @@ Repository: `nakatamaho/octave-mplapack`
 Remote: `origin` (`https://github.com/nakatamaho/octave-mplapack.git`)
 Branch: `topic/m23-v0.1-freeze`
 Starting commit: `d697e6969c393b4f68c6570c0a56d21018cd7cee`
-V0.1.0_RC_COMMIT: `TBD`
+V0.1.0_RC_COMMIT: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
 M23 report commit: `TBD`
 Branch tip: `TBD`
 PR: `TBD`
@@ -24,8 +24,8 @@ PR: `TBD`
 - Release-blocking production fixes: none
 - Public API changed: none; version/documentation metadata only
 - Unsupported surface changed: none
-- Compatibility firewall: pending final RC QA
-- Result: pending final RC QA
+- Compatibility firewall: passed; unsupported matrix operations fail cleanly without double fallback
+- Result: PASS; no numerical feature or production implementation change
 
 ## Version
 
@@ -36,17 +36,17 @@ PR: `TBD`
 - Minimum Octave: `11.1.0`
 - NEWS: final `0.1.0` section
 - README: release-candidate status and PPA handoff
-- Stale 0.1.0-dev references: pending final search
-- Result: pending final RC QA
+- Stale 0.1.0-dev references: none in user-facing release metadata; historical wording classified
+- Result: PASS
 
 ## Release candidate identity
 
-- V0.1.0_RC_COMMIT: `TBD`
-- Commit tree: pending final commit
-- Source freeze clean: pending final audit (legacy report deletions excluded)
+- V0.1.0_RC_COMMIT: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
+- Commit tree: metadata/docs/QA only; no numerical source changes
+- Source freeze clean: PASS for the candidate; five unrelated legacy report deletions remain unstaged and excluded
 - Subsequent source-changing commits: none permitted after RC
 - Report-only commit: `TBD`
-- Result: pending final RC QA
+- Result: PASS; the report/manifest follow-up is metadata-only
 
 ## MPLAPACK dependency
 
@@ -55,99 +55,99 @@ PR: `TBD`
 - pkg-config version: `3.0.1`
 - Required header: `mplapack_mpfr_precision.h`
 - Required interface: `MplapackMpfrPrecisionScope`
-- Dependency probe: pending final RC QA
+- Dependency probe: PASS (`make -C src check-dependency`)
 - Runtime SONAME: `libmplapack_mpfr.so.3`
 - MPFR: `libmpfr.so.6`
 - MPC: `libmpc.so.3`
 - GMP: `libgmp.so.10`
 - Source-tree dependency: none; installed headers/libraries through pkg-config
-- Result: pending final RC QA
+- Result: PASS
 
 ## Archive
 
 - Canonical filename: `mplapack-0.1.0.tar.gz`
 - Top-level directory: `mplapack-0.1.0/`
-- Source commit: `TBD`
-- Size: `TBD bytes`
-- SHA256: `TBD`
-- Second-build SHA256: `TBD`
-- Hashes identical: pending final RC QA
-- Contents audit: pending final RC QA
-- Build products excluded: pending final RC QA
-- Private files excluded: pending final RC QA
-- Result: pending final RC QA
+- Source commit: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
+- Size: `161819 bytes`
+- SHA256: `35d004adf831c79fe470ff890ce3698dfe7e6f624ea31c174b1d60a03d110db6`
+- Second-build SHA256: `35d004adf831c79fe470ff890ce3698dfe7e6f624ea31c174b1d60a03d110db6`
+- Hashes identical: PASS
+- Contents audit: PASS; one `mplapack-0.1.0/` top-level directory and 195 entries
+- Build products excluded: PASS (`.o`, `.oct`, `.libs`, `.deps`, `dist`, and build caches excluded)
+- Private files excluded: PASS; root reports and handoff manifest intentionally excluded
+- Result: PASS
 
 ## Reproducibility
 
 ### Build A
 
-- Fresh directory: pending final RC QA
+- Fresh directory: independent temporary checkout A created by `tools/verify-release-candidate.sh`
 - Archive: `mplapack-0.1.0.tar.gz`
-- SHA256: `TBD`
+- SHA256: `35d004adf831c79fe470ff890ce3698dfe7e6f624ea31c174b1d60a03d110db6`
 
 ### Build B
 
-- Fresh directory: pending final RC QA
+- Fresh directory: independent temporary checkout B created by `tools/verify-release-candidate.sh`
 - Archive: `mplapack-0.1.0.tar.gz`
-- SHA256: `TBD`
+- SHA256: `35d004adf831c79fe470ff890ce3698dfe7e6f624ea31c174b1d60a03d110db6`
 
-- File lists identical: pending final RC QA
-- Metadata identical: pending final RC QA
-- Result: pending final RC QA
+- File lists identical: PASS
+- Metadata identical: PASS (`SOURCE_DATE_EPOCH=0`, normalized tar/gzip metadata)
+- Result: PASS
 
 ## Fresh-clone QA
 
-- Clone/check-out commit: `TBD`
-- Dependency probe: pending final RC QA
-- Native build: pending final RC QA
-- Public smoke: pending final RC QA
-- Package build: pending final RC QA
-- Result: pending final RC QA
+- Clone/check-out commit: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
+- Dependency probe: PASS
+- Native build: PASS
+- Public smoke: PASS
+- Package build: PASS
+- Result: PASS; independent `git clone --no-local` validation
 
 ## Extracted archive lifecycle
 
-- Extraction: pending final RC QA
-- Package build: pending final RC QA
-- Install: pending final RC QA
-- Installed version: `0.1.0` (pending final QA)
-- Fresh mpbits(): `512` (pending final QA)
-- pkg load: pending final RC QA
-- Public smoke: pending final RC QA
-- Help: pending final RC QA
-- Examples: pending final RC QA
-- pkg unload: pending final RC QA
-- Uninstall: pending final RC QA
-- Reinstall: pending final RC QA
-- Second smoke: pending final RC QA
-- Result: pending final RC QA
+- Extraction: PASS
+- Package build: PASS
+- Install: PASS
+- Installed version: `0.1.0`
+- Fresh mpbits(): `512`
+- pkg load: PASS
+- Public smoke: PASS
+- Help: PASS (`help @mp/lu`)
+- Examples: PASS through package lifecycle smoke
+- pkg unload: PASS
+- Uninstall: PASS
+- Reinstall: PASS
+- Second smoke: PASS
+- Result: PASS
 
 ## Numerical / regression QA
 
-- tools/local-ci.sh: pending final RC QA
-- M00-M22 regression: pending final RC QA
-- M20 complex probe: pending final RC QA
-- 1024/2048 precision regression: pending final RC QA
-- rank precision canary: pending final RC QA
-- Cholesky precision canary: pending final RC QA
-- QR precision canary: pending final RC QA
-- LU pivot precision canary: pending final RC QA
-- Compatibility firewall: pending final RC QA
-- ASan: pending final RC QA
-- UBSan: pending final RC QA
-- LSan: pending final RC QA
-- git diff --check: pending final RC QA
-- Result: pending final RC QA
+- tools/local-ci.sh: PASS
+- M00-M22 regression: PASS
+- M20 complex probe: PASS
+- 1024/2048 precision regression: PASS
+- rank precision canary: PASS
+- Cholesky precision canary: PASS
+- QR precision canary: PASS
+- LU pivot precision canary: PASS
+- Compatibility firewall: PASS
+- ASan: PASS
+- UBSan: PASS
+- LSan: PASS
+- git diff --check: PASS
+- Result: PASS
 
 ## Runtime linkage
 
 - Built .oct: `src/__mplapack_core__.oct`
-- ldd: pending final RC QA
-- ldd -r: pending final RC QA
+- ldd: PASS; `libmplapack_mpfr.so.3`, MPC, MPFR, GMP, Octave/runtime libraries resolved
+- ldd -r: PASS; no missing libraries or unresolved non-host symbols
 - Runtime SONAME: `libmplapack_mpfr.so.3`
 - RPATH: no development prefix expected
 - RUNPATH: no development prefix expected
-- Development path leak: pending final audit
-- Result: pending final RC QA
+- Development path leak: none in committed build/package configuration or release `.oct` RPATH/RUNPATH
+- Result: PASS
 
 ## Documentation
 
@@ -158,71 +158,77 @@ PR: `TBD`
 - release checklist: M23 subset marked from evidence
 - release manifest: this handoff file
 - PPA plan: consistent with RC handoff
-- Limitations consistent: pending final search
+- Limitations consistent: PASS across README, NEWS, API, compatibility, manifest, and PPA plan
 - False PPA availability claim: none
-- Result: pending final RC QA
+- Result: PASS
 
 ## Release manifest
 
 - File: `docs/v0.1-release-manifest.md`
 - Upstream version: `0.1.0`
-- Upstream commit: `TBD`
+- Upstream commit: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
 - Archive: `mplapack-0.1.0.tar.gz`
-- SHA256: `TBD`
+- SHA256: `35d004adf831c79fe470ff890ce3698dfe7e6f624ea31c174b1d60a03d110db6`
 - Octave minimum: `11.1.0`
 - Ubuntu initial target: `Ubuntu 26.04`
 - MPLAPACK requirement: feature probe plus uniform-precision scope
 - Complex status: public complex unsupported; probe-only audit retained
 - PPA status: handoff ready; PPA not published
-- Complete: pending final RC QA
+- Complete: PASS
 
 ## PPA handoff
 
-- PPA1 input commit: `TBD` (V0.1.0_RC_COMMIT)
+- PPA1 input commit: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33` (V0.1.0_RC_COMMIT)
 - PPA1 upstream archive: `mplapack-0.1.0.tar.gz`
-- PPA1 archive SHA256: `TBD`
+- PPA1 archive SHA256: `35d004adf831c79fe470ff890ce3698dfe7e6f624ea31c174b1d60a03d110db6`
 - PPA2 upstream source: `V0.1.0_RC_COMMIT`
 - Ubuntu target: `Ubuntu 26.04`, initial deep validation on amd64
 - Complex blocks PPA: no (`REAL-PPA-GO`)
 - Remaining packaging-policy work: PPA1--PPA4 Debian/Launchpad policy and build QA
-- Result: pending final RC QA
+- Result: PASS; remaining work is packaging policy/build execution only
 
 ## Gates
 
-- G23-SOURCE-FREEZE: pending
-- G23-VERSION: pending
-- G23-REPRODUCIBLE: pending
-- G23-ARCHIVE: pending
-- G23-QA: pending
-- G23-PACKAGE: pending
-- G23-LINKAGE: pending
-- G23-DOCS: pending
-- G23-PPA-HANDOFF: pending
+- G23-SOURCE-FREEZE: PASS
+- G23-VERSION: PASS
+- G23-REPRODUCIBLE: PASS
+- G23-ARCHIVE: PASS
+- G23-QA: PASS
+- G23-PACKAGE: PASS
+- G23-LINKAGE: PASS
+- G23-DOCS: PASS
+- G23-PPA-HANDOFF: PASS
 
-M23 PASS / FAIL
+M23 PASS — V0.1.0-RC-FROZEN
 
 Release conclusion:
 
-V0.1.0-RC-FROZEN / NOT-FROZEN
+V0.1.0-RC-FROZEN
 
 ## Code changes
 
-Pending final RC evidence.
+No numerical source changes. `DESCRIPTION` is frozen at `0.1.0`; release
+documentation, dependency probing, reproducibility verification, and package
+lifecycle QA were completed.
 
 ## Files changed
 
-Pending final RC evidence; pre-existing legacy report deletions remain excluded.
+The release metadata/docs/QA changes listed in the RC commit and this
+metadata-only report follow-up are included. Five pre-existing legacy report
+deletions remain unstaged and excluded.
 
 ## Commits
 
-Pending final RC evidence.
+- `815bd362966f9464c402f94f0ae67217c7696330` M23: freeze v0.1.0 release candidate metadata
+- `0bef79cddd3fdd70abafdf38bc1a4ab492652d33` M23: fix standalone archive documentation links
+- `TBD` M23 report/manifest metadata follow-up
 
 ## Push
 
-- Push: pending
-- Remote tip: pending
-- Local tip: pending
-- GitHub CI: pending
+- Push: pending final report push
+- Remote tip: pending final report push
+- Local tip: pending final report commit
+- GitHub CI: pending final report push
 
 ## Known v0.1 limitations
 
@@ -269,7 +275,7 @@ Branch: topic/m23-v0.1-freeze
 Starting commit: d697e6969c393b4f68c6570c0a56d21018cd7cee
 Final commit: TBD
 Files changed: release metadata/docs/QA only; legacy report deletions excluded
-Commands run: pending final RC QA
-Tests: pending final RC QA
-Gate: pending final RC QA
+Commands run: `tools/check-tree.sh`; `tools/check-format.sh`; `git diff --check`; `tools/verify-release-candidate.sh 0bef79cddd3fdd70abafdf38bc1a4ab492652d33`; `tools/local-ci.sh`; independent fresh-clone and extracted-archive lifecycle QA; linkage audit
+Tests: M00-M22 regression, M20 complex probe, dependency probe, package reproducibility, install/lifecycle, compatibility firewall, ASan, UBSan, LSan
+Gate: G23-SOURCE-FREEZE/VERSION/REPRODUCIBLE/ARCHIVE/QA/PACKAGE/LINKAGE/DOCS/PPA-HANDOFF all PASS
 Known limitations: documented above and in docs/v0.1-api.md
