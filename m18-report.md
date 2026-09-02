@@ -5,7 +5,7 @@ Remote: https://github.com/nakatamaho/octave-mplapack.git
 Branch: topic/m18-qr
 Starting commit: 77d667a26c4a46aafc73034786d3adb47d3ebfa9
 Final commit: e91f2f7 (implementation; report/metadata commits follow)
-PR: pending (to be created after push)
+PR: #19 (https://github.com/nakatamaho/octave-mplapack/pull/19)
 
 ## Baseline
 
@@ -262,13 +262,14 @@ coverage. One-output QR returns R without generating Q.
 ## Commits
 
 - e91f2f7 — M18: add dense mp QR factorization via MPLAPACK Rgeqrf/Rorgqr
-- report metadata commit: pending
+- ae87805 — docs: add M18 QR milestone report
+- report/push metadata commit: follows
 
 ## Push
 
-- Push: pending
-- Remote tip: pending
-- Local tip: pending
+- Push: PASS (topic/m18-qr pushed to origin)
+- Remote tip: ae87805 (before this metadata update)
+- Local tip: ae87805 (before this metadata update)
 - GitHub CI: pending
 
 ## Known limitations
@@ -292,4 +293,3 @@ not begin it automatically.
 
 Otherwise:
 State the exact blocker and stop.
-
