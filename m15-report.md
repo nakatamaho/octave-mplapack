@@ -246,13 +246,13 @@ The five pre-existing deleted legacy report files remain unstaged.
 
 - `e051111` — M15: add full-rank rectangular mp solve via MPLAPACK Rgels
 - `c3abe04` — docs: add M15 implementation report
-- follow-up PR metadata update — this report update
+- `af3acca` — docs: record M15 PR and push
 
 ## Push
 
 - Push: PASS (`topic/m15-rgels` pushed to `origin`)
-- Remote tip: `c3abe04bf0aea825ef185c7b93a8c4fb988a94f8` before this metadata update
-- Local tip: follows the report metadata commit
+- Remote tip: `af3acca` (after the report metadata push)
+- Local tip: `af3acca` before this final report-tip correction
 - GitHub CI: PR #16 open; structural-checks run in progress at report time
 
 ## Known limitations
