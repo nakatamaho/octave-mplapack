@@ -12,9 +12,9 @@ control, and arithmetic remain later milestones.
 The selected mechanism is an Octave 11.1 `classdef` value class stored in
 `inst/@mp/mp.m`.  Octave 11.1 supports class definitions in `@` directories,
 private and hidden properties, value-class copy semantics, ordinary method
-dispatch, and explicit `horzcat`/`vertcat` methods.  These capabilities match
-the planned public operators through M10 while allowing M03 to reject object
-array concatenation before M07.
+dispatch, and explicit `horzcat`/`vertcat` methods.  These capabilities support
+the public operators while allowing the early scalar milestones to reject
+object-array concatenation before native dense storage was introduced in M07.
 
 The installed extension headers provide `octave_value::is_classdef_object()`,
 `octave_value::class_name()`, `octave_value::classdef_object_value()`, and

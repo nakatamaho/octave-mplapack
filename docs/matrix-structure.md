@@ -12,5 +12,5 @@ element order. One `[]` dimension may be inferred from the source element
 count; two unknown dimensions are rejected. Structural operations preserve the
 source matrix precision and do not consult or modify `mpbits()` or the current
 thread MPFR default. A one-element result is normalized to the existing scalar
-native representation. N-D reshape, assignment, concatenation, permutation,
+native representation. N-D reshape, assignment, permutation,
 and views remain outside M12.

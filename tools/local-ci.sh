@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M12 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M13 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M12 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M13 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M12 prerequisites"
+echo "PASS: mandatory M13 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
@@ -54,7 +54,8 @@ make -C src check-lapack
 make -C src check-inspection
 make -C src check-elementwise
 make -C src check-structure
-echo "PASS: M02-M12 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, inspection, element-wise, and structural QA"
+make -C src check-concat
+echo "PASS: M02-M13 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, inspection, element-wise, structural, and concatenation QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -455,7 +456,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M12 re-test"
+echo "PASS: clean rebuild #2 and M01-M13 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -508,6 +509,9 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   test/mp_matrix_structure_test.cc test/structure.tst \
   docs/matrix-structure.md docs/milestones/M12-transpose-reshape.md \
   inst/@mp/transpose.m inst/@mp/ctranspose.m inst/@mp/reshape.m \
+  src/mp_matrix_concat.h src/mp_matrix_concat.cc \
+  test/mp_matrix_concat_test.cc test/concat.tst \
+  docs/matrix-concatenation.md docs/milestones/M13-concatenation.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -518,7 +522,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -557,6 +561,7 @@ mkdir -p "$test_home" "$neutral_dir"
     octave --no-gui --quiet --no-init-file --eval '
       root = getenv ("M01_REPO_ROOT");
       pkg ("load", "mplapack");
+      assert (test (fullfile (root, "test", "concat.tst")));
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
       constructor_path = which ("mp");
@@ -571,6 +576,8 @@ mkdir -p "$test_home" "$neutral_dir"
       rdivide_method_path = file_in_loadpath ("@mp/rdivide.m");
       uplus_method_path = file_in_loadpath ("@mp/uplus.m");
       uminus_method_path = file_in_loadpath ("@mp/uminus.m");
+      horzcat_method_path = file_in_loadpath ("@mp/horzcat.m");
+      vertcat_method_path = file_in_loadpath ("@mp/vertcat.m");
       size_method_path = file_in_loadpath ("@mp/size.m");
       mldivide_method_path = file_in_loadpath ("@mp/mldivide.m");
       subsref_method_path = file_in_loadpath ("@mp/subsref.m");
@@ -603,6 +610,8 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (rdivide_method_path, root, length (root)));
       assert (! strncmp (uplus_method_path, root, length (root)));
       assert (! strncmp (uminus_method_path, root, length (root)));
+      assert (! strncmp (horzcat_method_path, root, length (root)));
+      assert (! strncmp (vertcat_method_path, root, length (root)));
       assert (! strncmp (size_method_path, root, length (root)));
       assert (! strncmp (mldivide_method_path, root, length (root)));
       assert (! strncmp (subsref_method_path, root, length (root)));
@@ -629,6 +638,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "matrix_inspection.tst")));
       assert (test (fullfile (root, "test", "elementwise.tst")));
       assert (test (fullfile (root, "test", "structure.tst")));
+      assert (test (fullfile (root, "test", "concat.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -713,10 +723,11 @@ mkdir -p "$test_home" "$neutral_dir"
 
 (
   cd "$neutral_dir"
-  HOME=$test_home M01_REPO_ROOT=$repo_root \
+HOME=$test_home M01_REPO_ROOT=$repo_root \
     MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     octave --no-gui --quiet --no-init-file --eval '
       pkg ("load", "mplapack");
+      root = getenv ("M01_REPO_ROOT");
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
       constructor_path = which ("mp");
@@ -735,7 +746,8 @@ mkdir -p "$test_home" "$neutral_dir"
       mldivide_method_path = file_in_loadpath ("@mp/mldivide.m");
       subsref_method_path = file_in_loadpath ("@mp/subsref.m");
       end_method_path = file_in_loadpath ("@mp/end.m");
-      root = getenv ("M01_REPO_ROOT");
+      horzcat_method_path = file_in_loadpath ("@mp/horzcat.m");
+      vertcat_method_path = file_in_loadpath ("@mp/vertcat.m");
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
       assert (! strncmp (constructor_path, root, length (root)));
@@ -754,6 +766,8 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (mldivide_method_path, root, length (root)));
       assert (! strncmp (subsref_method_path, root, length (root)));
       assert (! strncmp (end_method_path, root, length (root)));
+      assert (! strncmp (horzcat_method_path, root, length (root)));
+      assert (! strncmp (vertcat_method_path, root, length (root)));
       assert (mpbits () == uint64 (512));
       assert (mpdigits () == uint64 (154));
       info = mplapack_version ();
@@ -824,6 +838,14 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (size (installed_transpose), [2, 2]);
       installed_reshape = reshape (installed_text_matrix, 1, 4);
       assert (size (installed_reshape), [1, 4]);
+      installed_horzcat = [installed_text_matrix, installed_double_matrix];
+      installed_vertcat = [installed_text_matrix; installed_double_matrix];
+      assert (size (installed_horzcat), [2, 4]);
+      assert (size (installed_vertcat), [4, 2]);
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal_text", installed_horzcat, 1, 3, "1"));
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal_text", installed_vertcat, 3, 1, "1"));
       installed_solution = installed_text_matrix \ mp ({"3"; "7"});
       assert (__mplapack_core__ (
         "matrix_test_element_double", installed_solution, 1, 1), 1);
@@ -846,10 +868,12 @@ mkdir -p "$test_home" "$neutral_dir"
       fprintf ("reinstalled @mp/size: %s\n", size_method_path);
       fprintf ("reinstalled @mp/subsref: %s\n", subsref_method_path);
       fprintf ("reinstalled @mp/end: %s\n", end_method_path);
+      fprintf ("reinstalled @mp/horzcat: %s\n", horzcat_method_path);
+      fprintf ("reinstalled @mp/vertcat: %s\n", vertcat_method_path);
       fprintf ("PASS: installed scalar/matrix values left for shutdown destruction\n");
     '
 )
 
-echo "PASS: isolated package M01-M12 install, matrix/Rgemm/Rgesv/inspection/element-wise/structure QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M13 install, matrix/Rgemm/Rgesv/inspection/element-wise/structure/concatenation QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M12 local CI"
+echo "PASS: M13 local CI"

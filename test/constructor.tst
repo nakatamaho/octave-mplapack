@@ -119,21 +119,6 @@
 %! end_unwind_protect
 
 %!test
-%! value = mp ("1");
-%! try
-%!   [value, value];
-%!   error ("M03 horizontal concatenation unexpectedly succeeded");
-%! catch exception
-%!   assert (! isempty (strfind (exception.message, "horzcat method failed")));
-%! end_try_catch
-%! try
-%!   [value; value];
-%!   error ("M03 vertical concatenation unexpectedly succeeded");
-%! catch exception
-%!   assert (! isempty (strfind (exception.message, "vertcat method failed")));
-%! end_try_catch
-
-%!test
 %! a = mp ("1");
 %! b = mp ("2");
 %! product = a * b;

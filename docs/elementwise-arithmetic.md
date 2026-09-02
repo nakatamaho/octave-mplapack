@@ -46,5 +46,5 @@ the underlying MPFR semantics.
 
 Public operands are immutable and results own independent native storage.
 MPLAPACK `Rgemm`/`Rgesv` remain the implementations of `*` and `\`. Matrix
-assignment, transpose, concatenation, power, comparisons, logical indexing,
+assignment, transpose, power, comparisons, logical indexing,
 reductions, complex values, and sparse values remain outside M11.

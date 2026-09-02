@@ -28,3 +28,5 @@ assert (test (fullfile (test_dir, "elementwise.tst"), "quiet", stdout));
 fprintf ("PASS: M11 dense element-wise arithmetic tests\n");
 assert (test (fullfile (test_dir, "structure.tst"), "quiet", stdout));
 fprintf ("PASS: M12 dense transpose and reshape tests\n");
+assert (test (fullfile (test_dir, "concat.tst"), "quiet", stdout));
+fprintf ("PASS: M13 dense concatenation tests\n");

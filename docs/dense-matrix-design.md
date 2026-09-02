@@ -6,7 +6,8 @@ M07 introduced storage and public construction for real, two-dimensional
 MPFR matrices. M10 adds read-only indexing, matrix `double`, and matrix
 display formatting without changing the storage representation. M11 extends
 the same storage with direct MPFR element-wise arithmetic and two-dimensional
-singleton expansion; M12 adds precision-preserving transpose and reshape.
+singleton expansion; M12 adds precision-preserving transpose and reshape; M13
+adds native horizontal and vertical concatenation.
 Ownership and layout remain unchanged.
 
 ## Installed MPLAPACK ABI audit
@@ -184,9 +185,26 @@ linear order. Scalar results remain the canonical scalar payload, while all
 other shapes—including empty matrices—remain matrix payloads. These operations
 do not use MPLAPACK or change the current precision default.
 
+## M13 concatenation
+
+M13 assembles arbitrary-arity horizontal and vertical concatenations directly
+into one new `MpfrMatrixStorage`. The complete argument list is validated with
+Octave's two-dimensional `hvcat` shape rules before allocation. Scalars are
+`1x1`; no singleton broadcasting is performed. Empty matrices retain their
+shape semantics and empty `mp` operands still contribute their explicit
+precision to `p_cat`, the maximum participating `mp` precision. MPFR values
+are copied exactly into uniformly `p_cat`-precision storage, while real double
+elements are transferred directly from binary64 with `mpfr_set_d`.
+
+The operation is structural: it does not call MPLAPACK, enter a precision
+scope, or read or mutate either precision default. Inputs remain immutable and
+the result owns independent storage. Public bracket syntax therefore returns
+one `mp` value rather than an array of scalar wrapper objects.
+
 ## Non-goals
 
 Matrix assignment, logical indexing, general vector linear indexing, matrix
-`char`, concatenation, comparisons, powers, reductions, and complex storage
+`char`, comparisons, powers, reductions, and complex storage
 remain deferred. M08 adds `mtimes`/`Rgemm`, M09 adds square `mldivide`/`Rgesv`,
-M10 adds read-only matrix inspection, and M12 adds transpose and reshape.
+M10 adds read-only matrix inspection, M12 adds transpose and reshape, and M13
+adds horizontal/vertical concatenation.

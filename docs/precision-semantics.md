@@ -126,6 +126,14 @@ precision and preserve the column-major linear order for reshape. They do not
 perform numerical rounding, use the current-thread MPFR default, or change
 the project default.
 
+M13 applies the invariant to concatenation. For `[A, B, ...]` and
+`[A; B; ...]`, the result precision is the maximum stored precision of every
+participating `mp` operand, including empty matrices; real double operands do
+not increase it. Each source value is copied directly into one uniformly
+precise destination, preserving the represented lower-precision value without
+reconstructing lost information. Concatenation does not use the current
+default, MPFR TLS default, or a precision scope.
+
 ## Explicit scalar conversion
 
 `char(x)` formats the immutable value using `x`'s stored precision.  The

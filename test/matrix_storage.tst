@@ -166,22 +166,6 @@
 %!   mpbits (saved);
 %! end_unwind_protect
 
-%!test
-%! scalar_a = mp ("1");
-%! scalar_b = mp ("2");
-%! try
-%!   [scalar_a, scalar_b];
-%!   error ("M07 horizontal object array unexpectedly succeeded");
-%! catch exception
-%!   assert (! isempty (strfind (exception.message, "horzcat method failed")));
-%! end_try_catch
-%! try
-%!   [scalar_a; scalar_b];
-%!   error ("M07 vertical object array unexpectedly succeeded");
-%! catch exception
-%!   assert (! isempty (strfind (exception.message, "vertcat method failed")));
-%! end_try_catch
-
 %!error <complex mp matrices are not supported> mp ([1 + 2i, 3])
 %!error <only two-dimensional mp matrices> mp (ones (2, 2, 2))
 %!error <only two-dimensional mp matrices> mp (reshape (cellstr (["1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"]), 2, 2, 2))

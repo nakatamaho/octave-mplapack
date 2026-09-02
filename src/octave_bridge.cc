@@ -28,6 +28,7 @@
 #include "mp_matrix_inspection.h"
 #include "mp_matrix_arithmetic.h"
 #include "mp_matrix_structure.h"
+#include "mp_matrix_concat.h"
 #include "mp_blas.h"
 #include "mp_lapack.h"
 #include "mp_precision.h"
@@ -618,6 +619,202 @@ make_inspection_result (octave_mplapack::MpfrMatrixStorage storage)
       return make_internal_scalar (std::move (scalar));
     }
   return make_internal_matrix (std::move (storage));
+}
+
+struct PreparedConcatOperand
+{
+  octave_mplapack::MpfrConcatOperand descriptor;
+};
+
+octave_mplapack::MpfrConcatOperand
+prepare_concat_operand (const octave_value& value)
+{
+  octave_mplapack::MpfrConcatOperand operand;
+
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          operand.rows = 1;
+          operand.columns = 1;
+          const octave_value kept_payload = payload;
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                kept_payload).storage ();
+          operand.precision_bits = scalar.precision_bits ();
+          operand.has_mp_precision = true;
+          operand.copy_element
+            = [kept_payload] (octave_mplapack::MpfrMatrixStorage::NativeScalar&
+                                destination,
+                              std::size_t, std::size_t)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_scalar_internal::checked_value (
+                    kept_payload).storage ();
+              mpfr_set (destination.mpfr_data (), source.native_value ()
+                        .mpfr_data (), MPFR_RNDN);
+            };
+          return operand;
+        }
+
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& matrix
+            = octave_mplapack_mpfr_matrix_internal::checked_value (
+                kept_payload).storage ();
+          operand.rows = matrix.rows ();
+          operand.columns = matrix.columns ();
+          operand.precision_bits = matrix.precision_bits ();
+          operand.has_mp_precision = true;
+          operand.copy_element
+            = [kept_payload] (octave_mplapack::MpfrMatrixStorage::NativeScalar&
+                                destination,
+                              std::size_t row, std::size_t column)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_matrix_internal::checked_value (
+                    kept_payload).storage ();
+              mpfr_set (destination.mpfr_data (),
+                        source.at (row, column).mpfr_data (), MPFR_RNDN);
+            };
+          return operand;
+        }
+
+      error_with_id ("mplapack:mp:InvalidNativeValue",
+                     "public mp value has an unknown native payload");
+    }
+
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "concatenation supports mp and real double operands");
+  if (! value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex concatenation is not supported");
+  if (value.issparse ())
+    error_with_id ("mplapack:mp:SparseUnsupported",
+                   "sparse concatenation is not supported");
+  if (! value.is_real_scalar () && value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional concatenation operands are supported");
+
+  if (value.is_real_scalar ())
+    {
+      const double scalar = value.double_value ();
+      operand.rows = 1;
+      operand.columns = 1;
+      operand.copy_element
+        = [scalar] (octave_mplapack::MpfrMatrixStorage::NativeScalar&
+                      destination,
+                    std::size_t, std::size_t)
+        {
+          mpfr_set_d (destination.mpfr_data (), scalar, MPFR_RNDN);
+        };
+      return operand;
+    }
+
+  const Matrix input = value.matrix_value ();
+  operand.rows = checked_size_dimension (input.rows ());
+  operand.columns = checked_size_dimension (input.columns ());
+  operand.copy_element
+    = [input] (octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+               std::size_t row, std::size_t column)
+    {
+      mpfr_set_d (destination.mpfr_data (),
+                  input.xelem (static_cast<octave_idx_type> (row),
+                               static_cast<octave_idx_type> (column)),
+                  MPFR_RNDN);
+    };
+  return operand;
+}
+
+octave_value
+matrix_concatenate_result (const octave_value_list& args, int dimension)
+{
+  if (args.length () < 2)
+    error_with_id ("mplapack:InvalidArguments",
+                   "concatenation expects at least one operand");
+
+  std::vector<PreparedConcatOperand> prepared;
+  prepared.reserve (static_cast<std::size_t> (args.length () - 1));
+  bool has_mp_precision = false;
+  mpfr_prec_t result_precision = MPFR_PREC_MIN;
+  dim_vector result_shape;
+  bool shape_initialized = false;
+
+  for (int index = 1; index < args.length (); ++index)
+    {
+      PreparedConcatOperand current;
+      current.descriptor = prepare_concat_operand (args(index));
+      if (current.descriptor.has_mp_precision)
+        {
+          has_mp_precision = true;
+          result_precision = std::max (result_precision,
+                                       current.descriptor.precision_bits);
+        }
+
+      const octave_idx_type rows
+        = checked_octave_dimension_for_inspection (
+            current.descriptor.rows);
+      const octave_idx_type columns
+        = checked_octave_dimension_for_inspection (
+            current.descriptor.columns);
+      const dim_vector current_shape (rows, columns);
+      if (! shape_initialized)
+        {
+          result_shape = current_shape;
+          shape_initialized = true;
+        }
+      else if (! result_shape.hvcat (current_shape, dimension))
+        {
+          if (dimension == 1)
+            error_with_id ("mplapack:mp:DimensionMismatch",
+                           "horizontal concatenation dimensions mismatch");
+          error_with_id ("mplapack:mp:DimensionMismatch",
+                         "vertical concatenation dimensions mismatch");
+        }
+      prepared.push_back (std::move (current));
+    }
+
+  if (! has_mp_precision)
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "concatenation requires at least one mp operand");
+
+  const std::size_t result_rows
+    = checked_size_dimension (result_shape.xelem (0));
+  const std::size_t result_columns
+    = checked_size_dimension (result_shape.xelem (1));
+  std::vector<octave_mplapack::MpfrConcatOperand> operands;
+  operands.reserve (prepared.size ());
+  for (PreparedConcatOperand& current : prepared)
+    operands.push_back (std::move (current.descriptor));
+
+  try
+    {
+      return make_inspection_result (
+        octave_mplapack::mpfr_matrix_concatenate (
+          operands, dimension, result_rows, result_columns,
+          result_precision));
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
 }
 
 struct ReshapeDimension
@@ -1812,6 +2009,16 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       if (args.length () == 3)
         return ovl (matrix_reshape_result (args(1), args(2), nullptr));
       return ovl (matrix_reshape_result (args(1), args(2), &args(3)));
+    }
+
+  if (command == "matrix_horzcat" || command == "matrix_vertcat")
+    {
+      if (args.length () < 2)
+        error_with_id ("mplapack:InvalidArguments",
+                       "__mplapack_core__(\"%s\") expects at least one operand",
+                       command.c_str ());
+      return ovl (matrix_concatenate_result (
+        args, command == "matrix_horzcat" ? 1 : 0));
     }
 
   if (command == "matrix_to_double")

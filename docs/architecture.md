@@ -30,7 +30,7 @@ system BLAS and LAPACK also remain untouched. `mp` values are separate numeric
 objects whose MPLAPACK operations work directly on native MPFR-backed storage;
 the project will not use `LD_PRELOAD` or silently route through binary64.
 
-Through M12 the only backend is real MPFR arithmetic. Complex arithmetic and
+Through M13 the only backend is real MPFR arithmetic. Complex arithmetic and
 MPC-valued matrices are future extensions. GMP, DD, QD, binary80, and
 binary128 backends are outside this baseline.
 
@@ -188,3 +188,11 @@ They allocate independent dense storage and copy existing MPFR values directly,
 preserving source precision and column-major linear order. Structural
 operations do not call MPLAPACK, enter a precision scope, or consult the
 current default.
+
+M13 adds native dense `horzcat` and `vertcat`. Bracket concatenation validates
+the complete argument list before allocating one immutable column-major result
+at `p_cat`, the maximum precision of all participating `mp` operands (including
+empty operands). Values are copied directly from MPFR storage, while real
+double inputs retain their incoming binary64 semantics. Concatenation performs
+no arithmetic, broadcasting, MPLAPACK call, precision-scope entry, or default
+precision mutation, and never creates an Octave object array of `mp` wrappers.

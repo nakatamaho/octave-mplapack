@@ -83,6 +83,8 @@ src/mp_matrix_arithmetic.cc
 src/mp_matrix_arithmetic.h
 src/mp_matrix_structure.cc
 src/mp_matrix_structure.h
+src/mp_matrix_concat.cc
+src/mp_matrix_concat.h
 src/octave_bridge.cc
 test/run_tests.m
 test/build_probe.tst
@@ -108,6 +110,8 @@ test/elementwise.tst
 test/mp_matrix_arithmetic_test.cc
 test/structure.tst
 test/mp_matrix_structure_test.cc
+test/concat.tst
+test/mp_matrix_concat_test.cc
 tools/check-format.sh
 tools/check-tree.sh
 tools/local-ci.sh
@@ -122,6 +126,7 @@ docs/linear-solve.md
 docs/matrix-inspection.md
 docs/elementwise-arithmetic.md
 docs/matrix-structure.md
+docs/matrix-concatenation.md
 docs/precision-semantics.md
 docs/packaging.md
 docs/milestones/README.md
@@ -138,6 +143,7 @@ docs/milestones/M09-mldivide.md
 docs/milestones/M10-first-functional-baseline.md
 docs/milestones/M11-elementwise-arithmetic.md
 docs/milestones/M12-transpose-reshape.md
+docs/milestones/M13-concatenation.md
 docs/milestones/P00-packaging-design.md
 docs/milestones/P01-debian-source-package.md
 docs/milestones/P02-local-deb-build.md
@@ -196,4 +202,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00-M12 tree checks"
+echo "PASS: M00-M13 tree checks"

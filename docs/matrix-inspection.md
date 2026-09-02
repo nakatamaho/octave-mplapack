@@ -23,7 +23,7 @@ element through the canonical scalar MPFR formatter, preserving source
 precision and ignoring Octave's `format short`/`format long` settings.
 
 Neither operation changes the project default or current-thread MPFR default.
-Matrix `char`, assignment, concatenation, and logical indexing remain outside
+Matrix `char`, assignment, and logical indexing remain outside
 M10. M11 builds direct element-wise arithmetic on the same
 precision-preserving matrix payload. M12 adds read-only transpose, conjugate
 transpose for real values, and column-major reshape; these structural copies

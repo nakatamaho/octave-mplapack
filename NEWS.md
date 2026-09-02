@@ -47,6 +47,10 @@
 - Added precision-preserving dense matrix transpose, conjugate transpose for
   real values, and two-dimensional column-major `reshape`, including one
   inferred dimension.
+- Added native dense real `mp` horizontal and vertical concatenation with
+  arbitrary operand counts, mixed precision, mixed real-double inputs, and
+  Octave-compatible supported empty-shape behavior. Concatenation returns one
+  immutable native `mp` value and never an array of scalar wrappers.
 - Rectangular solve, matrix assignment, logical indexing, matrix `char`,
-  concatenation, comparisons, powers, and reductions remain
+  general `cat`, comparisons, powers, and reductions remain
   unimplemented.
