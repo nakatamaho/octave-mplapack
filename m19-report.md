@@ -4,7 +4,7 @@ Repository: https://github.com/nakatamaho/octave-mplapack
 Remote: origin (https://github.com/nakatamaho/octave-mplapack.git)
 Branch: topic/m19-pivoted-qr
 Starting commit: b5f7e9237925dbf0d8fe2ecaa6139c7c80c2f4fe
-Final commit: 36cb203d6acea6f151be2632374f878d284c06e4
+Final commit: 36cb203 (implementation; report/metadata commits follow)
 PR: #20 — https://github.com/nakatamaho/octave-mplapack/pull/20
 
 ## Baseline
@@ -260,12 +260,13 @@ pivoted-QR documentation. M18 non-pivoted dispatch remains intact.
 - `bc0a3cb` — docs: record M19 pivoted QR milestone report
 - `045fe00` — docs: record M19 pull request
 - `d13f023` — fix: generalize workspace overflow diagnostic
+- `ae5f5f7` — docs: record M19 final commit list
 
 ## Push
 
 - Push: `git push -u origin topic/m19-pivoted-qr` succeeded.
-- Remote tip: `d13f0238a97ef50bc7770e9244594224a5ab67e3` before this report update
-- Local tip: `36cb203d6acea6f151be2632374f878d284c06e4` (implementation commit)
+- Remote tip: `ae5f5f764c645ae04199c4d511e20d5ca8ce3a0d` before this report update
+- Local tip: `ae5f5f764c645ae04199c4d511e20d5ca8ce3a0d` before this report update
 - GitHub CI: PASS (PR #20 structural-checks jobs)
 
 ## Known limitations
@@ -293,7 +294,7 @@ State the exact blocker and stop.
 
 Branch: topic/m19-pivoted-qr
 Starting commit: b5f7e9237925dbf0d8fe2ecaa6139c7c80c2f4fe
-Final commit: 36cb203d6acea6f151be2632374f878d284c06e4
+Final commit: 36cb203 (implementation; report/metadata commits follow)
 Files changed: M19 native bridge, public dispatch, tests, CI, and documentation listed above; five legacy report deletions remain pre-existing and unstaged.
 Commands run: `tools/check-tree.sh`; `tools/check-format.sh`; `make -C src check-qr`; `make -C src check-pivoted-qr`; `make -C src`; direct Octave QR tests; `tools/local-ci.sh`; `git diff --check`.
 Tests: M19 native ASan/UBSan tests, installed Rgeqp3/Rorgqr probe, public pivoted QR tests, installed package QA, and complete M00–M18 regression.
