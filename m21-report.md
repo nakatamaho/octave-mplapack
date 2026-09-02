@@ -282,7 +282,7 @@ Do not begin M22 automatically.
 
 Branch: topic/m21-lu
 Starting commit: ab810c1747c3b558752a296b0017ef76ef7a8d24
-Final commit: 6812f09191aa65aff52b64551d8d3a4721d44bdf (implementation/report tip; final branch tip adds only this metadata update)
+Final commit: 6812f09191aa65aff52b64551d8d3a4721d44bdf (implementation/report tip; subsequent commits only finalize PR/CI metadata and milestone status)
 Files changed: M21 native bridge, public method, probes, tests, docs, and CI wiring; legacy report deletions excluded
 Commands run: git status/log/remote; make -C src check-lu; tools/check-tree.sh; tools/check-format.sh; tools/local-ci.sh; git diff --check; git push; gh pr create
 Tests: full tools/local-ci.sh PASS, including ASan/UBSan/LSan, native and installed probes, source and installed package QA, lifecycle, and M00-M21 regression
