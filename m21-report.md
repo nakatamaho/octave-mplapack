@@ -263,7 +263,7 @@ predate M21 and are intentionally not staged.
 - Push: pass; `topic/m21-lu` pushed without force
 - Remote tip: verified with `git ls-remote` after the final branch push
 - Local tip: final report metadata commit; working tree retains only unrelated legacy report deletions
-- GitHub CI: PR #22 opened; local CI is the deterministic gate run
+- GitHub CI: PASS; both structural-checks jobs for PR #22 passed
 
 ## Known limitations
 
