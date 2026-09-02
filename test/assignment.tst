@@ -123,6 +123,11 @@
 %!   tail = strcat ("1.", repmat ("0", 1, 210), "1");
 %!   high = mp (tail);
 %!   mpbits (128);
+%!   no_op = A;
+%!   no_op(:, []) = high;
+%!   assert (assignment_info (no_op).precision_bits, uint64 (256));
+%!   assert (__mplapack_core__ ("matrix_test_element_equal_text", ...
+%!                              no_op, 1, 1, "1"));
 %!   A(1, 1) = high;
 %!   info = assignment_info (A);
 %!   assert (info.precision_bits, uint64 (1024));

@@ -1260,6 +1260,18 @@ assignment_precision (const octave_mplapack::MpfrMatrixStorage& lhs,
   return result;
 }
 
+mpfr_prec_t
+assignment_precision_for_selection (
+  const octave_mplapack::MpfrMatrixStorage& lhs,
+  const octave_mplapack::MpfrAssignmentOperand& rhs,
+  std::size_t selected_count)
+{
+  // An empty indexed selection is a no-op; it does not consume an RHS value
+  // and therefore must not widen the lhs merely because the RHS is precise.
+  return selected_count == 0 ? lhs.precision_bits ()
+                             : assignment_precision (lhs, rhs);
+}
+
 octave_value
 matrix_two_subscript_assignment_result (const octave_value& value,
                                          const octave_value& row_spec,
@@ -1279,7 +1291,9 @@ matrix_two_subscript_assignment_result (const octave_value& value,
       return make_inspection_result (
         octave_mplapack::mpfr_matrix_assign_two_subscript (
           *lhs.matrix, row_indices, column_indices, rhs.descriptor,
-          assignment_precision (*lhs.matrix, rhs.descriptor)));
+          assignment_precision_for_selection (
+            *lhs.matrix, rhs.descriptor,
+            row_indices.empty () || column_indices.empty () ? 0 : 1)));
     }
   catch (const std::out_of_range& exception)
     {
@@ -1331,7 +1345,8 @@ matrix_linear_assignment_result (const octave_value& value,
     {
       return make_inspection_result (octave_mplapack::mpfr_matrix_assign_linear (
         *lhs.matrix, indices, rhs.descriptor,
-        assignment_precision (*lhs.matrix, rhs.descriptor)));
+        assignment_precision_for_selection (
+          *lhs.matrix, rhs.descriptor, indices.size ())));
     }
   catch (const std::out_of_range& exception)
     {
