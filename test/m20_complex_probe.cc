@@ -186,15 +186,14 @@ void run_special_value_probe ()
   Real plus_zero = real_at (precision);
   Real minus_zero = real_at (precision);
   mpfr_set_zero (plus_zero.mpfr_data (), 0);
-  mpfr_set_zero (minus_zero.mpfr_data (), 1);
+  // MPFR uses a negative sign value for negative zero; +1 is positive.
+  mpfr_set_zero (minus_zero.mpfr_data (), -1);
   const Complex signed_zero (plus_zero, minus_zero);
   const Complex signed_zero_copy (signed_zero);
   check (mpfr_zero_p (mpc_realref (signed_zero_copy.mpc_data ())) != 0
-         && mpfr_zero_p (mpc_imagref (signed_zero_copy.mpc_data ())) != 0,
+         && mpfr_zero_p (mpc_imagref (signed_zero_copy.mpc_data ())) != 0
+         && mpfr_signbit (mpc_imagref (signed_zero_copy.mpc_data ())) != 0,
          "complex signed zero value was not preserved by copy");
-  // The current MPC copy path normalizes the imaginary zero sign; record this
-  // backend fact so C00 can decide whether an explicit sign-preserving path is
-  // needed for the public complex value contract.
   const bool imaginary_negative_zero_preserved =
       mpfr_signbit (mpc_imagref (signed_zero_copy.mpc_data ())) != 0;
   std::cout << "INFO: complex copy preserves imaginary negative zero: "
