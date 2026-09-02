@@ -119,6 +119,28 @@ require_mplapack_mpfr_rgels_precision_contract (
       "MPLAPACK MPFR precision contract mismatch at Rgels boundary");
 }
 
+void
+require_mplapack_mpfr_rank_precision_contract (
+  mpfr_prec_t operation_precision,
+  const MpfrMatrixStorage& a_work,
+  const MpfrMatrixStorage& b_work,
+  const mpfrxx::mpfr_class& rcond,
+  const MpfrMatrixStorage& singular_values,
+  const MpfrMatrixStorage& work)
+{
+  validate_precision (operation_precision);
+  const bool matches
+    = mpfrxx::default_precision_bits () == operation_precision
+      && a_work.precision_bits () == operation_precision
+      && b_work.precision_bits () == operation_precision
+      && rcond.precision () == operation_precision
+      && singular_values.precision_bits () == operation_precision
+      && work.precision_bits () == operation_precision;
+  if (! matches)
+    throw std::runtime_error (
+      "MPLAPACK MPFR precision contract mismatch at rank-revealing boundary");
+}
+
 MpfrMatrixStorage
 mplapack_mpfr_matrix_solve (const MpfrMatrixStorage& lhs,
                             const MpfrMatrixStorage& rhs)
@@ -287,6 +309,125 @@ mplapack_mpfr_matrix_rectangular_solve (const MpfrMatrixStorage& lhs,
       mpfr_set (result.at (row, column).mpfr_data (),
                 b_work.at (row, column).mpfr_data (), MPFR_RNDN);
   return result;
+}
+
+MpfrRankRevealingSolveResult
+mplapack_mpfr_matrix_rank_revealing_solve (
+  const MpfrMatrixStorage& lhs, const MpfrMatrixStorage& rhs)
+{
+  if (lhs.rows () == lhs.columns ())
+    throw std::invalid_argument (
+      "rank-revealing MPLAPACK solve is only used for rectangular matrices");
+  if (rhs.rows () != lhs.rows ())
+    throw std::invalid_argument ("matrix solve dimensions must agree");
+
+  const mpfr_prec_t operation_precision
+    = std::max (lhs.precision_bits (), rhs.precision_bits ());
+  validate_precision (operation_precision);
+  const std::size_t m = lhs.rows ();
+  const std::size_t n = lhs.columns ();
+  const std::size_t nrhs = rhs.columns ();
+  const std::size_t padded_rows = std::max (m, n);
+  const MpfrMatrixStorage::MplapackInteger zero_rank = 0;
+
+  if (nrhs == 0 || std::min (m, n) == 0)
+    return {MpfrMatrixStorage (n, nrhs, operation_precision), zero_rank};
+
+  const auto m_arg = MpfrMatrixStorage::checked_mplapack_dimension (m);
+  const auto n_arg = MpfrMatrixStorage::checked_mplapack_dimension (n);
+  const auto nrhs_arg = MpfrMatrixStorage::checked_mplapack_dimension (nrhs);
+
+  auto fill_rhs = [&] (MpfrMatrixStorage& destination)
+  {
+    for (std::size_t index = 0; index < destination.numel (); ++index)
+      mpfr_set_zero (destination.data ()[index].mpfr_data (), 0);
+    for (std::size_t column = 0; column < nrhs; ++column)
+      for (std::size_t row = 0; row < m; ++row)
+        mpfr_set (destination.at (row, column).mpfr_data (),
+                  rhs.at (row, column).mpfr_data (), MPFR_RNDN);
+  };
+
+  MpfrMatrixStorage query_a (m, n, operation_precision, lhs);
+  MpfrMatrixStorage query_b (padded_rows, nrhs, operation_precision);
+  fill_rhs (query_b);
+  MpfrMatrixStorage query_s (std::min (m, n), 1, operation_precision);
+  MpfrMatrixStorage query_work (1, 1, operation_precision);
+  MpfrMatrixStorage::MplapackInteger query_info = 0;
+  MpfrMatrixStorage::MplapackInteger query_rank = 0;
+  {
+    // Rank-revealing MPLAPACK calls require one p_op and default REAL
+    // temporaries inherit it from this scope.
+    MplapackMpfrPrecisionScope precision_scope (operation_precision);
+    mpfrxx::mpfr_class rcond
+      = mpfrxx::mpfr_class::with_precision (operation_precision);
+    const mpfrxx::mpfr_class epsilon = Rlamch_mpfr ("E");
+    mpfr_set (rcond.mpfr_data (), epsilon.mpfr_data (), MPFR_RNDN);
+    require_mplapack_mpfr_rank_precision_contract (
+      operation_precision, query_a, query_b, rcond, query_s, query_work);
+    Rgelss (m_arg, n_arg, nrhs_arg, query_a.data (), query_a.leading_dimension (),
+            query_b.data (), query_b.leading_dimension (), query_s.data (),
+            rcond, query_rank, query_work.data (), -1, query_info);
+    if (mpfrxx::default_precision_bits () != operation_precision)
+      throw std::runtime_error (
+        "MPLAPACK MPFR Rgelss changed the current-thread default precision");
+  }
+  if (query_info != 0)
+    throw MpfrRankRevealingError (
+      query_info > 0 ? MpfrRankRevealingError::Kind::convergence
+                     : MpfrRankRevealingError::Kind::invalid_argument,
+      static_cast<int> (query_info),
+      query_info > 0 ? "MPLAPACK Rgelss workspace query failed to converge"
+                     : "MPLAPACK Rgelss rejected a workspace query argument");
+  const auto lwork = checked_workspace_length (query_work.data ()[0]);
+
+  // Recreate destructive inputs after querying so query-side writes cannot
+  // affect the actual rank-revealing solve.
+  MpfrMatrixStorage a_work (m, n, operation_precision, lhs);
+  MpfrMatrixStorage b_work (padded_rows, nrhs, operation_precision);
+  fill_rhs (b_work);
+  MpfrMatrixStorage singular_values (std::min (m, n), 1,
+                                     operation_precision);
+  MpfrMatrixStorage work (static_cast<std::size_t> (lwork), 1,
+                          operation_precision);
+  MpfrMatrixStorage::MplapackInteger rank = 0;
+  MpfrMatrixStorage::MplapackInteger info = 0;
+  {
+    MplapackMpfrPrecisionScope precision_scope (operation_precision);
+    mpfrxx::mpfr_class rcond
+      = mpfrxx::mpfr_class::with_precision (operation_precision);
+    const mpfrxx::mpfr_class epsilon = Rlamch_mpfr ("E");
+    mpfr_set (rcond.mpfr_data (), epsilon.mpfr_data (), MPFR_RNDN);
+    require_mplapack_mpfr_rank_precision_contract (
+      operation_precision, a_work, b_work, rcond, singular_values, work);
+    Rgelss (m_arg, n_arg, nrhs_arg, a_work.data (), a_work.leading_dimension (),
+            b_work.data (), b_work.leading_dimension (), singular_values.data (),
+            rcond, rank, work.data (), lwork, info);
+    if (mpfrxx::default_precision_bits () != operation_precision)
+      throw std::runtime_error (
+        "MPLAPACK MPFR Rgelss changed the current-thread default precision");
+  }
+
+  if (info < 0)
+    throw MpfrRankRevealingError (
+      MpfrRankRevealingError::Kind::invalid_argument, static_cast<int> (info),
+      "MPLAPACK Rgelss rejected an argument");
+  if (info > 0)
+    throw MpfrRankRevealingError (
+      MpfrRankRevealingError::Kind::convergence, static_cast<int> (info),
+      "MPLAPACK Rgelss failed to converge");
+  const auto max_rank = static_cast<MpfrMatrixStorage::MplapackInteger> (
+    std::min (m, n));
+  if (rank < 0 || rank > max_rank)
+    throw MpfrRankRevealingError (
+      MpfrRankRevealingError::Kind::internal, 0,
+      "MPLAPACK Rgelss returned an invalid effective rank");
+
+  MpfrMatrixStorage result (n, nrhs, operation_precision);
+  for (std::size_t column = 0; column < nrhs; ++column)
+    for (std::size_t row = 0; row < n; ++row)
+      mpfr_set (result.at (row, column).mpfr_data (),
+                b_work.at (row, column).mpfr_data (), MPFR_RNDN);
+  return {std::move (result), rank};
 }
 
 MpfrMatrixStorage

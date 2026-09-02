@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M15 pass.
+**Status: under development.** M00 through M16 pass.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -97,7 +97,9 @@ two-dimensional shape metadata.  M08 implements dense real `A * B` through
 MPLAPACK MPFR `Rgemm`, and M09 implements square `A \ B` through `Rgesv`;
 M15 extends full-rank rectangular `A \ B` through `Rgels`,
 with result precision equal to the maximum operand precision and a temporary
-current-thread precision scope. M10 adds read-only indexing, `double(A)`, and
+current-thread precision scope. M16 upgrades rectangular `A \ B` to the
+rank-revealing MPLAPACK MPFR `Rgelss` path for minimum-norm least-squares
+solutions, while square systems remain on `Rgesv`. M10 adds read-only indexing, `double(A)`, and
 canonical matrix display. M11 adds native MPFR matrix `+`, `-`, `.*`, and `./`,
 unary signs, and two-dimensional singleton expansion. M12 adds read-only
 transpose, conjugate transpose for real values, and column-major reshape;
@@ -106,7 +108,7 @@ ambient precision default.
 
 ## Intended future API
 
-The following workflow is available through M15:
+The following workflow is available through M16:
 
 ```octave
 pkg load mplapack
@@ -167,10 +169,11 @@ M12  Dense transpose and reshape
 M13  Dense horizontal and vertical concatenation
 M14  Dense indexed assignment with value semantics
 M15  Full-rank rectangular dense solve
+M16  Rank-deficient rectangular minimum-norm solve
 
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M15 are complete. Consult
+M00 through M16 are complete. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.
