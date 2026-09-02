@@ -5,7 +5,7 @@ Remote: origin (https://github.com/nakatamaho/octave-mplapack.git)
 Branch: topic/m20-complex-architecture
 Starting commit: f76af221684880ff377bbc2865b985734db3a01e
 Final commit: 301116d (audit/design/probe; report commit follows)
-PR: pending
+PR: #21 — https://github.com/nakatamaho/octave-mplapack/pull/21
 
 ## Baseline
 
@@ -248,10 +248,10 @@ payload, operator, or MPLAPACK source implementation was added.
 
 ## Push
 
-- Push: pending
-- Remote tip: pending
-- Local tip: pending
-- GitHub CI: pending
+- Push: pushed to `origin/topic/m20-complex-architecture`
+- Remote tip: 1d1d4341b517dd61b68b7d7e80dda94fccf42ca2
+- Local tip: 1d1d4341b517dd61b68b7d7e80dda94fccf42ca2
+- GitHub CI: PR #21 structural-checks PASS
 
 ## Known unresolved complex issues
 
