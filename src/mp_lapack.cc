@@ -3,6 +3,7 @@
 #include "mp_lapack.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
 #include <vector>
@@ -139,6 +140,19 @@ require_mplapack_mpfr_rank_precision_contract (
   if (! matches)
     throw std::runtime_error (
       "MPLAPACK MPFR precision contract mismatch at rank-revealing boundary");
+}
+
+void
+require_mplapack_mpfr_rpotrf_precision_contract (
+  mpfr_prec_t operation_precision, const MpfrMatrixStorage& a_work)
+{
+  validate_precision (operation_precision);
+  const bool matches
+    = mpfrxx::default_precision_bits () == operation_precision
+      && a_work.precision_bits () == operation_precision;
+  if (! matches)
+    throw std::runtime_error (
+      "MPLAPACK MPFR precision contract mismatch at Rpotrf boundary");
 }
 
 MpfrMatrixStorage
@@ -428,6 +442,69 @@ mplapack_mpfr_matrix_rank_revealing_solve (
       mpfr_set (result.at (row, column).mpfr_data (),
                 b_work.at (row, column).mpfr_data (), MPFR_RNDN);
   return {std::move (result), rank};
+}
+
+MpfrCholeskyResult
+mplapack_mpfr_matrix_cholesky (const MpfrMatrixStorage& input, bool lower)
+{
+  if (input.rows () != input.columns ())
+    throw std::invalid_argument (
+      "MPLAPACK Rpotrf requires a square coefficient matrix");
+
+  const mpfr_prec_t operation_precision = input.precision_bits ();
+  validate_precision (operation_precision);
+  const std::size_t n = input.rows ();
+  MpfrMatrixStorage a_work (n, n, operation_precision, input);
+  if (n == 0)
+    return {std::move (a_work), 0};
+
+  const auto n_arg = MpfrMatrixStorage::checked_mplapack_dimension (n);
+  const auto lda = a_work.leading_dimension ();
+  MpfrMatrixStorage::MplapackInteger info = 0;
+  {
+    // Rpotrf overwrites its input. Factor an operation-owned p_op copy
+    // so public mp values retain value semantics.
+    MplapackMpfrPrecisionScope precision_scope (operation_precision);
+    require_mplapack_mpfr_rpotrf_precision_contract (
+      operation_precision, a_work);
+    Rpotrf (lower ? "L" : "U", n_arg, a_work.data (), lda, info);
+    if (mpfrxx::default_precision_bits () != operation_precision)
+      throw std::runtime_error (
+        "MPLAPACK MPFR Rpotrf changed the current-thread default precision");
+  }
+
+  if (info < 0)
+    throw MpfrRpotrfError (MpfrRpotrfError::Kind::invalid_argument,
+                           static_cast<int> (info),
+                           "MPLAPACK Rpotrf rejected an argument");
+  if (info == 0)
+    {
+      for (std::size_t column = 0; column < n; ++column)
+        for (std::size_t row = 0; row < n; ++row)
+          if (lower ? column > row : row > column)
+            mpfr_set_zero (a_work.at (row, column).mpfr_data (), 0);
+      return {std::move (a_work), info};
+    }
+
+  if (static_cast<std::uintmax_t> (info) > n)
+    throw MpfrRpotrfError (MpfrRpotrfError::Kind::internal,
+                           static_cast<int> (info),
+                           "MPLAPACK Rpotrf returned an invalid failure index");
+
+  // Dense chol's two-output form returns the leading factor before the first
+  // non-positive pivot; one-output callers turn the same status into an error.
+  const std::size_t completed = static_cast<std::size_t> (info - 1);
+  MpfrMatrixStorage partial (completed, completed, operation_precision);
+  for (std::size_t column = 0; column < completed; ++column)
+    for (std::size_t row = 0; row < completed; ++row)
+      {
+        if (lower ? column > row : row > column)
+          mpfr_set_zero (partial.at (row, column).mpfr_data (), 0);
+        else
+          mpfr_set (partial.at (row, column).mpfr_data (),
+                    a_work.at (row, column).mpfr_data (), MPFR_RNDN);
+      }
+  return {std::move (partial), info};
 }
 
 MpfrMatrixStorage
