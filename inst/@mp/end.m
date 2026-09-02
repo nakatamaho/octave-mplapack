@@ -1,6 +1,10 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
 function result = end (value, index, number_of_indices)
+  ## -*- texinfo -*-
+  ## @deftypefn {} {@var{n} =} end (@var{A}, @var{k}, @var{nidx})
+  ## Provide @code{end} values for supported one- and two-dimensional indexing.
+  ## @end deftypefn
   if (nargin != 3 || ! isa (value, "mp"))
     error ("mplapack:mp:InvalidInput", ...
            "end expects an mp value and indexing metadata");

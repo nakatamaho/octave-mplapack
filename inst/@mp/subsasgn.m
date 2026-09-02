@@ -1,6 +1,10 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
 function result = subsasgn (value, index, rhs)
+  ## -*- texinfo -*-
+  ## @deftypefn {} {@var{B} =} subsasgn (@var{A}, @var{index}, @var{rhs})
+  ## Perform supported in-bounds indexed assignment on a copied @code{mp} value.
+  ## @end deftypefn
   if (isempty (index))
     result = value;
     return;

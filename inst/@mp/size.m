@@ -1,6 +1,10 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
 function varargout = size (value, varargin)
+  ## -*- texinfo -*-
+  ## @deftypefn {} {@var{dims} =} size (@var{A})
+  ## Return the two-dimensional shape of a dense real @code{mp} value.
+  ## @end deftypefn
   if (! isa (value, "mp"))
     error ("mplapack:mp:InvalidInput", "size expects an mp value");
   endif

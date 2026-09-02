@@ -1,6 +1,10 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
 function result = horzcat (varargin)
+  ## -*- texinfo -*-
+  ## @deftypefn {} {@var{C} =} horzcat (@var{A}, @var{B}, @dots{})
+  ## Concatenate dense real @code{mp} values horizontally.
+  ## @end deftypefn
   if (nargin < 1)
     error ("mplapack:mp:InvalidOperands", ...
            "mp horizontal concatenation expects at least one operand");

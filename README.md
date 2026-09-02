@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M21 pass; M20 is a design-only
+**Status: real-only v0.1 release closure.** M00 through M21 pass; M20 is a design-only
 complex architecture freeze and the public `mp` surface remains real-only.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
@@ -24,12 +24,41 @@ M21 adds dense real LU through MPLAPACK MPFR `Rgetrf`, including packed,
 two-output, row-permutation-matrix, and 1-based permutation-vector forms for
 square, rectangular, and singular matrices. See [`docs/lu.md`](docs/lu.md).
 
+M22 closes the provisional real-only API and prepares the v0.1 package/PPA
+handoff. See the [v0.1 API inventory](docs/v0.1-api.md),
+[Octave compatibility notes](docs/octave-compatibility.md), and
+[release checklist](docs/release-checklist.md).
+
 ## Goal
 
 `octave-mplapack` will provide GNU Octave access to MPLAPACK
 multiple-precision linear algebra through an Octave-native multiprecision
 numeric type named `mp`. MPLAPACK is the numerical backend rather than the
 user-facing programming model.
+
+## Quick start
+
+Install a locally built archive with Octave's package manager (the public PPA
+is planned after M23):
+
+```text
+octave:1> pkg install mplapack-0.1.0-dev.tar.gz
+octave:2> pkg load mplapack
+```
+
+For a checkout, `tools/dev-octave.sh` verifies the `pkg-config` dependency,
+builds the native module, and starts a configured development session. It does
+not replace clean package/install QA.
+
+The v0.1 surface is dense real `mp` only. It includes precision-controlled
+construction, arithmetic, `*`, square and rectangular `\`, indexing and
+in-bounds assignment, `chol`, full/economy and pivoted `qr`, and `lu`.
+Complex, sparse, N-D, reductions, `det`, `inv`, `rank`, `cond`, `norm`, `eig`,
+and `svd` remain explicitly unsupported; see the [complete limitations](docs/v0.1-api.md#unsupported-v01-surface).
+
+The required MPLAPACK MPFR dependency is discovered through `pkg-config` and
+must provide the uniform-precision scope interface. The package never vendors
+or searches a developer-specific MPLAPACK path.
 
 ## Initial backend
 
@@ -72,10 +101,10 @@ B = mp ([1, 2;
 size (A)
 % 2 2
 C = A * A
-x = A \\ b
+x = A \ b
 R = mp ({"1", "0"; "0", "1"; "1", "1"});
 r = mp ({"0"; "1"; "4"});
-least_squares = R \\ r
+least_squares = R \ r
 element = A(2, 1)
 column = A(:, 2)
 double_A = double(A)
@@ -126,6 +155,18 @@ column-pivoted three-output `qr` through `Rgeqp3`, reusing `Rorgqr` for `Q`.
 M21 adds dense real `lu` through `Rgetrf`; packed one-output factors,
 permutation-aware two/three-output factors, and vector row pivots preserve the
 stored operand precision.
+
+## v0.1 feature status
+
+| Feature | Scalar | Dense matrix | Backend | Status |
+|---|---:|---:|---|---|
+| `+ - .* ./` | yes | yes | MPFR | supported |
+| `*` | yes | yes | `Rgemm` | supported |
+| `\` | yes | yes | `Rgesv`/`Rgelss` | supported |
+| `chol` | yes | yes | `Rpotrf` | supported |
+| `qr` / pivoted `qr` | yes | yes | `Rgeqrf`/`Rgeqp3`/`Rorgqr` | supported |
+| `lu` | yes | yes | `Rgetrf` | supported |
+| complex / sparse | no | no | future | deferred |
 
 ## Intended future API
 
@@ -199,6 +240,7 @@ M20  Complex architecture audit and design freeze (no public complex support)
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M21 are complete (M20 is design-only). Consult
+M00 through M22 are complete (M20 is design-only and M22 is release closure).
+M23 is the feature freeze; no tag or PPA upload exists yet. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

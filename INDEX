@@ -6,3 +6,22 @@ Core multiprecision type
 Precision
  mpbits
  mpdigits
+Matrix inspection
+ size
+ rows
+ columns
+ numel
+ ndims
+ isempty
+Arithmetic and structure
+ mtimes
+ mldivide
+ transpose
+ ctranspose
+ reshape
+ horzcat
+ vertcat
+Factorizations
+ chol
+ qr
+ lu
