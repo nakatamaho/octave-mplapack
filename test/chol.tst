@@ -167,6 +167,14 @@
 %!   [L, p2] = chol (B, "lower");
 %!   assert (p2, 0);
 %!   assert_matrix_close (L, [2, 0; 1, 3]);
+%!   upper_inf = mp ([4, 2; Inf, 10]);
+%!   [R_inf, p_inf] = chol (upper_inf);
+%!   assert (p_inf, 0);
+%!   assert_matrix_close (R_inf, [2, 1; 0, 3]);
+%!   lower_inf = mp ([4, -Inf; 2, 10]);
+%!   [L_inf, p_inf_lower] = chol (lower_inf, "lower");
+%!   assert (p_inf_lower, 0);
+%!   assert_matrix_close (L_inf, [2, 0; 1, 3]);
 %!   S = mp ({"4", "2"; "2", "10"});
 %!   R = chol (S);
 %!   C = R.' * R;
