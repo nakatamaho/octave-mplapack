@@ -211,7 +211,7 @@ Pre-existing unrelated legacy report deletions remain unstaged.
 - Push: pushed to `origin/topic/m22-real-release-closure`.
 - Remote tip: ee506e3a03debae6be6eaae8b2bd1d41be697330 before this metadata-only PR update.
 - Local tip: metadata update follows; substantive gate commit is 5b7867e1545054969e3a3993e9f3f4be0aaffdbe.
-- GitHub CI: PR #23 opened; structural checks pending/completed by GitHub.
+- GitHub CI: PR #23 structural-checks passed (both workflow runs).
 
 ## Known v0.1 limitations
 
