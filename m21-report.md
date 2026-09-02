@@ -4,8 +4,8 @@ Repository: nakatamaho/octave-mplapack
 Remote: origin https://github.com/nakatamaho/octave-mplapack.git
 Branch: topic/m21-lu
 Starting commit: ab810c1747c3b558752a296b0017ef76ef7a8d24
-Final commit: implementation commit to be recorded after final report commit
-PR: to be created after push
+Final commit: 6812f09191aa65aff52b64551d8d3a4721d44bdf (M21 implementation/report tip before metadata-only update)
+PR: #22 https://github.com/nakatamaho/octave-mplapack/pull/22
 
 ## Baseline
 
@@ -252,15 +252,18 @@ predate M21 and are intentionally not staged.
 
 ## Commits
 
-The implementation, public API/QA, and final report commits are listed below
-after they are created.
+1. `b22bb34` — audit MPLAPACK Rgetrf and add native LU bridge
+2. `ec5a935` — add public dense mp LU API
+3. `c81e0e8` — add M21 LU QA and package checks
+4. `6812f09` — add M21 milestone report
+5. final metadata-only report update records the pushed PR and QA result
 
 ## Push
 
-- Push: pending final push
-- Remote tip: pending final push verification
-- Local tip: pending final report commit
-- GitHub CI: not run; local CI is the available deterministic gate
+- Push: pass; `topic/m21-lu` pushed without force
+- Remote tip: verified with `git ls-remote` after the final branch push
+- Local tip: final report metadata commit; working tree retains only unrelated legacy report deletions
+- GitHub CI: PR #22 opened; local CI is the deterministic gate run
 
 ## Known limitations
 
@@ -279,9 +282,9 @@ Do not begin M22 automatically.
 
 Branch: topic/m21-lu
 Starting commit: ab810c1747c3b558752a296b0017ef76ef7a8d24
-Final commit: recorded after the final report commit
+Final commit: 6812f09191aa65aff52b64551d8d3a4721d44bdf (implementation/report tip; final branch tip adds only this metadata update)
 Files changed: M21 native bridge, public method, probes, tests, docs, and CI wiring; legacy report deletions excluded
-Commands run: git status/log/remote; make -C src check-lu; tools/check-tree.sh; tools/check-format.sh; tools/local-ci.sh; git diff --check
+Commands run: git status/log/remote; make -C src check-lu; tools/check-tree.sh; tools/check-format.sh; tools/local-ci.sh; git diff --check; git push; gh pr create
 Tests: full tools/local-ci.sh PASS, including ASan/UBSan/LSan, native and installed probes, source and installed package QA, lifecycle, and M00-M21 regression
 Gate: M21 PASS
 Known limitations: as listed above
