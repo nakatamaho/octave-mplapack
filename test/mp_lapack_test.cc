@@ -152,6 +152,16 @@ test_mixed_precision_and_empty ()
   check (x.precision_bits () == 1024, "mixed solve precision mismatch");
   check_text (x, {"2", "3"});
 
+  const MpfrMatrixStorage a_high (
+    2, 2, 1024, std::vector<std::string> {"3", "1", "1", "2"});
+  const MpfrMatrixStorage b_low (
+    2, 1, 256, std::vector<std::string> {"9", "8"});
+  const auto reverse
+    = octave_mplapack::mplapack_mpfr_matrix_solve (a_high, b_low);
+  check (reverse.precision_bits () == 1024,
+         "reverse mixed solve precision mismatch");
+  check_text (reverse, {"2", "3"});
+
   const MpfrMatrixStorage empty_a (0, 0, 512);
   const MpfrMatrixStorage empty_b (0, 3, 256);
   const auto empty_x

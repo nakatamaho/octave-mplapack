@@ -117,6 +117,15 @@
 %!   X_mixed = A \ B_high;
 %!   assert (__mplapack_core__ ("matrix_test_info", X_mixed).precision_bits, ...
 %!           uint64 (1024));
+%!   mpbits (1024);
+%!   A_high = mp ({"3", "1"; "1", "2"});
+%!   mpbits (256);
+%!   B_low = mp ({"9"; "8"});
+%!   mpbits (128);
+%!   X_reverse = A_high \ B_low;
+%!   assert (__mplapack_core__ ("matrix_test_info", X_reverse).precision_bits, ...
+%!           uint64 (1024));
+%!   assert_matrix_text (X_reverse, {"2"; "3"});
 %! unwind_protect_cleanup
 %!   mpbits (saved);
 %! end_unwind_protect
