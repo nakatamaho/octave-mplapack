@@ -4,7 +4,7 @@ Repository: nakatamaho/octave-mplapack
 Remote: https://github.com/nakatamaho/octave-mplapack.git
 Branch: topic/m22-real-release-closure
 Starting commit: d9ec2fcf4b8071cdc6f7807fe91a6baf02f84eaa
-Final commit: pending final report commit
+Final commit: 5b7867e1545054969e3a3993e9f3f4be0aaffdbe (gate/report commit)
 PR: pending push
 
 ## Baseline
@@ -204,11 +204,11 @@ Pre-existing unrelated legacy report deletions remain unstaged.
 - `bd2982b` M22: add MPLAPACK interface feature probe
 - `49e7cac` M22: document and close the real v0.1 API
 - `8e20303` M22: add release examples and package QA
-- final report/status commit: pending
+- final report/status commit: `5b7867e` (metadata-only follow-up below)
 
 ## Push
 
-- Push: pending final report commit
+- Push: pending
 - Remote tip: pending
 - Local tip: pending
 - GitHub CI: pending push
@@ -234,7 +234,7 @@ preparation. Do not begin PPA1 or complex C00 automatically.
 
 Branch: topic/m22-real-release-closure
 Starting commit: d9ec2fcf4b8071cdc6f7807fe91a6baf02f84eaa
-Final commit: pending final report commit
+Final commit: 5b7867e1545054969e3a3993e9f3f4be0aaffdbe (gate/report commit)
 Files changed: see Files changed above; legacy report deletions are pre-existing and unstaged
 Commands run: `tools/check-tree.sh`; `tools/check-format.sh`; `git diff --check`; `make -C src check-dependency`; `make -C src`; `octave test/run_tests.m`; examples smoke; `tools/build-package.sh`; `tools/local-ci.sh`
 Tests: M00-M21 regression, M22 release closure, dependency probe, package lifecycle, examples, help, firewall, ASan/UBSan/LSan, M20 complex probe
