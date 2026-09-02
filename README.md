@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: real-only v0.1 release closure.** M00 through M21 pass; M20 is a design-only
+**Status: real-only v0.1 release closure.** M00 through M22 pass; M20 is a design-only
 complex architecture freeze and the public `mp` surface remains real-only.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
