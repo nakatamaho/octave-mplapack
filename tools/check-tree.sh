@@ -31,6 +31,7 @@ NEWS.md
 m20-report.md
 m21-report.md
 m22-report.md
+m23-report.md
 CONTRIBUTING.md
 .gitignore
 DESCRIPTION
@@ -145,6 +146,7 @@ tools/check-format.sh
 tools/check-tree.sh
 tools/local-ci.sh
 tools/build-package.sh
+tools/verify-release-candidate.sh
 tools/dev-octave.sh
 docs/architecture.md
 docs/native-value-design.md
@@ -188,6 +190,8 @@ docs/ppa-plan.md
 docs/release-checklist.md
 docs/milestones/M21-lu.md
 docs/milestones/M22-real-release-closure.md
+docs/milestones/M23-v0.1-freeze.md
+docs/v0.1-release-manifest.md
 docs/matrix-assignment.md
 docs/milestones/M14-indexed-assignment.md
 docs/milestones/M15-rgels.md
@@ -220,7 +224,7 @@ for path in $required_files; do
 done
 
 for path in tools/check-tree.sh tools/check-format.sh tools/local-ci.sh \
-  tools/build-package.sh; do
+  tools/build-package.sh tools/verify-release-candidate.sh; do
   if [ -f "$path" ] && [ ! -x "$path" ]; then
     echo "FAIL: required script is not executable: $path" >&2
     failed=1
@@ -239,7 +243,7 @@ for path in docs/milestones/M??-*.md docs/milestones/P??-*.md; do
 done
 
 if [ "$failed" -ne 0 ]; then
-  echo "FAIL: M00-M22 tree checks failed" >&2
+  echo "FAIL: M00-M23 tree checks failed" >&2
   exit 1
 fi
 
@@ -253,4 +257,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00-M22 tree checks"
+echo "PASS: M00-M23 tree checks"

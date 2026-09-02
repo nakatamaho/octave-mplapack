@@ -1,18 +1,23 @@
 # News
 
-## 0.1.0 (provisional target for M23)
+## 0.1.0
 
-The first release candidate is planned as a dense real arbitrary-precision
-Octave package. The accepted surface includes MPFR scalar and matrix
-construction with explicit bit/digit precision control, precision-preserving
-arithmetic and structural operations, `Rgemm` multiplication, `Rgesv`/`Rgelss`
-left division, and `Rpotrf`, `Rgeqrf`/`Rorgqr`, `Rgeqp3`, and `Rgetrf`
-factorizations. Complex, sparse, N-D, reduction, transcendental, determinant,
-inverse, rank, condition, and update APIs remain outside v0.1. M22 closes the
-API, documentation, dependency-probe, package, and PPA handoff requirements;
-M23 must freeze and release the version.
+The frozen first release candidate is a dense real arbitrary-precision Octave
+package. It provides MPFR scalar and matrix construction with explicit
+bit/digit precision control, precision-preserving arithmetic and structural
+operations, dense `Rgemm` multiplication, square and rank-revealing
+`Rgesv`/`Rgelss` left division, and `Rpotrf`, `Rgeqrf`/`Rorgqr`, `Rgeqp3`, and
+`Rgetrf` factorizations. Indexing and assignment preserve native value
+semantics. The source archive, dependency probe, installed-package lifecycle,
+and full sanitizer/precision QA are release-ready for PPA handoff.
 
-## 0.1.0-dev
+The v0.1.0 scope is intentionally limited: complex, sparse, N-D, reductions,
+general transcendentals, determinant, inverse, rank, condition, norm,
+eigenvalue, SVD, and update APIs are not included. `qr(A,B)` and sparse
+factorization forms are also deferred. Ubuntu PPA packaging and the final
+release tag occur after this upstream freeze.
+
+## Development history before 0.1.0
 
 - Bootstrapped the repository, package metadata, project contracts, and
   milestone plan.

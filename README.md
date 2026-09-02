@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: real-only v0.1 release closure.** M00 through M22 pass; M20 is a design-only
+**Status: real-only v0.1.0 release candidate frozen.** M00 through M23 pass; M20 is a design-only
 complex architecture freeze and the public `mp` surface remains real-only.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
@@ -24,10 +24,10 @@ M21 adds dense real LU through MPLAPACK MPFR `Rgetrf`, including packed,
 two-output, row-permutation-matrix, and 1-based permutation-vector forms for
 square, rectangular, and singular matrices. See [`docs/lu.md`](docs/lu.md).
 
-M22 closes the provisional real-only API and prepares the v0.1 package/PPA
-handoff. See the [v0.1 API inventory](docs/v0.1-api.md),
+M22 closed the real-only API and M23 froze the v0.1.0 release candidate for
+PPA packaging. See the [v0.1 API inventory](docs/v0.1-api.md),
 [Octave compatibility notes](docs/octave-compatibility.md), and
-[release checklist](docs/release-checklist.md).
+[release manifest](docs/v0.1-release-manifest.md).
 
 ## Goal
 
@@ -38,11 +38,11 @@ user-facing programming model.
 
 ## Quick start
 
-Install a locally built archive with Octave's package manager (the public PPA
-is planned after M23):
+Install a locally built release-candidate archive with Octave's package manager
+(the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-0.1.0-dev.tar.gz
+octave:1> pkg install mplapack-0.1.0.tar.gz
 octave:2> pkg load mplapack
 ```
 
@@ -168,6 +168,14 @@ stored operand precision.
 | `lu` | yes | yes | `Rgetrf` | supported |
 | complex / sparse | no | no | future | deferred |
 
+## Release provenance
+
+The frozen real-only v0.1.0 source candidate is identified by the full commit
+in [`docs/v0.1-release-manifest.md`](docs/v0.1-release-manifest.md). It was
+validated with Octave 11.1.0 and the installed MPLAPACK MPFR interface
+provided by `mplapack_mpfr` through `pkg-config`. PPA packaging is the next
+step; no PPA or final Git tag is published yet.
+
 ## Intended future API
 
 The following workflow is available through M19:
@@ -236,11 +244,14 @@ M17  Dense real Cholesky factorization
 M18  Dense real non-pivoted QR factorization
 M19  Dense real pivoted QR factorization
 M20  Complex architecture audit and design freeze (no public complex support)
+M21  Dense real LU factorization
+M22  Real v0.1 API and release closure
+M23  v0.1.0 feature freeze and release candidate
 
-P00-P06  Debian/Ubuntu/PPA packaging
+PPA1-PPA4  Debian/Ubuntu/PPA packaging and final release
 ```
 
-M00 through M22 are complete (M20 is design-only and M22 is release closure).
-M23 is the feature freeze; no tag or PPA upload exists yet. Consult
+M00 through M23 are complete (M20 is design-only and M23 is the frozen release
+candidate). No final tag or PPA upload exists yet. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

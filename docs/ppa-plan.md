@@ -1,8 +1,8 @@
 # Real-only PPA handoff plan
 
 M20 established `REAL-PPA-GO`; complex support is not a prerequisite for the
-real-only release. M22 records the handoff design. No Debian upload or PPA
-publication is performed here.
+real-only release. M23 freezes the upstream candidate and records the exact
+source/archive handoff. No Debian upload or PPA publication is performed here.
 
 ## Planned stages
 
@@ -11,7 +11,7 @@ publication is performed here.
 | PPA1 | Debian package for the accepted MPLAPACK MPFR dependency, including the uniform-precision interface |
 | PPA2 | `octave-mplapack` source/binary package and autopkgtest smoke coverage |
 | PPA3 | Launchpad staging build and install/linkage checks |
-| PPA4 | Public real-only v0.1 PPA after M23 freeze |
+| PPA4 | Public real-only v0.1 PPA and final tag after staging |
 
 The initial target is Ubuntu 26.04 with Octave 11.1.0. Deep package QA has
 validated amd64; other architectures remain a source-portability goal, not a
