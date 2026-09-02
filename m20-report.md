@@ -4,7 +4,7 @@ Repository: https://github.com/nakatamaho/octave-mplapack
 Remote: origin (https://github.com/nakatamaho/octave-mplapack.git)
 Branch: topic/m20-complex-architecture
 Starting commit: f76af221684880ff377bbc2865b985734db3a01e
-Final commit: 301116d (audit/design/probe; report commit follows)
+Final commit: 40ff84d (corrected signed-zero probe; report commit follows)
 PR: #21 — https://github.com/nakatamaho/octave-mplapack/pull/21
 
 ## Baseline
@@ -28,7 +28,7 @@ PR: #21 — https://github.com/nakatamaho/octave-mplapack/pull/21
 - Move behavior: initialized values are exchanged with `mpc_swap`
 - Vector storage: contiguous `std::vector<mpc_class>` is safe; installed static assertions cover size/alignment
 - COMPLEX* compatibility: direct `mpc_class*` compatibility verified by headers and Cgemm probe
-- Special values: zero/Inf/NaN values survive copy; current MPC copy normalizes a negative imaginary zero (C00 issue)
+- Special values: signed zero/Inf/NaN component state survives `mpc_class` copy
 
 ## Precision model
 
@@ -200,9 +200,9 @@ complex support remains unimplemented.
 ## QA
 
 - Native complex probes: `test/m20_complex_probe.cc` passes Cgemm, Cgesv,
-  Cpotrf, Cgeqrf/Cungqr, precision tails, layout assertions, zero/Inf/NaN
-  copy checks, and TLS scope restoration at 1024/2048 bits; it records that
-  the current MPC copy path normalizes a negative imaginary zero
+  Cpotrf, Cgeqrf/Cungqr, precision tails, layout assertions, signed
+  zero/Inf/NaN copy checks, and TLS scope restoration at 1024/2048 bits;
+  the negative-zero probe uses MPFR's documented negative-sign argument
 - Thread/TLS probes: worker 2048-bit default remains independent from main 128-bit default
 - ASan: pass through existing M00--M19 sanitizer suite; complex probe is clean
 - UBSan: pass through existing M00--M19 sanitizer suite; complex probe is clean
@@ -247,13 +247,16 @@ payload, operator, or MPLAPACK source implementation was added.
 - M20 audit/design/probe commit: 301116d
 - M20 report commit: 31ace39
 - M20 package-archive QA adjustment: 2e396a3
+- M20 report metadata commits: 1d1d434, 337cb4c, 082d10e
 - M20 special-value audit commit: cfa9f17
+- M20 special-value report commit: 4e73394
+- M20 corrected signed-zero probe commit: 40ff84d
 
 ## Push
 
 - Push: pushed to `origin/topic/m20-complex-architecture`
-- Remote tip: 337cb4ca1e55da8bb3673528c3c112df564518d2
-- Local tip: 337cb4ca1e55da8bb3673528c3c112df564518d2 (report metadata commit follows)
+- Remote tip: pending push of the corrected probe/report commits
+- Local tip: 40ff84d (report metadata commit follows)
 - GitHub CI: PR #21 structural-checks PASS
 
 ## Known unresolved complex issues
@@ -261,8 +264,6 @@ payload, operator, or MPLAPACK source implementation was added.
 - Public complex implementation has not started.
 - MPC override/scope composition requires an explicit C00/C01 policy.
 - Complex optimized-worker precision requires a per-library audit.
-- The current MPC copy path normalizes a negative imaginary zero; C00 must
-  choose an explicit sign-preserving policy if required by the public contract.
 - Complex text grammar, special-value display, comparison policy, and
   rank-revealing rectangular driver remain future design/QA work.
 
@@ -273,7 +274,7 @@ the PPA packaging series. Do not begin complex implementation automatically.
 
 Branch: topic/m20-complex-architecture
 Starting commit: f76af221684880ff377bbc2865b985734db3a01e
-Final commit: 301116d (audit/design/probe; report commit follows)
+Final commit: 40ff84d (corrected signed-zero probe; report commit follows)
 Files changed: documentation, test/m20_complex_probe.cc, and QA script updates
 Commands run: `tools/check-tree.sh`; `tools/check-format.sh`; controlled `tools/local-ci.sh`; `pkg-config`; `ldd -r`; `readelf -d`; `nm -D -C`; native complex probe
 Tests: native complex probe PASS; M00-M19 ASan/UBSan/LSan and installed package regression PASS
