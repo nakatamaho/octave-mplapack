@@ -261,12 +261,13 @@ pivoted-QR documentation. M18 non-pivoted dispatch remains intact.
 - `045fe00` — docs: record M19 pull request
 - `d13f023` — fix: generalize workspace overflow diagnostic
 - `ae5f5f7` — docs: record M19 final commit list
+- `6c600af` — test: cover rank-deficient pivoted QR
 
 ## Push
 
 - Push: `git push -u origin topic/m19-pivoted-qr` succeeded.
-- Remote tip: `ae5f5f764c645ae04199c4d511e20d5ca8ce3a0d` before this report update
-- Local tip: `ae5f5f764c645ae04199c4d511e20d5ca8ce3a0d` before this report update
+- Remote tip: `6c600afbee7dca0ade2425ad82e87ab6fc9e5ada` before this report update
+- Local tip: `6c600afbee7dca0ade2425ad82e87ab6fc9e5ada` before this report update
 - GitHub CI: PASS (PR #20 structural-checks jobs)
 
 ## Known limitations
