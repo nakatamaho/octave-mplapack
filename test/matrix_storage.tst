@@ -182,21 +182,6 @@
 %!   assert (! isempty (strfind (exception.message, "vertcat method failed")));
 %! end_try_catch
 
-%!test
-%! A = mp ({"1", "2"; "3", "4"});
-%! B = mp ({"5", "6"; "7", "8"});
-%! operations = {@() A + B, @() A - B, @() A .* B, @() A ./ B, ...
-%!               @() +A, @() -A};
-%! for index = 1:numel (operations)
-%!   try
-%!     operations{index} ();
-%!     error ("M07 matrix arithmetic unexpectedly succeeded");
-%!   catch exception
-%!     assert (strcmp (exception.identifier,
-%!                     "mplapack:mp:MatrixUnsupported"));
-%!   end_try_catch
-%! endfor
-
 %!error <complex mp matrices are not supported> mp ([1 + 2i, 3])
 %!error <only two-dimensional mp matrices> mp (ones (2, 2, 2))
 %!error <only two-dimensional mp matrices> mp (reshape (cellstr (["1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"]), 2, 2, 2))

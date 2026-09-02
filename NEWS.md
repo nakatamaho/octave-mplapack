@@ -42,6 +42,8 @@
   multiple right-hand sides and operation-owned factorization buffers.
 - Added read-only dense matrix indexing with `end`, precision-preserving
   matrix-to-double conversion, and canonical matrix display.
+- Added dense matrix element-wise `+`, `-`, `.*`, and `./`, unary signs, and
+  two-dimensional singleton expansion using direct MPFR arithmetic.
 - Rectangular solve, matrix assignment, logical indexing, matrix `char`,
-  transpose, concatenation, and matrix element-wise arithmetic remain
+  transpose, concatenation, comparisons, powers, and reductions remain
   unimplemented.

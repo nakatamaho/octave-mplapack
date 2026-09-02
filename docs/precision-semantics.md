@@ -111,6 +111,15 @@ elements and slices are copied at the source matrix precision, while
 source values directly. Neither operation uses the current default to choose
 an extracted precision or display precision.
 
+M11 applies the invariant to dense element-wise `+`, `-`, `.*`, and `./`, as
+well as unary signs. Binary `mp` operands use the maximum stored operand
+precision; a mixed binary64 operand uses the `mp` operand precision. Each
+destination element is explicitly allocated at that operation precision and
+computed with direct MPFR round-to-nearest arithmetic. Two-dimensional
+singleton expansion does not materialize expanded operands, and neither the
+project default nor the current-thread MPFR default participates in result
+precision selection or changes during these operations.
+
 ## Explicit scalar conversion
 
 `char(x)` formats the immutable value using `x`'s stored precision.  The

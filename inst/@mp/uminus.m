@@ -3,7 +3,8 @@
 function result = uminus (value)
   ## -*- texinfo -*-
   ## @deftypefn {} {@var{result} =} uminus (@var{value})
-  ## Negate an immutable real scalar @code{mp} value at its stored precision.
+  ## Negate an immutable real scalar or dense matrix @code{mp} value at its
+  ## stored precision.
   ## @end deftypefn
   if (nargin != 1)
     error ("mplapack:mp:InvalidOperands", ...

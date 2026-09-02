@@ -16,8 +16,9 @@ classdef mp
   ## Dense matrix multiplication uses MPLAPACK MPFR @code{Rgemm} under a
   ## uniform operation-precision scope.  M09 adds square matrix left division
   ## through MPLAPACK MPFR Rgesv. M10 adds read-only matrix indexing,
-  ## `double`, and `disp`. Matrix assignment, element-wise matrix arithmetic,
-  ## matrix `char`, and transpose remain deferred. Complex,
+  ## `double`, and `disp`. M11 adds native element-wise arithmetic with 2-D
+  ## singleton expansion. Matrix assignment, matrix `char`, and transpose
+  ## remain deferred. Complex,
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
   ## @end deftypefn
 

@@ -4,7 +4,9 @@
 
 M07 introduced storage and public construction for real, two-dimensional
 MPFR matrices. M10 adds read-only indexing, matrix `double`, and matrix
-display formatting without changing the storage representation.
+display formatting without changing the storage representation. M11 extends
+the same storage with direct MPFR element-wise arithmetic and two-dimensional
+singleton expansion; ownership and layout are unchanged.
 
 ## Installed MPLAPACK ABI audit
 
@@ -160,8 +162,9 @@ operation precision is the maximum precision of the participating `mp`
 operands, and `MplapackMpfrPrecisionScope` establishes that precision on the
 calling thread for the duration of the reference MPFR `Rgemm` call.  A strict
 native checker rejects any mismatch before entering MPLAPACK.  Scalar and
-real-double scaling use direct MPFR operations; matrix element-wise
-arithmetic remains deferred.
+real-double scaling use direct MPFR operations. M11 element-wise arithmetic
+likewise operates directly on MPFR values in destination storage; it does not
+call MPLAPACK and does not use the current default precision.
 
 ## M09 Rgesv implementation
 
@@ -174,6 +177,6 @@ solution buffer and preserve public input values.
 ## Non-goals
 
 Matrix assignment, logical indexing, general vector linear indexing, matrix
-`char`, transpose, concatenation, matrix element-wise arithmetic, and complex
+`char`, transpose, concatenation, comparisons, powers, reductions, and complex
 storage remain deferred. M08 adds `mtimes`/`Rgemm`, M09 adds square
 `mldivide`/`Rgesv`, and M10 adds read-only matrix inspection.

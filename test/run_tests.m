@@ -24,3 +24,5 @@ assert (test (fullfile (test_dir, "gesv.tst"), "quiet", stdout));
 fprintf ("PASS: M09 native MPFR Rgesv linear solve tests\n");
 assert (test (fullfile (test_dir, "matrix_inspection.tst"), "quiet", stdout));
 fprintf ("PASS: M10 dense matrix inspection tests\n");
+assert (test (fullfile (test_dir, "elementwise.tst"), "quiet", stdout));
+fprintf ("PASS: M11 dense element-wise arithmetic tests\n");

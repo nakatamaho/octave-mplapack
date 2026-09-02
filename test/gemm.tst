@@ -198,14 +198,6 @@
 %!   assert (strcmp (exception.identifier, "mplapack:mp:DimensionMismatch"));
 %! end_try_catch
 %! try
-%!   A + A;
-%!   error ("M08 matrix plus unexpectedly succeeded");
-%! catch exception
-%!   assert (! strcmp (exception.message, ...
-%!                     "M08 matrix plus unexpectedly succeeded"));
-%!   assert (strcmp (exception.identifier, "mplapack:mp:MatrixUnsupported"));
-%! end_try_catch
-%! try
 %!   A / A;
 %!   error ("M08 matrix division unexpectedly succeeded");
 %! catch exception

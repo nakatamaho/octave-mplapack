@@ -30,7 +30,7 @@ system BLAS and LAPACK also remain untouched. `mp` values are separate numeric
 objects whose MPLAPACK operations work directly on native MPFR-backed storage;
 the project will not use `LD_PRELOAD` or silently route through binary64.
 
-Through M10 the only backend is real MPFR arithmetic. Complex arithmetic and
+Through M11 the only backend is real MPFR arithmetic. Complex arithmetic and
 MPC-valued matrices are future extensions. GMP, DD, QD, binary80, and
 binary128 backends are outside this baseline.
 
@@ -175,3 +175,10 @@ elements in column-major order, preserving the source matrix precision.
 canonical scalar formatter. These operations do not consult or mutate the
 current precision default; matrix assignment and matrix `char` remain
 deferred.
+
+M11 adds direct MPFR element-wise arithmetic for dense matrices. A common
+native kernel implements `+`, `-`, `.*`, and `./` (plus unary signs), applies
+two-dimensional singleton expansion without materializing broadcast copies,
+and rounds directly into destination storage at the operand-derived precision.
+These operations do not call MPLAPACK or enter its precision scope; the
+current default remains unchanged.
