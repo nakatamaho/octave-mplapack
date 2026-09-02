@@ -248,13 +248,14 @@ The five pre-existing deleted legacy report files remain unstaged.
 - `c3abe04` — docs: add M15 implementation report
 - `af3acca` — docs: record M15 PR and push
 - `4cc4943` — docs: finalize M15 report tip
+- `f39ff00` — docs: record final M15 report metadata
 
 ## Push
 
 - Push: PASS (`topic/m15-rgels` pushed to `origin`)
-- Remote tip: `4cc4943` (after the report metadata push)
-- Local tip: `4cc4943` before this final report-tip correction
-- GitHub CI: PR #16 open; structural-checks run in progress at report time
+- Remote tip: `f39ff00` (before this CI-status report update)
+- Local tip: `f39ff00` before this CI-status report update
+- GitHub CI: PR #16 structural-checks PASS
 
 ## Known limitations
 
