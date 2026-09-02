@@ -55,6 +55,10 @@
   precision-preserving deep copies, scalar/row/column/submatrix and colon
   assignment, and direct binary64 RHS insertion. Matrix growth, deletion,
   logical assignment, and general vector linear assignment remain deferred.
+- Added full-rank rectangular dense real `mp` left division through MPLAPACK
+  MPFR `Rgels`, including QR/LQ paths, multiple right-hand sides, padded
+  operation-owned RHS storage, and checked workspace queries. Rank-revealing
+  rectangular solving remains deferred.
 - Rectangular solve, matrix assignment, logical indexing, matrix `char`,
   general `cat`, comparisons, powers, and reductions remain
   unimplemented.

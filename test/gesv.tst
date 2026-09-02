@@ -184,17 +184,6 @@
 %!   assert (strcmp (exception.identifier, "mplapack:mp:DimensionMismatch"));
 %! end_try_catch
 
-%!test
-%! A = mp ({"1", "2"; "3", "4"; "5", "6"});
-%! B = mp ({"1"; "2"; "3"});
-%! try
-%!   A \ B;
-%!   error ("non-square solve unexpectedly succeeded");
-%! catch exception
-%!   assert (! strcmp (exception.message, "non-square solve unexpectedly succeeded"));
-%!   assert (strcmp (exception.identifier, "mplapack:mp:NonSquareMatrix"));
-%! end_try_catch
-
 %!error <complex matrix left division is not supported> mldivide (mp ([1, 0; 0, 1]), [1 + 2i; 3])
 
 %!test

@@ -25,6 +25,7 @@ ELEMENTWISE_TEST = .build-m11/mp_matrix_arithmetic_test
 STRUCTURE_TEST = .build-m12/mp_matrix_structure_test
 CONCAT_TEST = .build-m13/mp_matrix_concat_test
 ASSIGNMENT_TEST = .build-m14/mp_matrix_assignment_test
+RGELS_TEST = .build-m15/mp_lapack_rgels_test
 MPLAPACK_VERSION := $(shell $(PKG_CONFIG) --modversion $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
@@ -34,7 +35,7 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 .PHONY: all check-deps check-storage-sanitized \
   check-arithmetic-sanitized check-matrix-sanitized check-blas \
   check-lapack check-inspection check-elementwise check-structure \
-  check-concat check-assignment clean
+  check-concat check-assignment check-rgels clean
 .DELETE_ON_ERROR:
 
 all: $(TARGET)
@@ -167,6 +168,17 @@ check-assignment: $(ASSIGNMENT_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 	UBSAN_OPTIONS=halt_on_error=1 $(ASSIGNMENT_TEST)
 
+$(RGELS_TEST): ../test/mp_lapack_rgels_test.cc mp_lapack.cc mp_lapack.h \
+  mp_matrix_storage.cc mp_matrix_storage.h mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_lapack_rgels_test.cc mp_lapack.cc \
+	  mp_matrix_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-rgels: $(RGELS_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(RGELS_TEST)
+
 check-deps:
 	@$(MKOCTFILE) --help >/dev/null 2>&1 || { \
 	  echo "FAIL: mkoctfile command not found: $(MKOCTFILE)" >&2; exit 1; }
@@ -185,4 +197,4 @@ check-deps:
 
 clean:
 	$(RM) $(TARGET) *.o *.lo
-	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14
+	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15

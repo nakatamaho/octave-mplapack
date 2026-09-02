@@ -22,6 +22,8 @@ assert (test (fullfile (test_dir, "gemm.tst"), "quiet", stdout));
 fprintf ("PASS: M08 native MPFR Rgemm matrix multiplication tests\n");
 assert (test (fullfile (test_dir, "gesv.tst"), "quiet", stdout));
 fprintf ("PASS: M09 native MPFR Rgesv linear solve tests\n");
+assert (test (fullfile (test_dir, "rgels.tst"), "quiet", stdout));
+fprintf ("PASS: M15 native MPFR Rgels rectangular solve tests\n");
 assert (test (fullfile (test_dir, "matrix_inspection.tst"), "quiet", stdout));
 fprintf ("PASS: M10 dense matrix inspection tests\n");
 assert (test (fullfile (test_dir, "elementwise.tst"), "quiet", stdout));

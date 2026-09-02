@@ -1,9 +1,10 @@
 # Dense MPFR linear solve
 
 M09 adds dense real `mp` left division through the installed MPLAPACK MPFR
-`Rgesv` routine. The coefficient matrix must be square; a right-hand side may
-contain one or more columns. Rectangular least-squares, complex, sparse, and
-reusable factorization interfaces are outside this milestone.
+`Rgesv` routine. M15 extends the same interface to full-rank rectangular
+systems through `Rgels`; square systems remain on `Rgesv`. Complex, sparse,
+rank-deficient, and reusable factorization interfaces remain outside the
+current milestones.
 
 ## Uniform precision boundary
 
@@ -17,6 +18,13 @@ calling `Rgesv`; mixed-precision MPLAPACK calls are never issued.
 `Rgesv` overwrites both arrays during LU factorization and solve, so public
 payloads are never passed to the backend. The returned operation-owned `B`
 buffer is the solution and a 1x1 result is normalized to the scalar payload.
+
+For a rectangular solve, `Rgels` receives operation-owned `A` and a
+`max(m,n) x nrhs` padded RHS. Its workspace query and solve run under the same
+uniform operation-precision scope, and the first `n` RHS rows form the public
+`n x nrhs` solution. The operation assumes full column rank for `m >= n` and
+full row rank for `m < n`; positive `info` is reported as a rank-deficient
+error.
 
 ## Status and empty systems
 

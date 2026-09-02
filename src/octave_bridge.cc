@@ -2022,12 +2022,16 @@ mp_mldivide_operation (const octave_value& lhs_value,
       if (lhs_is_matrix)
         lhs = &octave_mplapack_mpfr_matrix_internal::checked_value (
           require_matrix_payload (lhs_value)).storage ();
-      else if (lhs_is_double_matrix && rhs_is_matrix)
+      else if (lhs_is_double_matrix && (rhs_is_matrix || rhs_is_mp))
         {
-          const auto& rhs = octave_mplapack_mpfr_matrix_internal::checked_value (
-            require_matrix_payload (rhs_value)).storage ();
+          const mpfr_prec_t rhs_precision
+            = rhs_is_matrix
+                ? octave_mplapack_mpfr_matrix_internal::checked_value (
+                    require_matrix_payload (rhs_value)).storage ().precision_bits ()
+                : octave_mplapack_mpfr_scalar_internal::checked_value (
+                    require_scalar_payload (rhs_value)).storage ().precision_bits ();
           lhs_owned.emplace (make_double_matrix_storage (
-            lhs_value, rhs.precision_bits ()));
+            lhs_value, rhs_precision));
           lhs = &*lhs_owned;
         }
       else
@@ -2045,12 +2049,51 @@ mp_mldivide_operation (const octave_value& lhs_value,
             rhs_value, lhs->precision_bits ()));
           rhs = &*rhs_owned;
         }
+      else if (lhs && lhs->rows () == 1 && ! rhs_is_matrix
+               && ! rhs_is_double_matrix)
+        {
+          const mpfr_prec_t rhs_precision
+            = rhs_is_mp
+                ? octave_mplapack_mpfr_scalar_internal::checked_value (
+                    require_scalar_payload (rhs_value)).storage ().precision_bits ()
+                : lhs->precision_bits ();
+          const mpfr_prec_t operation_precision
+            = std::max (lhs->precision_bits (), rhs_precision);
+          rhs_owned.emplace (1, 1, operation_precision);
+          if (rhs_is_mp)
+            {
+              const auto& scalar
+                = octave_mplapack_mpfr_scalar_internal::checked_value (
+                    require_scalar_payload (rhs_value)).storage ();
+              mpfr_set (rhs_owned->at (0, 0).mpfr_data (),
+                        scalar.native_value ().mpfr_data (), MPFR_RNDN);
+            }
+          else
+            mpfr_set_d (rhs_owned->at (0, 0).mpfr_data (),
+                        require_arithmetic_double (rhs_value), MPFR_RNDN);
+          rhs = &*rhs_owned;
+        }
       else
         error_with_id ("mplapack:mp:UnsupportedOperand",
                        "matrix left division requires a dense mp or real double right-hand side");
 
+      if (lhs->rows () != lhs->columns ())
+        return make_mldivide_result (
+          octave_mplapack::mplapack_mpfr_matrix_rectangular_solve (*lhs,
+                                                                    *rhs));
+
       return make_mldivide_result (
         octave_mplapack::mplapack_mpfr_matrix_solve (*lhs, *rhs));
+    }
+  catch (const octave_mplapack::MpfrRgelsError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrRgelsError::Kind::rank_deficient)
+        error_with_id ("mplapack:mp:RankDeficient",
+                       "mp left division: rectangular matrix is rank deficient");
+      error_with_id ("mplapack:mp:RgelsError",
+                     "MPLAPACK Rgels rejected argument %d",
+                     -exception.info ());
     }
   catch (const octave_mplapack::MpfrRgesvError& exception)
     {
