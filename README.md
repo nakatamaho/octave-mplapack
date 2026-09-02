@@ -27,7 +27,8 @@ square, rectangular, and singular matrices. See [`docs/lu.md`](docs/lu.md).
 M22 closed the real-only API and M23 froze the v0.1.0 release candidate for
 PPA packaging. See the [v0.1 API inventory](docs/v0.1-api.md),
 [Octave compatibility notes](docs/octave-compatibility.md), and
-[release manifest](docs/v0.1-release-manifest.md).
+[release checklist](docs/release-checklist.md) and the repository-only release
+manifest.
 
 ## Goal
 
@@ -171,7 +172,7 @@ stored operand precision.
 ## Release provenance
 
 The frozen real-only v0.1.0 source candidate is identified by the full commit
-in [`docs/v0.1-release-manifest.md`](docs/v0.1-release-manifest.md). It was
+in the repository-only release manifest (`docs/v0.1-release-manifest.md`). It was
 validated with Octave 11.1.0 and the installed MPLAPACK MPFR interface
 provided by `mplapack_mpfr` through `pkg-config`. PPA packaging is the next
 step; no PPA or final Git tag is published yet.
