@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M10 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M16 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M10 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M16 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M10 prerequisites"
+echo "PASS: mandatory M16 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
@@ -52,7 +52,13 @@ make -C src check-matrix-sanitized
 make -C src check-blas
 make -C src check-lapack
 make -C src check-inspection
-echo "PASS: M02-M10 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, and inspection QA"
+make -C src check-elementwise
+make -C src check-structure
+make -C src check-concat
+make -C src check-assignment
+make -C src check-rgels
+make -C src check-rank
+echo "PASS: M02-M16 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, and assignment QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -79,6 +85,20 @@ c++ -std=c++17 -Wall -Wextra -Wpedantic \
   $(pkg-config --libs mplapack_mpfr) -o "$probe"
 "$probe"
 echo "PASS: installed MPLAPACK Rgesv precision probe"
+
+rgels_probe=$qa_root/mp_lapack_rgels_probe
+c++ -std=c++17 -Wall -Wextra -Wpedantic \
+  $(pkg-config --cflags mplapack_mpfr) test/mp_lapack_rgels_probe.cc \
+  $(pkg-config --libs mplapack_mpfr) -o "$rgels_probe"
+"$rgels_probe"
+echo "PASS: installed MPLAPACK Rgels precision probe"
+
+rank_driver_probe=$qa_root/m16_driver_probe
+c++ -std=c++17 -Wall -Wextra -Wpedantic \
+  $(pkg-config --cflags mplapack_mpfr) test/m16_driver_probe.cc \
+  $(pkg-config --libs mplapack_mpfr) -o "$rank_driver_probe"
+"$rank_driver_probe"
+echo "PASS: installed rank-revealing driver comparison probe"
 
 if [ ! -f "$mplapack_library" ]; then
   echo "FAIL: MPLAPACK MPFR shared library is unavailable: $mplapack_library" >&2
@@ -155,6 +175,16 @@ fi
 
 if ! nm -D -C "$module" | grep -Eq ' U Rgesv\('; then
   echo "FAIL: M09 native module lacks an unresolved Rgesv reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgels\('; then
+  echo "FAIL: M15 native module lacks an unresolved Rgels reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgelss\('; then
+  echo "FAIL: M16 native module lacks an unresolved Rgelss reference" >&2
   exit 1
 fi
 
@@ -453,7 +483,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M10 re-test"
+echo "PASS: clean rebuild #2 and M01-M16 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -495,10 +525,28 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   src/mp_blas.h src/mp_blas.cc test/mp_blas_test.cc test/gemm.tst \
   docs/matrix-multiplication.md \
   src/mp_lapack.h src/mp_lapack.cc test/mp_lapack_test.cc \
-  test/mp_lapack_probe.cc test/gesv.tst docs/linear-solve.md \
+  test/mp_lapack_probe.cc test/mp_lapack_rgels_probe.cc \
+  test/mp_lapack_rgels_test.cc test/gesv.tst test/rgels.tst \
+  test/mp_lapack_rank_test.cc test/rank.tst test/m16_driver_probe.cc \
+  docs/linear-solve.md docs/rectangular-solve.md \
   src/mp_matrix_inspection.h src/mp_matrix_inspection.cc \
   test/mp_matrix_inspection_test.cc test/matrix_inspection.tst \
   docs/matrix-inspection.md inst/@mp/end.m \
+  src/mp_matrix_arithmetic.h src/mp_matrix_arithmetic.cc \
+  test/mp_matrix_arithmetic_test.cc test/elementwise.tst \
+  docs/elementwise-arithmetic.md docs/milestones/M11-elementwise-arithmetic.md \
+  src/mp_matrix_structure.h src/mp_matrix_structure.cc \
+  test/mp_matrix_structure_test.cc test/structure.tst \
+  docs/matrix-structure.md docs/milestones/M12-transpose-reshape.md \
+  inst/@mp/transpose.m inst/@mp/ctranspose.m inst/@mp/reshape.m \
+  src/mp_matrix_concat.h src/mp_matrix_concat.cc \
+  test/mp_matrix_concat_test.cc test/concat.tst \
+  docs/matrix-concatenation.md docs/milestones/M13-concatenation.md \
+  src/mp_matrix_assignment.h src/mp_matrix_assignment.cc \
+  test/mp_matrix_assignment_test.cc test/assignment.tst \
+  docs/matrix-assignment.md docs/milestones/M14-indexed-assignment.md \
+  docs/milestones/M15-rgels.md \
+  docs/milestones/M16-rank-deficient-lstsq.md docs/rank-deficient-solve.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -509,7 +557,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -548,6 +596,8 @@ mkdir -p "$test_home" "$neutral_dir"
     octave --no-gui --quiet --no-init-file --eval '
       root = getenv ("M01_REPO_ROOT");
       pkg ("load", "mplapack");
+      assert (test (fullfile (root, "test", "concat.tst")));
+      assert (test (fullfile (root, "test", "assignment.tst")));
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
       constructor_path = which ("mp");
@@ -557,11 +607,17 @@ mkdir -p "$test_home" "$neutral_dir"
       double_method_path = file_in_loadpath ("@mp/double.m");
       disp_method_path = file_in_loadpath ("@mp/disp.m");
       plus_method_path = file_in_loadpath ("@mp/plus.m");
+      minus_method_path = file_in_loadpath ("@mp/minus.m");
+      times_method_path = file_in_loadpath ("@mp/times.m");
+      rdivide_method_path = file_in_loadpath ("@mp/rdivide.m");
       uplus_method_path = file_in_loadpath ("@mp/uplus.m");
       uminus_method_path = file_in_loadpath ("@mp/uminus.m");
+      horzcat_method_path = file_in_loadpath ("@mp/horzcat.m");
+      vertcat_method_path = file_in_loadpath ("@mp/vertcat.m");
       size_method_path = file_in_loadpath ("@mp/size.m");
       mldivide_method_path = file_in_loadpath ("@mp/mldivide.m");
       subsref_method_path = file_in_loadpath ("@mp/subsref.m");
+      subsasgn_method_path = file_in_loadpath ("@mp/subsasgn.m");
       end_method_path = file_in_loadpath ("@mp/end.m");
       fprintf ("installed mplapack_version: %s\n", public_path);
       fprintf ("installed __mplapack_core__: %s\n", native_path);
@@ -586,11 +642,17 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (double_method_path, root, length (root)));
       assert (! strncmp (disp_method_path, root, length (root)));
       assert (! strncmp (plus_method_path, root, length (root)));
+      assert (! strncmp (minus_method_path, root, length (root)));
+      assert (! strncmp (times_method_path, root, length (root)));
+      assert (! strncmp (rdivide_method_path, root, length (root)));
       assert (! strncmp (uplus_method_path, root, length (root)));
       assert (! strncmp (uminus_method_path, root, length (root)));
+      assert (! strncmp (horzcat_method_path, root, length (root)));
+      assert (! strncmp (vertcat_method_path, root, length (root)));
       assert (! strncmp (size_method_path, root, length (root)));
       assert (! strncmp (mldivide_method_path, root, length (root)));
       assert (! strncmp (subsref_method_path, root, length (root)));
+      assert (! strncmp (subsasgn_method_path, root, length (root)));
       assert (! strncmp (end_method_path, root, length (root)));
       info = mplapack_version ();
       disp (info);
@@ -612,6 +674,10 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "gemm.tst")));
       assert (test (fullfile (root, "test", "gesv.tst")));
       assert (test (fullfile (root, "test", "matrix_inspection.tst")));
+      assert (test (fullfile (root, "test", "elementwise.tst")));
+      assert (test (fullfile (root, "test", "structure.tst")));
+      assert (test (fullfile (root, "test", "concat.tst")));
+      assert (test (fullfile (root, "test", "assignment.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -696,10 +762,11 @@ mkdir -p "$test_home" "$neutral_dir"
 
 (
   cd "$neutral_dir"
-  HOME=$test_home M01_REPO_ROOT=$repo_root \
+HOME=$test_home M01_REPO_ROOT=$repo_root \
     MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     octave --no-gui --quiet --no-init-file --eval '
       pkg ("load", "mplapack");
+      root = getenv ("M01_REPO_ROOT");
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
       constructor_path = which ("mp");
@@ -709,13 +776,18 @@ mkdir -p "$test_home" "$neutral_dir"
       double_method_path = file_in_loadpath ("@mp/double.m");
       disp_method_path = file_in_loadpath ("@mp/disp.m");
       plus_method_path = file_in_loadpath ("@mp/plus.m");
+      minus_method_path = file_in_loadpath ("@mp/minus.m");
+      times_method_path = file_in_loadpath ("@mp/times.m");
+      rdivide_method_path = file_in_loadpath ("@mp/rdivide.m");
       uplus_method_path = file_in_loadpath ("@mp/uplus.m");
       uminus_method_path = file_in_loadpath ("@mp/uminus.m");
       size_method_path = file_in_loadpath ("@mp/size.m");
       mldivide_method_path = file_in_loadpath ("@mp/mldivide.m");
       subsref_method_path = file_in_loadpath ("@mp/subsref.m");
+      subsasgn_method_path = file_in_loadpath ("@mp/subsasgn.m");
       end_method_path = file_in_loadpath ("@mp/end.m");
-      root = getenv ("M01_REPO_ROOT");
+      horzcat_method_path = file_in_loadpath ("@mp/horzcat.m");
+      vertcat_method_path = file_in_loadpath ("@mp/vertcat.m");
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
       assert (! strncmp (constructor_path, root, length (root)));
@@ -725,12 +797,17 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (double_method_path, root, length (root)));
       assert (! strncmp (disp_method_path, root, length (root)));
       assert (! strncmp (plus_method_path, root, length (root)));
+      assert (! strncmp (minus_method_path, root, length (root)));
+      assert (! strncmp (times_method_path, root, length (root)));
+      assert (! strncmp (rdivide_method_path, root, length (root)));
       assert (! strncmp (uplus_method_path, root, length (root)));
       assert (! strncmp (uminus_method_path, root, length (root)));
       assert (! strncmp (size_method_path, root, length (root)));
       assert (! strncmp (mldivide_method_path, root, length (root)));
       assert (! strncmp (subsref_method_path, root, length (root)));
       assert (! strncmp (end_method_path, root, length (root)));
+      assert (! strncmp (horzcat_method_path, root, length (root)));
+      assert (! strncmp (vertcat_method_path, root, length (root)));
       assert (mpbits () == uint64 (512));
       assert (mpdigits () == uint64 (154));
       info = mplapack_version ();
@@ -792,11 +869,36 @@ mkdir -p "$test_home" "$neutral_dir"
         "matrix_test_element_equal_text", installed_product, 1, 1, "7"));
       assert (__mplapack_core__ (
         "matrix_test_element_equal_text", installed_product, 2, 2, "22"));
+      installed_sum = installed_text_matrix + installed_double_matrix;
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal_text", installed_sum, 1, 1, "2"));
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal_text", installed_sum, 2, 2, "8"));
+      installed_transpose = transpose (installed_text_matrix);
+      assert (size (installed_transpose), [2, 2]);
+      installed_reshape = reshape (installed_text_matrix, 1, 4);
+      assert (size (installed_reshape), [1, 4]);
+      installed_horzcat = [installed_text_matrix, installed_double_matrix];
+      installed_vertcat = [installed_text_matrix; installed_double_matrix];
+      assert (size (installed_horzcat), [2, 4]);
+      assert (size (installed_vertcat), [4, 2]);
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal_text", installed_horzcat, 1, 3, "1"));
+      assert (__mplapack_core__ (
+        "matrix_test_element_equal_text", installed_vertcat, 3, 1, "1"));
       installed_solution = installed_text_matrix \ mp ({"3"; "7"});
       assert (__mplapack_core__ (
         "matrix_test_element_double", installed_solution, 1, 1), 1);
       assert (__mplapack_core__ (
         "matrix_test_element_double", installed_solution, 2, 1), 1);
+      installed_rectangular = mp ({"1", "0"; "0", "1"; "1", "1"});
+      installed_rectangular_rhs = mp ({"0"; "1"; "4"});
+      installed_rectangular_solution = installed_rectangular \ installed_rectangular_rhs;
+      assert (size (installed_rectangular_solution), [2, 1]);
+      assert (__mplapack_core__ (
+        "matrix_test_element_double", installed_rectangular_solution, 1, 1), 1);
+      assert (__mplapack_core__ (
+        "matrix_test_element_double", installed_rectangular_solution, 2, 1), 2);
       fprintf ("reinstalled mplapack_version: %s\n", public_path);
       fprintf ("reinstalled __mplapack_core__: %s\n", native_path);
       fprintf ("reinstalled mp: %s\n", constructor_path);
@@ -806,15 +908,21 @@ mkdir -p "$test_home" "$neutral_dir"
       fprintf ("reinstalled @mp/double: %s\n", double_method_path);
       fprintf ("reinstalled @mp/disp: %s\n", disp_method_path);
       fprintf ("reinstalled @mp/plus: %s\n", plus_method_path);
+      fprintf ("reinstalled @mp/minus: %s\n", minus_method_path);
+      fprintf ("reinstalled @mp/times: %s\n", times_method_path);
+      fprintf ("reinstalled @mp/rdivide: %s\n", rdivide_method_path);
       fprintf ("reinstalled @mp/uplus: %s\n", uplus_method_path);
       fprintf ("reinstalled @mp/uminus: %s\n", uminus_method_path);
       fprintf ("reinstalled @mp/size: %s\n", size_method_path);
       fprintf ("reinstalled @mp/subsref: %s\n", subsref_method_path);
+      fprintf ("reinstalled @mp/subsasgn: %s\n", subsasgn_method_path);
       fprintf ("reinstalled @mp/end: %s\n", end_method_path);
+      fprintf ("reinstalled @mp/horzcat: %s\n", horzcat_method_path);
+      fprintf ("reinstalled @mp/vertcat: %s\n", vertcat_method_path);
       fprintf ("PASS: installed scalar/matrix values left for shutdown destruction\n");
     '
 )
 
-echo "PASS: isolated package M01-M10 install, matrix/Rgemm/Rgesv/inspection QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M16 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/inspection/element-wise/structure/concatenation/assignment QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M10 local CI"
+echo "PASS: M16 local CI"

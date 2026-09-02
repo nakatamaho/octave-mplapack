@@ -2,10 +2,13 @@
 
 #include <cmath>
 #include <cstdint>
+#include <algorithm>
+#include <array>
 #include <exception>
 #include <limits>
 #include <mutex>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -23,6 +26,10 @@
 #include "mp_value.h"
 #include "mp_matrix_value.h"
 #include "mp_matrix_inspection.h"
+#include "mp_matrix_arithmetic.h"
+#include "mp_matrix_structure.h"
+#include "mp_matrix_concat.h"
+#include "mp_matrix_assignment.h"
 #include "mp_blas.h"
 #include "mp_lapack.h"
 #include "mp_precision.h"
@@ -333,7 +340,7 @@ require_arithmetic_mp_payload (const octave_value& value)
   if (payload.type_id ()
       == octave_mplapack_mpfr_matrix_internal::static_type_id ())
     error_with_id ("mplapack:mp:MatrixUnsupported",
-                   "dense mp matrix arithmetic is not implemented in M07");
+                   "this scalar-only arithmetic path does not accept dense mp matrices");
   return require_scalar_payload (payload);
 }
 
@@ -347,7 +354,7 @@ require_arithmetic_double (const octave_value& value)
                        "complex arithmetic is not supported");
       if (! value.is_real_scalar ())
         error_with_id ("mplapack:mp:MatrixUnsupported",
-                       "matrix operands are not implemented before M07");
+                       "this scalar-only arithmetic path does not accept matrix operands");
       return value.double_value ();
     }
 
@@ -615,6 +622,425 @@ make_inspection_result (octave_mplapack::MpfrMatrixStorage storage)
   return make_internal_matrix (std::move (storage));
 }
 
+struct PreparedConcatOperand
+{
+  octave_mplapack::MpfrConcatOperand descriptor;
+};
+
+octave_mplapack::MpfrConcatOperand
+prepare_concat_operand (const octave_value& value)
+{
+  octave_mplapack::MpfrConcatOperand operand;
+
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          operand.rows = 1;
+          operand.columns = 1;
+          const octave_value kept_payload = payload;
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                kept_payload).storage ();
+          operand.precision_bits = scalar.precision_bits ();
+          operand.has_mp_precision = true;
+          operand.copy_element
+            = [kept_payload] (octave_mplapack::MpfrMatrixStorage::NativeScalar&
+                                destination,
+                              std::size_t, std::size_t)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_scalar_internal::checked_value (
+                    kept_payload).storage ();
+              mpfr_set (destination.mpfr_data (), source.native_value ()
+                        .mpfr_data (), MPFR_RNDN);
+            };
+          return operand;
+        }
+
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& matrix
+            = octave_mplapack_mpfr_matrix_internal::checked_value (
+                kept_payload).storage ();
+          operand.rows = matrix.rows ();
+          operand.columns = matrix.columns ();
+          operand.precision_bits = matrix.precision_bits ();
+          operand.has_mp_precision = true;
+          operand.copy_element
+            = [kept_payload] (octave_mplapack::MpfrMatrixStorage::NativeScalar&
+                                destination,
+                              std::size_t row, std::size_t column)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_matrix_internal::checked_value (
+                    kept_payload).storage ();
+              mpfr_set (destination.mpfr_data (),
+                        source.at (row, column).mpfr_data (), MPFR_RNDN);
+            };
+          return operand;
+        }
+
+      error_with_id ("mplapack:mp:InvalidNativeValue",
+                     "public mp value has an unknown native payload");
+    }
+
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "concatenation supports mp and real double operands");
+  if (! value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex concatenation is not supported");
+  if (value.issparse ())
+    error_with_id ("mplapack:mp:SparseUnsupported",
+                   "sparse concatenation is not supported");
+  if (! value.is_real_scalar () && value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional concatenation operands are supported");
+
+  if (value.is_real_scalar ())
+    {
+      const double scalar = value.double_value ();
+      operand.rows = 1;
+      operand.columns = 1;
+      operand.copy_element
+        = [scalar] (octave_mplapack::MpfrMatrixStorage::NativeScalar&
+                      destination,
+                    std::size_t, std::size_t)
+        {
+          mpfr_set_d (destination.mpfr_data (), scalar, MPFR_RNDN);
+        };
+      return operand;
+    }
+
+  const Matrix input = value.matrix_value ();
+  operand.rows = checked_size_dimension (input.rows ());
+  operand.columns = checked_size_dimension (input.columns ());
+  operand.copy_element
+    = [input] (octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+               std::size_t row, std::size_t column)
+    {
+      mpfr_set_d (destination.mpfr_data (),
+                  input.xelem (static_cast<octave_idx_type> (row),
+                               static_cast<octave_idx_type> (column)),
+                  MPFR_RNDN);
+    };
+  return operand;
+}
+
+octave_value
+matrix_concatenate_result (const octave_value_list& args, int dimension)
+{
+  if (args.length () < 2)
+    error_with_id ("mplapack:InvalidArguments",
+                   "concatenation expects at least one operand");
+
+  std::vector<PreparedConcatOperand> prepared;
+  prepared.reserve (static_cast<std::size_t> (args.length () - 1));
+  bool has_mp_precision = false;
+  mpfr_prec_t result_precision = MPFR_PREC_MIN;
+  dim_vector result_shape;
+  bool shape_initialized = false;
+
+  for (int index = 1; index < args.length (); ++index)
+    {
+      PreparedConcatOperand current;
+      current.descriptor = prepare_concat_operand (args(index));
+      if (current.descriptor.has_mp_precision)
+        {
+          has_mp_precision = true;
+          result_precision = std::max (result_precision,
+                                       current.descriptor.precision_bits);
+        }
+
+      const octave_idx_type rows
+        = checked_octave_dimension_for_inspection (
+            current.descriptor.rows);
+      const octave_idx_type columns
+        = checked_octave_dimension_for_inspection (
+            current.descriptor.columns);
+      const dim_vector current_shape (rows, columns);
+      if (! shape_initialized)
+        {
+          result_shape = current_shape;
+          shape_initialized = true;
+        }
+      else if (! result_shape.hvcat (current_shape, dimension))
+        {
+          if (dimension == 1)
+            error_with_id ("mplapack:mp:DimensionMismatch",
+                           "horizontal concatenation dimensions mismatch");
+          error_with_id ("mplapack:mp:DimensionMismatch",
+                         "vertical concatenation dimensions mismatch");
+        }
+      prepared.push_back (std::move (current));
+    }
+
+  if (! has_mp_precision)
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "concatenation requires at least one mp operand");
+
+  const std::size_t result_rows
+    = checked_size_dimension (result_shape.xelem (0));
+  const std::size_t result_columns
+    = checked_size_dimension (result_shape.xelem (1));
+  std::vector<octave_mplapack::MpfrConcatOperand> operands;
+  operands.reserve (prepared.size ());
+  for (PreparedConcatOperand& current : prepared)
+    operands.push_back (std::move (current.descriptor));
+
+  try
+    {
+      return make_inspection_result (
+        octave_mplapack::mpfr_matrix_concatenate (
+          operands, dimension, result_rows, result_columns,
+          result_precision));
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+struct ReshapeDimension
+{
+  bool inferred;
+  std::size_t value;
+};
+
+std::size_t
+parse_reshape_dimension (const octave_value& value, const char *description)
+{
+  if (! value.isnumeric () || value.islogical () || ! value.isreal ()
+      || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s must be a nonnegative integer scalar", description);
+
+  if (value.is_uint64_type ()
+      || (value.isinteger () && (value.is_uint8_type ()
+                                  || value.is_uint16_type ()
+                                  || value.is_uint32_type ())))
+    {
+      const std::uint64_t supplied = value.uint64_scalar_value ().value ();
+      if (supplied > std::numeric_limits<std::size_t>::max ())
+        error_with_id ("mplapack:mp:DimensionOverflow",
+                       "%s exceeds the native dimension range", description);
+      return static_cast<std::size_t> (supplied);
+    }
+
+  if (value.isinteger ())
+    {
+      const std::int64_t supplied = value.int64_scalar_value ().value ();
+      if (supplied < 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "%s must be a nonnegative integer scalar", description);
+      if (static_cast<std::uint64_t> (supplied)
+          > std::numeric_limits<std::size_t>::max ())
+        error_with_id ("mplapack:mp:DimensionOverflow",
+                       "%s exceeds the native dimension range", description);
+      return static_cast<std::size_t> (supplied);
+    }
+
+  const double supplied = value.double_value ();
+  const double exact_integer_limit
+    = value.is_single_type () ? 16777216.0 : 9007199254740992.0;
+  if (! std::isfinite (supplied) || std::trunc (supplied) != supplied
+      || supplied < 0.0 || supplied > exact_integer_limit)
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s must be a nonnegative integer scalar", description);
+
+  const long double wide = static_cast<long double> (supplied);
+  if (wide > static_cast<long double> (
+        std::numeric_limits<std::size_t>::max ()))
+    error_with_id ("mplapack:mp:DimensionOverflow",
+                   "%s exceeds the native dimension range", description);
+
+  return static_cast<std::size_t> (supplied);
+}
+
+ReshapeDimension
+parse_reshape_dimension_spec (const octave_value& value,
+                               const char *description)
+{
+  if (value.isnumeric () && ! value.islogical () && value.isreal ()
+      && value.isempty ())
+    return {true, 0};
+  return {false, parse_reshape_dimension (value, description)};
+}
+
+std::array<ReshapeDimension, 2>
+parse_reshape_vector (const octave_value& value)
+{
+  if (! value.isnumeric () || value.islogical () || ! value.isreal ()
+      || value.ndims () != 2 || value.numel () != 2)
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "reshape dimension vector must contain two real integers");
+
+  const NDArray dimensions = value.array_value ();
+  return {
+    parse_reshape_dimension_spec (dimensions (0), "reshape rows"),
+    parse_reshape_dimension_spec (dimensions (1), "reshape columns")
+  };
+}
+
+std::pair<std::size_t, std::size_t>
+resolve_reshape_dimensions (const octave_value& value,
+                            const octave_value& first,
+                            const octave_value *second)
+{
+  const octave_value payload = require_mp_payload (value);
+  const std::size_t source_numel
+    = payload.type_id () == octave_mplapack_mpfr_scalar_internal::static_type_id ()
+        ? 1
+        : octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ().numel ();
+
+  std::array<ReshapeDimension, 2> dimensions;
+  if (second)
+    {
+      dimensions = {
+        parse_reshape_dimension_spec (first, "reshape rows"),
+        parse_reshape_dimension_spec (*second, "reshape columns")
+      };
+    }
+  else
+    dimensions = parse_reshape_vector (first);
+
+  if (dimensions[0].inferred && dimensions[1].inferred)
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "only one reshape dimension may be inferred");
+
+  if (dimensions[0].inferred)
+    {
+      if (dimensions[1].value == 0 && source_numel != 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape rows cannot be inferred from a zero column dimension");
+      dimensions[0].value = dimensions[1].value == 0
+        ? 0 : source_numel / dimensions[1].value;
+      if (dimensions[1].value != 0
+          && source_numel % dimensions[1].value != 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape rows cannot be inferred from the element count");
+      dimensions[0].inferred = false;
+    }
+  else if (dimensions[1].inferred)
+    {
+      if (dimensions[0].value == 0 && source_numel != 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape columns cannot be inferred from a zero row dimension");
+      dimensions[1].value = dimensions[0].value == 0
+        ? 0 : source_numel / dimensions[0].value;
+      if (dimensions[0].value != 0
+          && source_numel % dimensions[0].value != 0)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape columns cannot be inferred from the element count");
+      dimensions[1].inferred = false;
+    }
+
+  try
+    {
+      if (octave_mplapack::MpfrMatrixStorage::checked_element_count (
+            dimensions[0].value, dimensions[1].value) != source_numel)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "reshape element count does not match");
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  return {dimensions[0].value, dimensions[1].value};
+}
+
+octave_value
+matrix_transpose_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& source
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      return make_internal_scalar (octave_mplapack::MpfrScalarStorage (
+        octave_mplapack::MpfrScalarStorage::NativeScalar (source.native_value ())));
+    }
+
+  try
+    {
+      return make_internal_matrix (
+        octave_mplapack::mpfr_matrix_transpose (
+          octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ()));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+matrix_reshape_result (const octave_value& value,
+                       const octave_value& first,
+                       const octave_value *second)
+{
+  const octave_value payload = require_mp_payload (value);
+  const auto dimensions = resolve_reshape_dimensions (value, first, second);
+
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      if (dimensions.first != 1 || dimensions.second != 1)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "a scalar mp value can only be reshaped to 1x1");
+      const auto& source
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      return make_internal_scalar (octave_mplapack::MpfrScalarStorage (
+        octave_mplapack::MpfrScalarStorage::NativeScalar (source.native_value ())));
+    }
+
+  try
+    {
+      return make_inspection_result (octave_mplapack::mpfr_matrix_reshape (
+        octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+          .storage (), dimensions.first, dimensions.second));
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidDimension", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
 octave_value
 matrix_subscript_result (const octave_value& value,
                          const octave_value& row_spec,
@@ -671,6 +1097,278 @@ matrix_linear_subscript_result (const octave_value& value,
   catch (const std::out_of_range& exception)
     {
       error_with_id ("mplapack:mp:IndexOutOfBounds", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+struct PreparedAssignmentOperand
+{
+  octave_value payload;
+  octave_mplapack::MpfrAssignmentOperand descriptor;
+};
+
+PreparedAssignmentOperand
+prepare_assignment_rhs (const octave_value& value)
+{
+  PreparedAssignmentOperand prepared;
+
+  if (is_mp_value (value))
+    {
+      prepared.payload = require_mp_payload (value);
+      if (prepared.payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const octave_value kept_payload = prepared.payload;
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                kept_payload).storage ();
+          prepared.descriptor.rows = 1;
+          prepared.descriptor.columns = 1;
+          prepared.descriptor.precision_bits = scalar.precision_bits ();
+          prepared.descriptor.has_mp_precision = true;
+          prepared.descriptor.copy_element
+            = [kept_payload] (
+                octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+                std::size_t, std::size_t)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_scalar_internal::checked_value (
+                    kept_payload).storage ();
+              mpfr_set (destination.mpfr_data (),
+                        source.native_value ().mpfr_data (), MPFR_RNDN);
+            };
+          return prepared;
+        }
+
+      if (prepared.payload.type_id ()
+          == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        {
+          const octave_value kept_payload = prepared.payload;
+          const auto& matrix
+            = octave_mplapack_mpfr_matrix_internal::checked_value (
+                kept_payload).storage ();
+          if (matrix.numel () == 0)
+            error_with_id ("mplapack:mp:DeletionUnsupported",
+                           "empty RHS deletion is not supported");
+          prepared.descriptor.rows = matrix.rows ();
+          prepared.descriptor.columns = matrix.columns ();
+          prepared.descriptor.precision_bits = matrix.precision_bits ();
+          prepared.descriptor.has_mp_precision = true;
+          prepared.descriptor.copy_element
+            = [kept_payload] (
+                octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+                std::size_t row, std::size_t column)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_matrix_internal::checked_value (
+                    kept_payload).storage ();
+              mpfr_set (destination.mpfr_data (),
+                        source.at (row, column).mpfr_data (), MPFR_RNDN);
+            };
+          return prepared;
+        }
+
+      error_with_id ("mplapack:mp:InvalidNativeValue",
+                     "public mp value has an unknown native payload");
+    }
+
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "assignment RHS supports mp and real double values");
+  if (! value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex assignment is not supported");
+  if (value.issparse ())
+    error_with_id ("mplapack:mp:SparseUnsupported",
+                   "sparse assignment is not supported");
+  if (! value.is_real_scalar () && value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional assignment RHS values are supported");
+  if (! value.is_real_scalar () && value.numel () == 0)
+    error_with_id ("mplapack:mp:DeletionUnsupported",
+                   "empty RHS deletion is not supported");
+
+  if (value.is_real_scalar ())
+    {
+      const double scalar = value.double_value ();
+      prepared.descriptor.rows = 1;
+      prepared.descriptor.columns = 1;
+      prepared.descriptor.copy_element
+        = [scalar] (
+            octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+            std::size_t, std::size_t)
+        {
+          mpfr_set_d (destination.mpfr_data (), scalar, MPFR_RNDN);
+        };
+      return prepared;
+    }
+
+  const Matrix input = value.matrix_value ();
+  prepared.descriptor.rows = checked_size_dimension (input.rows ());
+  prepared.descriptor.columns = checked_size_dimension (input.columns ());
+  prepared.descriptor.copy_element
+    = [input] (octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+               std::size_t row, std::size_t column)
+    {
+      mpfr_set_d (destination.mpfr_data (),
+                  input.xelem (static_cast<octave_idx_type> (row),
+                               static_cast<octave_idx_type> (column)),
+                  MPFR_RNDN);
+    };
+  return prepared;
+}
+
+struct PreparedAssignmentLhs
+{
+  octave_value payload;
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+
+  const octave_mplapack::MpfrMatrixStorage& matrix_storage () const
+  {
+    if (scalar_matrix)
+      return *scalar_matrix;
+    return octave_mplapack_mpfr_matrix_internal::checked_value (
+      payload).storage ();
+  }
+};
+
+PreparedAssignmentLhs
+prepare_assignment_lhs (const octave_value& value)
+{
+  PreparedAssignmentLhs prepared;
+  prepared.payload = require_mp_payload (value);
+  if (prepared.payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    return prepared;
+
+  const auto& scalar
+    = octave_mplapack_mpfr_scalar_internal::checked_value (
+        prepared.payload).storage ();
+  prepared.scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+  mpfr_set (prepared.scalar_matrix->at (0, 0).mpfr_data (),
+            scalar.native_value ().mpfr_data (), MPFR_RNDN);
+  return prepared;
+}
+
+mpfr_prec_t
+assignment_precision (const octave_mplapack::MpfrMatrixStorage& lhs,
+                      const octave_mplapack::MpfrAssignmentOperand& rhs)
+{
+  mpfr_prec_t result = lhs.precision_bits ();
+  if (rhs.has_mp_precision)
+    result = std::max (result, rhs.precision_bits);
+  return result;
+}
+
+mpfr_prec_t
+assignment_precision_for_selection (
+  const octave_mplapack::MpfrMatrixStorage& lhs,
+  const octave_mplapack::MpfrAssignmentOperand& rhs,
+  std::size_t selected_count)
+{
+  // An empty indexed selection is a no-op; it does not consume an RHS value
+  // and therefore must not widen the lhs merely because the RHS is precise.
+  return selected_count == 0 ? lhs.precision_bits ()
+                             : assignment_precision (lhs, rhs);
+}
+
+octave_value
+matrix_two_subscript_assignment_result (const octave_value& value,
+                                         const octave_value& row_spec,
+                                         const octave_value& column_spec,
+                                         const octave_value& rhs_value)
+{
+  PreparedAssignmentLhs lhs = prepare_assignment_lhs (value);
+  const auto& lhs_storage = lhs.matrix_storage ();
+  const auto row_indices
+    = parse_index_vector (row_spec, lhs_storage.rows (), "row index");
+  const auto column_indices
+    = parse_index_vector (column_spec, lhs_storage.columns (),
+                          "column index");
+  PreparedAssignmentOperand rhs = prepare_assignment_rhs (rhs_value);
+
+  try
+    {
+      return make_inspection_result (
+        octave_mplapack::mpfr_matrix_assign_two_subscript (
+          lhs_storage, row_indices, column_indices, rhs.descriptor,
+          assignment_precision_for_selection (
+            lhs_storage, rhs.descriptor,
+            row_indices.empty () || column_indices.empty () ? 0 : 1)));
+    }
+  catch (const std::out_of_range& exception)
+    {
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:AssignmentError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+matrix_linear_assignment_result (const octave_value& value,
+                                 const octave_value& index_spec,
+                                 const octave_value& rhs_value)
+{
+  PreparedAssignmentLhs lhs = prepare_assignment_lhs (value);
+  const auto& lhs_storage = lhs.matrix_storage ();
+  std::vector<std::size_t> indices;
+  if (is_colon_index (index_spec))
+    {
+      indices.resize (lhs_storage.numel ());
+      for (std::size_t index = 0; index < indices.size (); ++index)
+        indices[index] = index;
+    }
+  else
+    {
+      indices = parse_index_vector (index_spec, lhs_storage.numel (),
+                                    "linear index");
+      if (indices.size () != 1)
+        error_with_id ("mplapack:mp:LinearAssignmentUnsupported",
+                       "general vector linear assignment is not implemented");
+    }
+
+  PreparedAssignmentOperand rhs = prepare_assignment_rhs (rhs_value);
+  try
+    {
+      return make_inspection_result (octave_mplapack::mpfr_matrix_assign_linear (
+        lhs_storage, indices, rhs.descriptor,
+        assignment_precision_for_selection (
+          lhs_storage, rhs.descriptor, indices.size ())));
+    }
+  catch (const std::out_of_range& exception)
+    {
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:AssignmentError", "%s",
                      exception.what ());
     }
   return octave_value ();
@@ -769,6 +1467,168 @@ scalar_binary_operation (const octave_value& lhs_value,
 {
   const bool lhs_is_mp = is_mp_value (lhs_value);
   const bool rhs_is_mp = is_mp_value (rhs_value);
+
+  const bool lhs_is_matrix
+    = lhs_is_mp && is_matrix_payload (lhs_value);
+  const bool rhs_is_matrix
+    = rhs_is_mp && is_matrix_payload (rhs_value);
+  const bool lhs_is_double_matrix = is_double_matrix_operand (lhs_value);
+  const bool rhs_is_double_matrix = is_double_matrix_operand (rhs_value);
+  if (lhs_is_matrix || rhs_is_matrix || lhs_is_double_matrix
+      || rhs_is_double_matrix)
+    {
+      const auto native_operation
+        = [&] ()
+        {
+          switch (operation)
+            {
+            case ScalarBinaryOperation::add:
+              return octave_mplapack::MpfrElementwiseBinaryOperation::add;
+            case ScalarBinaryOperation::subtract:
+              return octave_mplapack::MpfrElementwiseBinaryOperation::subtract;
+            case ScalarBinaryOperation::multiply:
+              return octave_mplapack::MpfrElementwiseBinaryOperation::multiply;
+            case ScalarBinaryOperation::divide:
+              return octave_mplapack::MpfrElementwiseBinaryOperation::divide;
+            }
+          throw std::logic_error ("unknown element-wise operation");
+        } ();
+
+      const bool lhs_is_complex_double
+        = lhs_value.is_double_type () && ! lhs_value.isreal ();
+      const bool rhs_is_complex_double
+        = rhs_value.is_double_type () && ! rhs_value.isreal ();
+      if (lhs_is_complex_double || rhs_is_complex_double)
+        error_with_id ("mplapack:mp:ComplexUnsupported",
+                       "complex element-wise arithmetic is not supported");
+
+      struct PreparedOperand
+      {
+        octave_value payload;
+        std::optional<octave_mplapack::MpfrScalarStorage> scalar_owned;
+        std::optional<octave_mplapack::MpfrMatrixStorage> matrix_owned;
+        octave_mplapack::MpfrElementwiseOperand view;
+      };
+
+      auto precision_of_mp = [] (const octave_value& value)
+      {
+        const octave_value payload = require_mp_payload (value);
+        if (payload.type_id ()
+            == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+          return octave_mplapack_mpfr_scalar_internal::checked_value (
+            payload).storage ().precision_bits ();
+        return octave_mplapack_mpfr_matrix_internal::checked_value (
+          payload).storage ().precision_bits ();
+      };
+
+      if (! lhs_is_mp && ! rhs_is_mp)
+        error_with_id ("mplapack:mp:UnsupportedOperand",
+                       "element-wise arithmetic requires at least one mp operand");
+
+      mpfr_prec_t operation_precision = 0;
+      if (lhs_is_mp)
+        operation_precision = precision_of_mp (lhs_value);
+      if (rhs_is_mp)
+        operation_precision = std::max (operation_precision,
+                                        precision_of_mp (rhs_value));
+
+      auto prepare = [operation_precision] (const octave_value& value)
+      {
+        PreparedOperand prepared;
+        if (is_mp_value (value))
+          {
+            prepared.payload = require_mp_payload (value);
+            return prepared;
+          }
+
+        if (value.is_double_type ())
+          {
+            if (! value.isreal ())
+              error_with_id ("mplapack:mp:ComplexUnsupported",
+                             "complex element-wise arithmetic is not supported");
+            if (value.is_real_scalar ())
+              {
+                prepared.scalar_owned.emplace (value.double_value (),
+                                               operation_precision);
+              }
+            else
+              {
+                prepared.matrix_owned.emplace (
+                  make_double_matrix_storage (value, operation_precision));
+              }
+            return prepared;
+          }
+
+        error_with_id ("mplapack:mp:UnsupportedOperand",
+                       "element-wise arithmetic supports mp and real double operands");
+        return prepared;
+      };
+
+      try
+        {
+          PreparedOperand lhs = prepare (lhs_value);
+          PreparedOperand rhs = prepare (rhs_value);
+          auto bind = [] (PreparedOperand& prepared)
+          {
+            if (prepared.scalar_owned)
+              prepared.view
+                = octave_mplapack::MpfrElementwiseOperand::from_scalar (
+                  *prepared.scalar_owned);
+            else if (prepared.matrix_owned)
+              prepared.view
+                = octave_mplapack::MpfrElementwiseOperand::from_matrix (
+                  *prepared.matrix_owned);
+            else if (prepared.payload.type_id ()
+                     == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+              {
+                const auto& scalar
+                  = octave_mplapack_mpfr_scalar_internal::checked_value (
+                    prepared.payload).storage ();
+                prepared.view
+                  = octave_mplapack::MpfrElementwiseOperand::from_scalar (
+                    scalar);
+              }
+            else
+              {
+                const auto& matrix
+                  = octave_mplapack_mpfr_matrix_internal::checked_value (
+                    prepared.payload).storage ();
+                prepared.view
+                  = octave_mplapack::MpfrElementwiseOperand::from_matrix (
+                    matrix);
+              }
+          };
+          bind (lhs);
+          bind (rhs);
+          auto result = octave_mplapack::mpfr_matrix_elementwise_binary (
+            lhs.view, rhs.view, native_operation);
+          if (result.rows () == 1 && result.columns () == 1)
+            return make_internal_scalar (
+              octave_mplapack::MpfrScalarStorage (
+                std::move (result.at (0, 0))));
+          return make_internal_matrix (std::move (result));
+        }
+      catch (const std::invalid_argument& exception)
+        {
+          const std::string message = exception.what ();
+          if (message.find ("nonconformant") != std::string::npos)
+            error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                           exception.what ());
+          error_with_id ("mplapack:mp:UnsupportedOperand", "%s",
+                         exception.what ());
+        }
+      catch (const std::overflow_error& exception)
+        {
+          error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                         exception.what ());
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:ArithmeticError", "%s",
+                         exception.what ());
+        }
+      return octave_value ();
+    }
 
   if (! lhs_is_mp && ! rhs_is_mp)
     error_with_id ("mplapack:mp:UnsupportedOperand",
@@ -1155,19 +2015,23 @@ mp_mldivide_operation (const octave_value& lhs_value,
           return make_internal_scalar (rhs_scalar.divide (*lhs_scalar));
         }
 
-      // A non-scalar left operand is a square dense matrix.  A raw double
-      // matrix is explicitly converted to the other mp operand's precision.
+      // A non-scalar left operand is a dense matrix.  A raw double matrix is
+      // explicitly converted to the other mp operand's precision.
       const octave_mplapack::MpfrMatrixStorage *lhs = nullptr;
       std::optional<octave_mplapack::MpfrMatrixStorage> lhs_owned;
       if (lhs_is_matrix)
         lhs = &octave_mplapack_mpfr_matrix_internal::checked_value (
           require_matrix_payload (lhs_value)).storage ();
-      else if (lhs_is_double_matrix && rhs_is_matrix)
+      else if (lhs_is_double_matrix && (rhs_is_matrix || rhs_is_mp))
         {
-          const auto& rhs = octave_mplapack_mpfr_matrix_internal::checked_value (
-            require_matrix_payload (rhs_value)).storage ();
+          const mpfr_prec_t rhs_precision
+            = rhs_is_matrix
+                ? octave_mplapack_mpfr_matrix_internal::checked_value (
+                    require_matrix_payload (rhs_value)).storage ().precision_bits ()
+                : octave_mplapack_mpfr_scalar_internal::checked_value (
+                    require_scalar_payload (rhs_value)).storage ().precision_bits ();
           lhs_owned.emplace (make_double_matrix_storage (
-            lhs_value, rhs.precision_bits ()));
+            lhs_value, rhs_precision));
           lhs = &*lhs_owned;
         }
       else
@@ -1185,12 +2049,66 @@ mp_mldivide_operation (const octave_value& lhs_value,
             rhs_value, lhs->precision_bits ()));
           rhs = &*rhs_owned;
         }
+      else if (lhs && lhs->rows () == 1 && ! rhs_is_matrix
+               && ! rhs_is_double_matrix)
+        {
+          const mpfr_prec_t rhs_precision
+            = rhs_is_mp
+                ? octave_mplapack_mpfr_scalar_internal::checked_value (
+                    require_scalar_payload (rhs_value)).storage ().precision_bits ()
+                : lhs->precision_bits ();
+          const mpfr_prec_t operation_precision
+            = std::max (lhs->precision_bits (), rhs_precision);
+          rhs_owned.emplace (1, 1, operation_precision);
+          if (rhs_is_mp)
+            {
+              const auto& scalar
+                = octave_mplapack_mpfr_scalar_internal::checked_value (
+                    require_scalar_payload (rhs_value)).storage ();
+              mpfr_set (rhs_owned->at (0, 0).mpfr_data (),
+                        scalar.native_value ().mpfr_data (), MPFR_RNDN);
+            }
+          else
+            mpfr_set_d (rhs_owned->at (0, 0).mpfr_data (),
+                        require_arithmetic_double (rhs_value), MPFR_RNDN);
+          rhs = &*rhs_owned;
+        }
       else
         error_with_id ("mplapack:mp:UnsupportedOperand",
                        "matrix left division requires a dense mp or real double right-hand side");
 
+      if (lhs->rows () != lhs->columns ())
+        return make_mldivide_result (
+          octave_mplapack::mplapack_mpfr_matrix_rank_revealing_solve (
+            *lhs, *rhs).solution);
+
       return make_mldivide_result (
         octave_mplapack::mplapack_mpfr_matrix_solve (*lhs, *rhs));
+    }
+  catch (const octave_mplapack::MpfrRankRevealingError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrRankRevealingError::Kind::convergence)
+        error_with_id ("mplapack:mp:ConvergenceFailure",
+                       "MPLAPACK Rgelss failed to converge (info %d)",
+                       exception.info ());
+      if (exception.kind ()
+          == octave_mplapack::MpfrRankRevealingError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:RankRevealingError",
+                       "MPLAPACK Rgelss rejected argument %d",
+                       -exception.info ());
+      error_with_id ("mplapack:mp:RankRevealingInternalError", "%s",
+                     exception.what ());
+    }
+  catch (const octave_mplapack::MpfrRgelsError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrRgelsError::Kind::rank_deficient)
+        error_with_id ("mplapack:mp:RankDeficient",
+                       "mp left division: rectangular matrix is rank deficient");
+      error_with_id ("mplapack:mp:RgelsError",
+                     "MPLAPACK Rgels rejected argument %d",
+                     -exception.info ());
     }
   catch (const octave_mplapack::MpfrRgesvError& exception)
     {
@@ -1229,6 +2147,26 @@ mp_mldivide_operation (const octave_value& lhs_value,
 octave_value
 scalar_negate (const octave_value& value)
 {
+  if (is_mp_value (value) && is_matrix_payload (value))
+    {
+      try
+        {
+          auto result = octave_mplapack::mpfr_matrix_negate (
+            octave_mplapack_mpfr_matrix_internal::checked_value (
+              require_matrix_payload (value)).storage ());
+          if (result.rows () == 1 && result.columns () == 1)
+            return make_internal_scalar (
+              octave_mplapack::MpfrScalarStorage (
+                std::move (result.at (0, 0))));
+          return make_internal_matrix (std::move (result));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:ArithmeticError", "%s",
+                         exception.what ());
+        }
+    }
+
   const octave_value payload = require_arithmetic_mp_payload (value);
   const auto& native
     = octave_mplapack_mpfr_scalar_internal::checked_value (
@@ -1386,6 +2324,46 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 3, command);
       return ovl (matrix_linear_subscript_result (args(1), args(2)));
+    }
+
+  if (command == "matrix_subsasgn")
+    {
+      require_argument_count (args, 5, command);
+      return ovl (matrix_two_subscript_assignment_result (
+        args(1), args(2), args(3), args(4)));
+    }
+
+  if (command == "matrix_linear_subsasgn")
+    {
+      require_argument_count (args, 4, command);
+      return ovl (matrix_linear_assignment_result (
+        args(1), args(2), args(3)));
+    }
+
+  if (command == "matrix_transpose")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (matrix_transpose_result (args(1)));
+    }
+
+  if (command == "matrix_reshape")
+    {
+      if (args.length () != 3 && args.length () != 4)
+        error_with_id ("mplapack:InvalidArguments",
+                       "__mplapack_core__(\"matrix_reshape\") expects two or three arguments");
+      if (args.length () == 3)
+        return ovl (matrix_reshape_result (args(1), args(2), nullptr));
+      return ovl (matrix_reshape_result (args(1), args(2), &args(3)));
+    }
+
+  if (command == "matrix_horzcat" || command == "matrix_vertcat")
+    {
+      if (args.length () < 2)
+        error_with_id ("mplapack:InvalidArguments",
+                       "__mplapack_core__(\"%s\") expects at least one operand",
+                       command.c_str ());
+      return ovl (matrix_concatenate_result (
+        args, command == "matrix_horzcat" ? 1 : 0));
     }
 
   if (command == "matrix_to_double")

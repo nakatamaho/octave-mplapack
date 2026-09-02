@@ -3,10 +3,9 @@
 function result = plus (lhs, rhs)
   ## -*- texinfo -*-
   ## @deftypefn {} {@var{result} =} plus (@var{lhs}, @var{rhs})
-  ## Add real scalar @code{mp} values or one @code{mp} and one scalar
-  ## @code{double}.  For two @code{mp} operands the result precision is the
-  ## greater operand precision.  A mixed @code{double} is converted at the
-  ## @code{mp} operand precision.  The current default precision is not used.
+  ## Add real scalar or dense matrix @code{mp} values, with 2-D singleton
+  ## expansion.  Mixed real @code{double} operands are converted directly at
+  ## the operation precision; the current default precision is not used.
   ## @end deftypefn
   if (nargin != 2)
     error ("mplapack:mp:InvalidOperands", ...

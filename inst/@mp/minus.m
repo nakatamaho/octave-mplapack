@@ -3,9 +3,9 @@
 function result = minus (lhs, rhs)
   ## -*- texinfo -*-
   ## @deftypefn {} {@var{result} =} minus (@var{lhs}, @var{rhs})
-  ## Subtract real scalar @code{mp} values, with an optional real scalar
-  ## @code{double} operand.  Result precision is derived only from the
-  ## operands and the operands remain unchanged.
+  ## Subtract real scalar or dense matrix @code{mp} values with 2-D singleton
+  ## expansion.  Result precision is derived only from the operands and the
+  ## operands remain unchanged.
   ## @end deftypefn
   if (nargin != 2)
     error ("mplapack:mp:InvalidOperands", ...

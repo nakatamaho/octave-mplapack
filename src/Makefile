@@ -6,9 +6,14 @@ CXX ?= c++
 TARGET = __mplapack_core__.oct
 SOURCE = octave_bridge.cc mp_value.cc mp_matrix_value.cc mp_blas.cc mp_lapack.cc \
   mp_scalar_storage.cc mp_matrix_storage.cc mp_matrix_inspection.cc \
+  mp_matrix_arithmetic.cc mp_matrix_structure.cc mp_matrix_concat.cc \
+  mp_matrix_assignment.cc \
   mp_arithmetic.cc mp_precision.cc
 HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
-  mp_matrix_storage.h mp_matrix_inspection.h mp_precision.h mp_blas.h \
+  mp_matrix_storage.h mp_matrix_inspection.h mp_matrix_arithmetic.h \
+  mp_matrix_structure.h mp_matrix_concat.h \
+  mp_matrix_assignment.h \
+  mp_precision.h mp_blas.h \
   mp_lapack.h
 STORAGE_TEST = .build-m02/mp_scalar_storage_test
 ARITHMETIC_TEST = .build-m06/mp_scalar_arithmetic_test
@@ -16,6 +21,12 @@ MATRIX_TEST = .build-m07/mp_matrix_storage_test
 BLAS_TEST = .build-m08/mp_blas_test
 LAPACK_TEST = .build-m09/mp_lapack_test
 INSPECTION_TEST = .build-m10/mp_matrix_inspection_test
+ELEMENTWISE_TEST = .build-m11/mp_matrix_arithmetic_test
+STRUCTURE_TEST = .build-m12/mp_matrix_structure_test
+CONCAT_TEST = .build-m13/mp_matrix_concat_test
+ASSIGNMENT_TEST = .build-m14/mp_matrix_assignment_test
+RGELS_TEST = .build-m15/mp_lapack_rgels_test
+RANK_TEST = .build-m16/mp_lapack_rank_test
 MPLAPACK_VERSION := $(shell $(PKG_CONFIG) --modversion $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
@@ -24,7 +35,8 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 
 .PHONY: all check-deps check-storage-sanitized \
   check-arithmetic-sanitized check-matrix-sanitized check-blas \
-  check-lapack check-inspection clean
+  check-lapack check-inspection check-elementwise check-structure \
+  check-concat check-assignment check-rgels check-rank clean
 .DELETE_ON_ERROR:
 
 all: $(TARGET)
@@ -105,6 +117,80 @@ check-inspection: $(INSPECTION_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 	UBSAN_OPTIONS=halt_on_error=1 $(INSPECTION_TEST)
 
+$(ELEMENTWISE_TEST): ../test/mp_matrix_arithmetic_test.cc \
+  mp_matrix_arithmetic.cc mp_matrix_arithmetic.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_matrix_arithmetic_test.cc \
+	  mp_matrix_arithmetic.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-elementwise: $(ELEMENTWISE_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(ELEMENTWISE_TEST)
+
+$(STRUCTURE_TEST): ../test/mp_matrix_structure_test.cc \
+  mp_matrix_structure.cc mp_matrix_structure.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_matrix_structure_test.cc \
+	  mp_matrix_structure.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-structure: $(STRUCTURE_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(STRUCTURE_TEST)
+
+$(CONCAT_TEST): ../test/mp_matrix_concat_test.cc \
+  mp_matrix_concat.cc mp_matrix_concat.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_matrix_concat_test.cc \
+	  mp_matrix_concat.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-concat: $(CONCAT_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CONCAT_TEST)
+
+$(ASSIGNMENT_TEST): ../test/mp_matrix_assignment_test.cc \
+  mp_matrix_assignment.cc mp_matrix_assignment.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_matrix_assignment_test.cc \
+	  mp_matrix_assignment.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-assignment: $(ASSIGNMENT_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(ASSIGNMENT_TEST)
+
+$(RGELS_TEST): ../test/mp_lapack_rgels_test.cc mp_lapack.cc mp_lapack.h \
+  mp_matrix_storage.cc mp_matrix_storage.h mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_lapack_rgels_test.cc mp_lapack.cc \
+	  mp_matrix_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-rgels: $(RGELS_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(RGELS_TEST)
+
+$(RANK_TEST): ../test/mp_lapack_rank_test.cc mp_lapack.cc mp_lapack.h \
+  mp_matrix_storage.cc mp_matrix_storage.h mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_lapack_rank_test.cc mp_lapack.cc \
+	  mp_matrix_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-rank: $(RANK_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(RANK_TEST)
+
 check-deps:
 	@$(MKOCTFILE) --help >/dev/null 2>&1 || { \
 	  echo "FAIL: mkoctfile command not found: $(MKOCTFILE)" >&2; exit 1; }
@@ -123,4 +209,4 @@ check-deps:
 
 clean:
 	$(RM) $(TARGET) *.o *.lo
-	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10
+	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16

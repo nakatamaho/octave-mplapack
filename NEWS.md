@@ -42,6 +42,28 @@
   multiple right-hand sides and operation-owned factorization buffers.
 - Added read-only dense matrix indexing with `end`, precision-preserving
   matrix-to-double conversion, and canonical matrix display.
+- Added dense matrix element-wise `+`, `-`, `.*`, and `./`, unary signs, and
+  two-dimensional singleton expansion using direct MPFR arithmetic.
+- Added precision-preserving dense matrix transpose, conjugate transpose for
+  real values, and two-dimensional column-major `reshape`, including one
+  inferred dimension.
+- Added native dense real `mp` horizontal and vertical concatenation with
+  arbitrary operand counts, mixed precision, mixed real-double inputs, and
+  Octave-compatible supported empty-shape behavior. Concatenation returns one
+  immutable native `mp` value and never an array of scalar wrappers.
+- Added in-bounds dense real `mp` indexed assignment with value semantics,
+  precision-preserving deep copies, scalar/row/column/submatrix and colon
+  assignment, and direct binary64 RHS insertion. Matrix growth, deletion,
+  logical assignment, and general vector linear assignment remain deferred.
+- Added full-rank rectangular dense real `mp` left division through MPLAPACK
+  MPFR `Rgels`, including QR/LQ paths, multiple right-hand sides, padded
+  operation-owned RHS storage, and checked workspace queries. Rank-revealing
+  rectangular solving remains deferred.
+- Added rank-revealing rectangular dense real `mp` left division through the
+  validated MPLAPACK MPFR `Rgelss` driver. Rectangular systems now return
+  minimum-norm least-squares solutions for rank-deficient and full-rank cases,
+  with precision-derived `RCOND`, checked workspace queries, and uniformly
+  operation-precision work buffers. Square systems retain the `Rgesv` path.
 - Rectangular solve, matrix assignment, logical indexing, matrix `char`,
-  transpose, concatenation, and matrix element-wise arithmetic remain
+  general `cat`, comparisons, powers, and reductions remain
   unimplemented.

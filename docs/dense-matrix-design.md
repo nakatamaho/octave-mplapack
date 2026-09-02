@@ -4,7 +4,11 @@
 
 M07 introduced storage and public construction for real, two-dimensional
 MPFR matrices. M10 adds read-only indexing, matrix `double`, and matrix
-display formatting without changing the storage representation.
+display formatting without changing the storage representation. M11 extends
+the same storage with direct MPFR element-wise arithmetic and two-dimensional
+singleton expansion; M12 adds precision-preserving transpose and reshape; M13
+adds native horizontal and vertical concatenation.
+Ownership and layout remain unchanged.
 
 ## Installed MPLAPACK ABI audit
 
@@ -160,8 +164,9 @@ operation precision is the maximum precision of the participating `mp`
 operands, and `MplapackMpfrPrecisionScope` establishes that precision on the
 calling thread for the duration of the reference MPFR `Rgemm` call.  A strict
 native checker rejects any mismatch before entering MPLAPACK.  Scalar and
-real-double scaling use direct MPFR operations; matrix element-wise
-arithmetic remains deferred.
+real-double scaling use direct MPFR operations. M11 element-wise arithmetic
+likewise operates directly on MPFR values in destination storage; it does not
+call MPLAPACK and does not use the current default precision.
 
 ## M09 Rgesv implementation
 
@@ -171,9 +176,44 @@ unchanged. M09 uses the same checked dimensions, column-major layout, and
 leading dimensions for `Rgesv`; square solves return the operation-owned
 solution buffer and preserve public input values.
 
+## M12 structural operations
+
+Transpose and reshape allocate independent `MpfrMatrixStorage` at the source
+matrix precision and copy native MPFR values directly. Transpose swaps the
+two-dimensional coordinates; reshape preserves the contiguous column-major
+linear order. Scalar results remain the canonical scalar payload, while all
+other shapes—including empty matrices—remain matrix payloads. These operations
+do not use MPLAPACK or change the current precision default.
+
+## M13 concatenation
+
+M13 assembles arbitrary-arity horizontal and vertical concatenations directly
+into one new `MpfrMatrixStorage`. The complete argument list is validated with
+Octave's two-dimensional `hvcat` shape rules before allocation. Scalars are
+`1x1`; no singleton broadcasting is performed. Empty matrices retain their
+shape semantics and empty `mp` operands still contribute their explicit
+precision to `p_cat`, the maximum participating `mp` precision. MPFR values
+are copied exactly into uniformly `p_cat`-precision storage, while real double
+elements are transferred directly from binary64 with `mpfr_set_d`.
+
+The operation is structural: it does not call MPLAPACK, enter a precision
+scope, or read or mutate either precision default. Inputs remain immutable and
+the result owns independent storage. Public bracket syntax therefore returns
+one `mp` value rather than an array of scalar wrapper objects.
+
+## M14 indexed assignment
+
+M14 keeps public matrix values immutable while adding limited in-bounds
+parenthesis assignment. `subsasgn` validates indices and RHS shape, determines
+`p_assign`, deep-copies the entire lhs into uniformly `p_assign` storage, and
+updates only the selected positions. An aliased lhs and an RHS derived from
+that lhs therefore remain safe. Matrix growth, deletion, logical assignment,
+and general vector linear assignment are rejected.
+
 ## Non-goals
 
-Matrix assignment, logical indexing, general vector linear indexing, matrix
-`char`, transpose, concatenation, matrix element-wise arithmetic, and complex
-storage remain deferred. M08 adds `mtimes`/`Rgemm`, M09 adds square
-`mldivide`/`Rgesv`, and M10 adds read-only matrix inspection.
+Logical indexing, general vector linear indexing, matrix `char`, comparisons,
+powers, reductions, and complex storage remain deferred. M08 adds
+`mtimes`/`Rgemm`, M09 adds square `mldivide`/`Rgesv`, M10 adds read-only matrix
+inspection, M12 adds transpose and reshape, M13 adds horizontal/vertical
+concatenation, and M14 adds value-semantic indexed assignment.

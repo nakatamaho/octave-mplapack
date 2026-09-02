@@ -79,17 +79,26 @@ Scalar `./` follows MPFR semantics.  Signed nonzero values divided by signed
 zero produce signed infinities, while zero divided by zero produces NaN.  It
 does not raise a project-specific divide-by-zero exception.
 
+## Dense matrix extension
+
+M11 extends the same precision and rounding rules to dense two-dimensional
+matrices. Native element-wise `+`, `-`, `.*`, and `./` use direct MPFR
+operations into a destination allocated at the maximum stored operand
+precision (or the `mp` precision for mixed binary64 input). Scalar expansion
+and two-dimensional singleton expansion follow Octave shape rules without
+promoting or mutating public operands. These kernels do not call MPLAPACK or
+depend on the current MPFR default.
+
 ## Unsupported matrix operators
 
-`*`, `/`, and `\` remain unsupported.  M06 does not implement scalar aliases
-for those operators because their public dispatch is reserved for unified
-future matrix semantics.  Powers and comparisons also remain unsupported and
-must not fall back through `double(mp)`.
+The scalar-only M06 path does not implement `*`, `/`, or `\`; public matrix
+dispatch for those operators is owned by M08/M09. Powers and comparisons
+also remain unsupported and must not fall back through `double(mp)`.
 
-## Relationship to M07/M08/M09
+## Relationship to M07/M08/M09/M10/M11
 
 M07 owns native dense storage, matrix constructors, and shape.  M08 owns `*`
-through MPLAPACK MPFR GEMM.  M09 owns
-`\` through MPLAPACK MPFR LAPACK.  The scalar storage operations introduced
-here are reusable primitives but do not constrain dense storage to arrays of
-scalar wrappers.
+through MPLAPACK MPFR GEMM.  M09 owns `\` through MPLAPACK MPFR LAPACK. M10
+adds read-only inspection, and M11 adds the dense element-wise extension
+described above. The scalar storage operations introduced here are reusable
+primitives but do not constrain dense storage to arrays of scalar wrappers.

@@ -111,6 +111,36 @@ elements and slices are copied at the source matrix precision, while
 source values directly. Neither operation uses the current default to choose
 an extracted precision or display precision.
 
+M11 applies the invariant to dense element-wise `+`, `-`, `.*`, and `./`, as
+well as unary signs. Binary `mp` operands use the maximum stored operand
+precision; a mixed binary64 operand uses the `mp` operand precision. Each
+destination element is explicitly allocated at that operation precision and
+computed with direct MPFR round-to-nearest arithmetic. Two-dimensional
+singleton expansion does not materialize expanded operands, and neither the
+project default nor the current-thread MPFR default participates in result
+precision selection or changes during these operations.
+
+M12 applies the same invariant to structural operations. `transpose`,
+`ctranspose`, and `reshape` copy existing MPFR values at the source object's
+precision and preserve the column-major linear order for reshape. They do not
+perform numerical rounding, use the current-thread MPFR default, or change
+the project default.
+
+M13 applies the invariant to concatenation. For `[A, B, ...]` and
+`[A; B; ...]`, the result precision is the maximum stored precision of every
+participating `mp` operand, including empty matrices; real double operands do
+not increase it. Each source value is copied directly into one uniformly
+precise destination, preserving the represented lower-precision value without
+reconstructing lost information. Concatenation does not use the current
+default, MPFR TLS default, or a precision scope.
+
+M14 applies the invariant to indexed assignment. For an `mp` lhs and `mp` RHS,
+the copied result precision is the maximum of their stored precisions; a
+builtin double RHS leaves lhs precision unchanged. Assignment never narrows a
+matrix, and a higher-precision RHS widens the complete uniformly precise copy.
+Values are transferred directly with MPFR operations, without text or double
+round trips. The current project/default precision is not used.
+
 ## Explicit scalar conversion
 
 `char(x)` formats the immutable value using `x`'s stored precision.  The
