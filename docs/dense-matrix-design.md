@@ -6,7 +6,8 @@ M07 introduced storage and public construction for real, two-dimensional
 MPFR matrices. M10 adds read-only indexing, matrix `double`, and matrix
 display formatting without changing the storage representation. M11 extends
 the same storage with direct MPFR element-wise arithmetic and two-dimensional
-singleton expansion; ownership and layout are unchanged.
+singleton expansion; M12 adds precision-preserving transpose and reshape.
+Ownership and layout remain unchanged.
 
 ## Installed MPLAPACK ABI audit
 
@@ -174,9 +175,18 @@ unchanged. M09 uses the same checked dimensions, column-major layout, and
 leading dimensions for `Rgesv`; square solves return the operation-owned
 solution buffer and preserve public input values.
 
+## M12 structural operations
+
+Transpose and reshape allocate independent `MpfrMatrixStorage` at the source
+matrix precision and copy native MPFR values directly. Transpose swaps the
+two-dimensional coordinates; reshape preserves the contiguous column-major
+linear order. Scalar results remain the canonical scalar payload, while all
+other shapes—including empty matrices—remain matrix payloads. These operations
+do not use MPLAPACK or change the current precision default.
+
 ## Non-goals
 
 Matrix assignment, logical indexing, general vector linear indexing, matrix
-`char`, transpose, concatenation, comparisons, powers, reductions, and complex
-storage remain deferred. M08 adds `mtimes`/`Rgemm`, M09 adds square
-`mldivide`/`Rgesv`, and M10 adds read-only matrix inspection.
+`char`, concatenation, comparisons, powers, reductions, and complex storage
+remain deferred. M08 adds `mtimes`/`Rgemm`, M09 adds square `mldivide`/`Rgesv`,
+M10 adds read-only matrix inspection, and M12 adds transpose and reshape.

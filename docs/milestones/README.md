@@ -17,6 +17,7 @@ documented gate passes.
 | M09 | Linear solve | Passed |
 | M10 | Dense matrix inspection | Passed |
 | M11 | Dense element-wise arithmetic | Passed |
+| M12 | Dense transpose and reshape | Passed |
 | P00 | Packaging design | Planned |
 | P01 | Debian source package | Planned |
 | P02 | Local Debian build | Planned |

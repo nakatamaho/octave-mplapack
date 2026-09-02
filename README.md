@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M11 pass. M12 is next.
+**Status: under development.** M00 through M12 pass. M13 is next.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -8,7 +8,8 @@ element-wise `+`, `-`, `.*`, and `./`. Dense matrices use one private
 column-major contiguous native payload;
 `mtimes` uses MPLAPACK MPFR `Rgemm` under a uniform operation-precision
 calling scope. Dense matrix inspection is read-only and preserves stored MPFR
-precision.
+precision. M12 adds precision-preserving transpose and two-dimensional
+reshape.
 
 ## Goal
 
@@ -92,7 +93,10 @@ MPLAPACK MPFR `Rgemm`, and M09 implements square `A \ B` through `Rgesv`,
 with result precision equal to the maximum operand precision and a temporary
 current-thread precision scope. M10 adds read-only indexing, `double(A)`, and
 canonical matrix display. M11 adds native MPFR matrix `+`, `-`, `.*`, and `./`,
-unary signs, and two-dimensional singleton expansion.
+unary signs, and two-dimensional singleton expansion. M12 adds read-only
+transpose, conjugate transpose for real values, and column-major reshape;
+these structural operations preserve source precision and do not consult the
+ambient precision default.
 
 ## Intended future API
 
@@ -153,10 +157,11 @@ M08  Matrix multiplication
 M09  Linear solve
 M10  Dense matrix inspection
 M11  Dense element-wise arithmetic
+M12  Dense transpose and reshape
 
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M11 are complete. M12 is next. Consult
+M00 through M12 are complete. M13 is next. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

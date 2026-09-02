@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M11 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M12 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-    echo "FAIL: mandatory M11 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M12 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M11 prerequisites"
+echo "PASS: mandatory M12 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
@@ -53,7 +53,8 @@ make -C src check-blas
 make -C src check-lapack
 make -C src check-inspection
 make -C src check-elementwise
-echo "PASS: M02-M11 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, inspection, and element-wise QA"
+make -C src check-structure
+echo "PASS: M02-M12 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, inspection, element-wise, and structural QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -454,7 +455,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M11 re-test"
+echo "PASS: clean rebuild #2 and M01-M12 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -503,6 +504,10 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   src/mp_matrix_arithmetic.h src/mp_matrix_arithmetic.cc \
   test/mp_matrix_arithmetic_test.cc test/elementwise.tst \
   docs/elementwise-arithmetic.md docs/milestones/M11-elementwise-arithmetic.md \
+  src/mp_matrix_structure.h src/mp_matrix_structure.cc \
+  test/mp_matrix_structure_test.cc test/structure.tst \
+  docs/matrix-structure.md docs/milestones/M12-transpose-reshape.md \
+  inst/@mp/transpose.m inst/@mp/ctranspose.m inst/@mp/reshape.m \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -513,7 +518,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -623,6 +628,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "gesv.tst")));
       assert (test (fullfile (root, "test", "matrix_inspection.tst")));
       assert (test (fullfile (root, "test", "elementwise.tst")));
+      assert (test (fullfile (root, "test", "structure.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -814,6 +820,10 @@ mkdir -p "$test_home" "$neutral_dir"
         "matrix_test_element_equal_text", installed_sum, 1, 1, "2"));
       assert (__mplapack_core__ (
         "matrix_test_element_equal_text", installed_sum, 2, 2, "8"));
+      installed_transpose = transpose (installed_text_matrix);
+      assert (size (installed_transpose), [2, 2]);
+      installed_reshape = reshape (installed_text_matrix, 1, 4);
+      assert (size (installed_reshape), [1, 4]);
       installed_solution = installed_text_matrix \ mp ({"3"; "7"});
       assert (__mplapack_core__ (
         "matrix_test_element_double", installed_solution, 1, 1), 1);
@@ -840,6 +850,6 @@ mkdir -p "$test_home" "$neutral_dir"
     '
 )
 
-echo "PASS: isolated package M01-M11 install, matrix/Rgemm/Rgesv/inspection/element-wise QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M12 install, matrix/Rgemm/Rgesv/inspection/element-wise/structure QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M11 local CI"
+echo "PASS: M12 local CI"
