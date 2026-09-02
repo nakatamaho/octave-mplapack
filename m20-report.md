@@ -243,7 +243,8 @@ payload, operator, or MPLAPACK source implementation was added.
 ## Commits
 
 - M20 audit/design/probe commit: 301116d
-- M20 report commit: to be recorded
+- M20 report commit: 31ace39
+- M20 package-archive QA adjustment: 2e396a3
 
 ## Push
 
