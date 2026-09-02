@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M17 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M18 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M17 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M18 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M17 prerequisites"
+echo "PASS: mandatory M18 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
@@ -59,7 +59,8 @@ make -C src check-assignment
 make -C src check-rgels
 make -C src check-rank
 make -C src check-cholesky
-echo "PASS: M02-M17 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, assignment, and Cholesky QA"
+make -C src check-qr
+echo "PASS: M02-M18 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, assignment, Cholesky, and QR QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -107,6 +108,13 @@ c++ -std=c++17 -Wall -Wextra -Wpedantic \
   $(pkg-config --libs mplapack_mpfr) -o "$rpotrf_probe"
 "$rpotrf_probe"
 echo "PASS: installed MPLAPACK Rpotrf precision probe"
+
+qr_probe=$qa_root/m18_qr_probe
+c++ -std=c++17 -Wall -Wextra -Wpedantic \
+  $(pkg-config --cflags mplapack_mpfr) test/m18_qr_probe.cc \
+  $(pkg-config --libs mplapack_mpfr) -o "$qr_probe"
+"$qr_probe"
+echo "PASS: installed MPLAPACK Rgeqrf/Rorgqr precision probe"
 
 if [ ! -f "$mplapack_library" ]; then
   echo "FAIL: MPLAPACK MPFR shared library is unavailable: $mplapack_library" >&2
@@ -198,6 +206,16 @@ fi
 
 if ! nm -D -C "$module" | grep -Eq ' U Rpotrf\('; then
   echo "FAIL: M17 native module lacks an unresolved Rpotrf reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgeqrf\('; then
+  echo "FAIL: M18 native module lacks an unresolved Rgeqrf reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rorgqr\('; then
+  echo "FAIL: M18 native module lacks an unresolved Rorgqr reference" >&2
   exit 1
 fi
 
@@ -496,7 +514,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M17 re-test"
+echo "PASS: clean rebuild #2 and M01-M18 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -562,6 +580,8 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/milestones/M16-rank-deficient-lstsq.md docs/rank-deficient-solve.md \
   inst/@mp/chol.m test/chol.tst test/mp_lapack_cholesky_test.cc \
   test/m17_rpotrf_probe.cc docs/cholesky.md docs/milestones/M17-cholesky.md \
+  inst/@mp/qr.m test/qr.tst test/mp_lapack_qr_test.cc test/m18_qr_probe.cc \
+  docs/qr.md docs/milestones/M18-qr.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -572,7 +592,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -614,6 +634,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "concat.tst")));
       assert (test (fullfile (root, "test", "assignment.tst")));
       assert (test (fullfile (root, "test", "chol.tst")));
+      assert (test (fullfile (root, "test", "qr.tst")));
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
       constructor_path = which ("mp");
@@ -636,6 +657,7 @@ mkdir -p "$test_home" "$neutral_dir"
       subsasgn_method_path = file_in_loadpath ("@mp/subsasgn.m");
       end_method_path = file_in_loadpath ("@mp/end.m");
       chol_method_path = file_in_loadpath ("@mp/chol.m");
+      qr_method_path = file_in_loadpath ("@mp/qr.m");
       fprintf ("installed mplapack_version: %s\n", public_path);
       fprintf ("installed __mplapack_core__: %s\n", native_path);
       fprintf ("installed mp: %s\n", constructor_path);
@@ -651,6 +673,7 @@ mkdir -p "$test_home" "$neutral_dir"
       fprintf ("installed @mp/subsref: %s\n", subsref_method_path);
       fprintf ("installed @mp/end: %s\n", end_method_path);
       fprintf ("installed @mp/chol: %s\n", chol_method_path);
+      fprintf ("installed @mp/qr: %s\n", qr_method_path);
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
       assert (! strncmp (constructor_path, root, length (root)));
@@ -673,6 +696,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (subsasgn_method_path, root, length (root)));
       assert (! strncmp (end_method_path, root, length (root)));
       assert (! strncmp (chol_method_path, root, length (root)));
+      assert (! strncmp (qr_method_path, root, length (root)));
       info = mplapack_version ();
       disp (info);
       assert (strcmp (info.mplapack, getenv ("MPLAPACK_EXPECTED_VERSION")));
@@ -698,6 +722,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "concat.tst")));
       assert (test (fullfile (root, "test", "assignment.tst")));
       assert (test (fullfile (root, "test", "chol.tst")));
+      assert (test (fullfile (root, "test", "qr.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -807,6 +832,7 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
       subsasgn_method_path = file_in_loadpath ("@mp/subsasgn.m");
       end_method_path = file_in_loadpath ("@mp/end.m");
       chol_method_path = file_in_loadpath ("@mp/chol.m");
+      qr_method_path = file_in_loadpath ("@mp/qr.m");
       horzcat_method_path = file_in_loadpath ("@mp/horzcat.m");
       vertcat_method_path = file_in_loadpath ("@mp/vertcat.m");
       assert (! strncmp (public_path, root, length (root)));
@@ -828,6 +854,7 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
       assert (! strncmp (subsref_method_path, root, length (root)));
       assert (! strncmp (end_method_path, root, length (root)));
       assert (! strncmp (chol_method_path, root, length (root)));
+      assert (! strncmp (qr_method_path, root, length (root)));
       assert (! strncmp (horzcat_method_path, root, length (root)));
       assert (! strncmp (vertcat_method_path, root, length (root)));
       assert (mpbits () == uint64 (512));
@@ -921,6 +948,8 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
         "matrix_test_element_double", installed_rectangular_solution, 1, 1), 1);
       assert (__mplapack_core__ (
         "matrix_test_element_double", installed_rectangular_solution, 2, 1), 2);
+      installed_qr = qr (mp ([1, 2; 3, 4; 5, 7]));
+      assert (size (installed_qr), [3, 2]);
       fprintf ("reinstalled mplapack_version: %s\n", public_path);
       fprintf ("reinstalled __mplapack_core__: %s\n", native_path);
       fprintf ("reinstalled mp: %s\n", constructor_path);
@@ -940,12 +969,13 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
       fprintf ("reinstalled @mp/subsasgn: %s\n", subsasgn_method_path);
       fprintf ("reinstalled @mp/end: %s\n", end_method_path);
       fprintf ("reinstalled @mp/chol: %s\n", chol_method_path);
+      fprintf ("reinstalled @mp/qr: %s\n", qr_method_path);
       fprintf ("reinstalled @mp/horzcat: %s\n", horzcat_method_path);
       fprintf ("reinstalled @mp/vertcat: %s\n", vertcat_method_path);
       fprintf ("PASS: installed scalar/matrix values left for shutdown destruction\n");
     '
 )
 
-echo "PASS: isolated package M01-M17 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/inspection/element-wise/structure/concatenation/assignment/Cholesky QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M18 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M17 local CI"
+echo "PASS: M18 local CI"

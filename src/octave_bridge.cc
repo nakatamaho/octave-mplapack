@@ -1785,6 +1785,61 @@ mp_cholesky_operation (const octave_value& value, bool lower)
   return ovl ();
 }
 
+octave_value_list
+mp_qr_operation (const octave_value& value, bool economy, bool want_q)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "qr expects one real mp value");
+
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_value payload = require_mp_payload (value);
+  const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                scalar.native_value ().mpfr_data (), MPFR_RNDN);
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "qr expects one real mp value");
+
+  try
+    {
+      const auto factors
+        = octave_mplapack::mplapack_mpfr_matrix_qr (
+            *input, economy, want_q);
+      const octave_value r = make_mtimes_result (factors.r);
+      if (! want_q)
+        return ovl (r);
+      return ovl (make_mtimes_result (factors.q), r);
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:QrError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
 octave_value
 matrix_mtimes_operation (const octave_value& lhs_value,
                          const octave_value& rhs_value)
@@ -2594,6 +2649,20 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         error_with_id ("mplapack:mp:InvalidOption",
                        "chol option must be \"upper\" or \"lower\"");
       return mp_cholesky_operation (args(1), option == "lower");
+    }
+
+  if (command == "qr")
+    {
+      require_argument_count (args, 4, command);
+      const std::string option = require_string (args(2), "qr option");
+      const std::string outputs = require_string (args(3), "qr output mode");
+      if (option != "full" && option != "econ")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "qr option must be \"full\" or \"econ\"");
+      if (outputs != "r" && outputs != "qr")
+        error_with_id ("mplapack:mp:InvalidArguments",
+                       "qr output mode is invalid");
+      return mp_qr_operation (args(1), option == "econ", outputs == "qr");
     }
 
   if (command == "scalar_test_create")

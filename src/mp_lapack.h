@@ -115,6 +115,12 @@ struct MpfrCholeskyResult
   MpfrMatrixStorage::MplapackInteger info;
 };
 
+struct MpfrQrResult
+{
+  MpfrMatrixStorage q;
+  MpfrMatrixStorage r;
+};
+
 void require_mplapack_mpfr_solve_precision_contract (
   mpfr_prec_t operation_precision,
   const MpfrMatrixStorage& a_work,
@@ -137,6 +143,10 @@ void require_mplapack_mpfr_rank_precision_contract (
 void require_mplapack_mpfr_rpotrf_precision_contract (
   mpfr_prec_t operation_precision, const MpfrMatrixStorage& a_work);
 
+void require_mplapack_mpfr_qr_precision_contract (
+  mpfr_prec_t operation_precision, const MpfrMatrixStorage& a_work,
+  const MpfrMatrixStorage& tau, const MpfrMatrixStorage& work);
+
 MpfrMatrixStorage mplapack_mpfr_matrix_solve (
   const MpfrMatrixStorage& lhs, const MpfrMatrixStorage& rhs);
 
@@ -149,6 +159,9 @@ mplapack_mpfr_matrix_rank_revealing_solve (
 
 MpfrCholeskyResult mplapack_mpfr_matrix_cholesky (
   const MpfrMatrixStorage& input, bool lower);
+
+MpfrQrResult mplapack_mpfr_matrix_qr (
+  const MpfrMatrixStorage& input, bool economy, bool want_q);
 
 MpfrMatrixStorage mplapack_mpfr_matrix_left_divide (
   const MpfrMatrixStorage& rhs,
