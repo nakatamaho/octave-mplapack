@@ -206,6 +206,7 @@
 %! minus_zero = mp (-0.0);
 %! special = mp ({"0", "-0"; "Inf", "NaN"});
 %! special_transposed = special.';
+%! special_reshaped = reshape (special, 4, 1);
 %! assert (__mplapack_core__ ("scalar_test_info", special_transposed (1, 1)).is_zero);
 %! assert (! __mplapack_core__ ("scalar_test_info", ...
 %!                              special_transposed (1, 1)).signbit);
@@ -215,5 +216,15 @@
 %!                            special_transposed (1, 2)).is_infinite);
 %! assert (__mplapack_core__ ("scalar_test_info", ...
 %!                            special_transposed (2, 2)).is_nan);
+%! assert (__mplapack_core__ ("scalar_test_info", ...
+%!                            special_reshaped (1)).is_zero);
+%! assert (! __mplapack_core__ ("scalar_test_info", ...
+%!                              special_reshaped (1)).signbit);
+%! assert (__mplapack_core__ ("scalar_test_info", ...
+%!                            special_reshaped (2)).is_infinite);
+%! assert (__mplapack_core__ ("scalar_test_info", ...
+%!                            special_reshaped (3)).signbit);
+%! assert (__mplapack_core__ ("scalar_test_info", ...
+%!                            special_reshaped (4)).is_nan);
 %! assert (__mplapack_core__ ("scalar_test_info", plus_zero).is_zero);
 %! assert (__mplapack_core__ ("scalar_test_info", minus_zero).signbit);
