@@ -249,8 +249,8 @@ payload, operator, or MPLAPACK source implementation was added.
 ## Push
 
 - Push: pushed to `origin/topic/m20-complex-architecture`
-- Remote tip: 1d1d4341b517dd61b68b7d7e80dda94fccf42ca2
-- Local tip: 1d1d4341b517dd61b68b7d7e80dda94fccf42ca2
+- Remote tip: 337cb4ca1e55da8bb3673528c3c112df564518d2
+- Local tip: 337cb4ca1e55da8bb3673528c3c112df564518d2 (report metadata commit follows)
 - GitHub CI: PR #21 structural-checks PASS
 
 ## Known unresolved complex issues
