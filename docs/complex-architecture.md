@@ -31,7 +31,10 @@ The test-only `test/m20_complex_probe.cc` compiled against the installed
 headers and controlled library.  It passed 1024-bit and 2048-bit complex GEMM
 identity cases with `2^-700` and `2^-1500` component tails, one-by-one Cgesv,
 Cpotrf, Cgeqrf, and Cungqr calls, component-precision checks, and a worker
-thread isolation check.  `ldd -r` resolved the controlled
+thread isolation check.  The special-value probe preserves zero/Inf/NaN
+values, but the current MPC copy path normalizes a negative imaginary zero;
+preserving component signed-zero state is therefore an explicit C00 issue.
+`ldd -r` resolved the controlled
 `libmplapack_mpfr.so.3`, `libmpc.so.3`, `libmpfr.so.6`, and `libgmp.so.10`;
 `libmplapack_mpfr_opt` was not linked.
 
@@ -200,6 +203,7 @@ repository.  No ABI or SONAME split was found that would require
 | Complex rank-revealing driver precision/workspace | high | no | yes | C07 candidate comparison (`Cgelsy/Cgelss/Cgelsd`) |
 | Debian license metadata for system MPC/MPFR/GMP | low | no | no | P01 packaging review |
 | Complex special-value and ordered-comparison policy | medium | no | yes | C03/C04 Octave differential tests |
+| MPC copy normalizes negative imaginary zero | medium | no | yes | C00 component-preservation probe and explicit storage policy |
 
 ## Release decision and roadmap
 

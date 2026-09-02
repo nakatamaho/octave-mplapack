@@ -179,6 +179,37 @@ void run_thread_probe ()
   check (main_before == 128 && mpfrxx::default_precision_bits () == 128,
          "complex worker changed main-thread precision");
 }
+
+void run_special_value_probe ()
+{
+  const mpfr_prec_t precision = 256;
+  Real plus_zero = real_at (precision);
+  Real minus_zero = real_at (precision);
+  mpfr_set_zero (plus_zero.mpfr_data (), 0);
+  mpfr_set_zero (minus_zero.mpfr_data (), 1);
+  const Complex signed_zero (plus_zero, minus_zero);
+  const Complex signed_zero_copy (signed_zero);
+  check (mpfr_zero_p (mpc_realref (signed_zero_copy.mpc_data ())) != 0
+         && mpfr_zero_p (mpc_imagref (signed_zero_copy.mpc_data ())) != 0,
+         "complex signed zero value was not preserved by copy");
+  // The current MPC copy path normalizes the imaginary zero sign; record this
+  // backend fact so C00 can decide whether an explicit sign-preserving path is
+  // needed for the public complex value contract.
+  const bool imaginary_negative_zero_preserved =
+      mpfr_signbit (mpc_imagref (signed_zero_copy.mpc_data ())) != 0;
+  std::cout << "INFO: complex copy preserves imaginary negative zero: "
+            << (imaginary_negative_zero_preserved ? "yes" : "no") << '\n';
+
+  Real infinity = real_at (precision);
+  Real nan = real_at (precision);
+  mpfr_set_inf (infinity.mpfr_data (), 1);
+  mpfr_set_nan (nan.mpfr_data ());
+  const Complex special (infinity, nan);
+  const Complex special_copy (special);
+  check (mpfr_inf_p (mpc_realref (special_copy.mpc_data ())) != 0
+         && mpfr_nan_p (mpc_imagref (special_copy.mpc_data ())) != 0,
+         "complex Inf/NaN state was not preserved by copy");
+}
 } // namespace
 
 int main ()
@@ -190,6 +221,7 @@ int main ()
       check_precision (default_value, 128, "default complex precision mismatch");
       run_basic_backend (1024, -700);
       run_basic_backend (2048, -1500);
+      run_special_value_probe ();
       run_thread_probe ();
       check (mpfrxx::default_precision_bits () == 128,
              "complex probe leaked ambient precision");
