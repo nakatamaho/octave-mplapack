@@ -263,14 +263,15 @@ coverage. One-output QR returns R without generating Q.
 
 - e91f2f7 — M18: add dense mp QR factorization via MPLAPACK Rgeqrf/Rorgqr
 - ae87805 — docs: add M18 QR milestone report
-- report/push metadata commit: follows
+- 2c31586 — docs: record M18 PR and push
+- CI-status metadata commit: follows
 
 ## Push
 
 - Push: PASS (topic/m18-qr pushed to origin)
-- Remote tip: ae87805 (before this metadata update)
-- Local tip: ae87805 (before this metadata update)
-- GitHub CI: pending
+- Remote tip: 2c3158681dd258e4694dcb43e0d5035df424a3a6 (before this CI-status update)
+- Local tip: 2c3158681dd258e4694dcb43e0d5035df424a3a6 (before this CI-status update)
+- GitHub CI: PASS (PR #19 structural-checks)
 
 ## Known limitations
 
