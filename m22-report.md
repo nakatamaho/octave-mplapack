@@ -5,7 +5,7 @@ Remote: https://github.com/nakatamaho/octave-mplapack.git
 Branch: topic/m22-real-release-closure
 Starting commit: d9ec2fcf4b8071cdc6f7807fe91a6baf02f84eaa
 Final commit: 5b7867e1545054969e3a3993e9f3f4be0aaffdbe (gate/report commit)
-PR: pending push
+PR: #23
 
 ## Baseline
 
@@ -208,10 +208,10 @@ Pre-existing unrelated legacy report deletions remain unstaged.
 
 ## Push
 
-- Push: pending
-- Remote tip: pending
-- Local tip: pending
-- GitHub CI: pending push
+- Push: pushed to `origin/topic/m22-real-release-closure`.
+- Remote tip: ee506e3a03debae6be6eaae8b2bd1d41be697330 before this metadata-only PR update.
+- Local tip: metadata update follows; substantive gate commit is 5b7867e1545054969e3a3993e9f3f4be0aaffdbe.
+- GitHub CI: PR #23 opened; structural checks pending/completed by GitHub.
 
 ## Known v0.1 limitations
 
