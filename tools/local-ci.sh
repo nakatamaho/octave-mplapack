@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M21 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M22 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M21 GitHub authentication is unavailable" >&2
+    echo "FAIL: mandatory M22 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,9 +34,10 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M21 prerequisites"
+echo "PASS: mandatory M22 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
+make -C src check-dependency
 
 mplapack_include_dir=$(pkg-config --variable=includedir mplapack_mpfr)
 if [ ! -f "$mplapack_include_dir/mplapack_mpfr_precision.h" ]; then
@@ -621,6 +622,12 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/milestones/M20-complex-architecture.md \
   inst/@mp/lu.m test/lu.tst test/mp_lapack_lu_test.cc \
   test/m21_rgetrf_probe.cc docs/lu.md docs/milestones/M21-lu.md \
+  test/m22_dependency_probe.cc test/release_closure.tst \
+  docs/v0.1-api.md docs/octave-compatibility.md docs/ppa-plan.md \
+  docs/release-checklist.md docs/milestones/M22-real-release-closure.md \
+  examples/01_scalar_precision.m examples/02_matrix_arithmetic.m \
+  examples/03_linear_solve.m examples/04_factorizations.m \
+  tools/dev-octave.sh \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -631,7 +638,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -676,6 +683,13 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "qr.tst")));
       assert (test (fullfile (root, "test", "pivoted_qr.tst")));
       assert (test (fullfile (root, "test", "lu.tst")));
+      assert (test (fullfile (root, "test", "release_closure.tst")));
+      examples = dir (fullfile (root, "examples", "*.m"));
+      for example = 1:numel (examples)
+        evalc ("run (fullfile (root, \"examples\", examples(example).name));");
+      endfor
+      assert (! isempty (strfind (evalc ("help @mp/qr"), "QR")));
+      assert (! isempty (strfind (evalc ("help @mp/lu"), "LU")));
       [installed_l, installed_u, installed_p] = lu (mp ([1, 2; 3, 4]));
       assert (strcmp (class (installed_l), "mp"));
       assert (strcmp (class (installed_u), "mp"));
@@ -1042,6 +1056,6 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
     '
 )
 
-echo "PASS: isolated package M01-M21 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU and complex audit QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M22 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU, release closure, and complex audit QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M21 local CI"
+echo "PASS: M22 local CI"

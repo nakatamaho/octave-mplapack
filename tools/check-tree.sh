@@ -16,6 +16,7 @@ test
 tools
 docs
 docs/milestones
+examples
 packaging
 packaging/debian
 '
@@ -29,6 +30,7 @@ COPYING
 NEWS.md
 m20-report.md
 m21-report.md
+m22-report.md
 CONTRIBUTING.md
 .gitignore
 DESCRIPTION
@@ -126,7 +128,9 @@ test/m19_qr_probe.cc
 test/m20_complex_probe.cc
 test/mp_lapack_lu_test.cc
 test/m21_rgetrf_probe.cc
+test/m22_dependency_probe.cc
 test/pivoted_qr.tst
+test/release_closure.tst
 test/matrix_inspection.tst
 test/mp_matrix_inspection_test.cc
 test/elementwise.tst
@@ -141,6 +145,7 @@ tools/check-format.sh
 tools/check-tree.sh
 tools/local-ci.sh
 tools/build-package.sh
+tools/dev-octave.sh
 docs/architecture.md
 docs/native-value-design.md
 docs/public-mp-design.md
@@ -177,7 +182,12 @@ docs/milestones/M19-pivoted-qr.md
 docs/complex-architecture.md
 docs/milestones/M20-complex-architecture.md
 docs/lu.md
+docs/v0.1-api.md
+docs/octave-compatibility.md
+docs/ppa-plan.md
+docs/release-checklist.md
 docs/milestones/M21-lu.md
+docs/milestones/M22-real-release-closure.md
 docs/matrix-assignment.md
 docs/milestones/M14-indexed-assignment.md
 docs/milestones/M15-rgels.md
@@ -229,7 +239,7 @@ for path in docs/milestones/M??-*.md docs/milestones/P??-*.md; do
 done
 
 if [ "$failed" -ne 0 ]; then
-  echo "FAIL: M00 tree checks failed" >&2
+  echo "FAIL: M00-M22 tree checks failed" >&2
   exit 1
 fi
 
@@ -243,4 +253,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00-M21 tree checks"
+echo "PASS: M00-M22 tree checks"
