@@ -243,8 +243,8 @@ Cholesky documentation and milestone CI integration.
 ## Push
 
 - Push: pass; `topic/m17-cholesky` pushed to origin
-- Remote tip: `dba701dd62878409ffd8e4ffe854c8c95d8154da` before report commit
-- Local tip: same before report commit
+- Remote tip: `51bdc59f00b5f1819b011a2dda78cb6ae85610f9`
+- Local tip: `51bdc59f00b5f1819b011a2dda78cb6ae85610f9`
 - GitHub CI: pending/observed through PR #18
 
 ## Known limitations
