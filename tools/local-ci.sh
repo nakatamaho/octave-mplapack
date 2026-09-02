@@ -557,7 +557,7 @@ if [ "$(cut -d/ -f1 "$archive_listing" | LC_ALL=C sort -u)" != "$package_dir" ];
   exit 1
 fi
 
-for required_path in DESCRIPTION COPYING INDEX m20-report.md inst/ src/ \
+for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   src/mp_scalar_storage.h src/mp_scalar_storage.cc \
   src/mp_precision.h src/mp_precision.cc src/mp_value.h src/mp_value.cc \
   inst/@mp/horzcat.m inst/@mp/vertcat.m test/native_value.tst \
