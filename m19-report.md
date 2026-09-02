@@ -5,7 +5,7 @@ Remote: origin (https://github.com/nakatamaho/octave-mplapack.git)
 Branch: topic/m19-pivoted-qr
 Starting commit: b5f7e9237925dbf0d8fe2ecaa6139c7c80c2f4fe
 Final commit: 36cb203d6acea6f151be2632374f878d284c06e4
-PR: Pending push/creation
+PR: #20 — https://github.com/nakatamaho/octave-mplapack/pull/20
 
 ## Baseline
 
@@ -260,10 +260,10 @@ pivoted-QR documentation. M18 non-pivoted dispatch remains intact.
 
 ## Push
 
-- Push: pending
-- Remote tip: pending
+- Push: `git push -u origin topic/m19-pivoted-qr` succeeded.
+- Remote tip: `bc0a3cbd72dfc8abb81370a805b3786cb0e1656f` before this report update
 - Local tip: `36cb203d6acea6f151be2632374f878d284c06e4`
-- GitHub CI: pending
+- GitHub CI: running on PR #20
 
 ## Known limitations
 
