@@ -28,6 +28,7 @@ PR: #21 — https://github.com/nakatamaho/octave-mplapack/pull/21
 - Move behavior: initialized values are exchanged with `mpc_swap`
 - Vector storage: contiguous `std::vector<mpc_class>` is safe; installed static assertions cover size/alignment
 - COMPLEX* compatibility: direct `mpc_class*` compatibility verified by headers and Cgemm probe
+- Special values: zero/Inf/NaN values survive copy; current MPC copy normalizes a negative imaginary zero (C00 issue)
 
 ## Precision model
 
@@ -199,8 +200,9 @@ complex support remains unimplemented.
 ## QA
 
 - Native complex probes: `test/m20_complex_probe.cc` passes Cgemm, Cgesv,
-  Cpotrf, Cgeqrf/Cungqr, precision tails, layout assertions, and TLS scope
-  restoration at 1024/2048 bits
+  Cpotrf, Cgeqrf/Cungqr, precision tails, layout assertions, zero/Inf/NaN
+  copy checks, and TLS scope restoration at 1024/2048 bits; it records that
+  the current MPC copy path normalizes a negative imaginary zero
 - Thread/TLS probes: worker 2048-bit default remains independent from main 128-bit default
 - ASan: pass through existing M00--M19 sanitizer suite; complex probe is clean
 - UBSan: pass through existing M00--M19 sanitizer suite; complex probe is clean
@@ -245,6 +247,7 @@ payload, operator, or MPLAPACK source implementation was added.
 - M20 audit/design/probe commit: 301116d
 - M20 report commit: 31ace39
 - M20 package-archive QA adjustment: 2e396a3
+- M20 special-value audit commit: cfa9f17
 
 ## Push
 
@@ -258,6 +261,8 @@ payload, operator, or MPLAPACK source implementation was added.
 - Public complex implementation has not started.
 - MPC override/scope composition requires an explicit C00/C01 policy.
 - Complex optimized-worker precision requires a per-library audit.
+- The current MPC copy path normalizes a negative imaginary zero; C00 must
+  choose an explicit sign-preserving policy if required by the public contract.
 - Complex text grammar, special-value display, comparison policy, and
   rank-revealing rectangular driver remain future design/QA work.
 
