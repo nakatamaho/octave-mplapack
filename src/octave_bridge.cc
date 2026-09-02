@@ -2015,8 +2015,8 @@ mp_mldivide_operation (const octave_value& lhs_value,
           return make_internal_scalar (rhs_scalar.divide (*lhs_scalar));
         }
 
-      // A non-scalar left operand is a square dense matrix.  A raw double
-      // matrix is explicitly converted to the other mp operand's precision.
+      // A non-scalar left operand is a dense matrix.  A raw double matrix is
+      // explicitly converted to the other mp operand's precision.
       const octave_mplapack::MpfrMatrixStorage *lhs = nullptr;
       std::optional<octave_mplapack::MpfrMatrixStorage> lhs_owned;
       if (lhs_is_matrix)
@@ -2079,11 +2079,26 @@ mp_mldivide_operation (const octave_value& lhs_value,
 
       if (lhs->rows () != lhs->columns ())
         return make_mldivide_result (
-          octave_mplapack::mplapack_mpfr_matrix_rectangular_solve (*lhs,
-                                                                    *rhs));
+          octave_mplapack::mplapack_mpfr_matrix_rank_revealing_solve (
+            *lhs, *rhs).solution);
 
       return make_mldivide_result (
         octave_mplapack::mplapack_mpfr_matrix_solve (*lhs, *rhs));
+    }
+  catch (const octave_mplapack::MpfrRankRevealingError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrRankRevealingError::Kind::convergence)
+        error_with_id ("mplapack:mp:ConvergenceFailure",
+                       "MPLAPACK Rgelss failed to converge (info %d)",
+                       exception.info ());
+      if (exception.kind ()
+          == octave_mplapack::MpfrRankRevealingError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:RankRevealingError",
+                       "MPLAPACK Rgelss rejected argument %d",
+                       -exception.info ());
+      error_with_id ("mplapack:mp:RankRevealingInternalError", "%s",
+                     exception.what ());
     }
   catch (const octave_mplapack::MpfrRgelsError& exception)
     {

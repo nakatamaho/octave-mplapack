@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M15 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M16 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M15 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M16 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M15 prerequisites"
+echo "PASS: mandatory M16 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
@@ -57,7 +57,8 @@ make -C src check-structure
 make -C src check-concat
 make -C src check-assignment
 make -C src check-rgels
-echo "PASS: M02-M15 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, inspection, element-wise, structural, concatenation, and assignment QA"
+make -C src check-rank
+echo "PASS: M02-M16 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, and assignment QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -91,6 +92,13 @@ c++ -std=c++17 -Wall -Wextra -Wpedantic \
   $(pkg-config --libs mplapack_mpfr) -o "$rgels_probe"
 "$rgels_probe"
 echo "PASS: installed MPLAPACK Rgels precision probe"
+
+rank_driver_probe=$qa_root/m16_driver_probe
+c++ -std=c++17 -Wall -Wextra -Wpedantic \
+  $(pkg-config --cflags mplapack_mpfr) test/m16_driver_probe.cc \
+  $(pkg-config --libs mplapack_mpfr) -o "$rank_driver_probe"
+"$rank_driver_probe"
+echo "PASS: installed rank-revealing driver comparison probe"
 
 if [ ! -f "$mplapack_library" ]; then
   echo "FAIL: MPLAPACK MPFR shared library is unavailable: $mplapack_library" >&2
@@ -172,6 +180,11 @@ fi
 
 if ! nm -D -C "$module" | grep -Eq ' U Rgels\('; then
   echo "FAIL: M15 native module lacks an unresolved Rgels reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgelss\('; then
+  echo "FAIL: M16 native module lacks an unresolved Rgelss reference" >&2
   exit 1
 fi
 
@@ -470,7 +483,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M15 re-test"
+echo "PASS: clean rebuild #2 and M01-M16 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -514,6 +527,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   src/mp_lapack.h src/mp_lapack.cc test/mp_lapack_test.cc \
   test/mp_lapack_probe.cc test/mp_lapack_rgels_probe.cc \
   test/mp_lapack_rgels_test.cc test/gesv.tst test/rgels.tst \
+  test/mp_lapack_rank_test.cc test/rank.tst test/m16_driver_probe.cc \
   docs/linear-solve.md docs/rectangular-solve.md \
   src/mp_matrix_inspection.h src/mp_matrix_inspection.cc \
   test/mp_matrix_inspection_test.cc test/matrix_inspection.tst \
@@ -532,6 +546,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   test/mp_matrix_assignment_test.cc test/assignment.tst \
   docs/matrix-assignment.md docs/milestones/M14-indexed-assignment.md \
   docs/milestones/M15-rgels.md \
+  docs/milestones/M16-rank-deficient-lstsq.md docs/rank-deficient-solve.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -542,7 +557,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -908,6 +923,6 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
     '
 )
 
-echo "PASS: isolated package M01-M15 install, matrix/Rgemm/Rgesv/Rgels/inspection/element-wise/structure/concatenation/assignment QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M16 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/inspection/element-wise/structure/concatenation/assignment QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M15 local CI"
+echo "PASS: M16 local CI"

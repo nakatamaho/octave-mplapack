@@ -1,10 +1,12 @@
 # Dense MPFR linear solve
 
 M09 adds dense real `mp` left division through the installed MPLAPACK MPFR
-`Rgesv` routine. M15 extends the same interface to full-rank rectangular
-systems through `Rgels`; square systems remain on `Rgesv`. Complex, sparse,
-rank-deficient, and reusable factorization interfaces remain outside the
-current milestones.
+`Rgesv` routine. M15 added full-rank rectangular systems through `Rgels`, and
+M16 upgrades the public rectangular path to the rank-revealing `Rgelss`
+driver. Square systems remain on `Rgesv`; rectangular systems now return the
+minimum-norm least-squares result, including rank-deficient cases. Complex,
+sparse, and reusable factorization interfaces remain outside the current
+milestones.
 
 ## Uniform precision boundary
 
@@ -19,12 +21,13 @@ calling `Rgesv`; mixed-precision MPLAPACK calls are never issued.
 payloads are never passed to the backend. The returned operation-owned `B`
 buffer is the solution and a 1x1 result is normalized to the scalar payload.
 
-For a rectangular solve, `Rgels` receives operation-owned `A` and a
-`max(m,n) x nrhs` padded RHS. Its workspace query and solve run under the same
-uniform operation-precision scope, and the first `n` RHS rows form the public
-`n x nrhs` solution. The operation assumes full column rank for `m >= n` and
-full row rank for `m < n`; positive `info` is reported as a rank-deficient
-error.
+For a rectangular solve, `Rgelss` receives operation-owned `A` and a
+`max(m,n) x nrhs` padded RHS, plus `p_op`-precision `RCOND`, singular values,
+and workspace. Its query and solve run under the same uniform
+operation-precision scope, and the first `n` RHS rows form the public `n x nrhs`
+minimum-norm solution. The default rank threshold is `Rlamch_mpfr("E")` at
+`p_op`; rank deficiency is supported for rectangular matrices. The M15 `Rgels`
+bridge remains available for full-rank regression/reference tests.
 
 ## Status and empty systems
 

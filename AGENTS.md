@@ -9,6 +9,8 @@ These rules apply throughout this repository.
 3. Do not implement later milestones opportunistically.
 4. Every milestone ends with its explicit gate result.
 5. A failed gate means the milestone is not complete.
+5a. When a milestone completes, save a root-level `mXX-report.md` report
+   (for example, `m16-report.md`) before declaring the milestone complete.
 
 ## MPLAPACK boundaries
 
