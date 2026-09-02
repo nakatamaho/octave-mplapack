@@ -4,8 +4,8 @@ Repository: `nakatamaho/octave-mplapack`
 Remote: `origin` (`https://github.com/nakatamaho/octave-mplapack.git`)
 Branch: `topic/m15-rgels`
 Starting commit: `44a349f86751fa8a6924251e87251c5b1eb5b5be`
-Final commit: `e051111` (implementation; this report is a follow-up documentation commit)
-PR: pending creation after push
+Final commit: `e051111` (implementation; report commits follow)
+PR: [#16](https://github.com/nakatamaho/octave-mplapack/pull/16)
 
 ## Baseline
 
@@ -245,14 +245,15 @@ The five pre-existing deleted legacy report files remain unstaged.
 ## Commits
 
 - `e051111` — M15: add full-rank rectangular mp solve via MPLAPACK Rgels
-- follow-up documentation commit — this report
+- `c3abe04` — docs: add M15 implementation report
+- follow-up PR metadata update — this report update
 
 ## Push
 
-- Push: pending
-- Remote tip: pending
-- Local tip: pending report commit
-- GitHub CI: pending PR creation
+- Push: PASS (`topic/m15-rgels` pushed to `origin`)
+- Remote tip: `c3abe04bf0aea825ef185c7b93a8c4fb988a94f8` before this metadata update
+- Local tip: follows the report metadata commit
+- GitHub CI: PR #16 open; structural-checks run in progress at report time
 
 ## Known limitations
 
