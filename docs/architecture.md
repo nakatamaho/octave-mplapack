@@ -30,7 +30,7 @@ system BLAS and LAPACK also remain untouched. `mp` values are separate numeric
 objects whose MPLAPACK operations work directly on native MPFR-backed storage;
 the project will not use `LD_PRELOAD` or silently route through binary64.
 
-Through M19 the only public backend is real MPFR arithmetic. M20 audits and
+Through M21 the only public backend is real MPFR arithmetic. M20 audits and
 freezes the future MPC-valued architecture but intentionally adds no public
 complex values. GMP, DD, QD, binary80, and
 binary128 backends are outside this baseline.
@@ -212,3 +212,11 @@ remain unchanged. Complex numerical calls will use operation-owned contiguous
 `COMPLEX` buffers, a single `p_op` for all REAL/COMPLEX work, and a controlled
 MPFR/MPC precision scope. See `docs/complex-architecture.md`; no public
 complex implementation is part of M20.
+
+M21 adds dense real LU factorization through MPLAPACK MPFR `Rgetrf`.  The
+factorization receives an operation-owned copy at the stored input precision;
+`IPIV` is replayed into final row-permutation data for Octave's packed,
+two-output, matrix-permutation, and vector-permutation forms.  Singular
+`INFO > 0` is retained as factorization status rather than converted into the
+solve error used by `Rgesv`, and the existing real `Rgemm`, `Rgesv`,
+`Rgelss`, `Rpotrf`, QR, and pivoted-QR paths remain unchanged.

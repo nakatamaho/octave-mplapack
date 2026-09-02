@@ -81,3 +81,7 @@
   `mpfrxx::mpc_class` backend, uniform-precision contract, future payload
   variants, complex routine inventory, and real-only PPA boundary are
   documented; public complex `mp` values remain unimplemented.
+- Added dense real `mp` LU factorization through MPLAPACK MPFR `Rgetrf`, with
+  packed one-output factors, permutation-aware two/three-output forms,
+  1-based vector pivots, rectangular and singular support, and immutable
+  operation-owned precision-safe buffers.
