@@ -1,13 +1,13 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M09 pass. M10 is next.
+**Status: under development.** M00 through M10 pass. M11 is next.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and scalar `+`, `-`, `.*`, and
 `./`. Dense matrices use one private column-major contiguous native payload;
 `mtimes` uses MPLAPACK MPFR `Rgemm` under a uniform operation-precision
-calling scope. Matrix indexing, element-wise arithmetic, and matrix conversion
-remain deferred.
+calling scope. Dense matrix inspection is read-only and preserves stored MPFR
+precision.
 
 ## Goal
 
@@ -58,6 +58,10 @@ size (A)
 % 2 2
 C = A * A
 x = A \\ b
+element = A(2, 1)
+column = A(:, 2)
+double_A = double(A)
+disp(A)
 % native MPLAPACK MPFR Rgemm/Rgesv results
 ```
 
@@ -85,8 +89,8 @@ has one immutable precision, contiguous column-major MPFR storage, and normal
 two-dimensional shape metadata.  M08 implements dense real `A * B` through
 MPLAPACK MPFR `Rgemm`, and M09 implements square `A \ B` through `Rgesv`,
 with result precision equal to the maximum operand precision and a temporary
-current-thread precision scope.  Matrix element-wise arithmetic, indexing,
-and matrix conversion/display remain unimplemented.
+current-thread precision scope. M10 adds read-only indexing, `double(A)`, and
+canonical matrix display; matrix element-wise arithmetic remains unimplemented.
 
 ## Intended future API
 
@@ -104,8 +108,9 @@ C = A * A;
 x = A \ b;
 ```
 
-The completed baseline will additionally use normal Octave matrix operations
-such as `\` and transpose. Native backend entry points stay private.
+The completed baseline uses normal Octave matrix operations such as indexing,
+`\`, and read-only conversion/display. Native backend entry points stay
+private.
 
 ## Precision warning
 
@@ -144,11 +149,11 @@ M06  Element-wise arithmetic
 M07  Matrix storage
 M08  Matrix multiplication
 M09  Linear solve
-M10  First functional baseline
+M10  Dense matrix inspection
 
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M09 are complete. M10 is next. Consult
+M00 through M10 are complete. M11 is next. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

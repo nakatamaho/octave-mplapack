@@ -2,9 +2,9 @@
 
 ## Scope
 
-M05 defines conversion and display for one public scalar `mp` value.  It does
-not define matrix conversion, matrix layout, arithmetic, comparison, or
-serialization.
+M05 defines conversion and display for one public scalar `mp` value. M10
+extends the same native primitives to dense matrices for read-only `double`
+and `disp`; matrix `char` and serialization remain deferred.
 
 ## Canonical decimal representation
 
@@ -83,6 +83,11 @@ Scalar `disp(x)` writes `char(x)` followed by one newline.  It therefore uses
 the same canonical multiprecision representation and does not convert through
 binary64.  The result is intentionally independent of Octave `format short`
 and `format long` settings.
+
+M10 matrix `double(A)` preserves the matrix shape and calls `mpfr_get_d`
+directly for every native element. Matrix `disp(A)` applies the same canonical
+scalar formatter in column order and emits deterministic row-separated text.
+Neither operation changes the source precision or current default.
 
 ## Memory and error handling
 

@@ -40,5 +40,8 @@
   the MPLAPACK uniform-precision calling contract.
 - Added dense real `mp` linear solve through MPLAPACK MPFR `Rgesv`, including
   multiple right-hand sides and operation-owned factorization buffers.
-- Rectangular solve, matrix indexing, matrix element-wise arithmetic, and
-  matrix conversion/display remain unimplemented.
+- Added read-only dense matrix indexing with `end`, precision-preserving
+  matrix-to-double conversion, and canonical matrix display.
+- Rectangular solve, matrix assignment, logical indexing, matrix `char`,
+  transpose, concatenation, and matrix element-wise arithmetic remain
+  unimplemented.

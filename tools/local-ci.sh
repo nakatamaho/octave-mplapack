@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M09 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M10 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M09 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M10 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M09 prerequisites"
+echo "PASS: mandatory M10 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
@@ -51,7 +51,8 @@ make -C src check-arithmetic-sanitized
 make -C src check-matrix-sanitized
 make -C src check-blas
 make -C src check-lapack
-echo "PASS: M02-M09 ASan/UBSan/LSan scalar, matrix, Rgemm, and Rgesv QA"
+make -C src check-inspection
+echo "PASS: M02-M10 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, and inspection QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -452,7 +453,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M09 re-test"
+echo "PASS: clean rebuild #2 and M01-M10 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -495,6 +496,9 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/matrix-multiplication.md \
   src/mp_lapack.h src/mp_lapack.cc test/mp_lapack_test.cc \
   test/mp_lapack_probe.cc test/gesv.tst docs/linear-solve.md \
+  src/mp_matrix_inspection.h src/mp_matrix_inspection.cc \
+  test/mp_matrix_inspection_test.cc test/matrix_inspection.tst \
+  docs/matrix-inspection.md inst/@mp/end.m \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -505,7 +509,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -558,6 +562,7 @@ mkdir -p "$test_home" "$neutral_dir"
       size_method_path = file_in_loadpath ("@mp/size.m");
       mldivide_method_path = file_in_loadpath ("@mp/mldivide.m");
       subsref_method_path = file_in_loadpath ("@mp/subsref.m");
+      end_method_path = file_in_loadpath ("@mp/end.m");
       fprintf ("installed mplapack_version: %s\n", public_path);
       fprintf ("installed __mplapack_core__: %s\n", native_path);
       fprintf ("installed mp: %s\n", constructor_path);
@@ -571,6 +576,7 @@ mkdir -p "$test_home" "$neutral_dir"
       fprintf ("installed @mp/uminus: %s\n", uminus_method_path);
       fprintf ("installed @mp/size: %s\n", size_method_path);
       fprintf ("installed @mp/subsref: %s\n", subsref_method_path);
+      fprintf ("installed @mp/end: %s\n", end_method_path);
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
       assert (! strncmp (constructor_path, root, length (root)));
@@ -585,6 +591,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (size_method_path, root, length (root)));
       assert (! strncmp (mldivide_method_path, root, length (root)));
       assert (! strncmp (subsref_method_path, root, length (root)));
+      assert (! strncmp (end_method_path, root, length (root)));
       info = mplapack_version ();
       disp (info);
       assert (strcmp (info.mplapack, getenv ("MPLAPACK_EXPECTED_VERSION")));
@@ -604,6 +611,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "matrix_storage.tst")));
       assert (test (fullfile (root, "test", "gemm.tst")));
       assert (test (fullfile (root, "test", "gesv.tst")));
+      assert (test (fullfile (root, "test", "matrix_inspection.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -706,6 +714,7 @@ mkdir -p "$test_home" "$neutral_dir"
       size_method_path = file_in_loadpath ("@mp/size.m");
       mldivide_method_path = file_in_loadpath ("@mp/mldivide.m");
       subsref_method_path = file_in_loadpath ("@mp/subsref.m");
+      end_method_path = file_in_loadpath ("@mp/end.m");
       root = getenv ("M01_REPO_ROOT");
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
@@ -721,6 +730,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (size_method_path, root, length (root)));
       assert (! strncmp (mldivide_method_path, root, length (root)));
       assert (! strncmp (subsref_method_path, root, length (root)));
+      assert (! strncmp (end_method_path, root, length (root)));
       assert (mpbits () == uint64 (512));
       assert (mpdigits () == uint64 (154));
       info = mplapack_version ();
@@ -800,10 +810,11 @@ mkdir -p "$test_home" "$neutral_dir"
       fprintf ("reinstalled @mp/uminus: %s\n", uminus_method_path);
       fprintf ("reinstalled @mp/size: %s\n", size_method_path);
       fprintf ("reinstalled @mp/subsref: %s\n", subsref_method_path);
+      fprintf ("reinstalled @mp/end: %s\n", end_method_path);
       fprintf ("PASS: installed scalar/matrix values left for shutdown destruction\n");
     '
 )
 
-echo "PASS: isolated package M01-M09 install, matrix/Rgemm/Rgesv QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M10 install, matrix/Rgemm/Rgesv/inspection QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M09 local CI"
+echo "PASS: M10 local CI"

@@ -5,14 +5,17 @@ CXX ?= c++
 
 TARGET = __mplapack_core__.oct
 SOURCE = octave_bridge.cc mp_value.cc mp_matrix_value.cc mp_blas.cc mp_lapack.cc \
-  mp_scalar_storage.cc mp_matrix_storage.cc mp_arithmetic.cc mp_precision.cc
+  mp_scalar_storage.cc mp_matrix_storage.cc mp_matrix_inspection.cc \
+  mp_arithmetic.cc mp_precision.cc
 HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
-  mp_matrix_storage.h mp_precision.h mp_blas.h mp_lapack.h
+  mp_matrix_storage.h mp_matrix_inspection.h mp_precision.h mp_blas.h \
+  mp_lapack.h
 STORAGE_TEST = .build-m02/mp_scalar_storage_test
 ARITHMETIC_TEST = .build-m06/mp_scalar_arithmetic_test
 MATRIX_TEST = .build-m07/mp_matrix_storage_test
 BLAS_TEST = .build-m08/mp_blas_test
 LAPACK_TEST = .build-m09/mp_lapack_test
+INSPECTION_TEST = .build-m10/mp_matrix_inspection_test
 MPLAPACK_VERSION := $(shell $(PKG_CONFIG) --modversion $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
@@ -21,7 +24,7 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 
 .PHONY: all check-deps check-storage-sanitized \
   check-arithmetic-sanitized check-matrix-sanitized check-blas \
-  check-lapack clean
+  check-lapack check-inspection clean
 .DELETE_ON_ERROR:
 
 all: $(TARGET)
@@ -89,6 +92,19 @@ check-lapack: $(LAPACK_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 	UBSAN_OPTIONS=halt_on_error=1 $(LAPACK_TEST)
 
+$(INSPECTION_TEST): ../test/mp_matrix_inspection_test.cc \
+  mp_matrix_inspection.cc mp_matrix_inspection.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_matrix_inspection_test.cc \
+	  mp_matrix_inspection.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-inspection: $(INSPECTION_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(INSPECTION_TEST)
+
 check-deps:
 	@$(MKOCTFILE) --help >/dev/null 2>&1 || { \
 	  echo "FAIL: mkoctfile command not found: $(MKOCTFILE)" >&2; exit 1; }
@@ -107,4 +123,4 @@ check-deps:
 
 clean:
 	$(RM) $(TARGET) *.o *.lo
-	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09
+	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10

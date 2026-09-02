@@ -2,10 +2,9 @@
 
 ## Scope
 
-M07 introduces storage and public construction for real, two-dimensional
-MPFR matrices.  It deliberately does not implement indexing, matrix
-conversion, matrix display formatting, element-wise matrix arithmetic,
-`Rgemm`, or `Rgesv`.
+M07 introduced storage and public construction for real, two-dimensional
+MPFR matrices. M10 adds read-only indexing, matrix `double`, and matrix
+display formatting without changing the storage representation.
 
 ## Installed MPLAPACK ABI audit
 
@@ -138,8 +137,18 @@ and package unload/reload behavior.
 ## Indexing boundary
 
 `size`, `rows`, `columns`, `numel`, `ndims`, and `isempty` query native shape.
-Parenthesis and brace indexing and indexed assignment fail explicitly; they
-must not treat the one-wrapper representation as an Octave object array.
+M10 parenthesis indexing copies selected native values directly, preserves
+source precision, and normalizes `1x1` selections to scalar storage. Brace
+indexing and indexed assignment fail explicitly; they must not treat the
+one-wrapper representation as an Octave object array.
+
+## M10 inspection
+
+Read-only `A(i,j)`, `A(:,j)`, `A(i,:)`, `A(I,J)`, `A(k)`, `A(:)`, and `end`
+forms use checked indices and deep-copy slices. `double(A)` uses direct
+MPFR-to-binary64 conversion with `MPFR_RNDN`, while `disp(A)` reuses the
+canonical scalar formatter for every entry. Neither operation consults or
+mutates the current precision default. Matrix `char` remains deferred.
 
 ## M08 Rgemm implementation
 
@@ -164,6 +173,7 @@ solution buffer and preserve public input values.
 
 ## Non-goals
 
-M07 defines no matrix element-wise arithmetic, transpose, indexing,
-numeric/text matrix conversion, final matrix display, or complex storage.
-M08 adds `mtimes`/`Rgemm` and M09 adds square `mldivide`/`Rgesv`.
+Matrix assignment, logical indexing, general vector linear indexing, matrix
+`char`, transpose, concatenation, matrix element-wise arithmetic, and complex
+storage remain deferred. M08 adds `mtimes`/`Rgemm`, M09 adds square
+`mldivide`/`Rgesv`, and M10 adds read-only matrix inspection.
