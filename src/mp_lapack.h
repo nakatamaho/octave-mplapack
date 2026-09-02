@@ -129,6 +129,15 @@ struct MpfrPivotedQrResult
   std::vector<MpfrMatrixStorage::MplapackInteger> permutation;
 };
 
+struct MpfrLuResult
+{
+  MpfrMatrixStorage packed;
+  MpfrMatrixStorage lower;
+  MpfrMatrixStorage upper;
+  std::vector<MpfrMatrixStorage::MplapackInteger> permutation;
+  MpfrMatrixStorage::MplapackInteger info;
+};
+
 void require_mplapack_mpfr_solve_precision_contract (
   mpfr_prec_t operation_precision,
   const MpfrMatrixStorage& a_work,
@@ -149,6 +158,9 @@ void require_mplapack_mpfr_rank_precision_contract (
   const MpfrMatrixStorage& work);
 
 void require_mplapack_mpfr_rpotrf_precision_contract (
+  mpfr_prec_t operation_precision, const MpfrMatrixStorage& a_work);
+
+void require_mplapack_mpfr_rgetrf_precision_contract (
   mpfr_prec_t operation_precision, const MpfrMatrixStorage& a_work);
 
 void require_mplapack_mpfr_qr_precision_contract (
@@ -173,6 +185,8 @@ MpfrQrResult mplapack_mpfr_matrix_qr (
 
 MpfrPivotedQrResult mplapack_mpfr_matrix_pivoted_qr (
   const MpfrMatrixStorage& input, bool economy, bool want_q);
+
+MpfrLuResult mplapack_mpfr_matrix_lu (const MpfrMatrixStorage& input);
 
 MpfrMatrixStorage mplapack_mpfr_matrix_left_divide (
   const MpfrMatrixStorage& rhs,

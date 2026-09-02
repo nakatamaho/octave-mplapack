@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <vector>
 
@@ -149,10 +150,25 @@ require_mplapack_mpfr_rpotrf_precision_contract (
   validate_precision (operation_precision);
   const bool matches
     = mpfrxx::default_precision_bits () == operation_precision
-      && a_work.precision_bits () == operation_precision;
+      && a_work.precision_bits () == operation_precision
+      && a_work.all_elements_have_uniform_precision ();
   if (! matches)
     throw std::runtime_error (
       "MPLAPACK MPFR precision contract mismatch at Rpotrf boundary");
+}
+
+void
+require_mplapack_mpfr_rgetrf_precision_contract (
+  mpfr_prec_t operation_precision, const MpfrMatrixStorage& a_work)
+{
+  validate_precision (operation_precision);
+  const bool matches
+    = mpfrxx::default_precision_bits () == operation_precision
+      && a_work.precision_bits () == operation_precision
+      && a_work.all_elements_have_uniform_precision ();
+  if (! matches)
+    throw std::runtime_error (
+      "MPLAPACK MPFR precision contract mismatch at Rgetrf boundary");
 }
 
 void
@@ -789,6 +805,105 @@ mplapack_mpfr_matrix_pivoted_qr (const MpfrMatrixStorage& input, bool economy,
     {std::move (a_fact), std::move (tau)}, economy, want_q);
   return {std::move (result.q), std::move (result.r),
           std::move (permutation)};
+}
+
+MpfrLuResult
+mplapack_mpfr_matrix_lu (const MpfrMatrixStorage& input)
+{
+  const mpfr_prec_t operation_precision = input.precision_bits ();
+  validate_precision (operation_precision);
+  const std::size_t m = input.rows ();
+  const std::size_t n = input.columns ();
+  const std::size_t k = std::min (m, n);
+
+  // Octave's dense LU returns empty 0x0 factors for every zero-dimensional
+  // input.  Avoid passing zero-sized storage to the LAPACK routine.
+  if (m == 0 || n == 0)
+    return {MpfrMatrixStorage (0, 0, operation_precision),
+            MpfrMatrixStorage (0, 0, operation_precision),
+            MpfrMatrixStorage (0, 0, operation_precision),
+            std::vector<MpfrMatrixStorage::MplapackInteger> (), 0};
+
+  const auto m_arg = MpfrMatrixStorage::checked_mplapack_dimension (m);
+  const auto n_arg = MpfrMatrixStorage::checked_mplapack_dimension (n);
+  MpfrMatrixStorage a_work (m, n, operation_precision, input);
+  if (k > std::numeric_limits<std::size_t>::max ()
+        / sizeof (MpfrMatrixStorage::MplapackInteger)
+      || m > std::numeric_limits<std::size_t>::max ()
+           / sizeof (MpfrMatrixStorage::MplapackInteger))
+    throw std::overflow_error ("LU pivot allocation size overflow");
+  std::vector<MpfrMatrixStorage::MplapackInteger> ipiv (k);
+  MpfrMatrixStorage::MplapackInteger info = 0;
+
+  {
+    // Rgetrf overwrites A and returns a row-swap sequence in IPIV.  Keep the
+    // public value immutable by factoring an operation-owned p_op copy.
+    MplapackMpfrPrecisionScope precision_scope (operation_precision);
+    require_mplapack_mpfr_rgetrf_precision_contract (
+      operation_precision, a_work);
+    Rgetrf (m_arg, n_arg, a_work.data (), a_work.leading_dimension (),
+            ipiv.data (), info);
+    if (mpfrxx::default_precision_bits () != operation_precision)
+      throw std::runtime_error (
+        "MPLAPACK MPFR Rgetrf changed the current-thread default precision");
+  }
+
+  if (info < 0)
+    throw std::invalid_argument ("MPLAPACK Rgetrf rejected an argument");
+  if (info > static_cast<MpfrMatrixStorage::MplapackInteger> (k))
+    throw std::runtime_error ("MPLAPACK Rgetrf returned an invalid INFO value");
+
+  // IPIV is a sequence of swaps, not the final public permutation vector.
+  // Replay it on [1,2,...,m] so perm[d] is the source row at output row d.
+  std::vector<MpfrMatrixStorage::MplapackInteger> permutation (m);
+  std::iota (permutation.begin (), permutation.end (),
+             static_cast<MpfrMatrixStorage::MplapackInteger> (1));
+  for (std::size_t step = 0; step < k; ++step)
+    {
+      const auto pivot = ipiv[step];
+      if (pivot < 1 || pivot > m_arg)
+        throw std::runtime_error ("MPLAPACK Rgetrf returned an invalid pivot");
+      std::swap (permutation[step],
+                 permutation[static_cast<std::size_t> (pivot - 1)]);
+    }
+
+  // The replayed sequence must define a proper final permutation.  Validate
+  // it before any public P/p representation is constructed.
+  std::vector<bool> seen (m, false);
+  for (const auto source : permutation)
+    {
+      if (source < 1 || source > m_arg
+          || seen[static_cast<std::size_t> (source - 1)])
+        throw std::runtime_error (
+          "MPLAPACK Rgetrf returned an invalid final permutation");
+      seen[static_cast<std::size_t> (source - 1)] = true;
+    }
+
+  MpfrMatrixStorage lower (m, k, operation_precision);
+  MpfrMatrixStorage upper (k, n, operation_precision);
+  for (std::size_t column = 0; column < k; ++column)
+    for (std::size_t row = 0; row < m; ++row)
+      {
+        if (row == column)
+          mpfr_set_ui (lower.at (row, column).mpfr_data (), 1, MPFR_RNDN);
+        else if (row > column)
+          mpfr_set (lower.at (row, column).mpfr_data (),
+                    a_work.at (row, column).mpfr_data (), MPFR_RNDN);
+        else
+          mpfr_set_zero (lower.at (row, column).mpfr_data (), 0);
+      }
+  for (std::size_t column = 0; column < n; ++column)
+    for (std::size_t row = 0; row < k; ++row)
+      {
+        if (row <= column)
+          mpfr_set (upper.at (row, column).mpfr_data (),
+                    a_work.at (row, column).mpfr_data (), MPFR_RNDN);
+        else
+          mpfr_set_zero (upper.at (row, column).mpfr_data (), 0);
+      }
+
+  return {std::move (a_work), std::move (lower), std::move (upper),
+          std::move (permutation), info};
 }
 
 MpfrMatrixStorage
