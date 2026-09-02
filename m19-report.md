@@ -259,11 +259,12 @@ pivoted-QR documentation. M18 non-pivoted dispatch remains intact.
 - `36cb203` — M19: add dense mp pivoted QR via MPLAPACK Rgeqp3
 - `bc0a3cb` — docs: record M19 pivoted QR milestone report
 - `045fe00` — docs: record M19 pull request
+- `d13f023` — fix: generalize workspace overflow diagnostic
 
 ## Push
 
 - Push: `git push -u origin topic/m19-pivoted-qr` succeeded.
-- Remote tip: `045fe0009cb86f08785aace7f30a93bf03f6e855` before this CI-status update
+- Remote tip: `d13f0238a97ef50bc7770e9244594224a5ab67e3` before this report update
 - Local tip: `36cb203d6acea6f151be2632374f878d284c06e4` (implementation commit)
 - GitHub CI: PASS (PR #20 structural-checks jobs)
 
