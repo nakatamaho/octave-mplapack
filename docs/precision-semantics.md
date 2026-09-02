@@ -77,14 +77,14 @@ committing the new state.  Failed setters leave the previous value unchanged.
 Floating inputs are accepted only in their contiguous exact-integer range;
 Octave integer scalar types allow larger exact requests up to the MPFR range.
 
-The project does not call `mpfr_set_default_prec` to represent this state.
-The MPLAPACK scalar wrapper linked since M02 performs a one-time initialization
-of its own MPFR thread-local environment (512 bits when its optional
-environment overrides are absent) and contains internal save/restore routines,
-so `mpfr_set_default_prec` remains a backend symbol in the module.  This is not
-read as the project default.  Standalone and Octave tests verify that M04
-setters and conversions leave MPFR's default unchanged, and that explicit-
-precision construction does not track later project-default changes.
+The project does not call `mpfr_set_default_prec` to represent its state.
+Instead, successful `mpbits(n)` and `mpdigits(n)` setters synchronize the
+calling thread's gmpfrxx/MPFR default through its public setter.  This default
+is an execution context for MPLAPACK MPFR calls, not storage for an existing
+value.  M08 temporarily enters `MplapackMpfrPrecisionScope` at the
+operand-derived operation precision and restores the caller's default on every
+exit.  Explicit-precision construction remains independent of later default
+changes, and no process-wide precision mutation is used.
 
 ## Existing objects
 

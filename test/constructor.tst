@@ -136,15 +136,16 @@
 %!test
 %! a = mp ("1");
 %! b = mp ("2");
-%! operations = {@() a * b, @() mldivide (a, b)};
-%! for i = 1:numel (operations)
-%!   try
-%!     operations{i} ();
-%!     error ("M03 matrix arithmetic unexpectedly succeeded");
-%!   catch exception
-%!     assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
-%!   end_try_catch
-%! endfor
+%! product = a * b;
+%! assert (__mplapack_core__ ("scalar_test_equal_string", product, "2"));
+%! try
+%!   mldivide (a, b);
+%!   error ("M03 mldivide unexpectedly succeeded");
+%! catch exception
+%!   assert (! strcmp (exception.message, ...
+%!                     "M03 mldivide unexpectedly succeeded"));
+%!   assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
+%! end_try_catch
 
 %!error <expects exactly one scalar input> mp ()
 %!error <expects exactly one scalar input> mp (1, 2)

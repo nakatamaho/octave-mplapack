@@ -33,5 +33,10 @@
   contiguous column-major layout.
 - Added construction from real double matrices and decimal-text cell matrices,
   including shape-preserving empty matrices and public shape metadata.
-- Matrix indexing, matrix conversion/display, and matrix arithmetic are not
-  implemented yet.
+- Added dense real matrix `mtimes` through the MPLAPACK MPFR reference
+  `Rgemm` path, with operand-derived uniform operation precision and native
+  scalar/matrix scaling.
+- Synchronized `mpbits`/`mpdigits` with the current-thread MPFR default for
+  the MPLAPACK uniform-precision calling contract.
+- Matrix indexing, matrix element-wise arithmetic, matrix conversion/display,
+  and linear solve remain unimplemented.

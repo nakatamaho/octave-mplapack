@@ -24,15 +24,13 @@
 
 %!test
 %! saved = mpbits ();
-%! mpfr_default = __mplapack_core__ (
-%!   "precision_test_mpfr_global_bits");
 %! unwind_protect
 %!   mpbits (256);
 %!   mpdigits (100);
 %!   value = mp ("0.1");
 %!   assert (m04_precision_info (value).precision_bits, int64 (333));
 %!   assert (__mplapack_core__ (
-%!     "precision_test_mpfr_global_bits"), mpfr_default);
+%!     "precision_test_mpfr_global_bits"), uint64 (333));
 %! unwind_protect_cleanup
 %!   mpbits (saved);
 %! end_unwind_protect

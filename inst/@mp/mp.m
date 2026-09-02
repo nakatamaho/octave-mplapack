@@ -13,8 +13,10 @@ classdef mp
   ##
   ## Empty real matrices retain their two-dimensional shape.  A @code{1x1}
   ## numeric or text-cell input normalizes to the canonical scalar payload.
-  ## M07 does not implement matrix indexing, matrix arithmetic, matrix
-  ## conversion, transpose, multiplication, or linear solve.  Complex,
+  ## Dense matrix multiplication uses MPLAPACK MPFR @code{Rgemm} under a
+  ## uniform operation-precision scope.  M08 does not implement matrix
+  ## indexing, element-wise matrix arithmetic, matrix conversion, transpose,
+  ## or linear solve.  Complex,
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
   ## @end deftypefn
 

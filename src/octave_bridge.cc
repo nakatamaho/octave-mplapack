@@ -5,6 +5,7 @@
 #include <exception>
 #include <limits>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -21,6 +22,7 @@
 
 #include "mp_value.h"
 #include "mp_matrix_value.h"
+#include "mp_blas.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -56,6 +58,10 @@ initialize_internal_type (octave::interpreter& interp)
   if (! function->islocked ())
     error_with_id ("mplapack:ModuleLifetime",
                    "failed to lock __mplapack_core__ in memory");
+
+  // Keep the project construction default and the current-thread MPFR
+  // default synchronized whenever the native entry point is entered.
+  octave_mplapack::synchronize_current_thread_precision ();
 
   return function->islocked ();
 }
@@ -304,6 +310,20 @@ is_mp_value (const octave_value& value)
          || (value.is_classdef_object () && value.class_name () == "mp");
 }
 
+bool
+is_real_double_matrix_operand (const octave_value& value)
+{
+  return value.is_double_type () && value.isreal ()
+         && ! value.is_real_scalar () && value.ndims () == 2;
+}
+
+bool
+is_double_matrix_operand (const octave_value& value)
+{
+  return value.is_double_type () && ! value.is_real_scalar ()
+         && value.ndims () == 2;
+}
+
 octave_value
 require_arithmetic_mp_payload (const octave_value& value)
 {
@@ -403,6 +423,33 @@ make_matrix_from_double (const octave_value& value)
       error_with_id ("mplapack:NativeError", "%s", exception.what ());
     }
   return octave_value ();
+}
+
+octave_mplapack::MpfrMatrixStorage
+make_double_matrix_storage (const octave_value& value,
+                            mpfr_prec_t precision_bits)
+{
+  if (! value.is_double_type () || value.is_real_scalar ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "expected a non-scalar real double matrix");
+  if (! value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex matrix multiplication is not supported");
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional matrix operands are supported");
+
+  const Matrix input = value.matrix_value ();
+  const std::size_t rows = checked_size_dimension (input.rows ());
+  const std::size_t columns = checked_size_dimension (input.columns ());
+  std::vector<double> values;
+  values.reserve (octave_mplapack::MpfrMatrixStorage::checked_element_count (
+    rows, columns));
+  for (octave_idx_type column = 0; column < input.columns (); ++column)
+    for (octave_idx_type row = 0; row < input.rows (); ++row)
+      values.push_back (input.xelem (row, column));
+  return octave_mplapack::MpfrMatrixStorage (rows, columns, precision_bits,
+                                              values);
 }
 
 octave_value
@@ -615,6 +662,226 @@ scalar_binary_operation (const octave_value& lhs_value,
     }
 
   return octave_value ();
+}
+
+octave_value
+make_mtimes_result (octave_mplapack::MpfrMatrixStorage storage)
+{
+  if (storage.rows () == 1 && storage.columns () == 1)
+    {
+      octave_mplapack::MpfrScalarStorage scalar (
+        std::move (storage.at (0, 0)));
+      return make_internal_scalar (std::move (scalar));
+    }
+  return make_internal_matrix (std::move (storage));
+}
+
+octave_value
+matrix_mtimes_operation (const octave_value& lhs_value,
+                         const octave_value& rhs_value)
+{
+  std::optional<octave_mplapack::MpfrMatrixStorage> lhs_owned;
+  std::optional<octave_mplapack::MpfrMatrixStorage> rhs_owned;
+  const octave_mplapack::MpfrMatrixStorage *lhs = nullptr;
+  const octave_mplapack::MpfrMatrixStorage *rhs = nullptr;
+
+  if (is_mp_value (lhs_value) && is_matrix_payload (lhs_value))
+    {
+      const octave_value payload = require_matrix_payload (lhs_value);
+      lhs = &octave_mplapack_mpfr_matrix_internal::checked_value (
+        payload).storage ();
+    }
+  else if (is_real_double_matrix_operand (lhs_value))
+    {
+      // The other matrix determines the operation precision.  The caller
+      // has already rejected two raw-double matrices before this function.
+      const octave_value payload = require_matrix_payload (rhs_value);
+      const auto& rhs_storage
+        = octave_mplapack_mpfr_matrix_internal::checked_value (
+            payload).storage ();
+      lhs_owned.emplace (make_double_matrix_storage (
+        lhs_value, rhs_storage.precision_bits ()));
+      lhs = &*lhs_owned;
+    }
+  else
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "matrix multiplication requires a dense mp or real double matrix");
+
+  if (is_mp_value (rhs_value) && is_matrix_payload (rhs_value))
+    {
+      const octave_value payload = require_matrix_payload (rhs_value);
+      rhs = &octave_mplapack_mpfr_matrix_internal::checked_value (
+        payload).storage ();
+    }
+  else if (is_real_double_matrix_operand (rhs_value))
+    {
+      if (! lhs)
+        error_with_id ("mplapack:mp:UnsupportedOperand",
+                       "matrix multiplication requires an mp operand");
+      rhs_owned.emplace (make_double_matrix_storage (
+        rhs_value, lhs->precision_bits ()));
+      rhs = &*rhs_owned;
+    }
+  else
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "matrix multiplication requires a dense mp or real double matrix");
+
+  const auto& lhs_storage = *lhs;
+  const auto& rhs_storage = *rhs;
+
+  if (lhs_storage.columns () != rhs_storage.rows ())
+    error_with_id ("mplapack:mp:DimensionMismatch",
+                   "matrix multiplication dimensions must agree");
+
+  try
+    {
+      return make_mtimes_result (
+        octave_mplapack::mplapack_mpfr_matrix_multiply (lhs_storage,
+                                                        rhs_storage));
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:MtimesError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+matrix_scale_storage_operation (
+  const octave_mplapack::MpfrMatrixStorage& matrix,
+  const octave_value& scalar_value)
+{
+  try
+    {
+      if (is_mp_value (scalar_value))
+        {
+          const octave_value scalar_payload
+            = require_scalar_payload (scalar_value);
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                scalar_payload).storage ();
+          return make_mtimes_result (
+            octave_mplapack::mplapack_mpfr_matrix_scale (
+              matrix, scalar.native_value ()));
+        }
+
+      return make_mtimes_result (
+        octave_mplapack::mplapack_mpfr_matrix_scale (
+          matrix, require_arithmetic_double (scalar_value)));
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:MtimesError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+matrix_scale_operation (const octave_value& matrix_value,
+                        const octave_value& scalar_value)
+{
+  const octave_value matrix_payload = require_matrix_payload (matrix_value);
+  const auto& matrix
+    = octave_mplapack_mpfr_matrix_internal::checked_value (
+        matrix_payload).storage ();
+  return matrix_scale_storage_operation (matrix, scalar_value);
+}
+
+octave_value
+mp_mtimes_operation (const octave_value& lhs_value,
+                     const octave_value& rhs_value)
+{
+  const bool lhs_is_mp = is_mp_value (lhs_value);
+  const bool rhs_is_mp = is_mp_value (rhs_value);
+  if (! lhs_is_mp && ! rhs_is_mp)
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "matrix multiplication requires at least one mp operand");
+
+  const bool lhs_is_matrix
+    = lhs_is_mp && is_matrix_payload (lhs_value);
+  const bool rhs_is_matrix
+    = rhs_is_mp && is_matrix_payload (rhs_value);
+  const bool lhs_is_double_matrix = is_double_matrix_operand (lhs_value);
+  const bool rhs_is_double_matrix = is_double_matrix_operand (rhs_value);
+
+  if (lhs_is_double_matrix && ! lhs_value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex matrix multiplication is not supported");
+  if (rhs_is_double_matrix && ! rhs_value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex matrix multiplication is not supported");
+
+  if (lhs_is_double_matrix || rhs_is_double_matrix)
+    {
+      if (lhs_is_double_matrix && rhs_is_double_matrix)
+        error_with_id ("mplapack:mp:UnsupportedOperand",
+                       "matrix multiplication requires at least one mp matrix");
+
+      if (lhs_is_matrix || rhs_is_matrix)
+        return matrix_mtimes_operation (lhs_value, rhs_value);
+
+      if (lhs_is_double_matrix && rhs_is_mp)
+        {
+          const octave_value scalar_payload = require_scalar_payload (rhs_value);
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                scalar_payload).storage ();
+          try
+            {
+              const auto matrix = make_double_matrix_storage (
+                lhs_value, scalar.precision_bits ());
+              return make_mtimes_result (
+                octave_mplapack::mplapack_mpfr_matrix_scale (
+                  matrix, scalar.native_value ()));
+            }
+          catch (const std::exception& exception)
+            {
+              error_with_id ("mplapack:mp:MtimesError", "%s",
+                             exception.what ());
+            }
+        }
+
+      if (rhs_is_double_matrix && lhs_is_mp)
+        {
+          const octave_value scalar_payload = require_scalar_payload (lhs_value);
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                scalar_payload).storage ();
+          try
+            {
+              const auto matrix = make_double_matrix_storage (
+                rhs_value, scalar.precision_bits ());
+              return make_mtimes_result (
+                octave_mplapack::mplapack_mpfr_matrix_scale (
+                  matrix, scalar.native_value ()));
+            }
+          catch (const std::exception& exception)
+            {
+              error_with_id ("mplapack:mp:MtimesError", "%s",
+                             exception.what ());
+            }
+        }
+    }
+
+  if (lhs_is_matrix && rhs_is_matrix)
+    return matrix_mtimes_operation (lhs_value, rhs_value);
+  if (lhs_is_matrix)
+    return matrix_scale_operation (lhs_value, rhs_value);
+  if (rhs_is_matrix)
+    return matrix_scale_operation (rhs_value, lhs_value);
+
+  return scalar_binary_operation (lhs_value, rhs_value,
+                                  ScalarBinaryOperation::multiply);
 }
 
 octave_value
@@ -871,6 +1138,12 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         {
           error_with_id ("mplapack:NativeError", "%s", exception.what ());
         }
+    }
+
+  if (command == "mtimes")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (mp_mtimes_operation (args(1), args(2)));
     }
 
   if (command == "scalar_test_create")

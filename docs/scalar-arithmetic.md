@@ -88,8 +88,8 @@ must not fall back through `double(mp)`.
 
 ## Relationship to M07/M08/M09
 
-M07 owns native dense storage, matrix constructors, shape, and matrix
-element-wise operations.  M08 owns `*` through MPLAPACK MPFR GEMM.  M09 owns
+M07 owns native dense storage, matrix constructors, and shape.  M08 owns `*`
+through MPLAPACK MPFR GEMM.  M09 owns
 `\` through MPLAPACK MPFR LAPACK.  The scalar storage operations introduced
 here are reusable primitives but do not constrain dense storage to arrays of
 scalar wrappers.

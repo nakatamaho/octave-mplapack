@@ -53,6 +53,7 @@ inst/@mp/subsref.m
 inst/@mp/subsasgn.m
 inst/@mp/mtimes.m
 inst/@mp/mldivide.m
+inst/@mp/mrdivide.m
 inst/@mp/transpose.m
 inst/@mp/ctranspose.m
 inst/mpbits.m
@@ -172,4 +173,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00-M07 tree checks"
+echo "PASS: M00-M08 tree checks"

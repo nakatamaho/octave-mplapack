@@ -44,7 +44,6 @@ double_bits (double value)
 void
 test_precision_configuration_and_conversion ()
 {
-  const mpfr_prec_t mpfr_default = mpfr_get_default_prec ();
   assert (octave_mplapack::initial_default_precision_bits == 512);
   assert (octave_mplapack::default_precision_bits () == 512);
   assert (decimal_digits_for_bits (512) == 154);
@@ -99,7 +98,7 @@ test_precision_configuration_and_conversion ()
   assert (octave_mplapack::default_precision_bits () == 128);
 
   octave_mplapack::set_default_precision_bits (512);
-  assert (mpfr_get_default_prec () == mpfr_default);
+  assert (mpfr_get_default_prec () == 512);
 }
 
 void

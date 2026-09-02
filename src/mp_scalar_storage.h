@@ -18,6 +18,7 @@ public:
 
   MpfrScalarStorage (const std::string& text, mpfr_prec_t precision_bits);
   MpfrScalarStorage (double value, mpfr_prec_t precision_bits);
+  explicit MpfrScalarStorage (NativeScalar value);
   MpfrScalarStorage (const MpfrScalarStorage&) = default;
   MpfrScalarStorage (MpfrScalarStorage&&) noexcept = default;
   ~MpfrScalarStorage () = default;
