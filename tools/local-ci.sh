@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M13 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M14 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M13 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M14 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M13 prerequisites"
+echo "PASS: mandatory M14 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
@@ -55,7 +55,8 @@ make -C src check-inspection
 make -C src check-elementwise
 make -C src check-structure
 make -C src check-concat
-echo "PASS: M02-M13 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, inspection, element-wise, structural, and concatenation QA"
+make -C src check-assignment
+echo "PASS: M02-M14 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, inspection, element-wise, structural, concatenation, and assignment QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -456,7 +457,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M13 re-test"
+echo "PASS: clean rebuild #2 and M01-M14 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -512,6 +513,9 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   src/mp_matrix_concat.h src/mp_matrix_concat.cc \
   test/mp_matrix_concat_test.cc test/concat.tst \
   docs/matrix-concatenation.md docs/milestones/M13-concatenation.md \
+  src/mp_matrix_assignment.h src/mp_matrix_assignment.cc \
+  test/mp_matrix_assignment_test.cc test/assignment.tst \
+  docs/matrix-assignment.md docs/milestones/M14-indexed-assignment.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -522,7 +526,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -562,6 +566,7 @@ mkdir -p "$test_home" "$neutral_dir"
       root = getenv ("M01_REPO_ROOT");
       pkg ("load", "mplapack");
       assert (test (fullfile (root, "test", "concat.tst")));
+      assert (test (fullfile (root, "test", "assignment.tst")));
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
       constructor_path = which ("mp");
@@ -581,6 +586,7 @@ mkdir -p "$test_home" "$neutral_dir"
       size_method_path = file_in_loadpath ("@mp/size.m");
       mldivide_method_path = file_in_loadpath ("@mp/mldivide.m");
       subsref_method_path = file_in_loadpath ("@mp/subsref.m");
+      subsasgn_method_path = file_in_loadpath ("@mp/subsasgn.m");
       end_method_path = file_in_loadpath ("@mp/end.m");
       fprintf ("installed mplapack_version: %s\n", public_path);
       fprintf ("installed __mplapack_core__: %s\n", native_path);
@@ -615,6 +621,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (size_method_path, root, length (root)));
       assert (! strncmp (mldivide_method_path, root, length (root)));
       assert (! strncmp (subsref_method_path, root, length (root)));
+      assert (! strncmp (subsasgn_method_path, root, length (root)));
       assert (! strncmp (end_method_path, root, length (root)));
       info = mplapack_version ();
       disp (info);
@@ -639,6 +646,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "elementwise.tst")));
       assert (test (fullfile (root, "test", "structure.tst")));
       assert (test (fullfile (root, "test", "concat.tst")));
+      assert (test (fullfile (root, "test", "assignment.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -745,6 +753,7 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
       size_method_path = file_in_loadpath ("@mp/size.m");
       mldivide_method_path = file_in_loadpath ("@mp/mldivide.m");
       subsref_method_path = file_in_loadpath ("@mp/subsref.m");
+      subsasgn_method_path = file_in_loadpath ("@mp/subsasgn.m");
       end_method_path = file_in_loadpath ("@mp/end.m");
       horzcat_method_path = file_in_loadpath ("@mp/horzcat.m");
       vertcat_method_path = file_in_loadpath ("@mp/vertcat.m");
@@ -867,6 +876,7 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
       fprintf ("reinstalled @mp/uminus: %s\n", uminus_method_path);
       fprintf ("reinstalled @mp/size: %s\n", size_method_path);
       fprintf ("reinstalled @mp/subsref: %s\n", subsref_method_path);
+      fprintf ("reinstalled @mp/subsasgn: %s\n", subsasgn_method_path);
       fprintf ("reinstalled @mp/end: %s\n", end_method_path);
       fprintf ("reinstalled @mp/horzcat: %s\n", horzcat_method_path);
       fprintf ("reinstalled @mp/vertcat: %s\n", vertcat_method_path);
@@ -874,6 +884,6 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
     '
 )
 
-echo "PASS: isolated package M01-M13 install, matrix/Rgemm/Rgesv/inspection/element-wise/structure/concatenation QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M14 install, matrix/Rgemm/Rgesv/inspection/element-wise/structure/concatenation/assignment QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M13 local CI"
+echo "PASS: M14 local CI"

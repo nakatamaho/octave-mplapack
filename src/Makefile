@@ -7,10 +7,12 @@ TARGET = __mplapack_core__.oct
 SOURCE = octave_bridge.cc mp_value.cc mp_matrix_value.cc mp_blas.cc mp_lapack.cc \
   mp_scalar_storage.cc mp_matrix_storage.cc mp_matrix_inspection.cc \
   mp_matrix_arithmetic.cc mp_matrix_structure.cc mp_matrix_concat.cc \
+  mp_matrix_assignment.cc \
   mp_arithmetic.cc mp_precision.cc
 HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
   mp_matrix_storage.h mp_matrix_inspection.h mp_matrix_arithmetic.h \
   mp_matrix_structure.h mp_matrix_concat.h \
+  mp_matrix_assignment.h \
   mp_precision.h mp_blas.h \
   mp_lapack.h
 STORAGE_TEST = .build-m02/mp_scalar_storage_test
@@ -22,6 +24,7 @@ INSPECTION_TEST = .build-m10/mp_matrix_inspection_test
 ELEMENTWISE_TEST = .build-m11/mp_matrix_arithmetic_test
 STRUCTURE_TEST = .build-m12/mp_matrix_structure_test
 CONCAT_TEST = .build-m13/mp_matrix_concat_test
+ASSIGNMENT_TEST = .build-m14/mp_matrix_assignment_test
 MPLAPACK_VERSION := $(shell $(PKG_CONFIG) --modversion $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
@@ -31,7 +34,7 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 .PHONY: all check-deps check-storage-sanitized \
   check-arithmetic-sanitized check-matrix-sanitized check-blas \
   check-lapack check-inspection check-elementwise check-structure \
-  check-concat clean
+  check-concat check-assignment clean
 .DELETE_ON_ERROR:
 
 all: $(TARGET)
@@ -151,6 +154,19 @@ check-concat: $(CONCAT_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 	UBSAN_OPTIONS=halt_on_error=1 $(CONCAT_TEST)
 
+$(ASSIGNMENT_TEST): ../test/mp_matrix_assignment_test.cc \
+  mp_matrix_assignment.cc mp_matrix_assignment.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_matrix_assignment_test.cc \
+	  mp_matrix_assignment.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-assignment: $(ASSIGNMENT_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(ASSIGNMENT_TEST)
+
 check-deps:
 	@$(MKOCTFILE) --help >/dev/null 2>&1 || { \
 	  echo "FAIL: mkoctfile command not found: $(MKOCTFILE)" >&2; exit 1; }
@@ -169,4 +185,4 @@ check-deps:
 
 clean:
 	$(RM) $(TARGET) *.o *.lo
-	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13
+	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14

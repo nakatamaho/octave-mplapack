@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M13 pass. M14 is next.
+**Status: under development.** M00 through M14 pass. M15 is next.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -10,7 +10,8 @@ column-major contiguous native payload;
 calling scope. Dense matrix inspection is read-only and preserves stored MPFR
 precision. M12 adds precision-preserving transpose and two-dimensional
 reshape. M13 adds native horizontal and vertical concatenation that returns
-one dense `mp` value.
+one dense `mp` value. M14 adds value-semantic, in-bounds indexed assignment
+with precision-preserving native copies.
 
 ## Goal
 
@@ -160,10 +161,11 @@ M10  Dense matrix inspection
 M11  Dense element-wise arithmetic
 M12  Dense transpose and reshape
 M13  Dense horizontal and vertical concatenation
+M14  Dense indexed assignment with value semantics
 
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M13 are complete. M14 is next. Consult
+M00 through M14 are complete. M15 is next. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

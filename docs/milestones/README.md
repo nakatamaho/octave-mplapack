@@ -19,6 +19,7 @@ documented gate passes.
 | M11 | Dense element-wise arithmetic | Passed |
 | M12 | Dense transpose and reshape | Passed |
 | M13 | Dense horizontal and vertical concatenation | Passed |
+| M14 | Dense indexed assignment with value semantics | Passed |
 | P00 | Packaging design | Planned |
 | P01 | Debian source package | Planned |
 | P02 | Local Debian build | Planned |

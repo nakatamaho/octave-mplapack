@@ -29,6 +29,7 @@
 #include "mp_matrix_arithmetic.h"
 #include "mp_matrix_structure.h"
 #include "mp_matrix_concat.h"
+#include "mp_matrix_assignment.h"
 #include "mp_blas.h"
 #include "mp_lapack.h"
 #include "mp_precision.h"
@@ -1101,6 +1102,260 @@ matrix_linear_subscript_result (const octave_value& value,
   return octave_value ();
 }
 
+struct PreparedAssignmentOperand
+{
+  octave_value payload;
+  octave_mplapack::MpfrAssignmentOperand descriptor;
+};
+
+PreparedAssignmentOperand
+prepare_assignment_rhs (const octave_value& value)
+{
+  PreparedAssignmentOperand prepared;
+
+  if (is_mp_value (value))
+    {
+      prepared.payload = require_mp_payload (value);
+      if (prepared.payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const octave_value kept_payload = prepared.payload;
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                kept_payload).storage ();
+          prepared.descriptor.rows = 1;
+          prepared.descriptor.columns = 1;
+          prepared.descriptor.precision_bits = scalar.precision_bits ();
+          prepared.descriptor.has_mp_precision = true;
+          prepared.descriptor.copy_element
+            = [kept_payload] (
+                octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+                std::size_t, std::size_t)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_scalar_internal::checked_value (
+                    kept_payload).storage ();
+              mpfr_set (destination.mpfr_data (),
+                        source.native_value ().mpfr_data (), MPFR_RNDN);
+            };
+          return prepared;
+        }
+
+      if (prepared.payload.type_id ()
+          == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        {
+          const octave_value kept_payload = prepared.payload;
+          const auto& matrix
+            = octave_mplapack_mpfr_matrix_internal::checked_value (
+                kept_payload).storage ();
+          if (matrix.numel () == 0)
+            error_with_id ("mplapack:mp:DeletionUnsupported",
+                           "empty RHS deletion is not supported");
+          prepared.descriptor.rows = matrix.rows ();
+          prepared.descriptor.columns = matrix.columns ();
+          prepared.descriptor.precision_bits = matrix.precision_bits ();
+          prepared.descriptor.has_mp_precision = true;
+          prepared.descriptor.copy_element
+            = [kept_payload] (
+                octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+                std::size_t row, std::size_t column)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_matrix_internal::checked_value (
+                    kept_payload).storage ();
+              mpfr_set (destination.mpfr_data (),
+                        source.at (row, column).mpfr_data (), MPFR_RNDN);
+            };
+          return prepared;
+        }
+
+      error_with_id ("mplapack:mp:InvalidNativeValue",
+                     "public mp value has an unknown native payload");
+    }
+
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "assignment RHS supports mp and real double values");
+  if (! value.isreal ())
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex assignment is not supported");
+  if (value.issparse ())
+    error_with_id ("mplapack:mp:SparseUnsupported",
+                   "sparse assignment is not supported");
+  if (! value.is_real_scalar () && value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional assignment RHS values are supported");
+  if (! value.is_real_scalar () && value.numel () == 0)
+    error_with_id ("mplapack:mp:DeletionUnsupported",
+                   "empty RHS deletion is not supported");
+
+  if (value.is_real_scalar ())
+    {
+      const double scalar = value.double_value ();
+      prepared.descriptor.rows = 1;
+      prepared.descriptor.columns = 1;
+      prepared.descriptor.copy_element
+        = [scalar] (
+            octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+            std::size_t, std::size_t)
+        {
+          mpfr_set_d (destination.mpfr_data (), scalar, MPFR_RNDN);
+        };
+      return prepared;
+    }
+
+  const Matrix input = value.matrix_value ();
+  prepared.descriptor.rows = checked_size_dimension (input.rows ());
+  prepared.descriptor.columns = checked_size_dimension (input.columns ());
+  prepared.descriptor.copy_element
+    = [input] (octave_mplapack::MpfrMatrixStorage::NativeScalar& destination,
+               std::size_t row, std::size_t column)
+    {
+      mpfr_set_d (destination.mpfr_data (),
+                  input.xelem (static_cast<octave_idx_type> (row),
+                               static_cast<octave_idx_type> (column)),
+                  MPFR_RNDN);
+    };
+  return prepared;
+}
+
+struct PreparedAssignmentLhs
+{
+  octave_value payload;
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrMatrixStorage *matrix = nullptr;
+};
+
+PreparedAssignmentLhs
+prepare_assignment_lhs (const octave_value& value)
+{
+  PreparedAssignmentLhs prepared;
+  prepared.payload = require_mp_payload (value);
+  if (prepared.payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    {
+      prepared.matrix
+        = &octave_mplapack_mpfr_matrix_internal::checked_value (
+            prepared.payload).storage ();
+      return prepared;
+    }
+
+  const auto& scalar
+    = octave_mplapack_mpfr_scalar_internal::checked_value (
+        prepared.payload).storage ();
+  prepared.scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+  mpfr_set (prepared.scalar_matrix->at (0, 0).mpfr_data (),
+            scalar.native_value ().mpfr_data (), MPFR_RNDN);
+  prepared.matrix = &*prepared.scalar_matrix;
+  return prepared;
+}
+
+mpfr_prec_t
+assignment_precision (const octave_mplapack::MpfrMatrixStorage& lhs,
+                      const octave_mplapack::MpfrAssignmentOperand& rhs)
+{
+  mpfr_prec_t result = lhs.precision_bits ();
+  if (rhs.has_mp_precision)
+    result = std::max (result, rhs.precision_bits);
+  return result;
+}
+
+octave_value
+matrix_two_subscript_assignment_result (const octave_value& value,
+                                         const octave_value& row_spec,
+                                         const octave_value& column_spec,
+                                         const octave_value& rhs_value)
+{
+  PreparedAssignmentLhs lhs = prepare_assignment_lhs (value);
+  const auto row_indices
+    = parse_index_vector (row_spec, lhs.matrix->rows (), "row index");
+  const auto column_indices
+    = parse_index_vector (column_spec, lhs.matrix->columns (),
+                          "column index");
+  PreparedAssignmentOperand rhs = prepare_assignment_rhs (rhs_value);
+
+  try
+    {
+      return make_inspection_result (
+        octave_mplapack::mpfr_matrix_assign_two_subscript (
+          *lhs.matrix, row_indices, column_indices, rhs.descriptor,
+          assignment_precision (*lhs.matrix, rhs.descriptor)));
+    }
+  catch (const std::out_of_range& exception)
+    {
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:AssignmentError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+matrix_linear_assignment_result (const octave_value& value,
+                                 const octave_value& index_spec,
+                                 const octave_value& rhs_value)
+{
+  PreparedAssignmentLhs lhs = prepare_assignment_lhs (value);
+  std::vector<std::size_t> indices;
+  if (is_colon_index (index_spec))
+    {
+      indices.resize (lhs.matrix->numel ());
+      for (std::size_t index = 0; index < indices.size (); ++index)
+        indices[index] = index;
+    }
+  else
+    {
+      indices = parse_index_vector (index_spec, lhs.matrix->numel (),
+                                    "linear index");
+      if (indices.size () != 1)
+        error_with_id ("mplapack:mp:LinearAssignmentUnsupported",
+                       "general vector linear assignment is not implemented");
+    }
+
+  PreparedAssignmentOperand rhs = prepare_assignment_rhs (rhs_value);
+  try
+    {
+      return make_inspection_result (octave_mplapack::mpfr_matrix_assign_linear (
+        *lhs.matrix, indices, rhs.descriptor,
+        assignment_precision (*lhs.matrix, rhs.descriptor)));
+    }
+  catch (const std::out_of_range& exception)
+    {
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:AssignmentError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
 Matrix
 matrix_to_double (const octave_value& value)
 {
@@ -1993,6 +2248,20 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 3, command);
       return ovl (matrix_linear_subscript_result (args(1), args(2)));
+    }
+
+  if (command == "matrix_subsasgn")
+    {
+      require_argument_count (args, 5, command);
+      return ovl (matrix_two_subscript_assignment_result (
+        args(1), args(2), args(3), args(4)));
+    }
+
+  if (command == "matrix_linear_subsasgn")
+    {
+      require_argument_count (args, 4, command);
+      return ovl (matrix_linear_assignment_result (
+        args(1), args(2), args(3)));
     }
 
   if (command == "matrix_transpose")

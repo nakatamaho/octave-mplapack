@@ -51,6 +51,10 @@
   arbitrary operand counts, mixed precision, mixed real-double inputs, and
   Octave-compatible supported empty-shape behavior. Concatenation returns one
   immutable native `mp` value and never an array of scalar wrappers.
+- Added in-bounds dense real `mp` indexed assignment with value semantics,
+  precision-preserving deep copies, scalar/row/column/submatrix and colon
+  assignment, and direct binary64 RHS insertion. Matrix growth, deletion,
+  logical assignment, and general vector linear assignment remain deferred.
 - Rectangular solve, matrix assignment, logical indexing, matrix `char`,
   general `cat`, comparisons, powers, and reductions remain
   unimplemented.

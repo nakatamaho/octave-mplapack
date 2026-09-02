@@ -33,5 +33,6 @@ Horizontal and vertical concatenation accept arbitrary argument counts and
 real `mp` scalars/matrices or real dense double scalars/matrices.  Empty-shape
 behavior follows Octave's two-dimensional concatenation rules.  General
 `cat(dim, ...)`, N-D values, complex or sparse operands, and indexed assignment
-remain outside M13.  Matrix concatenation never creates an Octave object array
+remain outside M13; M14 adds limited value-semantic indexed assignment.
+Matrix concatenation never creates an Octave object array
 of scalar `mp` wrappers.

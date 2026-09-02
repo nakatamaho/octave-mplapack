@@ -56,12 +56,8 @@
 %!                       "invalid indexing unexpectedly succeeded"));
 %!   end_try_catch
 %! endfor
-%! try
-%!   A(1, 1) = mp (5);
-%!   error ("indexed assignment unexpectedly succeeded");
-%! catch exception
-%!   assert (strcmp (exception.identifier, "mplapack:mp:Immutable"));
-%! end_try_catch
+%! A(1, 1) = mp ("5");
+%! assert (char (A(1, 1)), "5e+0");
 
 %!test
 %! saved = mpbits ();

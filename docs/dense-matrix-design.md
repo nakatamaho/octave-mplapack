@@ -201,10 +201,19 @@ scope, or read or mutate either precision default. Inputs remain immutable and
 the result owns independent storage. Public bracket syntax therefore returns
 one `mp` value rather than an array of scalar wrapper objects.
 
+## M14 indexed assignment
+
+M14 keeps public matrix values immutable while adding limited in-bounds
+parenthesis assignment. `subsasgn` validates indices and RHS shape, determines
+`p_assign`, deep-copies the entire lhs into uniformly `p_assign` storage, and
+updates only the selected positions. An aliased lhs and an RHS derived from
+that lhs therefore remain safe. Matrix growth, deletion, logical assignment,
+and general vector linear assignment are rejected.
+
 ## Non-goals
 
-Matrix assignment, logical indexing, general vector linear indexing, matrix
-`char`, comparisons, powers, reductions, and complex storage
-remain deferred. M08 adds `mtimes`/`Rgemm`, M09 adds square `mldivide`/`Rgesv`,
-M10 adds read-only matrix inspection, M12 adds transpose and reshape, and M13
-adds horizontal/vertical concatenation.
+Logical indexing, general vector linear indexing, matrix `char`, comparisons,
+powers, reductions, and complex storage remain deferred. M08 adds
+`mtimes`/`Rgemm`, M09 adds square `mldivide`/`Rgesv`, M10 adds read-only matrix
+inspection, M12 adds transpose and reshape, M13 adds horizontal/vertical
+concatenation, and M14 adds value-semantic indexed assignment.

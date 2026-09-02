@@ -134,6 +134,13 @@ precise destination, preserving the represented lower-precision value without
 reconstructing lost information. Concatenation does not use the current
 default, MPFR TLS default, or a precision scope.
 
+M14 applies the invariant to indexed assignment. For an `mp` lhs and `mp` RHS,
+the copied result precision is the maximum of their stored precisions; a
+builtin double RHS leaves lhs precision unchanged. Assignment never narrows a
+matrix, and a higher-precision RHS widens the complete uniformly precise copy.
+Values are transferred directly with MPFR operations, without text or double
+round trips. The current project/default precision is not used.
+
 ## Explicit scalar conversion
 
 `char(x)` formats the immutable value using `x`'s stored precision.  The

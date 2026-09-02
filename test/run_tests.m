@@ -30,3 +30,5 @@ assert (test (fullfile (test_dir, "structure.tst"), "quiet", stdout));
 fprintf ("PASS: M12 dense transpose and reshape tests\n");
 assert (test (fullfile (test_dir, "concat.tst"), "quiet", stdout));
 fprintf ("PASS: M13 dense concatenation tests\n");
+assert (test (fullfile (test_dir, "assignment.tst"), "quiet", stdout));
+fprintf ("PASS: M14 dense indexed assignment tests\n");

@@ -196,3 +196,9 @@ empty operands). Values are copied directly from MPFR storage, while real
 double inputs retain their incoming binary64 semantics. Concatenation performs
 no arithmetic, broadcasting, MPLAPACK call, precision-scope entry, or default
 precision mutation, and never creates an Octave object array of `mp` wrappers.
+
+M14 adds in-bounds parenthesis assignment with value semantics. The bridge
+validates the complete assignment before allocating a uniformly precise deep
+copy of the lhs, then applies the selected updates to that copy. Higher-
+precision `mp` RHS values widen the complete result; builtin double RHS values
+retain lhs precision. No MPLAPACK routine or MPFR precision scope is used.

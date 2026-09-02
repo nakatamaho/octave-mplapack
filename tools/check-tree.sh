@@ -85,6 +85,8 @@ src/mp_matrix_structure.cc
 src/mp_matrix_structure.h
 src/mp_matrix_concat.cc
 src/mp_matrix_concat.h
+src/mp_matrix_assignment.cc
+src/mp_matrix_assignment.h
 src/octave_bridge.cc
 test/run_tests.m
 test/build_probe.tst
@@ -112,6 +114,8 @@ test/structure.tst
 test/mp_matrix_structure_test.cc
 test/concat.tst
 test/mp_matrix_concat_test.cc
+test/assignment.tst
+test/mp_matrix_assignment_test.cc
 tools/check-format.sh
 tools/check-tree.sh
 tools/local-ci.sh
@@ -144,6 +148,8 @@ docs/milestones/M10-first-functional-baseline.md
 docs/milestones/M11-elementwise-arithmetic.md
 docs/milestones/M12-transpose-reshape.md
 docs/milestones/M13-concatenation.md
+docs/matrix-assignment.md
+docs/milestones/M14-indexed-assignment.md
 docs/milestones/P00-packaging-design.md
 docs/milestones/P01-debian-source-package.md
 docs/milestones/P02-local-deb-build.md
@@ -202,4 +208,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00-M13 tree checks"
+echo "PASS: M00-M14 tree checks"
