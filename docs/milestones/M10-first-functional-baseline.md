@@ -1,8 +1,8 @@
-# M10 — First functional baseline
+# M10 — Dense matrix inspection
 
 # Goal
 
-Make the first complete source-install workflow succeed:
+Make dense `mp` results inspectable through normal read-only Octave syntax:
 
 ```octave
 pkg install .
@@ -17,17 +17,19 @@ C = A * B;
 b = mp({"1"; "2"});
 x = A \ b;
 
-disp(C);
-disp(x);
+A(2, 1);
+double(A);
+disp(A);
 ```
 
 # Scope
 
-Integrate M01-M09 into a cleanly installable and testable package candidate for
-`octave-mplapack 0.1.0`.
+Add precision-preserving read-only indexing, `end`, matrix `double`, and
+matrix `disp` to the M09 package while preserving the native dense payload.
 
 # Non-goals
 
+- Matrix assignment or logical indexing
 - SVD or eigenvalue routines
 - Complex arithmetic or non-MPFR backends
 - Debian packages or PPA publication
@@ -40,24 +42,24 @@ multiprecision operations. Keep the first baseline intentionally narrow.
 
 # Implementation tasks
 
-- Integrate the private native module into Octave package install/load.
-- Provide clear dependency diagnostics and reproducible rebuild behavior.
-- Run the full constructor, precision, conversion, arithmetic, GEMM, and GESV
-  suites from clean source.
-- Document the supported 0.1.0 behavior and known limits.
+- Implement native index selection and deep-copy slices.
+- Add `end`, precision-preserving matrix `double`, and canonical matrix display.
+- Run the full M00-M09 regression suite and installed-package QA.
+- Document supported inspection operations and known limits.
 
 # Required tests
 
-Verify clean package installation, loading, the complete workflow above,
-automated QA, a clean rebuild, dependency diagnostics, backend linkage,
-precision semantics, and absence of generated artifacts afterward.
+Verify element, slice, linear, repeated, reordered, empty, and `end` indexing;
+invalid-index errors; source-precision preservation; matrix double/display;
+sanitizers; clean package installation; lifecycle behavior; and all M00-M09
+regressions.
 
 # Gate
 
-`G10` passes when the complete workflow and all required properties succeed
-from a clean source tree. It establishes the first 0.1.0 candidate. This gate
-is planned and is not passed by M00.
+`G10` passes when all read-only inspection gates and M00-M09 regressions pass
+from a clean source tree and installed package. Matrix assignment remains
+unsupported.
 
 # Expected commit
 
-`M10: establish first functional baseline`
+`M10: add dense matrix inspection`

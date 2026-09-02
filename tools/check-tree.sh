@@ -51,6 +51,7 @@ inst/@mp/ndims.m
 inst/@mp/isempty.m
 inst/@mp/subsref.m
 inst/@mp/subsasgn.m
+inst/@mp/end.m
 inst/@mp/mtimes.m
 inst/@mp/mldivide.m
 inst/@mp/mrdivide.m
@@ -75,6 +76,8 @@ src/mp_matrix_value.cc
 src/mp_blas.cc
 src/mp_lapack.cc
 src/mp_lapack.h
+src/mp_matrix_inspection.cc
+src/mp_matrix_inspection.h
 src/octave_bridge.cc
 test/run_tests.m
 test/build_probe.tst
@@ -94,6 +97,8 @@ test/gemm.tst
 test/gesv.tst
 test/mp_lapack_probe.cc
 test/mp_lapack_test.cc
+test/matrix_inspection.tst
+test/mp_matrix_inspection_test.cc
 tools/check-format.sh
 tools/check-tree.sh
 tools/local-ci.sh
@@ -105,6 +110,7 @@ docs/conversion-display.md
 docs/scalar-arithmetic.md
 docs/dense-matrix-design.md
 docs/linear-solve.md
+docs/matrix-inspection.md
 docs/precision-semantics.md
 docs/packaging.md
 docs/milestones/README.md
@@ -177,4 +183,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00-M09 tree checks"
+echo "PASS: M00-M10 tree checks"

@@ -22,6 +22,7 @@
 
 #include "mp_value.h"
 #include "mp_matrix_value.h"
+#include "mp_matrix_inspection.h"
 #include "mp_blas.h"
 #include "mp_lapack.h"
 #include "mp_precision.h"
@@ -523,6 +524,181 @@ require_matrix_index (const octave_value& value)
     error_with_id ("mplapack:InvalidArguments",
                    "matrix test index must be a positive integer");
   return static_cast<std::size_t> (supplied - 1.0);
+}
+
+bool
+is_colon_index (const octave_value& value)
+{
+  if (! value.is_string ())
+    return false;
+
+  try
+    {
+      return value.string_value () == ":";
+    }
+  catch (...)
+    {
+      return false;
+    }
+}
+
+std::vector<std::size_t>
+parse_index_vector (const octave_value& value, std::size_t limit,
+                   const char *description)
+{
+  if (is_colon_index (value))
+    {
+      std::vector<std::size_t> result (limit);
+      for (std::size_t index = 0; index < limit; ++index)
+        result[index] = index;
+      return result;
+    }
+
+  if (! value.isnumeric () || value.islogical () || ! value.isreal ()
+      || value.ndims () != 2)
+    error_with_id ("mplapack:mp:InvalidIndex",
+                   "%s must be a real integer scalar or vector",
+                   description);
+
+  const octave_idx_type rows = value.rows ();
+  const octave_idx_type columns = value.columns ();
+  if (rows != 1 && columns != 1 && value.numel () != 0)
+    error_with_id ("mplapack:mp:InvalidIndex",
+                   "%s must be a real integer scalar or vector",
+                   description);
+
+  const NDArray indices = value.array_value ();
+  std::vector<std::size_t> result;
+  result.reserve (static_cast<std::size_t> (indices.numel ()));
+  for (octave_idx_type index = 0; index < indices.numel (); ++index)
+    {
+      const double supplied = indices(index);
+      if (! std::isfinite (supplied) || std::trunc (supplied) != supplied
+          || supplied < 1.0)
+        error_with_id ("mplapack:mp:InvalidIndex",
+                       "%s must contain positive integer indices",
+                       description);
+
+      const long double wide = static_cast<long double> (supplied);
+      if (wide > static_cast<long double> (std::numeric_limits<std::size_t>::max ()))
+        error_with_id ("mplapack:mp:InvalidIndex",
+                       "%s index is too large", description);
+
+      const std::size_t zero_based = static_cast<std::size_t> (supplied - 1.0);
+      if (zero_based >= limit)
+        error_with_id ("mplapack:mp:IndexOutOfBounds",
+                       "%s index is out of bounds", description);
+      result.push_back (zero_based);
+    }
+  return result;
+}
+
+octave_idx_type
+checked_octave_dimension_for_inspection (std::size_t value)
+{
+  if (value > static_cast<std::size_t> (
+        std::numeric_limits<octave_idx_type>::max ()))
+    error_with_id ("mplapack:mp:DimensionOverflow",
+                   "matrix dimension exceeds octave_idx_type");
+  return static_cast<octave_idx_type> (value);
+}
+
+octave_value
+make_inspection_result (octave_mplapack::MpfrMatrixStorage storage)
+{
+  if (storage.rows () == 1 && storage.columns () == 1)
+    {
+      octave_mplapack::MpfrScalarStorage scalar (
+        std::move (storage.at (0, 0)));
+      return make_internal_scalar (std::move (scalar));
+    }
+  return make_internal_matrix (std::move (storage));
+}
+
+octave_value
+matrix_subscript_result (const octave_value& value,
+                         const octave_value& row_spec,
+                         const octave_value& column_spec)
+{
+  const auto& source
+    = octave_mplapack_mpfr_matrix_internal::checked_value (
+        require_matrix_payload (value)).storage ();
+  const auto row_indices
+    = parse_index_vector (row_spec, source.rows (), "row index");
+  const auto column_indices
+    = parse_index_vector (column_spec, source.columns (), "column index");
+
+  try
+    {
+      return make_inspection_result (octave_mplapack::select_matrix (
+        source, row_indices, column_indices));
+    }
+  catch (const std::out_of_range& exception)
+    {
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+matrix_linear_subscript_result (const octave_value& value,
+                                const octave_value& index_spec)
+{
+  const auto& source
+    = octave_mplapack_mpfr_matrix_internal::checked_value (
+        require_matrix_payload (value)).storage ();
+  if (is_colon_index (index_spec))
+    {
+      std::vector<std::size_t> all (source.numel ());
+      for (std::size_t index = 0; index < source.numel (); ++index)
+        all[index] = index;
+      return make_inspection_result (
+        octave_mplapack::select_linear (source, all));
+    }
+
+  const auto indices = parse_index_vector (index_spec, source.numel (),
+                                           "linear index");
+  if (indices.size () != 1)
+    error_with_id ("mplapack:mp:LinearIndexUnsupported",
+                   "general vector linear indexing is not implemented");
+
+  try
+    {
+      return make_inspection_result (octave_mplapack::select_linear (
+        source, indices));
+    }
+  catch (const std::out_of_range& exception)
+    {
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+Matrix
+matrix_to_double (const octave_value& value)
+{
+  const auto& source
+    = octave_mplapack_mpfr_matrix_internal::checked_value (
+        require_matrix_payload (value)).storage ();
+  Matrix result (checked_octave_dimension_for_inspection (source.rows ()),
+                 checked_octave_dimension_for_inspection (source.columns ()));
+  for (std::size_t column = 0; column < source.columns (); ++column)
+    for (std::size_t row = 0; row < source.rows (); ++row)
+      result.xelem (static_cast<octave_idx_type> (row),
+                    static_cast<octave_idx_type> (column))
+        = mpfr_get_d (source.at (row, column).mpfr_data (), MPFR_RNDN);
+  return result;
+}
+
+std::string
+matrix_display_text (const octave_value& value)
+{
+  const auto& source
+    = octave_mplapack_mpfr_matrix_internal::checked_value (
+        require_matrix_payload (value)).storage ();
+  return octave_mplapack::format_matrix (source);
 }
 
 octave_scalar_map
@@ -1198,6 +1374,38 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 2, command);
       return ovl (is_matrix_payload (args(1)));
+    }
+
+  if (command == "matrix_subscript")
+    {
+      require_argument_count (args, 4, command);
+      return ovl (matrix_subscript_result (args(1), args(2), args(3)));
+    }
+
+  if (command == "matrix_linear_subscript")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (matrix_linear_subscript_result (args(1), args(2)));
+    }
+
+  if (command == "matrix_to_double")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (matrix_to_double (args(1)));
+    }
+
+  if (command == "matrix_display_text")
+    {
+      require_argument_count (args, 2, command);
+      try
+        {
+          return ovl (matrix_display_text (args(1)));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:DisplayError", "%s",
+                         exception.what ());
+        }
     }
 
   if (command == "matrix_test_info")

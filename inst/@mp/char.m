@@ -17,7 +17,7 @@ function text = char (value)
   endif
   if (__mplapack_core__ ("value_is_matrix", value))
     error ("mplapack:mp:MatrixConversionUnsupported", ...
-           "char conversion for dense mp matrices is not implemented in M07");
+           "char conversion for dense mp matrices is not implemented in M10");
   endif
 
   text = __mplapack_core__ ("scalar_to_canonical_text", value);

@@ -15,8 +15,9 @@ classdef mp
   ## numeric or text-cell input normalizes to the canonical scalar payload.
   ## Dense matrix multiplication uses MPLAPACK MPFR @code{Rgemm} under a
   ## uniform operation-precision scope.  M09 adds square matrix left division
-  ## through MPLAPACK MPFR Rgesv. Matrix indexing, element-wise matrix
-  ## arithmetic, matrix conversion, and transpose remain deferred. Complex,
+  ## through MPLAPACK MPFR Rgesv. M10 adds read-only matrix indexing,
+  ## `double`, and `disp`. Matrix assignment, element-wise matrix arithmetic,
+  ## matrix `char`, and transpose remain deferred. Complex,
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
   ## @end deftypefn
 

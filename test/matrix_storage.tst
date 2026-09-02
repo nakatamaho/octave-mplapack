@@ -134,7 +134,8 @@
 %! assert (numel (A), 6);
 %! assert (ndims (A), 2);
 %! assert (! isempty (A));
-%! assert (strcmp (strtrim (evalc ("disp (A)")), "mp 2x3 matrix"));
+%! assert (strtrim (evalc ("disp (A)")), ...
+%!         "[1.1e+1 1.2e+1 1.3e+1\n 2.1e+1 2.2e+1 2.3e+1]");
 %! assert (isempty (strfind (evalc ("disp (A)"), "payload_")));
 %! assert (isempty (strfind (evalc ("disp (A)"),
 %!                                 "mplapack_mpfr_matrix_internal")));
@@ -164,26 +165,6 @@
 %! unwind_protect_cleanup
 %!   mpbits (saved);
 %! end_unwind_protect
-
-%!test
-%! A = mp ({"1", "2"; "3", "4"});
-%! index_operations = {@() A(1, 1), @() A(1), @() A(:, 1)};
-%! for index = 1:numel (index_operations)
-%!   try
-%!     index_operations{index} ();
-%!     error ("M07 indexing unexpectedly succeeded");
-%!   catch exception
-%!     assert (strcmp (exception.identifier,
-%!                     "mplapack:mp:IndexingUnsupported"));
-%!   end_try_catch
-%! endfor
-%! try
-%!   A(1, 1) = mp ("5");
-%!   error ("M07 indexed assignment unexpectedly succeeded");
-%! catch exception
-%!   assert (strcmp (exception.identifier,
-%!                   "mplapack:mp:IndexingUnsupported"));
-%! end_try_catch
 
 %!test
 %! scalar_a = mp ("1");
@@ -216,8 +197,6 @@
 %!   end_try_catch
 %! endfor
 
-%!error <char conversion for dense mp matrices> char (mp ([1, 2]))
-%!error <double conversion for dense mp matrices> double (mp ([1, 2]))
 %!error <complex mp matrices are not supported> mp ([1 + 2i, 3])
 %!error <only two-dimensional mp matrices> mp (ones (2, 2, 2))
 %!error <only two-dimensional mp matrices> mp (reshape (cellstr (["1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"]), 2, 2, 2))

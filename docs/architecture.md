@@ -166,3 +166,12 @@ operation-owned copies to that uniform precision, enters
 contract, and invokes `Rgemm` directly.  The project default is restored after
 the operation.  Matrix/scalar scaling remains native MPFR; matrix
 element-wise arithmetic, indexing, and conversion remain deferred.
+
+M09 adds square `mldivide` through `Rgesv`; destructive factorization always
+uses operation-owned copies of the immutable public operands. M10 adds
+read-only dense inspection. Native indexing selects and deep-copies MPFR
+elements in column-major order, preserving the source matrix precision.
+`double(A)` calls `mpfr_get_d` for each element and `disp(A)` reuses the
+canonical scalar formatter. These operations do not consult or mutate the
+current precision default; matrix assignment and matrix `char` remain
+deferred.

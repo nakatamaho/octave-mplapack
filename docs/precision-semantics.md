@@ -105,6 +105,12 @@ M07 applies the same invariant to matrices.  One matrix has one immutable
 precision, every element is explicitly initialized at that precision, and
 later default changes do not alter matrix metadata or element values.
 
+M10 applies the same invariant to read-only indexing and conversion. Matrix
+elements and slices are copied at the source matrix precision, while
+`double(A)` is an explicit MPFR-to-binary64 conversion and `disp(A)` uses the
+source values directly. Neither operation uses the current default to choose
+an extracted precision or display precision.
+
 ## Explicit scalar conversion
 
 `char(x)` formats the immutable value using `x`'s stored precision.  The
