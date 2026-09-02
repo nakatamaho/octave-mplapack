@@ -70,7 +70,7 @@ checked_workspace_length (const mpfrxx::mpfr_class& query)
       mpz_clear (value);
       mpz_clear (max_mplapack);
       mpz_clear (max_size);
-      throw std::overflow_error ("MPLAPACK Rgels workspace exceeds allocation limits");
+      throw std::overflow_error ("MPLAPACK workspace exceeds allocation limits");
     }
   const auto result
     = static_cast<octave_mplapack::MpfrMatrixStorage::MplapackInteger> (
