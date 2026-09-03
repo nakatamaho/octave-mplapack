@@ -4,11 +4,11 @@ REAL_V0_1_RC_COMMIT: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
 
 COMPLEX_START_COMMIT: `4aed479ef9cb8dff24f0326e1c2ec2a7c1ed83a3`
 
-Current milestone: C05
+Current milestone: C06
 
-Last PASS milestone: C04
+Last PASS milestone: C05
 
-octave-mplapack branch/tip: `topic/complex-c00-c12` / `0562e2713dcd6a91cd040aee622b6339dc472c46`
+octave-mplapack branch/tip: `topic/complex-c00-c12` / `6a485b0825d5b550b30f17c0b875e8e85ef59971`
 
 MPLAPACK tested commit: `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` (`topic/octave-mplapack-complex-mpfr-scope`)
 
@@ -21,12 +21,14 @@ Upstream fixes:
 
 Blockers: none.
 
-Full regression status: C04 PASS. C00 storage/scope/TLS/lifetime/special
+Full regression status: C05 PASS. C00 storage/scope/TLS/lifetime/special
 value probe PASS at 128, 256, 512, 1024, and 2048 bits under ASan/UBSan/LSan;
 C01 scalar construction/conversion, C02 dense complex construction,
-inspection/indexing/assignment, C03 real/imag/conj/transpose/ctranspose, and
-C04 complex element-wise arithmetic tests PASS; full M00-M23 real native and
-public regression wall PASS.
+inspection/indexing/assignment, C03 real/imag/conj/transpose/ctranspose, C04
+complex element-wise arithmetic, and C05 complex Cgemm tests PASS; C05 native
+and public walls include the complete M00-M23 real regression wall. C05
+exercised 1024/2^-700 and 2048/2^-1500 real and imaginary tails, ambient
+precision, input immutability, and output lifetime.
 
 Release policy: MPLAPACK 3.0.1 remains a planned dependency version. No
 release commit, archive, or final tags are frozen in C00-C12.
