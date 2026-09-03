@@ -64,3 +64,5 @@ assert (test (fullfile (test_dir, "complex_cholesky.tst"), "quiet", stdout));
 fprintf ("PASS: C08 complex Cholesky tests\n");
 assert (test (fullfile (test_dir, "complex_qr.tst"), "quiet", stdout));
 fprintf ("PASS: C09 complex QR tests\n");
+assert (test (fullfile (test_dir, "complex_pivoted_qr.tst"), "quiet", stdout));
+fprintf ("PASS: C10 complex pivoted QR tests\n");

@@ -4,8 +4,10 @@
 #define OCTAVE_MPLAPACK_MP_COMPLEX_QR_H
 
 #include <stdexcept>
+#include <vector>
 
 #include "mp_complex_matrix_storage.h"
+#include "mp_matrix_storage.h"
 
 namespace octave_mplapack
 {
@@ -40,14 +42,31 @@ struct MpcQrResult
   MpfrComplexMatrixStorage r;
 };
 
+struct MpcPivotedQrResult
+{
+  MpfrComplexMatrixStorage q;
+  MpfrComplexMatrixStorage r;
+  std::vector<MpfrComplexMatrixStorage::MplapackInteger> permutation;
+};
+
 void require_mplapack_mpc_qr_precision_contract (
   mpfr_prec_t operation_precision,
   const MpfrComplexMatrixStorage& a_work,
   const MpfrComplexMatrixStorage& tau,
   const MpfrComplexMatrixStorage& work);
 
+void require_mplapack_mpc_pivoted_qr_precision_contract (
+  mpfr_prec_t operation_precision,
+  const MpfrComplexMatrixStorage& a_work,
+  const MpfrComplexMatrixStorage& tau,
+  const MpfrComplexMatrixStorage& work,
+  const MpfrMatrixStorage& rwork);
+
 MpcQrResult mplapack_mpc_matrix_qr (const MpfrComplexMatrixStorage& input,
                                     bool economy, bool want_q);
+
+MpcPivotedQrResult mplapack_mpc_matrix_pivoted_qr (
+  const MpfrComplexMatrixStorage& input, bool economy, bool want_q);
 
 } // namespace octave_mplapack
 

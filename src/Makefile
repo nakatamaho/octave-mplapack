@@ -56,7 +56,8 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
   check-concat check-assignment check-rgels check-rank check-cholesky check-qr \
   check-pivoted-qr check-lu check-complex-storage check-complex-structure \
   check-complex-arithmetic check-complex-blas check-complex-lapack \
-  check-complex-rank check-complex-cholesky check-complex-qr clean
+  check-complex-rank check-complex-cholesky check-complex-qr \
+  check-complex-pivoted-qr clean
 .DELETE_ON_ERROR:
 
 all: $(TARGET)
@@ -418,6 +419,25 @@ check-complex-qr: $(CPLX_QR_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_QR_TEST)
 
+CPLX_PIVOTED_QR_TEST = .build-c10/mp_complex_pivoted_qr_test
+
+$(CPLX_PIVOTED_QR_TEST): ../test/mp_complex_pivoted_qr_test.cc \
+  mp_complex_qr.cc mp_complex_qr.h mp_complex_blas.cc mp_complex_blas.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_pivoted_qr_test.cc \
+	  mp_complex_qr.cc mp_complex_blas.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc mp_matrix_storage.cc \
+	  mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-complex-pivoted-qr: $(CPLX_PIVOTED_QR_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_PIVOTED_QR_TEST)
+
 check-deps:
 	@$(MKOCTFILE) --help >/dev/null 2>&1 || { \
 	  echo "FAIL: mkoctfile command not found: $(MKOCTFILE)" >&2; exit 1; }
@@ -436,4 +456,4 @@ check-deps:
 
 clean:
 	$(RM) $(TARGET) *.o *.lo
-	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21 .build-m22 .build-c00 .build-c06 .build-c07 .build-c08 .build-c09
+	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21 .build-m22 .build-c00 .build-c06 .build-c07 .build-c08 .build-c09 .build-c10

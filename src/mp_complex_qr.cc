@@ -230,4 +230,115 @@ mplapack_mpc_matrix_qr (const MpfrComplexMatrixStorage& input, bool economy,
     std::move (a_fact), std::move (tau), economy, want_q);
 }
 
+void
+require_mplapack_mpc_pivoted_qr_precision_contract (
+  mpfr_prec_t operation_precision,
+  const MpfrComplexMatrixStorage& a_work,
+  const MpfrComplexMatrixStorage& tau,
+  const MpfrComplexMatrixStorage& work,
+  const MpfrMatrixStorage& rwork)
+{
+  require_mplapack_mpc_qr_precision_contract (
+    operation_precision, a_work, tau, work);
+  if (rwork.precision_bits () != operation_precision
+      || ! rwork.all_elements_have_uniform_precision ())
+    throw std::runtime_error (
+      "MPLAPACK complex precision contract mismatch at Cgeqp3 real workspace boundary");
+}
+
+MpcPivotedQrResult
+mplapack_mpc_matrix_pivoted_qr (const MpfrComplexMatrixStorage& input,
+                                bool economy, bool want_q)
+{
+  const mpfr_prec_t operation_precision = input.precision_bits ();
+  if (operation_precision < MPFR_PREC_MIN
+      || operation_precision > MPFR_PREC_MAX)
+    throw std::invalid_argument (
+      "complex pivoted QR precision is outside the MPFR range");
+  const std::size_t m = input.rows ();
+  const std::size_t n = input.columns ();
+  const std::size_t k = std::min (m, n);
+  const bool tall_economy = economy && m > n;
+  const std::size_t q_columns = tall_economy ? n : m;
+  const std::size_t r_rows = tall_economy ? n : m;
+  std::vector<MpfrComplexMatrixStorage::MplapackInteger> permutation (n);
+  for (std::size_t column = 0; column < n; ++column)
+    permutation[column]
+      = static_cast<MpfrComplexMatrixStorage::MplapackInteger> (column + 1);
+
+  if (m == 0 || n == 0)
+    return {MpfrComplexMatrixStorage (m, q_columns, operation_precision),
+            MpfrComplexMatrixStorage (r_rows, n, operation_precision),
+            std::move (permutation)};
+
+  const auto m_arg = MpfrComplexMatrixStorage::checked_mplapack_dimension (m);
+  const auto n_arg = MpfrComplexMatrixStorage::checked_mplapack_dimension (n);
+  MpfrComplexMatrixStorage query_a
+    = mplapack_mpc_matrix_copy_at_precision (input, operation_precision);
+  MpfrComplexMatrixStorage query_tau (k, 1, operation_precision);
+  MpfrComplexMatrixStorage query_work (1, 1, operation_precision);
+  MpfrMatrixStorage query_rwork (2, n, operation_precision);
+  std::vector<MpfrComplexMatrixStorage::MplapackInteger> query_jpvt (n, 0);
+  MpfrComplexMatrixStorage::MplapackInteger query_info = 0;
+  {
+    MpfrMpcPrecisionScope scope (operation_precision);
+    require_mplapack_mpc_pivoted_qr_precision_contract (
+      operation_precision, query_a, query_tau, query_work, query_rwork);
+    Cgeqp3 (m_arg, n_arg, query_a.data (), query_a.leading_dimension (),
+            query_jpvt.data (), query_tau.data (), query_work.data (), -1,
+            query_rwork.data (), query_info);
+    require_mplapack_mpc_pivoted_qr_precision_contract (
+      operation_precision, query_a, query_tau, query_work, query_rwork);
+  }
+  if (query_info != 0)
+    throw MpcQrError (MpcQrError::Kind::invalid_argument, query_info,
+                      "MPLAPACK Cgeqp3 rejected a workspace query argument");
+  const auto cgeqp3_lwork
+    = checked_workspace_length (query_work.at (0, 0), "Cgeqp3");
+
+  MpfrComplexMatrixStorage a_fact
+    = mplapack_mpc_matrix_copy_at_precision (input, operation_precision);
+  MpfrComplexMatrixStorage tau (k, 1, operation_precision);
+  MpfrComplexMatrixStorage cgeqp3_work (
+    static_cast<std::size_t> (cgeqp3_lwork), 1, operation_precision);
+  MpfrMatrixStorage cgeqp3_rwork (2, n, operation_precision);
+  std::fill (permutation.begin (), permutation.end (), 0);
+  MpfrComplexMatrixStorage::MplapackInteger info = 0;
+  {
+    MpfrMpcPrecisionScope scope (operation_precision);
+    require_mplapack_mpc_pivoted_qr_precision_contract (
+      operation_precision, a_fact, tau, cgeqp3_work, cgeqp3_rwork);
+    Cgeqp3 (m_arg, n_arg, a_fact.data (), a_fact.leading_dimension (),
+            permutation.data (), tau.data (), cgeqp3_work.data (),
+            cgeqp3_lwork, cgeqp3_rwork.data (), info);
+    require_mplapack_mpc_pivoted_qr_precision_contract (
+      operation_precision, a_fact, tau, cgeqp3_work, cgeqp3_rwork);
+  }
+  if (info < 0)
+    throw MpcQrError (MpcQrError::Kind::invalid_argument, info,
+                      "MPLAPACK Cgeqp3 rejected an argument");
+  if (info > 0)
+    throw MpcQrError (MpcQrError::Kind::internal, info,
+                      "MPLAPACK Cgeqp3 failed");
+
+  std::vector<bool> seen (n, false);
+  for (std::size_t column = 0; column < n; ++column)
+    {
+      const auto pivot = permutation[column];
+      if (pivot < 1 || pivot > n_arg)
+        throw MpcQrError (MpcQrError::Kind::internal, 0,
+                          "MPLAPACK Cgeqp3 returned an invalid permutation");
+      const std::size_t source = static_cast<std::size_t> (pivot - 1);
+      if (seen[source])
+        throw MpcQrError (MpcQrError::Kind::internal, 0,
+                          "MPLAPACK Cgeqp3 returned duplicate pivots");
+      seen[source] = true;
+    }
+
+  const auto result = make_qr_result_from_factorization (
+    std::move (a_fact), std::move (tau), economy, want_q);
+  return {std::move (result.q), std::move (result.r),
+          std::move (permutation)};
+}
+
 } // namespace octave_mplapack
