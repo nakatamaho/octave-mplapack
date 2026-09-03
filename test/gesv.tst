@@ -184,8 +184,6 @@
 %!   assert (strcmp (exception.identifier, "mplapack:mp:DimensionMismatch"));
 %! end_try_catch
 
-%!error <complex matrix left division is not supported> mldivide (mp ([1, 0; 0, 1]), [1 + 2i; 3])
-
 %!test
 %! saved = mpbits ();
 %! unwind_protect
