@@ -31,6 +31,7 @@
 #include "mp_matrix_inspection.h"
 #include "mp_matrix_arithmetic.h"
 #include "mp_matrix_structure.h"
+#include "mp_complex_structure.h"
 #include "mp_matrix_concat.h"
 #include "mp_matrix_assignment.h"
 #include "mp_blas.h"
@@ -1072,9 +1073,100 @@ resolve_reshape_dimensions (const octave_value& value,
 }
 
 octave_value
+complex_real_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_scalar (octave_mplapack::mpfr_complex_scalar_real (
+      octave_mplapack_mpc_scalar_internal::checked_value (payload).storage ()));
+
+  try
+    {
+      return make_inspection_result (octave_mplapack::mpfr_complex_matrix_real (
+        octave_mplapack_mpc_matrix_internal::checked_value (payload)
+          .storage ()));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+complex_imag_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_scalar (octave_mplapack::mpfr_complex_scalar_imag (
+      octave_mplapack_mpc_scalar_internal::checked_value (payload).storage ()));
+
+  try
+    {
+      return make_inspection_result (octave_mplapack::mpfr_complex_matrix_imag (
+        octave_mplapack_mpc_matrix_internal::checked_value (payload)
+          .storage ()));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+complex_conj_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_complex_scalar (
+      octave_mplapack::mpfr_complex_scalar_conj (
+        octave_mplapack_mpc_scalar_internal::checked_value (payload)
+          .storage ()));
+
+  try
+    {
+      return make_complex_inspection_result (
+        octave_mplapack::mpfr_complex_matrix_conj (
+          octave_mplapack_mpc_matrix_internal::checked_value (payload)
+            .storage ()));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
 matrix_transpose_result (const octave_value& value)
 {
   const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_complex_scalar (
+      octave_mplapack::mpfr_complex_scalar_transpose (
+        octave_mplapack_mpc_scalar_internal::checked_value (payload)
+          .storage ()));
+  if (payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    {
+      try
+        {
+          return make_complex_inspection_result (
+            octave_mplapack::mpfr_complex_matrix_transpose (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ()));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:StructureError", "%s",
+                         exception.what ());
+        }
+    }
   if (payload.type_id ()
       == octave_mplapack_mpfr_scalar_internal::static_type_id ())
     {
@@ -1097,6 +1189,35 @@ matrix_transpose_result (const octave_value& value)
       error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
     }
   return octave_value ();
+}
+
+octave_value
+matrix_ctranspose_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_complex_scalar (
+      octave_mplapack::mpfr_complex_scalar_ctranspose (
+        octave_mplapack_mpc_scalar_internal::checked_value (payload)
+          .storage ()));
+  if (payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    {
+      try
+        {
+          return make_complex_inspection_result (
+            octave_mplapack::mpfr_complex_matrix_ctranspose (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ()));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:StructureError", "%s",
+                         exception.what ());
+        }
+    }
+  return matrix_transpose_result (value);
 }
 
 octave_value
@@ -3157,6 +3278,47 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       return ovl (! is_complex_payload (args(1)));
     }
 
+  if (command == "value_real")
+    {
+      require_argument_count (args, 2, command);
+      if (is_complex_payload (args(1)))
+        return ovl (complex_real_result (args(1)));
+      return ovl (require_mp_payload (args(1)));
+    }
+
+  if (command == "value_imag")
+    {
+      require_argument_count (args, 2, command);
+      if (is_complex_payload (args(1)))
+        return ovl (complex_imag_result (args(1)));
+
+      const octave_value payload = require_mp_payload (args(1));
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& source
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          return ovl (make_internal_scalar (
+            0.0, source.precision_bits ()));
+        }
+
+      const auto& source
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      return ovl (make_internal_matrix (
+        octave_mplapack::MpfrMatrixStorage (
+          source.rows (), source.columns (), source.precision_bits ())));
+    }
+
+  if (command == "value_conj")
+    {
+      require_argument_count (args, 2, command);
+      if (is_complex_payload (args(1)))
+        return ovl (complex_conj_result (args(1)));
+      return ovl (require_mp_payload (args(1)));
+    }
+
   if (command == "matrix_subscript")
     {
       require_argument_count (args, 4, command);
@@ -3198,6 +3360,12 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 2, command);
       return ovl (matrix_transpose_result (args(1)));
+    }
+
+  if (command == "matrix_ctranspose")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (matrix_ctranspose_result (args(1)));
     }
 
   if (command == "matrix_reshape")

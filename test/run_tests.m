@@ -50,3 +50,5 @@ assert (test (fullfile (test_dir, "complex_scalar.tst"), "quiet", stdout));
 fprintf ("PASS: C01 complex scalar construction and conversion tests\n");
 assert (test (fullfile (test_dir, "complex_matrix.tst"), "quiet", stdout));
 fprintf ("PASS: C02 complex dense matrix tests\n");
+assert (test (fullfile (test_dir, "complex_structural.tst"), "quiet", stdout));
+fprintf ("PASS: C03 complex structural tests\n");
