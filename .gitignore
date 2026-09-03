@@ -10,6 +10,29 @@ src/.build-m06/
 src/.build-m07/
 src/.build-m08/
 src/.build-m22/
+src/.build-c00/
+src/.build-c03/
+src/.build-c04/
+src/.build-c05/
+src/.build-c06/
+src/.build-c07/
+src/.build-c08/
+src/.build-c09/
+src/.build-c10/
+src/.build-c11/
+src/.build-c11l/
+src/.build-m09/
+src/.build-m10/
+src/.build-m11/
+src/.build-m12/
+src/.build-m13/
+src/.build-m14/
+src/.build-m15/
+src/.build-m16/
+src/.build-m17/
+src/.build-m18/
+src/.build-m19/
+src/.build-m21/
 autom4te.cache/
 
 # Package archives

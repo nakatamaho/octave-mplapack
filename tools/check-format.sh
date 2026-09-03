@@ -8,6 +8,7 @@ cd "$repo_root"
 failed=0
 
 for file in $(git ls-files --cached --others --exclude-standard | LC_ALL=C sort); do
+  [ -f "$file" ] || continue
   case "$file" in
     src/.build-*/*)
       continue

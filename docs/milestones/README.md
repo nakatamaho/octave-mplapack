@@ -29,6 +29,20 @@ documented gate passes.
 | M21 | Dense real LU factorization | Passed |
 | M22 | Real API and release closure for v0.1 | Passed |
 | M23 | v0.1.0 feature freeze and release candidate | Passed |
+| C00 | Complex storage and precision scaffold | Passed |
+| C01 | Complex scalar construction | Passed |
+| C02 | Complex dense matrix values | Passed |
+| C03 | Complex structural operations | Passed |
+| C04 | Complex element-wise arithmetic | Passed |
+| C05 | Complex GEMM | Passed |
+| C06 | Complex square solve | Passed |
+| C07 | Complex rank-revealing solve | Passed |
+| C08 | Complex Cholesky | Passed |
+| C09 | Complex QR | Passed |
+| C10 | Complex pivoted QR | Passed |
+| C11 | Mixed real/complex closure | Passed |
+| C11L | Mandatory complex LU | Passed |
+| C12 | Real+complex release closure | Passed |
 | P00 | Packaging design | Planned |
 | P01 | Debian source package | Planned |
 | P02 | Local Debian build | Planned |

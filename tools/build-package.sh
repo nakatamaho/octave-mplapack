@@ -88,6 +88,29 @@ find $source_roots -type f \
   ! -path '*/.build-m19/*' \
   ! -path '*/.build-m21/*' \
   ! -path '*/.build-m22/*' \
+  ! -path '*/.build-c00/*' \
+  ! -path '*/.build-c03/*' \
+  ! -path '*/.build-c04/*' \
+  ! -path '*/.build-c05/*' \
+  ! -path '*/.build-c06/*' \
+  ! -path '*/.build-c07/*' \
+  ! -path '*/.build-c08/*' \
+  ! -path '*/.build-c09/*' \
+  ! -path '*/.build-c10/*' \
+  ! -path '*/.build-c11/*' \
+  ! -path '*/.build-c11l/*' \
+  ! -path '*/.build-m09/*' \
+  ! -path '*/.build-m10/*' \
+  ! -path '*/.build-m11/*' \
+  ! -path '*/.build-m12/*' \
+  ! -path '*/.build-m13/*' \
+  ! -path '*/.build-m14/*' \
+  ! -path '*/.build-m15/*' \
+  ! -path '*/.build-m16/*' \
+  ! -path '*/.build-m17/*' \
+  ! -path '*/.build-m18/*' \
+  ! -path '*/.build-m19/*' \
+  ! -path '*/.build-m21/*' \
   ! -path 'docs/v0.1-release-manifest.md' \
   ! -path '*/.libs/*' \
   ! -path '*/.deps/*' \

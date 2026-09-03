@@ -1,9 +1,9 @@
 # C10 RESULT
 
-Repository: `octave-mplapack`  
-Branch: `topic/complex-c00-c12`  
-Starting commit: `e802d752d25e4905cc439b0aec7591b37b5c6488`  
-Final implementation commit: `570fa1b6a5047c133825183f4a3337bf81de4641`  
+Repository: `octave-mplapack`
+Branch: `topic/complex-c00-c12`
+Starting commit: `e802d752d25e4905cc439b0aec7591b37b5c6488`
+Final implementation commit: `570fa1b6a5047c133825183f4a3337bf81de4641`
 Branch tip at implementation gate: `570fa1b6a5047c133825183f4a3337bf81de4641`
 
 ## Dependency identity

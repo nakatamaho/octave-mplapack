@@ -1,8 +1,8 @@
 # C11L RESULT
 
-Repository: `octave-mplapack`  
-Branch: `topic/complex-c00-c12`  
-Starting commit: `ef584c0` (C11 report/status tip)  
+Repository: `octave-mplapack`
+Branch: `topic/complex-c00-c12`
+Starting commit: `ef584c0` (C11 report/status tip)
 Final implementation commit: `3bad050af108a6ca8739c97b91120e3053800ecc`
 
 ## Dependency identity

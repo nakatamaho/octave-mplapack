@@ -1,7 +1,10 @@
 # octave-mplapack
 
-**Status: real-only v0.1.0 release candidate frozen.** M00 through M23 pass; M20 is a design-only
-complex architecture freeze and the public `mp` surface remains real-only.
+**Status: C00–C12 complex implementation complete.** The development package
+is `0.2.0-dev`; C00 through C12 pass, including mandatory complex `Cgetrf` LU,
+and the public complex API is closed. The real-only v0.1.0 release candidate
+remains historical; no final complex release or dependency freeze is made in
+this goal.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -17,9 +20,11 @@ through MPLAPACK MPFR `Rgeqrf`/`Rorgqr`; one-output `qr(A)` returns `R` and
 two-output forms return `Q,R` with full or economy shapes. M19 adds
 three-output column-pivoted QR through `Rgeqp3`, with builtin-double
 permutation matrix/vector outputs.
-M20 audits the installed MPLAPACK MPFR complex backend and freezes a future
-four-payload architecture without implementing public complex values. See
-[`docs/complex-architecture.md`](docs/complex-architecture.md).
+M20 audits the installed MPLAPACK MPFR complex backend and C01–C12 implement
+complex scalar/matrix values, mixed real/complex operations, Cgemm/Cgesv/
+Cgelsy/Cpotrf/Cgeqrf/Cgeqp3/Cgetrf paths, structural operations, and the
+compatibility firewall. See [`docs/complex-api.md`](docs/complex-api.md) and
+[`docs/complex-compatibility.md`](docs/complex-compatibility.md).
 M21 adds dense real LU through MPLAPACK MPFR `Rgetrf`, including packed,
 two-output, row-permutation-matrix, and 1-based permutation-vector forms for
 square, rectangular, and singular matrices. See [`docs/lu.md`](docs/lu.md).
@@ -51,11 +56,13 @@ For a checkout, `tools/dev-octave.sh` verifies the `pkg-config` dependency,
 builds the native module, and starts a configured development session. It does
 not replace clean package/install QA.
 
-The v0.1 surface is dense real `mp` only. It includes precision-controlled
-construction, arithmetic, `*`, square and rectangular `\`, indexing and
-in-bounds assignment, `chol`, full/economy and pivoted `qr`, and `lu`.
-Complex, sparse, N-D, reductions, `det`, `inv`, `rank`, `cond`, `norm`, `eig`,
-and `svd` remain explicitly unsupported; see the [complete limitations](docs/v0.1-api.md#unsupported-v01-surface).
+The current surface includes dense real and complex `mp`, precision-controlled
+construction, arithmetic, mixed real/complex `*` and `\`, indexing and
+in-bounds assignment, `chol`, full/economy and pivoted `qr`, `lu`, and dense
+concatenation. Sparse, N-D, reductions, `det`, `inv`, `rank`, `cond`, `norm`,
+`eig`, `svd`, powers, and unimplemented transcendentals remain explicitly
+unsupported; see the [complex API](docs/complex-api.md) and [compatibility
+limits](docs/complex-compatibility.md).
 
 The required MPLAPACK MPFR dependency is discovered through `pkg-config` and
 must provide the uniform-precision scope interface. The package never vendors

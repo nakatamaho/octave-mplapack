@@ -23,7 +23,10 @@ classdef mp
   ## vertical concatenation returning one dense `mp` value. M14 adds limited
   ## in-bounds value-semantic indexed assignment; matrix `char` remains
   ## deferred. M17-M21 add dense real `chol`, full/economy and pivoted `qr`,
-  ## and packed/permutation-aware `lu`. The v0.1 release scope is real-only.
+  ## and packed/permutation-aware `lu`. C01-C12 add complex MPC values,
+  ## mixed real/complex operations, and the corresponding C* LAPACK paths.
+  ## The development release remains `0.2.0-dev`; unsupported functions are
+  ## documented in `docs/complex-compatibility.md`.
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
   ## @end deftypefn
 
