@@ -42,6 +42,7 @@
 #include "mp_complex_rank.h"
 #include "mp_complex_cholesky.h"
 #include "mp_complex_qr.h"
+#include "mp_complex_lu.h"
 #include "mp_lapack.h"
 #include "mp_precision.h"
 
@@ -3611,11 +3612,147 @@ mp_pivoted_qr_operation (const octave_value& value, bool economy,
 }
 
 octave_value_list
+complex_lu_operation (const octave_value& value,
+                      const std::string& output_mode)
+{
+  const octave_value payload = require_mp_payload (value);
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+               scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "lu expects one complex mp value");
+
+  try
+    {
+      auto factors = octave_mplapack::mplapack_mpc_matrix_lu (*input);
+      if (output_mode == "packed")
+        return ovl (make_complex_inspection_result (
+          std::move (factors.packed)));
+
+      const std::size_t permutation_size = factors.permutation.size ();
+      const auto p_dimension
+        = checked_octave_dimension_for_inspection (permutation_size);
+
+      if (output_mode == "two")
+        {
+          const std::size_t m = factors.lower.rows ();
+          const std::size_t k = factors.lower.columns ();
+          octave_mplapack::MpfrComplexMatrixStorage lower_unpermuted (
+            m, k, factors.lower.precision_bits ());
+          std::vector<std::size_t> inverse (permutation_size);
+          for (std::size_t destination = 0; destination < permutation_size;
+               ++destination)
+            {
+              const auto source = factors.permutation[destination];
+              if (source < 1 || source > permutation_size)
+                error_with_id (
+                  "mplapack:mp:LuError",
+                  "MPLAPACK Cgetrf returned an invalid permutation");
+              inverse[static_cast<std::size_t> (source - 1)] = destination;
+            }
+          for (std::size_t column = 0; column < k; ++column)
+            for (std::size_t row = 0; row < m; ++row)
+              mpc_set (lower_unpermuted.at (row, column).mpc_data (),
+                       factors.lower.at (inverse[row], column).mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          return ovl (make_complex_inspection_result (
+                        std::move (lower_unpermuted)),
+                      make_complex_inspection_result (std::move (factors.upper)));
+        }
+
+      if (output_mode == "matrix" || output_mode == "vector")
+        {
+          if (output_mode == "vector")
+            {
+              Matrix permutation_vector = permutation_size == 0
+                                             ? Matrix (0, 0)
+                                             : Matrix (p_dimension, 1);
+              for (std::size_t row = 0; row < permutation_size; ++row)
+                permutation_vector.xelem (static_cast<octave_idx_type> (row),
+                                         0)
+                  = static_cast<double> (factors.permutation[row]);
+              return ovl (make_complex_inspection_result (
+                            std::move (factors.lower)),
+                          make_complex_inspection_result (
+                            std::move (factors.upper)),
+                          octave_value (permutation_vector));
+            }
+
+          octave_mplapack::MpfrComplexMatrixStorage::checked_element_count (
+            permutation_size, permutation_size);
+          Matrix permutation_matrix (p_dimension, p_dimension);
+          for (std::size_t destination = 0; destination < permutation_size;
+               ++destination)
+            {
+              const auto source = factors.permutation[destination];
+              if (source < 1 || source > permutation_size)
+                error_with_id (
+                  "mplapack:mp:LuError",
+                  "MPLAPACK Cgetrf returned an invalid permutation");
+              permutation_matrix.xelem (
+                static_cast<octave_idx_type> (destination),
+                static_cast<octave_idx_type> (source - 1)) = 1.0;
+            }
+          return ovl (make_complex_inspection_result (
+                        std::move (factors.lower)),
+                      make_complex_inspection_result (std::move (factors.upper)),
+                      octave_value (permutation_matrix));
+        }
+
+      error_with_id ("mplapack:mp:InvalidArguments",
+                     "invalid LU output mode");
+    }
+  catch (const octave_mplapack::MpcCgetrfError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcCgetrfError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:LuError",
+                       "MPLAPACK Cgetrf rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:LuInternalError", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:LuError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
 mp_lu_operation (const octave_value& value, const std::string& output_mode)
 {
   if (! is_mp_value (value))
     error_with_id ("mplapack:mp:InvalidInput",
                    "lu expects one real mp value");
+
+  if (is_complex_payload (value))
+    return complex_lu_operation (value, output_mode);
 
   const octave_value payload = require_mp_payload (value);
   const octave_mplapack::MpfrMatrixStorage *input = nullptr;

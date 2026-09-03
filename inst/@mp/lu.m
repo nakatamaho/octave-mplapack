@@ -6,10 +6,12 @@ function varargout = lu (value, varargin)
   ## @deftypefnx {} {[@var{L}, @var{U}] =} lu (@var{A})
   ## @deftypefnx {} {[@var{L}, @var{U}, @var{P}] =} lu (@var{A})
   ## @deftypefnx {} {[@var{L}, @var{U}, @var{p}] =} lu (@var{A}, "vector")
-  ## Compute dense real MPFR LU through MPLAPACK @code{Rgetrf}.  One output
-  ## is the packed LAPACK factor.  Two outputs absorb row permutation into
-  ## L so that A = L*U; three outputs return P so that P*A = L*U.  The
-  ## @code{"vector"} option returns the final 1-based row permutation vector.
+  ## Compute dense MPFR LU through MPLAPACK @code{Rgetrf} or complex
+  ## @code{Cgetrf}.  One output is the packed LAPACK factor.  Two outputs
+  ## absorb row permutation into L so that A = L*U; three outputs return P so
+  ## that P*A = L*U.  The @code{"vector"} option returns the final 1-based
+  ## row permutation vector.  Real and complex dense matrices share these
+  ## packed, two-output, matrix-permutation, and vector-permutation forms.
   ## @end deftypefn
   if (nargin < 1 || nargin > 2 || ! isa (value, "mp"))
     error ("mplapack:mp:InvalidInput", ...
