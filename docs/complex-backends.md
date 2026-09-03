@@ -61,6 +61,15 @@ source uses the complex pivoted Householder path. The binding initializes
 `JPVT` to zero, validates the returned one-based permutation, maps it to the
 public matrix/vector forms, and reuses the precision-scoped `Cungqr` path.
 
+The C11L audit confirms that the installed `Cgetrf` declaration uses
+`mpc_class` factor storage, `mplapackint` dimensions/status, and an
+`mplapackint*` pivot array. The controlled reference implementation is
+`mplapack/reference/Cgetrf.cpp`. The binding replays the destructive routine's
+swap sequence into the public row permutation, constructs packed and
+canonical factors at the source precision, and retains the real M21
+two-output/matrix/vector conventions. No new upstream defect was exposed by
+C11L.
+
 The C11 structural audit confirms that mixed concatenation copies real and
 complex operands directly into an MPC destination at the maximum stored MP
 precision. Mixed numerical operations continue to select the existing real
@@ -72,7 +81,7 @@ rerouted through a complex kernel.
 - MPLAPACK commit `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` adds and installs
   `mplapack_mpfr_precision.h`, and includes it from the public MPFR headers.
   This supplies the real MPFR precision scope required by the complex
-  implementation. No `gmpfrxx_mkII` fix was required through C10.
+  implementation. No `gmpfrxx_mkII` fix was required through C11L.
 
 No final MPLAPACK 3.0.1 release commit, archive, or dependency tag is frozen
 by this development goal.

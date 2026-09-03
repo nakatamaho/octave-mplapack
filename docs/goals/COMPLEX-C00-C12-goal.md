@@ -1447,8 +1447,7 @@ Run:
 
 ```text
 M00-M23 real regression
-C00-C11 complex regression
-optional C11L
+C00-C11L complex regression
 all upstream probes
 ```
 
@@ -1954,7 +1953,7 @@ C11 PASS
 C12 PASS
 ```
 
-plus `C11L PASS` only if complex LU is explicitly selected.
+C11L PASS.
 
 Final:
 
