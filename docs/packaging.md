@@ -30,3 +30,11 @@ provenance rather than being silently rebuilt from different source.
 Ubuntu 26.04 LTS is the first target. Ubuntu 24.04 LTS is secondary and must not
 block the initial Octave 11 design. Actual Debian metadata belongs to P01 and
 is intentionally absent during M00.
+
+M20 audited the installed MPFR complex symbols and found them in the same
+`libmplapack_mpfr.so.3` dependency already used by the real backend. The
+runtime closure includes system MPC, MPFR, and GMP libraries, so the existing
+`octave-mplapack` package can gain complex support in a later update without a
+package rename. License and dependency metadata for those system libraries
+remain P01/PPA work. The explicit M20 release decision is
+`REAL-PPA-GO`; complex implementation is not required for the real-only PPA.

@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M19 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M21 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M19 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M21 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M19 prerequisites"
+echo "PASS: mandatory M21 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
@@ -61,7 +61,8 @@ make -C src check-rank
 make -C src check-cholesky
 make -C src check-qr
 make -C src check-pivoted-qr
-echo "PASS: M02-M19 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, assignment, Cholesky, QR, and pivoted QR QA"
+make -C src check-lu
+echo "PASS: M02-M21 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, assignment, Cholesky, QR, pivoted QR, LU, and complex audit QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -123,6 +124,20 @@ c++ -std=c++17 -Wall -Wextra -Wpedantic \
   $(pkg-config --libs mplapack_mpfr) -o "$pivoted_qr_probe"
 "$pivoted_qr_probe"
 echo "PASS: installed MPLAPACK Rgeqp3/Rorgqr precision probe"
+
+lu_probe=$qa_root/m21_rgetrf_probe
+c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread \
+  $(pkg-config --cflags mplapack_mpfr) test/m21_rgetrf_probe.cc \
+  $(pkg-config --libs mplapack_mpfr) -o "$lu_probe"
+"$lu_probe"
+echo "PASS: installed MPLAPACK Rgetrf precision/IPIV probe"
+
+complex_probe=$qa_root/m20_complex_probe
+c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread -DMPLAPACK_BUILD_WITH_MPFR \
+  $(pkg-config --cflags mplapack_mpfr) test/m20_complex_probe.cc \
+  $(pkg-config --libs mplapack_mpfr) -o "$complex_probe"
+"$complex_probe"
+echo "PASS: installed MPLAPACK MPFR complex type/backend precision probe"
 
 if [ ! -f "$mplapack_library" ]; then
   echo "FAIL: MPLAPACK MPFR shared library is unavailable: $mplapack_library" >&2
@@ -229,6 +244,11 @@ fi
 
 if ! nm -D -C "$module" | grep -Eq ' U Rgeqp3\('; then
   echo "FAIL: M19 native module lacks an unresolved Rgeqp3 reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgetrf\('; then
+  echo "FAIL: M21 native module lacks an unresolved Rgetrf reference" >&2
   exit 1
 fi
 
@@ -527,7 +547,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M19 re-test"
+echo "PASS: clean rebuild #2 and M01-M21 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -597,6 +617,10 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/qr.md docs/milestones/M18-qr.md \
   test/pivoted_qr.tst test/mp_lapack_pivoted_qr_test.cc test/m19_qr_probe.cc \
   docs/pivoted-qr.md docs/milestones/M19-pivoted-qr.md \
+  test/m20_complex_probe.cc docs/complex-architecture.md \
+  docs/milestones/M20-complex-architecture.md \
+  inst/@mp/lu.m test/lu.tst test/mp_lapack_lu_test.cc \
+  test/m21_rgetrf_probe.cc docs/lu.md docs/milestones/M21-lu.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -607,7 +631,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -651,6 +675,11 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "chol.tst")));
       assert (test (fullfile (root, "test", "qr.tst")));
       assert (test (fullfile (root, "test", "pivoted_qr.tst")));
+      assert (test (fullfile (root, "test", "lu.tst")));
+      [installed_l, installed_u, installed_p] = lu (mp ([1, 2; 3, 4]));
+      assert (strcmp (class (installed_l), "mp"));
+      assert (strcmp (class (installed_u), "mp"));
+      assert (strcmp (class (installed_p), "double"));
       [q_pivoted, r_pivoted, p_pivoted] = qr (mp ([1 0; 0 2]));
       assert (strcmp (class (q_pivoted), "mp"));
       assert (strcmp (class (r_pivoted), "mp"));
@@ -678,6 +707,7 @@ mkdir -p "$test_home" "$neutral_dir"
       end_method_path = file_in_loadpath ("@mp/end.m");
       chol_method_path = file_in_loadpath ("@mp/chol.m");
       qr_method_path = file_in_loadpath ("@mp/qr.m");
+      lu_method_path = file_in_loadpath ("@mp/lu.m");
       fprintf ("installed mplapack_version: %s\n", public_path);
       fprintf ("installed __mplapack_core__: %s\n", native_path);
       fprintf ("installed mp: %s\n", constructor_path);
@@ -694,6 +724,7 @@ mkdir -p "$test_home" "$neutral_dir"
       fprintf ("installed @mp/end: %s\n", end_method_path);
       fprintf ("installed @mp/chol: %s\n", chol_method_path);
       fprintf ("installed @mp/qr: %s\n", qr_method_path);
+      fprintf ("installed @mp/lu: %s\n", lu_method_path);
       assert (! strncmp (public_path, root, length (root)));
       assert (! strncmp (native_path, root, length (root)));
       assert (! strncmp (constructor_path, root, length (root)));
@@ -717,6 +748,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (! strncmp (end_method_path, root, length (root)));
       assert (! strncmp (chol_method_path, root, length (root)));
       assert (! strncmp (qr_method_path, root, length (root)));
+      assert (! strncmp (lu_method_path, root, length (root)));
       info = mplapack_version ();
       disp (info);
       assert (strcmp (info.mplapack, getenv ("MPLAPACK_EXPECTED_VERSION")));
@@ -744,6 +776,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "chol.tst")));
       assert (test (fullfile (root, "test", "qr.tst")));
       assert (test (fullfile (root, "test", "pivoted_qr.tst")));
+      assert (test (fullfile (root, "test", "lu.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -854,6 +887,7 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
       end_method_path = file_in_loadpath ("@mp/end.m");
       chol_method_path = file_in_loadpath ("@mp/chol.m");
       qr_method_path = file_in_loadpath ("@mp/qr.m");
+      lu_method_path = file_in_loadpath ("@mp/lu.m");
       horzcat_method_path = file_in_loadpath ("@mp/horzcat.m");
       vertcat_method_path = file_in_loadpath ("@mp/vertcat.m");
       assert (! strncmp (public_path, root, length (root)));
@@ -876,6 +910,7 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
       assert (! strncmp (end_method_path, root, length (root)));
       assert (! strncmp (chol_method_path, root, length (root)));
       assert (! strncmp (qr_method_path, root, length (root)));
+      assert (! strncmp (lu_method_path, root, length (root)));
       assert (! strncmp (horzcat_method_path, root, length (root)));
       assert (! strncmp (vertcat_method_path, root, length (root)));
       assert (mpbits () == uint64 (512));
@@ -975,6 +1010,11 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
       assert (strcmp (class (installed_q), "mp"));
       assert (strcmp (class (installed_r), "mp"));
       assert (strcmp (class (installed_p), "double"));
+      [installed_lu_l, installed_lu_u, installed_lu_p] = ...
+        lu (mp ([1, 2; 3, 4]));
+      assert (strcmp (class (installed_lu_l), "mp"));
+      assert (strcmp (class (installed_lu_u), "mp"));
+      assert (strcmp (class (installed_lu_p), "double"));
       fprintf ("reinstalled mplapack_version: %s\n", public_path);
       fprintf ("reinstalled __mplapack_core__: %s\n", native_path);
       fprintf ("reinstalled mp: %s\n", constructor_path);
@@ -995,12 +1035,13 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
       fprintf ("reinstalled @mp/end: %s\n", end_method_path);
       fprintf ("reinstalled @mp/chol: %s\n", chol_method_path);
       fprintf ("reinstalled @mp/qr: %s\n", qr_method_path);
+      fprintf ("reinstalled @mp/lu: %s\n", lu_method_path);
       fprintf ("reinstalled @mp/horzcat: %s\n", horzcat_method_path);
       fprintf ("reinstalled @mp/vertcat: %s\n", vertcat_method_path);
       fprintf ("PASS: installed scalar/matrix values left for shutdown destruction\n");
     '
 )
 
-echo "PASS: isolated package M01-M19 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M21 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU and complex audit QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M19 local CI"
+echo "PASS: M21 local CI"

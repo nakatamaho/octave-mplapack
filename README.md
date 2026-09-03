@@ -1,6 +1,7 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M19 pass.
+**Status: under development.** M00 through M21 pass; M20 is a design-only
+complex architecture freeze and the public `mp` surface remains real-only.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -16,6 +17,12 @@ through MPLAPACK MPFR `Rgeqrf`/`Rorgqr`; one-output `qr(A)` returns `R` and
 two-output forms return `Q,R` with full or economy shapes. M19 adds
 three-output column-pivoted QR through `Rgeqp3`, with builtin-double
 permutation matrix/vector outputs.
+M20 audits the installed MPLAPACK MPFR complex backend and freezes a future
+four-payload architecture without implementing public complex values. See
+[`docs/complex-architecture.md`](docs/complex-architecture.md).
+M21 adds dense real LU through MPLAPACK MPFR `Rgetrf`, including packed,
+two-output, row-permutation-matrix, and 1-based permutation-vector forms for
+square, rectangular, and singular matrices. See [`docs/lu.md`](docs/lu.md).
 
 ## Goal
 
@@ -116,6 +123,9 @@ while preserving immutable source values and stored precision. M18 adds
 non-pivoted dense real `qr` through MPLAPACK MPFR `Rgeqrf` and `Rorgqr`;
 one-output `qr(A)` returns `R` and two-output forms return `Q,R`. M19 adds
 column-pivoted three-output `qr` through `Rgeqp3`, reusing `Rorgqr` for `Q`.
+M21 adds dense real `lu` through `Rgetrf`; packed one-output factors,
+permutation-aware two/three-output factors, and vector row pivots preserve the
+stored operand precision.
 
 ## Intended future API
 
@@ -184,10 +194,11 @@ M16  Rank-deficient rectangular minimum-norm solve
 M17  Dense real Cholesky factorization
 M18  Dense real non-pivoted QR factorization
 M19  Dense real pivoted QR factorization
+M20  Complex architecture audit and design freeze (no public complex support)
 
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M19 are complete. Consult
+M00 through M21 are complete (M20 is design-only). Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

@@ -27,6 +27,8 @@ README.md
 LICENSE
 COPYING
 NEWS.md
+m20-report.md
+m21-report.md
 CONTRIBUTING.md
 .gitignore
 DESCRIPTION
@@ -121,6 +123,9 @@ test/m18_qr_probe.cc
 test/qr.tst
 test/mp_lapack_pivoted_qr_test.cc
 test/m19_qr_probe.cc
+test/m20_complex_probe.cc
+test/mp_lapack_lu_test.cc
+test/m21_rgetrf_probe.cc
 test/pivoted_qr.tst
 test/matrix_inspection.tst
 test/mp_matrix_inspection_test.cc
@@ -169,6 +174,10 @@ docs/qr.md
 docs/milestones/M18-qr.md
 docs/pivoted-qr.md
 docs/milestones/M19-pivoted-qr.md
+docs/complex-architecture.md
+docs/milestones/M20-complex-architecture.md
+docs/lu.md
+docs/milestones/M21-lu.md
 docs/matrix-assignment.md
 docs/milestones/M14-indexed-assignment.md
 docs/milestones/M15-rgels.md
@@ -234,4 +243,4 @@ if grep -Eq '__mplapack_core__|scalar_' INDEX; then
   exit 1
 fi
 
-echo "PASS: M00-M19 tree checks"
+echo "PASS: M00-M21 tree checks"
