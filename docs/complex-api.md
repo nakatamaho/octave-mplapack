@@ -1,7 +1,8 @@
 # Complex `mp` API
 
-This is the C00–C12 implementation inventory. The package remains development
-version `0.2.0-dev`; this document is not a final release manifest.
+This is the C00–C12 implementation inventory for package version `0.2.0`.
+Release identity and dependency provenance are maintained in
+`docs/dependency-release-stack.md`.
 
 ## Values and construction
 

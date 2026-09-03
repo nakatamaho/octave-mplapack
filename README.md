@@ -1,10 +1,10 @@
 # octave-mplapack
 
-**Status: C00–C12 complex implementation complete.** The development package
-is `0.2.0-dev`; C00 through C12 pass, including mandatory complex `Cgetrf` LU,
-and the public complex API is closed. The real-only v0.1.0 release candidate
-remains historical; no final complex release or dependency freeze is made in
-this goal.
+**Status: 0.2.0 real-plus-complex release line.** C00 through C12 pass,
+including mandatory complex `Cgetrf` LU, and the public complex API is closed.
+The real-only v0.1.0 release candidate remains historical. The exact frozen
+dependency stack is recorded in
+[`docs/dependency-release-stack.md`](docs/dependency-release-stack.md).
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -48,7 +48,7 @@ Install a locally built release-candidate archive with Octave's package manager
 (the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-0.1.0.tar.gz
+octave:1> pkg install mplapack-0.2.0.tar.gz
 octave:2> pkg load mplapack
 ```
 
@@ -178,11 +178,12 @@ stored operand precision.
 
 ## Release provenance
 
-The frozen real-only v0.1.0 source candidate is identified by the full commit
-in the repository-only release manifest (`docs/v0.1-release-manifest.md`). It was
-validated with Octave 11.1.0 and the installed MPLAPACK MPFR interface
-provided by `mplapack_mpfr` through `pkg-config`. PPA packaging is the next
-step; no PPA or final Git tag is published yet.
+The frozen real-only v0.1.0 source candidate remains identified by the full
+commit in the repository-only release manifest
+(`docs/v0.1-release-manifest.md`). The 0.2.0 release was validated with Octave
+11.1.0 and the installed MPLAPACK MPFR interface provided by
+`mplapack_mpfr` through `pkg-config`. Binary distribution and PPA work are
+separate later milestones.
 
 ## Intended future API
 
@@ -259,7 +260,7 @@ M23  v0.1.0 feature freeze and release candidate
 PPA1-PPA4  Debian/Ubuntu/PPA packaging and final release
 ```
 
-M00 through M23 are complete (M20 is design-only and M23 is the frozen release
-candidate). No final tag or PPA upload exists yet. Consult
+M00 through M23 and C00 through C12 are complete (M20 is design-only and the
+real-only M23 candidate remains historical). No PPA upload exists. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

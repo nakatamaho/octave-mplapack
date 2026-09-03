@@ -1,5 +1,20 @@
 # News
 
+## 0.2.0
+
+The first public real-plus-complex release adds dense complex `mp` scalars and
+matrices with explicit MPFR/MPC precision semantics. It provides mixed
+real/complex construction, arithmetic, structure and indexing operations,
+MPLAPACK `Cgemm`, `Cgesv`, `Cgelsy`, `Cpotrf`, `Cgeqrf`/`Cungqr`, `Cgeqp3`, and
+`Cgetrf`, including the mandatory complex LU path. Destructive backend calls
+use operation-owned copies, real-only operations remain on real MPLAPACK
+paths, and no builtin binary64 complex fallback is used.
+
+The release dependency stack is `gmpfrxx_mkII 1.4.1`, MPLAPACK `3.0.1`, and
+this package `0.2.0`. Exact source commits, tags, archives, checksums,
+licenses, and isolated-build evidence are recorded in
+`docs/dependency-release-stack.md` and `reports/D00-report.md`.
+
 ## 0.1.0
 
 The frozen first release candidate is a dense real arbitrary-precision Octave

@@ -11,10 +11,6 @@ commit_sha=$(git rev-parse "$commit^{commit}")
 
 package_name=$(sed -n 's/^Name: *//p' DESCRIPTION)
 package_version=$(sed -n 's/^Version: *//p' DESCRIPTION)
-if [ "$package_version" != "0.1.0" ]; then
-  echo "FAIL: release candidate must use DESCRIPTION version 0.1.0" >&2
-  exit 1
-fi
 package_dir=$package_name-$package_version
 
 qa_root=$(mktemp -d)
@@ -66,7 +62,7 @@ if ! cmp -s "$qa_root/A.list" "$qa_root/B.list"; then
   exit 1
 fi
 
-echo "PASS: release candidate $commit_sha"
+echo "PASS: reproducible source package $commit_sha"
 echo "Archive: $package_dir.tar.gz"
 echo "SHA256: $hash_a"
 echo "Size: $(cat "$qa_root/A.size") bytes"
