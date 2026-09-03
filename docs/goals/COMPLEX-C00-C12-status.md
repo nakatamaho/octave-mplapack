@@ -59,9 +59,8 @@ full native/public C11L walls pass.
 
 C12 API, documentation, compatibility firewall, complete real/complex
 regression, precision, TLS/thread, sanitizer, package lifecycle, and upstream
-provenance gates pass. The development archive is
-`mplapack-0.2.0-dev.tar.gz` with SHA256
-`0149690511ed61d666ceefd1183991e7024835dc264f7bd06f6857a3587aec16`.
+provenance gates pass. The development archive name and checksum are recorded
+in the repository-only root master report `c12-report.md`.
 
 Final state: `COMPLEX GOAL PASS`, `REAL-COMPLEX-API-CLOSED`,
 `DEPENDENCY-FREEZE-READY`.

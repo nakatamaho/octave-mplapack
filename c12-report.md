@@ -117,8 +117,8 @@ or binary64 fallback.
   linkage checks: PASS;
 - reproducible development archive:
   `mplapack-0.2.0-dev.tar.gz`, SHA256
-  `0149690511ed61d666ceefd1183991e7024835dc264f7bd06f6857a3587aec16`,
-  size `227537` bytes;
+  `e81ecd3c427bf25a394af352b6d3e8e8b4d1b13d2854babbed279ef6fede9d6e`,
+  size `227922` bytes;
 - isolated package install/load/unload/uninstall/reinstall/reload and
   real+complex smoke: PASS;
 - no Debian package was created, no Launchpad upload was made, no PPA work
