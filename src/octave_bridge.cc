@@ -226,6 +226,51 @@ make_internal_matrix (octave_mplapack::MpfrMatrixStorage storage)
     new octave_mplapack_mpfr_matrix_internal (std::move (storage)));
 }
 
+octave_value
+make_internal_complex_scalar (const std::string& text,
+                              mpfr_prec_t precision_bits)
+{
+  try
+    {
+      return octave_value (
+        new octave_mplapack_mpc_scalar_internal (text, precision_bits));
+    }
+  catch (const std::invalid_argument&)
+    {
+      error_with_id ("mplapack:InvalidComplexScalarText",
+                     "invalid complex scalar text");
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:NativeError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+make_internal_complex_scalar (const Complex& value,
+                              mpfr_prec_t precision_bits)
+{
+  try
+    {
+      return octave_value (new octave_mplapack_mpc_scalar_internal (
+        value.real (), value.imag (), precision_bits));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:NativeError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+make_internal_complex_matrix (
+  octave_mplapack::MpfrComplexMatrixStorage storage)
+{
+  return octave_value (
+    new octave_mplapack_mpc_matrix_internal (std::move (storage)));
+}
+
 double
 require_double_scalar (const octave_value& value, const char *description)
 {
@@ -244,6 +289,12 @@ require_mp_payload (const octave_value& value)
     return value;
   if (value.type_id ()
       == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    return value;
+  if (value.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return value;
+  if (value.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
     return value;
 
   if (! value.is_classdef_object () || value.class_name () != "mp")
@@ -272,6 +323,12 @@ require_mp_payload (const octave_value& value)
   else if (payload.type_id ()
            == octave_mplapack_mpfr_matrix_internal::static_type_id ())
     octave_mplapack_mpfr_matrix_internal::checked_value (payload);
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    octave_mplapack_mpc_scalar_internal::checked_value (payload);
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    octave_mplapack_mpc_matrix_internal::checked_value (payload);
   else
     error_with_id ("mplapack:InvalidNativeValue",
                    "public mp value has an unknown native payload");
@@ -302,15 +359,32 @@ octave_value
 require_matrix_payload (const octave_value& value)
 {
   const octave_value payload = require_mp_payload (value);
-  octave_mplapack_mpfr_matrix_internal::checked_value (payload);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    octave_mplapack_mpfr_matrix_internal::checked_value (payload);
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    octave_mplapack_mpc_matrix_internal::checked_value (payload);
+  else
+    error_with_id ("mplapack:InvalidNativeValue",
+                   "expected an internal MPLAPACK matrix");
   return payload;
 }
 
 bool
 is_matrix_payload (const octave_value& value)
 {
-  return require_mp_payload (value).type_id ()
-         == octave_mplapack_mpfr_matrix_internal::static_type_id ();
+  const int type = require_mp_payload (value).type_id ();
+  return type == octave_mplapack_mpfr_matrix_internal::static_type_id ()
+         || type == octave_mplapack_mpc_matrix_internal::static_type_id ();
+}
+
+bool
+is_complex_payload (const octave_value& value)
+{
+  const int type = require_mp_payload (value).type_id ();
+  return type == octave_mplapack_mpc_scalar_internal::static_type_id ()
+         || type == octave_mplapack_mpc_matrix_internal::static_type_id ();
 }
 
 bool
@@ -320,6 +394,10 @@ is_mp_value (const octave_value& value)
           == octave_mplapack_mpfr_scalar_internal::static_type_id ())
          || (value.type_id ()
              == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+         || (value.type_id ()
+             == octave_mplapack_mpc_scalar_internal::static_type_id ())
+         || (value.type_id ()
+             == octave_mplapack_mpc_matrix_internal::static_type_id ())
          || (value.is_classdef_object () && value.class_name () == "mp");
 }
 
@@ -1394,6 +1472,24 @@ matrix_to_double (const octave_value& value)
   return result;
 }
 
+ComplexMatrix
+complex_matrix_to_double (const octave_value& value)
+{
+  const auto& source
+    = octave_mplapack_mpc_matrix_internal::checked_value (
+        require_matrix_payload (value)).storage ();
+  ComplexMatrix result (
+    checked_octave_dimension_for_inspection (source.rows ()),
+    checked_octave_dimension_for_inspection (source.columns ()));
+  for (std::size_t column = 0; column < source.columns (); ++column)
+    for (std::size_t row = 0; row < source.rows (); ++row)
+      result.xelem (static_cast<octave_idx_type> (row),
+                    static_cast<octave_idx_type> (column))
+        = Complex (source.at (row, column).real_to_double (),
+                   source.at (row, column).imag_to_double ());
+  return result;
+}
+
 std::string
 matrix_display_text (const octave_value& value)
 {
@@ -1407,6 +1503,39 @@ octave_scalar_map
 value_shape_info (const octave_value& value)
 {
   const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+      octave_scalar_map info;
+      info.assign ("rows", octave_uint64 (1));
+      info.assign ("columns", octave_uint64 (1));
+      info.assign ("numel", octave_uint64 (1));
+      info.assign ("precision_bits",
+                   octave_uint64 (scalar.storage ().precision_bits ()));
+      info.assign ("is_matrix", false);
+      info.assign ("is_empty", false);
+      info.assign ("is_complex", true);
+      return info;
+    }
+  if (payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    {
+      const auto& matrix
+        = octave_mplapack_mpc_matrix_internal::checked_value (payload);
+      const auto& storage = matrix.storage ();
+      octave_scalar_map info;
+      info.assign ("rows", octave_uint64 (storage.rows ()));
+      info.assign ("columns", octave_uint64 (storage.columns ()));
+      info.assign ("numel", octave_uint64 (storage.numel ()));
+      info.assign ("precision_bits",
+                   octave_uint64 (storage.precision_bits ()));
+      info.assign ("is_matrix", true);
+      info.assign ("is_empty", storage.numel () == 0);
+      info.assign ("is_complex", true);
+      return info;
+    }
   octave_scalar_map info;
   if (payload.type_id ()
       == octave_mplapack_mpfr_scalar_internal::static_type_id ())
@@ -1420,6 +1549,7 @@ value_shape_info (const octave_value& value)
                    octave_uint64 (scalar.storage ().precision_bits ()));
       info.assign ("is_matrix", false);
       info.assign ("is_empty", false);
+      info.assign ("is_complex", false);
       return info;
     }
 
@@ -1433,6 +1563,7 @@ value_shape_info (const octave_value& value)
                octave_uint64 (storage.precision_bits ()));
   info.assign ("is_matrix", true);
   info.assign ("is_empty", storage.numel () == 0);
+  info.assign ("is_complex", false);
   return info;
 }
 
@@ -2634,6 +2765,12 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       return ovl (is_matrix_payload (args(1)));
     }
 
+  if (command == "value_is_real")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (! is_complex_payload (args(1)));
+    }
+
   if (command == "matrix_subscript")
     {
       require_argument_count (args, 4, command);
@@ -2689,6 +2826,8 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
   if (command == "matrix_to_double")
     {
       require_argument_count (args, 2, command);
+      if (is_mp_value (args(1)) && is_complex_payload (args(1)))
+        return ovl (complex_matrix_to_double (args(1)));
       return ovl (matrix_to_double (args(1)));
     }
 
@@ -2908,12 +3047,70 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         text, octave_mplapack::default_precision_bits ()));
     }
 
+  if (command == "scalar_create_complex_text")
+    {
+      require_argument_count (args, 3, command);
+      const std::string real_text = require_string (args(1), "real text");
+      const std::string imag_text = require_string (args(2), "imaginary text");
+      return ovl (make_internal_complex_scalar (
+        "(" + real_text + "," + imag_text + ")",
+        octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "scalar_create_complex_text_single")
+    {
+      require_argument_count (args, 2, command);
+      const std::string text = require_string (args(1), "complex scalar text");
+      return ovl (make_internal_complex_scalar (
+        text, octave_mplapack::default_precision_bits ()));
+    }
+
   if (command == "scalar_create_double")
     {
       require_argument_count (args, 2, command);
       const double value = require_double_scalar (args(1), "scalar value");
       return ovl (make_internal_scalar (
         value, octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "scalar_create_complex_double")
+    {
+      require_argument_count (args, 2, command);
+      if (! args(1).is_complex_scalar ())
+        error_with_id ("mplapack:InvalidArguments",
+                       "complex scalar value is required");
+      return ovl (make_internal_complex_scalar (
+        args(1).complex_value (),
+        octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "matrix_create_complex_double")
+    {
+      require_argument_count (args, 2, command);
+      if (! args(1).is_double_type () || args(1).is_real_scalar ()
+          || args(1).ndims () != 2)
+        error_with_id ("mplapack:mp:InvalidInput",
+                       "complex matrix input must be a two-dimensional array");
+      const ComplexMatrix input = args(1).complex_matrix_value ();
+      const std::size_t rows = checked_size_dimension (input.rows ());
+      const std::size_t columns = checked_size_dimension (input.columns ());
+      std::vector<Complex> values;
+      values.reserve (octave_mplapack::MpfrComplexMatrixStorage::
+                      checked_element_count (rows, columns));
+      for (octave_idx_type column = 0; column < input.columns (); ++column)
+        for (octave_idx_type row = 0; row < input.rows (); ++row)
+          values.push_back (input.xelem (row, column));
+      try
+        {
+          return ovl (make_internal_complex_matrix (
+            octave_mplapack::MpfrComplexMatrixStorage (
+              rows, columns, octave_mplapack::default_precision_bits (),
+              values)));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:NativeError", "%s", exception.what ());
+        }
     }
 
   if (command == "scalar_default_precision")
@@ -2926,6 +3123,25 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
   if (command == "scalar_test_info")
     {
       require_argument_count (args, 2, command);
+      if (is_mp_value (args(1)) && is_complex_payload (args(1)))
+        {
+          const octave_value payload = require_mp_payload (args(1));
+          const auto& value
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+          octave_scalar_map info;
+          info.assign ("internal_type", value.static_type_name ());
+          info.assign ("precision_bits",
+                       octave_int64 (value.storage ().precision_bits ()));
+          info.assign ("backend", "mpc");
+          info.assign ("is_scalar", true);
+          info.assign ("is_complex", true);
+          info.assign ("is_nan", value.storage ().is_nan ());
+          info.assign ("is_infinite", value.storage ().is_infinite ());
+          info.assign ("is_zero", value.storage ().is_zero ());
+          info.assign ("real_signbit", value.storage ().real_signbit ());
+          info.assign ("imag_signbit", value.storage ().imag_signbit ());
+          return ovl (info);
+        }
       const octave_value payload = require_scalar_payload (args(1));
       const auto& value
         = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
@@ -2940,12 +3156,20 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       info.assign ("is_infinite", value.storage ().is_infinite ());
       info.assign ("is_zero", value.storage ().is_zero ());
       info.assign ("signbit", value.storage ().signbit ());
+      info.assign ("is_complex", false);
       return ovl (info);
     }
 
   if (command == "scalar_to_canonical_text")
     {
       require_argument_count (args, 2, command);
+      if (is_mp_value (args(1)) && is_complex_payload (args(1)))
+        {
+          const octave_value payload = require_mp_payload (args(1));
+          const auto& value
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+          return ovl (value.storage ().to_canonical_string ());
+        }
       const octave_value payload = require_scalar_payload (args(1));
       const auto& value
         = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
@@ -2964,6 +3188,14 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
   if (command == "scalar_to_double")
     {
       require_argument_count (args, 2, command);
+      if (is_complex_payload (args(1)))
+        {
+          const octave_value payload = require_mp_payload (args(1));
+          const auto& value
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+          const std::complex<double> converted = value.storage ().to_double ();
+          return ovl (Complex (converted.real (), converted.imag ()));
+        }
       const octave_value payload = require_scalar_payload (args(1));
       const auto& value
         = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
