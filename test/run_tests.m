@@ -54,3 +54,5 @@ assert (test (fullfile (test_dir, "complex_structural.tst"), "quiet", stdout));
 fprintf ("PASS: C03 complex structural tests\n");
 assert (test (fullfile (test_dir, "complex_elementwise.tst"), "quiet", stdout));
 fprintf ("PASS: C04 complex element-wise tests\n");
+assert (test (fullfile (test_dir, "complex_gemm.tst"), "quiet", stdout));
+fprintf ("PASS: C05 complex Cgemm tests\n");
