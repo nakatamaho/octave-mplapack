@@ -4,11 +4,11 @@ REAL_V0_1_RC_COMMIT: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
 
 COMPLEX_START_COMMIT: `4aed479ef9cb8dff24f0326e1c2ec2a7c1ed83a3`
 
-Current milestone: C08
+Current milestone: C09
 
-Last PASS milestone: C07
+Last PASS milestone: C08
 
-octave-mplapack branch/tip: `topic/complex-c00-c12` / `bc5b8b301e3fff23b5427599763b01a57cf9d2fb`
+octave-mplapack branch/tip: `topic/complex-c00-c12` / `abf2c836b6b54b0bde1a87ecb2524369960a895a`
 
 MPLAPACK tested commit: `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` (`topic/octave-mplapack-complex-mpfr-scope`)
 
@@ -21,7 +21,7 @@ Upstream fixes:
 
 Blockers: none.
 
-Full regression status: C07 PASS. C00 storage/scope/TLS/lifetime/special
+Full regression status: C08 PASS. C00 storage/scope/TLS/lifetime/special
 value probe PASS at 128, 256, 512, 1024, and 2048 bits under ASan/UBSan/LSan;
 C01 scalar construction/conversion, C02 dense complex construction,
 inspection/indexing/assignment, C03 real/imag/conj/transpose/ctranspose, C04
@@ -33,7 +33,10 @@ installed `mplapackint` pivots, singular behavior, 1024/2^-700 and
 and output lifetime. C07 audited `Cgelsy`, `Cgelss`, and `Cgelsd`, and
 exercised full-rank, rank-deficient, minimum-norm, precision-sensitive rank,
 workspace, mixed-operand, ambient precision, immutability, and lifetime
-behavior.
+behavior. C08 exercised selected-triangle Hermitian upper/lower Cholesky,
+diagonal imaginary handling, partial non-PD status, one-/two-output behavior,
+ambient precision, input immutability, output lifetime, and real `Rpotrf`
+parity.
 
 Release policy: MPLAPACK 3.0.1 remains a planned dependency version. No
 release commit, archive, or final tags are frozen in C00-C12.

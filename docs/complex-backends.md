@@ -40,6 +40,14 @@ its SVD path, while `Cgelsd` additionally requires larger real workspace and
 `mplapackint` `iwork`. All workspace arrays are allocated at the operation
 precision, and all integer arrays use the installed `mplapackint` type.
 
+The C08 audit confirms that the installed `Cpotrf` declaration uses
+`mpc_class` storage and `mplapackint` dimensions/status. The controlled
+`mplapack/reference/Cpotrf.cpp` source uses selected-triangle Hermitian
+semantics through reference `Cherk`, `Cgemm`, `Ctrsm`, and `Cpotrf2`. The
+binding therefore does not precheck the ignored triangle, explicitly clears
+the non-selected output triangle, and preserves the backend's real diagonal
+behavior.
+
 ## Upstream fixes introduced during C00-C12
 
 - MPLAPACK commit `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` adds and installs
