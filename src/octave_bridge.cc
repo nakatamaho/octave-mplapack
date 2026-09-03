@@ -39,6 +39,7 @@
 #include "mp_complex_blas.h"
 #include "mp_complex_lapack.h"
 #include "mp_complex_rank.h"
+#include "mp_complex_cholesky.h"
 #include "mp_lapack.h"
 #include "mp_precision.h"
 
@@ -2850,11 +2851,77 @@ make_mldivide_result (octave_mplapack::MpfrMatrixStorage storage)
 }
 
 octave_value_list
+complex_cholesky_operation (const octave_value& value, bool lower)
+{
+  const octave_value payload = require_mp_payload (value);
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+               scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "chol expects one complex mp value");
+
+  try
+    {
+      const auto factor
+        = octave_mplapack::mplapack_mpc_matrix_cholesky (*input, lower);
+      return ovl (make_complex_inspection_result (factor.factor),
+                  octave_value (static_cast<double> (factor.info)));
+    }
+  catch (const octave_mplapack::MpcCpotrfError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcCpotrfError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:CpotrfError",
+                       "MPLAPACK Cpotrf rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:CpotrfInternalError", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      if (std::string (exception.what ()).find ("square")
+          != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CpotrfError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
 mp_cholesky_operation (const octave_value& value, bool lower)
 {
   if (! is_mp_value (value))
     error_with_id ("mplapack:mp:InvalidInput",
                    "chol expects one real mp value");
+
+  if (is_complex_payload (value))
+    return complex_cholesky_operation (value, lower);
 
   std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
   const octave_value payload = require_mp_payload (value);

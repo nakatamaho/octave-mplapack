@@ -5,10 +5,11 @@ function varargout = chol (value, varargin)
   ## @deftypefn {} {@var{R} =} chol (@var{A})
   ## @deftypefnx {} {@var{R} =} chol (@var{A}, @var{uplo})
   ## @deftypefnx {} {[@var{R}, @var{p}] =} chol (@var{A}, @var{uplo})
-  ## Factor a dense real @code{mp} matrix through MPLAPACK MPFR
-  ## @code{Rpotrf}.  The default and @code{"upper"} use the upper triangle;
-  ## @code{"lower"} uses the lower triangle.  Structural copies preserve the
-  ## source precision and public values remain immutable.
+  ## Factor a dense real or complex @code{mp} matrix through MPLAPACK MPFR
+  ## @code{Rpotrf} or @code{Cpotrf}.  The default and @code{"upper"} use the
+  ## upper triangle; @code{"lower"} uses the lower triangle.  For complex
+  ## input the selected triangle defines a Hermitian matrix. Structural copies
+  ## preserve the source precision and public values remain immutable.
   ## @end deftypefn
   if (nargin < 1 || nargin > 2 || ! isa (value, "mp"))
     error ("mplapack:mp:InvalidInput", ...
