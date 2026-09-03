@@ -31,6 +31,15 @@ The C06 square-solve audit confirms that the public MPFR declaration of
 source is `mplapack/reference/Cgesv.cpp`, which delegates to reference
 `Cgetrf` and `Cgetrs`.
 
+The C07 rank-revealing audit directly exercises the public MPFR declarations
+and controlled reference sources for `Cgelsy`, `Cgelss`, and `Cgelsd`.
+`Cgelsy` was selected for production because its QR-with-column-pivoting
+contract supplies the required rank control and minimum-norm solve with
+complex work plus `2*n` real workspace. `Cgelss` uses the real workspace in
+its SVD path, while `Cgelsd` additionally requires larger real workspace and
+`mplapackint` `iwork`. All workspace arrays are allocated at the operation
+precision, and all integer arrays use the installed `mplapackint` type.
+
 ## Upstream fixes introduced during C00-C12
 
 - MPLAPACK commit `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` adds and installs
