@@ -24,6 +24,8 @@ documented gate passes.
 | M16 | Rank-deficient rectangular minimum-norm solve | Passed |
 | M17 | Dense real Cholesky factorization | Passed |
 | M18 | Dense real non-pivoted QR factorization | Passed |
+| M19 | Dense real pivoted QR factorization | Passed |
+| M20 | Complex architecture audit and design freeze | Passed (design-only) |
 | P00 | Packaging design | Planned |
 | P01 | Debian source package | Planned |
 | P02 | Local Debian build | Planned |

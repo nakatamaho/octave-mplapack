@@ -30,8 +30,9 @@ system BLAS and LAPACK also remain untouched. `mp` values are separate numeric
 objects whose MPLAPACK operations work directly on native MPFR-backed storage;
 the project will not use `LD_PRELOAD` or silently route through binary64.
 
-Through M13 the only backend is real MPFR arithmetic. Complex arithmetic and
-MPC-valued matrices are future extensions. GMP, DD, QD, binary80, and
+Through M19 the only public backend is real MPFR arithmetic. M20 audits and
+freezes the future MPC-valued architecture but intentionally adds no public
+complex values. GMP, DD, QD, binary80, and
 binary128 backends are outside this baseline.
 
 ## Native representation and ownership
@@ -202,3 +203,12 @@ validates the complete assignment before allocating a uniformly precise deep
 copy of the lhs, then applies the selected updates to that copy. Higher-
 precision `mp` RHS values widen the complete result; builtin double RHS values
 retain lhs precision. No MPLAPACK routine or MPFR precision scope is used.
+
+M20 freezes the design for a future complex extension. The installed
+MPLAPACK type is `mpfrxx::mpc_class`, and future complex scalars/matrices will
+use it directly in separate payload kinds with one equal precision for real
+and imaginary components. Real storage and all accepted real backend paths
+remain unchanged. Complex numerical calls will use operation-owned contiguous
+`COMPLEX` buffers, a single `p_op` for all REAL/COMPLEX work, and a controlled
+MPFR/MPC precision scope. See `docs/complex-architecture.md`; no public
+complex implementation is part of M20.

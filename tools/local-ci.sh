@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M19 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M20 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-  echo "FAIL: mandatory M19 GitHub authentication is unavailable" >&2
+  echo "FAIL: mandatory M20 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M19 prerequisites"
+echo "PASS: mandatory M20 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 
@@ -61,7 +61,7 @@ make -C src check-rank
 make -C src check-cholesky
 make -C src check-qr
 make -C src check-pivoted-qr
-echo "PASS: M02-M19 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, assignment, Cholesky, QR, and pivoted QR QA"
+echo "PASS: M02-M20 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, assignment, Cholesky, QR, pivoted QR, and complex audit QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -123,6 +123,13 @@ c++ -std=c++17 -Wall -Wextra -Wpedantic \
   $(pkg-config --libs mplapack_mpfr) -o "$pivoted_qr_probe"
 "$pivoted_qr_probe"
 echo "PASS: installed MPLAPACK Rgeqp3/Rorgqr precision probe"
+
+complex_probe=$qa_root/m20_complex_probe
+c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread -DMPLAPACK_BUILD_WITH_MPFR \
+  $(pkg-config --cflags mplapack_mpfr) test/m20_complex_probe.cc \
+  $(pkg-config --libs mplapack_mpfr) -o "$complex_probe"
+"$complex_probe"
+echo "PASS: installed MPLAPACK MPFR complex type/backend precision probe"
 
 if [ ! -f "$mplapack_library" ]; then
   echo "FAIL: MPLAPACK MPFR shared library is unavailable: $mplapack_library" >&2
@@ -228,7 +235,7 @@ if ! nm -D -C "$module" | grep -Eq ' U Rorgqr\('; then
 fi
 
 if ! nm -D -C "$module" | grep -Eq ' U Rgeqp3\('; then
-  echo "FAIL: M19 native module lacks an unresolved Rgeqp3 reference" >&2
+  echo "FAIL: M20 native module lacks an unresolved Rgeqp3 reference" >&2
   exit 1
 fi
 
@@ -527,7 +534,7 @@ M01_REPO_ROOT=$repo_root MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     assert (__mplapack_core__ (
       "scalar_test_equal_double", binary64, 0.1));
   '
-echo "PASS: clean rebuild #2 and M01-M19 re-test"
+echo "PASS: clean rebuild #2 and M01-M20 re-test"
 
 make -C src clean
 tools/build-package.sh
@@ -597,6 +604,8 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/qr.md docs/milestones/M18-qr.md \
   test/pivoted_qr.tst test/mp_lapack_pivoted_qr_test.cc test/m19_qr_probe.cc \
   docs/pivoted-qr.md docs/milestones/M19-pivoted-qr.md \
+  test/m20_complex_probe.cc docs/complex-architecture.md \
+  docs/milestones/M20-complex-architecture.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -1001,6 +1010,6 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
     '
 )
 
-echo "PASS: isolated package M01-M19 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M20 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR and complex audit QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M19 local CI"
+echo "PASS: M20 local CI"
