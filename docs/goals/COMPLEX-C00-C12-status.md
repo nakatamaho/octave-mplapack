@@ -11,8 +11,6 @@ Last PASS milestone: C12
 octave-mplapack tested implementation: `topic/complex-c00-c12` /
 `36cd341a8c14ce2d0a6790b287e5f7a7b0846cd3`
 
-C12 report/status commit: `f3439178f6ca68615849d209b17d3db5917c698b`
-
 MPLAPACK tested commit: `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` (`topic/octave-mplapack-complex-mpfr-scope`)
 
 gmpfrxx_mkII tested commit: `32a7fb797202cdf92312ed9d133f96fdbcda590a` (`main`)

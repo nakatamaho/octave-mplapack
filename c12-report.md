@@ -6,8 +6,6 @@ COMPLEX_START_COMMIT: `4aed479ef9cb8dff24f0326e1c2ec2a7c1ed83a3`
 
 COMPLEX_FINAL_COMMIT: `36cd341a8c14ce2d0a6790b287e5f7a7b0846cd3`
 
-C12 report/status commit: `f3439178f6ca68615849d209b17d3db5917c698b`
-
 The final tested implementation commit is the C12 commit above. The
 subsequent report/status commit contains documentation only and does not
 change the tested implementation.
@@ -117,8 +115,8 @@ or binary64 fallback.
   linkage checks: PASS;
 - reproducible development archive:
   `mplapack-0.2.0-dev.tar.gz`, SHA256
-  `e81ecd3c427bf25a394af352b6d3e8e8b4d1b13d2854babbed279ef6fede9d6e`,
-  size `227922` bytes;
+  `9bcfd1685880d85254858c257a84e83bf242b3400ca8aa2a6f21375d703deca3`,
+  size `227876` bytes;
 - isolated package install/load/unload/uninstall/reinstall/reload and
   real+complex smoke: PASS;
 - no Debian package was created, no Launchpad upload was made, no PPA work
