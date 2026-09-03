@@ -4,11 +4,11 @@ REAL_V0_1_RC_COMMIT: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
 
 COMPLEX_START_COMMIT: `4aed479ef9cb8dff24f0326e1c2ec2a7c1ed83a3`
 
-Current milestone: C09
+Current milestone: C10
 
-Last PASS milestone: C08
+Last PASS milestone: C09
 
-octave-mplapack branch/tip: `topic/complex-c00-c12` / `abf2c836b6b54b0bde1a87ecb2524369960a895a`
+octave-mplapack branch/tip: `topic/complex-c00-c12` / `ff2a86418ec90b53042bce8cae8d0312715a8950`
 
 MPLAPACK tested commit: `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` (`topic/octave-mplapack-complex-mpfr-scope`)
 
@@ -21,7 +21,7 @@ Upstream fixes:
 
 Blockers: none.
 
-Full regression status: C08 PASS. C00 storage/scope/TLS/lifetime/special
+Full regression status: C09 PASS. C00 storage/scope/TLS/lifetime/special
 value probe PASS at 128, 256, 512, 1024, and 2048 bits under ASan/UBSan/LSan;
 C01 scalar construction/conversion, C02 dense complex construction,
 inspection/indexing/assignment, C03 real/imag/conj/transpose/ctranspose, C04
@@ -36,6 +36,10 @@ workspace, mixed-operand, ambient precision, immutability, and lifetime
 behavior. C08 exercised selected-triangle Hermitian upper/lower Cholesky,
 diagonal imaginary handling, partial non-PD status, one-/two-output behavior,
 ambient precision, input immutability, output lifetime, and real `Rpotrf`
+parity.
+C09 exercised full/economy/wide complex QR, R-only dispatch, exact R zeros,
+complex orthogonality and reconstruction, workspace queries, 1024/2^-700 and
+2048/2^-1500 canaries, ambient precision, immutability, lifetime, and real QR
 parity.
 
 Release policy: MPLAPACK 3.0.1 remains a planned dependency version. No

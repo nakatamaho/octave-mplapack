@@ -48,6 +48,12 @@ binding therefore does not precheck the ignored triangle, explicitly clears
 the non-selected output triangle, and preserves the backend's real diagonal
 behavior.
 
+The C09 audit confirms that the installed `Cgeqrf` and `Cungqr` declarations
+use `mpc_class` reflector and workspace arrays with `mplapackint` dimensions.
+The controlled reference sources use blocked complex Householder helpers; the
+binding performs precision-scoped workspace queries and invokes `Cungqr` only
+for two-output calls.
+
 ## Upstream fixes introduced during C00-C12
 
 - MPLAPACK commit `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` adds and installs
