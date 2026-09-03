@@ -26,6 +26,11 @@ disables GMP, QD, DD, binary80, binary128, optimized, test, and benchmark
 variants. MPLAPACK's public MPFR `Cgemm` declaration accepts `mpc_class`
 arguments and is implemented by `mpblas/reference/Cgemm.cpp`.
 
+The C06 square-solve audit confirms that the public MPFR declaration of
+`Cgesv` uses `mpc_class` A/B arrays and `mplapackint *ipiv`; its controlled
+source is `mplapack/reference/Cgesv.cpp`, which delegates to reference
+`Cgetrf` and `Cgetrs`.
+
 ## Upstream fixes introduced during C00-C12
 
 - MPLAPACK commit `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` adds and installs
