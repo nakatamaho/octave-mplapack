@@ -30,6 +30,8 @@ assert (test (fullfile (test_dir, "chol.tst"), "quiet", stdout));
 fprintf ("PASS: M17 native MPFR Rpotrf Cholesky tests\n");
 assert (test (fullfile (test_dir, "qr.tst"), "quiet", stdout));
 fprintf ("PASS: M18 native MPFR Rgeqrf/Rorgqr QR tests\n");
+assert (test (fullfile (test_dir, "pivoted_qr.tst"), "quiet", stdout));
+fprintf ("PASS: M19 native MPFR Rgeqp3/Rorgqr pivoted QR tests\n");
 assert (test (fullfile (test_dir, "matrix_inspection.tst"), "quiet", stdout));
 fprintf ("PASS: M10 dense matrix inspection tests\n");
 assert (test (fullfile (test_dir, "elementwise.tst"), "quiet", stdout));
