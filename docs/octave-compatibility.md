@@ -1,6 +1,6 @@
 # Octave compatibility
 
-M22 validates the real-only public surface with GNU Octave 11.1.0. The normal
+M23 freezes and validates the real-only public surface with GNU Octave 11.1.0. The normal
 Octave syntax is used for supported operations and the `mp` class keeps
 immutable native storage. Existing values retain their stored precision;
 `mpbits` is a construction default, not an operation-wide override.

@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M22 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory M23 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-    echo "FAIL: mandatory M22 GitHub authentication is unavailable" >&2
+    echo "FAIL: mandatory M23 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M22 prerequisites"
+echo "PASS: mandatory M23 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 make -C src check-dependency
@@ -554,6 +554,10 @@ make -C src clean
 tools/build-package.sh
 package_name=$(sed -n 's/^Name: *//p' DESCRIPTION)
 package_version=$(sed -n 's/^Version: *//p' DESCRIPTION)
+if [ "$package_version" != "0.1.0" ]; then
+  echo "FAIL: M23 requires frozen DESCRIPTION version 0.1.0" >&2
+  exit 1
+fi
 package_dir=$package_name-$package_version
 archive=$repo_root/dist/$package_dir.tar.gz
 first_hash=$(sha256sum "$archive" | awk '{ print $1 }')
@@ -625,9 +629,10 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   test/m22_dependency_probe.cc test/release_closure.tst \
   docs/v0.1-api.md docs/octave-compatibility.md docs/ppa-plan.md \
   docs/release-checklist.md docs/milestones/M22-real-release-closure.md \
+  docs/milestones/M23-v0.1-freeze.md \
   examples/01_scalar_precision.m examples/02_matrix_arithmetic.m \
   examples/03_linear_solve.m examples/04_factorizations.m \
-  tools/dev-octave.sh \
+  tools/dev-octave.sh tools/verify-release-candidate.sh \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -641,6 +646,12 @@ done
 if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
+  exit 1
+fi
+
+if grep -Eq '(^|/)docs/v0\.1-release-manifest\.md$|(^|/)m23-report\.md$' \
+    "$archive_listing"; then
+  echo "FAIL: release handoff/report metadata leaked into package archive" >&2
   exit 1
 fi
 
@@ -1056,6 +1067,6 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
     '
 )
 
-echo "PASS: isolated package M01-M22 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU, release closure, and complex audit QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package M01-M23 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU, release closure, and complex audit QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M22 local CI"
+echo "PASS: M23 local CI"

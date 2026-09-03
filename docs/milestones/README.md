@@ -28,6 +28,7 @@ documented gate passes.
 | M20 | Complex architecture audit and design freeze | Passed (design-only) |
 | M21 | Dense real LU factorization | Passed |
 | M22 | Real API and release closure for v0.1 | Passed |
+| M23 | v0.1.0 feature freeze and release candidate | Passed |
 | P00 | Packaging design | Planned |
 | P01 | Debian source package | Planned |
 | P02 | Local Debian build | Planned |
