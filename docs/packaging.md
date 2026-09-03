@@ -38,3 +38,7 @@ runtime closure includes system MPC, MPFR, and GMP libraries, so the existing
 package rename. License and dependency metadata for those system libraries
 remain P01/PPA work. The explicit M20 release decision is
 `REAL-PPA-GO`; complex implementation is not required for the real-only PPA.
+M22 records the concrete handoff in [`ppa-plan.md`](ppa-plan.md): Ubuntu
+26.04/Octave 11.1 amd64 is the initial validated target, with an MPLAPACK MPFR
+Debian package boundary and an `octave-mplapack` package update. No PPA upload
+occurs before M23.

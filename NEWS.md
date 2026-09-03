@@ -1,5 +1,17 @@
 # News
 
+## 0.1.0 (provisional target for M23)
+
+The first release candidate is planned as a dense real arbitrary-precision
+Octave package. The accepted surface includes MPFR scalar and matrix
+construction with explicit bit/digit precision control, precision-preserving
+arithmetic and structural operations, `Rgemm` multiplication, `Rgesv`/`Rgelss`
+left division, and `Rpotrf`, `Rgeqrf`/`Rorgqr`, `Rgeqp3`, and `Rgetrf`
+factorizations. Complex, sparse, N-D, reduction, transcendental, determinant,
+inverse, rank, condition, and update APIs remain outside v0.1. M22 closes the
+API, documentation, dependency-probe, package, and PPA handoff requirements;
+M23 must freeze and release the version.
+
 ## 0.1.0-dev
 
 - Bootstrapped the repository, package metadata, project contracts, and

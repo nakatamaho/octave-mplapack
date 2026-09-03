@@ -27,6 +27,7 @@ documented gate passes.
 | M19 | Dense real pivoted QR factorization | Passed |
 | M20 | Complex architecture audit and design freeze | Passed (design-only) |
 | M21 | Dense real LU factorization | Passed |
+| M22 | Real API and release closure for v0.1 | Passed |
 | P00 | Packaging design | Planned |
 | P01 | Debian source package | Planned |
 | P02 | Local Debian build | Planned |

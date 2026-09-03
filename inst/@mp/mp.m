@@ -21,7 +21,9 @@ classdef mp
   ## real values, and column-major reshape. M13 adds native horizontal and
   ## vertical concatenation returning one dense `mp` value. M14 adds limited
   ## in-bounds value-semantic indexed assignment; matrix `char` remains
-  ## deferred. Complex,
+  ## deferred. M17-M21 add dense real `chol`, full/economy and pivoted `qr`,
+  ## and packed/permutation-aware `lu`. The v0.1 release scope is real-only.
+  ## Complex,
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
   ## @end deftypefn
 

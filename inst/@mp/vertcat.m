@@ -1,6 +1,10 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
 function result = vertcat (varargin)
+  ## -*- texinfo -*-
+  ## @deftypefn {} {@var{C} =} vertcat (@var{A}, @var{B}, @dots{})
+  ## Concatenate dense real @code{mp} values vertically.
+  ## @end deftypefn
   if (nargin < 1)
     error ("mplapack:mp:InvalidOperands", ...
            "mp vertical concatenation expects at least one operand");

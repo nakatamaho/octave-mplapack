@@ -1,6 +1,10 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
 function result = subsref (value, index)
+  ## -*- texinfo -*-
+  ## @deftypefn {} {@var{B} =} subsref (@var{A}, @var{index})
+  ## Implement dense @code{mp} indexing while preserving native value semantics.
+  ## @end deftypefn
   if (isempty (index))
     result = value;
     return;

@@ -40,7 +40,7 @@ for field in Name Version Date Title Author Maintainer Description License; do
 done
 
 if [ "$failed" -ne 0 ]; then
-  echo "FAIL: M00 formatting and sanity checks failed" >&2
+  echo "FAIL: M00-M22 formatting and sanity checks failed" >&2
   exit 1
 fi
 
@@ -52,8 +52,8 @@ for source in src/*.cc src/*.h test/*.cc; do
 done
 
 if [ "$failed" -ne 0 ]; then
-  echo "FAIL: M02-M21 source sanity checks failed" >&2
+  echo "FAIL: M02-M22 source sanity checks failed" >&2
   exit 1
 fi
 
-echo "PASS: M00-M21 formatting and sanity checks"
+echo "PASS: M00-M22 formatting and sanity checks"

@@ -31,13 +31,14 @@ CHOLESKY_TEST = .build-m17/mp_lapack_cholesky_test
 QR_TEST = .build-m18/mp_lapack_qr_test
 PIVOTED_QR_TEST = .build-m19/mp_lapack_pivoted_qr_test
 LU_TEST = .build-m21/mp_lapack_lu_test
+DEPENDENCY_TEST = .build-m22/m22_dependency_probe
 MPLAPACK_VERSION := $(shell $(PKG_CONFIG) --modversion $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
 PACKAGE_CXXFLAGS = -std=c++17 -DMPLAPACK_PKG_VERSION=$(MPLAPACK_VERSION)
 SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 
-.PHONY: all check-deps check-storage-sanitized \
+.PHONY: all check-deps check-dependency check-storage-sanitized \
   check-arithmetic-sanitized check-matrix-sanitized check-blas \
   check-lapack check-inspection check-elementwise check-structure \
   check-concat check-assignment check-rgels check-rank check-cholesky check-qr \
@@ -46,7 +47,7 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 
 all: $(TARGET)
 
-$(TARGET): $(SOURCE) $(HEADERS) | check-deps
+$(TARGET): $(SOURCE) $(HEADERS) | check-dependency
 	@echo "Building $(TARGET) with MKOCTFILE=$(MKOCTFILE)"
 	$(MKOCTFILE) $(PACKAGE_CXXFLAGS) $(MPLAPACK_CFLAGS) $(SOURCE) \
 	  $(MPLAPACK_LIBS) -o $@
@@ -240,6 +241,16 @@ check-lu: $(LU_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 	UBSAN_OPTIONS=halt_on_error=1 $(LU_TEST)
 
+$(DEPENDENCY_TEST): ../test/m22_dependency_probe.cc | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread \
+	  $(MPLAPACK_CFLAGS) -I. ../test/m22_dependency_probe.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-dependency: $(DEPENDENCY_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(DEPENDENCY_TEST)
+
 check-deps:
 	@$(MKOCTFILE) --help >/dev/null 2>&1 || { \
 	  echo "FAIL: mkoctfile command not found: $(MKOCTFILE)" >&2; exit 1; }
@@ -258,4 +269,4 @@ check-deps:
 
 clean:
 	$(RM) $(TARGET) *.o *.lo
-	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21
+	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21 .build-m22

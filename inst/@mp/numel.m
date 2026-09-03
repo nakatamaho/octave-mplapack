@@ -1,6 +1,10 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
 function count = numel (value, varargin)
+  ## -*- texinfo -*-
+  ## @deftypefn {} {@var{n} =} numel (@var{A})
+  ## Return the number of stored elements in a dense real @code{mp} value.
+  ## @end deftypefn
   if (! isa (value, "mp"))
     error ("mplapack:mp:InvalidInput", "numel expects an mp value");
   endif

@@ -44,3 +44,5 @@ assert (test (fullfile (test_dir, "concat.tst"), "quiet", stdout));
 fprintf ("PASS: M13 dense concatenation tests\n");
 assert (test (fullfile (test_dir, "assignment.tst"), "quiet", stdout));
 fprintf ("PASS: M14 dense indexed assignment tests\n");
+assert (test (fullfile (test_dir, "release_closure.tst"), "quiet", stdout));
+fprintf ("PASS: M22 real API and release closure tests\n");

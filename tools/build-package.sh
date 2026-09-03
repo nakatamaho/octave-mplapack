@@ -56,6 +56,7 @@ src
 test
 docs
 tools
+examples
 '
 
 for source_root in $source_roots; do
@@ -84,6 +85,9 @@ find $source_roots -type f \
   ! -path '*/.build-m16/*' \
   ! -path '*/.build-m17/*' \
   ! -path '*/.build-m18/*' \
+  ! -path '*/.build-m19/*' \
+  ! -path '*/.build-m21/*' \
+  ! -path '*/.build-m22/*' \
   ! -path '*/.libs/*' \
   ! -path '*/.deps/*' \
   -print | LC_ALL=C sort > "$manifest"

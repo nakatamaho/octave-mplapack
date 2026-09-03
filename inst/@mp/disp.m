@@ -1,6 +1,10 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
 function disp (value)
+  ## -*- texinfo -*-
+  ## @deftypefn {} {} disp (@var{A})
+  ## Display a dense real @code{mp} value without reducing it to binary64.
+  ## @end deftypefn
   ## Display canonical multiprecision text.  Octave's binary64 format setting
   ## does not reduce or otherwise change this representation.
   if (nargin != 1 || ! isa (value, "mp"))
