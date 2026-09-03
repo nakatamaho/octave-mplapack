@@ -3,6 +3,7 @@
 #ifndef OCTAVE_MPLAPACK_MP_COMPLEX_STRUCTURE_H
 #define OCTAVE_MPLAPACK_MP_COMPLEX_STRUCTURE_H
 
+#include "mp_complex_matrix_storage.h"
 #include "mp_complex_scalar_storage.h"
 #include "mp_scalar_storage.h"
 
@@ -23,6 +24,11 @@ MpfrComplexScalarStorage mpfr_complex_scalar_transpose (
 
 MpfrComplexScalarStorage mpfr_complex_scalar_ctranspose (
   const MpfrComplexScalarStorage& source);
+
+MpfrComplexMatrixStorage mpfr_complex_matrix_reshape (
+  const MpfrComplexMatrixStorage& source,
+  std::size_t rows,
+  std::size_t columns);
 
 } // namespace octave_mplapack
 

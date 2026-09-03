@@ -3,7 +3,7 @@
 function result = vertcat (varargin)
   ## -*- texinfo -*-
   ## @deftypefn {} {@var{C} =} vertcat (@var{A}, @var{B}, @dots{})
-  ## Concatenate dense real @code{mp} values vertically.
+  ## Concatenate dense real or complex @code{mp} values vertically.
   ## @end deftypefn
   if (nargin < 1)
     error ("mplapack:mp:InvalidOperands", ...

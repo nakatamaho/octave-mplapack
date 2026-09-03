@@ -74,6 +74,8 @@ main ()
             octave_mplapack::mpfr_complex_matrix_transpose (matrix);
           const auto matrix_ctranspose =
             octave_mplapack::mpfr_complex_matrix_ctranspose (matrix);
+          const auto matrix_reshape
+            = octave_mplapack::mpfr_complex_matrix_reshape (matrix, 1, 4);
           check (matrix_real.rows () == 2 && matrix_real.columns () == 2
                    && matrix_imag.precision_bits () == precision,
                  "matrix component shape or precision mismatch");
@@ -90,6 +92,16 @@ main ()
           check (matrix_ctranspose.element_exactly_equal_double (0, 1,
                                                                   {5.0, -6.0}),
                  "matrix conjugate transpose mismatch");
+          check (matrix_reshape.rows () == 1 && matrix_reshape.columns () == 4
+                   && matrix_reshape.element_exactly_equal_double (0, 0,
+                                                                      {1.0, 2.0})
+                   && matrix_reshape.element_exactly_equal_double (0, 1,
+                                                                      {5.0, 6.0})
+                   && matrix_reshape.element_exactly_equal_double (0, 2,
+                                                                      {3.0, -4.0})
+                   && matrix_reshape.element_exactly_equal_double (0, 3,
+                                                                      {7.0, -8.0}),
+                 "matrix complex reshape mismatch");
         }
 
       std::cout << "PASS: complex real/imag/conjugate/transpose helpers, signed zero, precision, and sanitizer coverage\n";

@@ -234,8 +234,15 @@
 
 %!test
 %! A = mp ({"1", "2"; "3", "4"});
-%! bad = {@() assign_complex (A), @() assign_sparse (A), ...
-%!        @() assign_nd (A)};
+%! before = double (A);
+%! A(1, 1) = 1 + 2i;
+%! assert (__mplapack_core__ ("matrix_test_info", A).is_complex);
+%! assert (__mplapack_core__ ("matrix_test_element_equal_double", ...
+%!                            A, 1, 1, 1 + 2i));
+%! assert (double (A(:, 2)), before(:, 2));
+%! B = mp ({"1", "2"; "3", "4"});
+%! bad = {@() assign_sparse (B), ...
+%!        @() assign_nd (B)};
 %! for k = 1:numel (bad)
 %!   try
 %!     bad{k} ();

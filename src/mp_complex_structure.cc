@@ -2,6 +2,7 @@
 
 #include "mp_complex_structure.h"
 
+#include <stdexcept>
 #include <utility>
 
 #include "mp_complex_precision.h"
@@ -72,5 +73,21 @@ mpfr_complex_scalar_transpose (const MpfrComplexScalarStorage& source)
 MpfrComplexScalarStorage
 mpfr_complex_scalar_ctranspose (const MpfrComplexScalarStorage& source)
 { return conjugate (source); }
+
+MpfrComplexMatrixStorage
+mpfr_complex_matrix_reshape (const MpfrComplexMatrixStorage& source,
+                             std::size_t rows, std::size_t columns)
+{
+  if (MpfrComplexMatrixStorage::checked_element_count (rows, columns)
+      != source.numel ())
+    throw std::invalid_argument ("complex reshape element count does not match");
+
+  MpfrMpcPrecisionScope scope (source.precision_bits ());
+  MpfrComplexMatrixStorage result (rows, columns, source.precision_bits ());
+  for (std::size_t index = 0; index < source.numel (); ++index)
+    mpc_set (result.data ()[index].mpc_data (), source.data ()[index].mpc_data (),
+             MPC_RND (MPFR_RNDN, MPFR_RNDN));
+  return result;
+}
 
 } // namespace octave_mplapack
