@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M23 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory D00 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-    echo "FAIL: mandatory M23 GitHub authentication is unavailable" >&2
+    echo "FAIL: mandatory D00 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,7 +34,7 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M23 prerequisites"
+echo "PASS: mandatory D00 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 make -C src check-dependency
@@ -63,7 +63,18 @@ make -C src check-cholesky
 make -C src check-qr
 make -C src check-pivoted-qr
 make -C src check-lu
-echo "PASS: M02-M21 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, assignment, Cholesky, QR, pivoted QR, LU, and complex audit QA"
+make -C src check-complex-storage
+make -C src check-complex-structure
+make -C src check-complex-arithmetic
+make -C src check-complex-blas
+make -C src check-complex-lapack
+make -C src check-complex-rank
+make -C src check-complex-cholesky
+make -C src check-complex-qr
+make -C src check-complex-pivoted-qr
+make -C src check-complex-concat
+make -C src check-complex-lu
+echo "PASS: D00 ASan/UBSan/LSan real and complex storage, arithmetic, BLAS, LAPACK, rank, Cholesky, QR, pivoted QR, concatenation, assignment, and LU QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -127,16 +138,21 @@ c++ -std=c++17 -Wall -Wextra -Wpedantic \
 echo "PASS: installed MPLAPACK Rgeqp3/Rorgqr precision probe"
 
 lu_probe=$qa_root/m21_rgetrf_probe
-c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread \
-  $(pkg-config --cflags mplapack_mpfr) test/m21_rgetrf_probe.cc \
-  $(pkg-config --libs mplapack_mpfr) -o "$lu_probe"
+sed '/^[[:space:]]*#include <mplapack\.h>[[:space:]]*$/d' \
+  test/m21_rgetrf_probe.cc \
+  | c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread -x c++ - \
+      $(pkg-config --cflags mplapack_mpfr) \
+      $(pkg-config --libs mplapack_mpfr) -o "$lu_probe"
 "$lu_probe"
 echo "PASS: installed MPLAPACK Rgetrf precision/IPIV probe"
 
 complex_probe=$qa_root/m20_complex_probe
-c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread -DMPLAPACK_BUILD_WITH_MPFR \
-  $(pkg-config --cflags mplapack_mpfr) test/m20_complex_probe.cc \
-  $(pkg-config --libs mplapack_mpfr) -o "$complex_probe"
+sed '/^[[:space:]]*#include <mplapack\.h>[[:space:]]*$/d' \
+  test/m20_complex_probe.cc \
+  | c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread \
+      -DMPLAPACK_BUILD_WITH_MPFR -x c++ - \
+      $(pkg-config --cflags mplapack_mpfr) \
+      $(pkg-config --libs mplapack_mpfr) -o "$complex_probe"
 "$complex_probe"
 echo "PASS: installed MPLAPACK MPFR complex type/backend precision probe"
 
@@ -554,8 +570,8 @@ make -C src clean
 tools/build-package.sh
 package_name=$(sed -n 's/^Name: *//p' DESCRIPTION)
 package_version=$(sed -n 's/^Version: *//p' DESCRIPTION)
-if [ "$package_version" != "0.1.0" ]; then
-  echo "FAIL: M23 requires frozen DESCRIPTION version 0.1.0" >&2
+if [ "$package_version" != "0.2.0" ]; then
+  echo "FAIL: D00 requires frozen DESCRIPTION version 0.2.0" >&2
   exit 1
 fi
 package_dir=$package_name-$package_version
@@ -1067,6 +1083,6 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
     '
 )
 
-echo "PASS: isolated package M01-M23 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU, release closure, and complex audit QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package D00 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU, release closure, and complex audit QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M23 local CI"
+echo "PASS: D00 local CI"
