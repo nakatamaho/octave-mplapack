@@ -25,6 +25,8 @@
 
 #include "mp_value.h"
 #include "mp_matrix_value.h"
+#include "mp_complex_value.h"
+#include "mp_complex_matrix_value.h"
 #include "mp_matrix_inspection.h"
 #include "mp_matrix_arithmetic.h"
 #include "mp_matrix_structure.h"
@@ -62,6 +64,8 @@ initialize_internal_type (octave::interpreter& interp)
   {
     octave_mplapack_mpfr_scalar_internal::register_type ();
     octave_mplapack_mpfr_matrix_internal::register_type ();
+    octave_mplapack_mpc_scalar_internal::register_type ();
+    octave_mplapack_mpc_matrix_internal::register_type ();
   });
 
   if (! function->islocked ())

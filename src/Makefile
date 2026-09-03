@@ -8,13 +8,16 @@ SOURCE = octave_bridge.cc mp_value.cc mp_matrix_value.cc mp_blas.cc mp_lapack.cc
   mp_scalar_storage.cc mp_matrix_storage.cc mp_matrix_inspection.cc \
   mp_matrix_arithmetic.cc mp_matrix_structure.cc mp_matrix_concat.cc \
   mp_matrix_assignment.cc \
-  mp_arithmetic.cc mp_precision.cc
+  mp_arithmetic.cc mp_precision.cc mp_complex_precision.cc \
+  mp_complex_scalar_storage.cc mp_complex_matrix_storage.cc \
+  mp_complex_value.cc mp_complex_matrix_value.cc
 HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
   mp_matrix_storage.h mp_matrix_inspection.h mp_matrix_arithmetic.h \
   mp_matrix_structure.h mp_matrix_concat.h \
   mp_matrix_assignment.h \
   mp_precision.h mp_blas.h \
-  mp_lapack.h
+  mp_lapack.h mp_complex_precision.h mp_complex_scalar_storage.h \
+  mp_complex_matrix_storage.h mp_complex_value.h mp_complex_matrix_value.h
 STORAGE_TEST = .build-m02/mp_scalar_storage_test
 ARITHMETIC_TEST = .build-m06/mp_scalar_arithmetic_test
 MATRIX_TEST = .build-m07/mp_matrix_storage_test
@@ -32,6 +35,7 @@ QR_TEST = .build-m18/mp_lapack_qr_test
 PIVOTED_QR_TEST = .build-m19/mp_lapack_pivoted_qr_test
 LU_TEST = .build-m21/mp_lapack_lu_test
 DEPENDENCY_TEST = .build-m22/m22_dependency_probe
+CPLX_STORAGE_TEST = .build-c00/mp_complex_storage_test
 MPLAPACK_VERSION := $(shell $(PKG_CONFIG) --modversion $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
@@ -42,7 +46,7 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
   check-arithmetic-sanitized check-matrix-sanitized check-blas \
   check-lapack check-inspection check-elementwise check-structure \
   check-concat check-assignment check-rgels check-rank check-cholesky check-qr \
-  check-pivoted-qr check-lu clean
+  check-pivoted-qr check-lu check-complex-storage clean
 .DELETE_ON_ERROR:
 
 all: $(TARGET)
@@ -251,6 +255,21 @@ check-dependency: $(DEPENDENCY_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 	UBSAN_OPTIONS=halt_on_error=1 $(DEPENDENCY_TEST)
 
+$(CPLX_STORAGE_TEST): ../test/mp_complex_storage_test.cc \
+  mp_complex_precision.cc mp_complex_precision.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_storage_test.cc \
+	  mp_complex_precision.cc mp_complex_scalar_storage.cc \
+	  mp_complex_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-complex-storage: $(CPLX_STORAGE_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_STORAGE_TEST)
+
 check-deps:
 	@$(MKOCTFILE) --help >/dev/null 2>&1 || { \
 	  echo "FAIL: mkoctfile command not found: $(MKOCTFILE)" >&2; exit 1; }
@@ -269,4 +288,4 @@ check-deps:
 
 clean:
 	$(RM) $(TARGET) *.o *.lo
-	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21 .build-m22
+	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21 .build-m22 .build-c00
