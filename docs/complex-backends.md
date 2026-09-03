@@ -54,12 +54,19 @@ The controlled reference sources use blocked complex Householder helpers; the
 binding performs precision-scoped workspace queries and invokes `Cungqr` only
 for two-output calls.
 
+The C10 audit confirms that the installed `Cgeqp3` declaration uses
+`mpc_class` factor, reflector, and complex workspace arrays, an
+`mplapackint*` `JPVT`, and MPFR real workspace. The controlled reference
+source uses the complex pivoted Householder path. The binding initializes
+`JPVT` to zero, validates the returned one-based permutation, maps it to the
+public matrix/vector forms, and reuses the precision-scoped `Cungqr` path.
+
 ## Upstream fixes introduced during C00-C12
 
 - MPLAPACK commit `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` adds and installs
   `mplapack_mpfr_precision.h`, and includes it from the public MPFR headers.
   This supplies the real MPFR precision scope required by the complex
-  implementation. No `gmpfrxx_mkII` fix was required through C05.
+  implementation. No `gmpfrxx_mkII` fix was required through C10.
 
 No final MPLAPACK 3.0.1 release commit, archive, or dependency tag is frozen
 by this development goal.
