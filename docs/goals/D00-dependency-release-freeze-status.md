@@ -4,9 +4,9 @@ Controller: [`D00-dependency-release-freeze.md`](D00-dependency-release-freeze.m
 
 ## Current state
 
-Current substage: `D00-M` release archive revalidation after scope correction
+Current substage: `D00-O` octave-mplapack 0.2.0 freeze
 
-Last completed substage: `D00-G`
+Last completed substage: `D00-M`
 
 Overall result: `IN PROGRESS`
 
@@ -15,7 +15,7 @@ Overall result: `IN PROGRESS`
 | Substage | Result | Evidence |
 |---|---|---|
 | D00-G gmpfrxx_mkII | PASS | v1.4.1, commit `32a7fb797202cdf92312ed9d133f96fdbcda590a`, clean install, 156 CTest cases, standalone scalar/precision/TLS probes, reproducible archive |
-| D00-M MPLAPACK 3.0.1 | IN PROGRESS | C12 scope integration, 1.4.1 provenance, deterministic tar metadata, generated gmpfrxx `Makefile.in`, and external gmpfrxx include flags repaired; current candidate `fa3ccb4376d2a52c2672322e5b7199a9224bed7f` is pushed |
+| D00-M MPLAPACK 3.0.1 | PASS | Candidate `fa3ccb4376d2a52c2672322e5b7199a9224bed7f`; public scope/backend consumers pass, archive-only configure/build/install pass, `mplapack_mpfr.pc` exports frozen gmpfrxx include flags, archive size `86024224`, SHA256 `7c8d1d7759a487bc01e8c1625599ec77b6c7e297c19b20ca45e8c342f5165e64` reproduced by A/B |
 | D00-O octave-mplapack 0.2.0 | PENDING | — |
 | D00-S frozen-stack rebuild | PENDING | — |
 | D00-R reproducibility | PENDING | — |
@@ -55,5 +55,18 @@ OCTAVE_MPLAPACK_RELEASE_TAG=not created before D00-T
   depend on internal `INTEGER`/`REAL` definitions and are not public install
   targets. An attempted temporary promotion of those headers was removed from
   the D00 branch history by force-push; it is not a release fix.
+- The original external probes `m20_complex_probe.cc` and
+  `m21_rgetrf_probe.cc` included those internal aggregate headers and therefore
+  produced a false installed-interface failure. Temporary copies using only
+  the public MPFR backend headers were rebuilt and passed; the source probes
+  were not changed.
+- D00-M release defect fixes were audited as: bundled gmpfrxx 1.4.0 mismatch,
+  nondeterministic archive PAX timestamps, missing generated gmpfrxx
+  `Makefile.in`, and missing external gmpfrxx include flags in the MPFR
+  pkg-config modules. The four fixes are commits
+  `85b581ea0c9183cdbaf44d34eb48d7cc8eb3dcb2`,
+  `f4e5818135dada8c6ef0a7f11954c53f11f4202a`,
+  `3786c35a825ae3927b8621bed380e14877d17912`, and
+  `fa3ccb4376d2a52c2672322e5b7199a9224bed7f`.
 - `octave-mplapack-ppa` is untouched. No Debian package or Launchpad upload is
   part of D00.

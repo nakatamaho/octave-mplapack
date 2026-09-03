@@ -9,7 +9,7 @@ may silently substitute another source commit.
 | Layer | Repository | Version | Freeze commit | Tag | Archive | SHA256 | Size | License | Depends on |
 |---|---|---:|---|---|---|---|---:|---|---|
 | gmpfrxx_mkII | `github.com/nakatamaho/gmpfrxx_mkII` | 1.4.1 | `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `v1.4.1` | `gmpfrxx_mkII.1.4.1.tar.xz` | `93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890` | 15176072 | BSD 2-Clause | GMP, MPFR, MPC headers/libraries |
-| MPLAPACK | `github.com/nakatamaho/mplapack` | 3.0.1 | `fa3ccb4376d2a52c2672322e5b7199a9224bed7f` | pending D00-T (`v3.0.1`) | `mplapack-3.0.1.tar.xz` | pending D00-R | pending | 2-clause BSD-style, with original LAPACK/BLAS notices | frozen gmpfrxx; GMP, MPFR, MPC |
+| MPLAPACK | `github.com/nakatamaho/mplapack` | 3.0.1 | `fa3ccb4376d2a52c2672322e5b7199a9224bed7f` | pending D00-T (`v3.0.1`) | `mplapack-3.0.1.tar.xz` | `7c8d1d7759a487bc01e8c1625599ec77b6c7e297c19b20ca45e8c342f5165e64` | 86024224 | 2-clause BSD-style, with original LAPACK/BLAS notices | frozen gmpfrxx; GMP, MPFR, MPC |
 | octave-mplapack | `github.com/nakatamaho/octave-mplapack` | 0.2.0 | pending D00-O | pending D00-T (`v0.2.0`) | `mplapack-0.2.0.tar.gz` | pending D00-R | pending | BSD 2-Clause | MPLAPACK 3.0.1; gmpfrxx; GMP, MPFR, MPC; Octave |
 
 The gmpfrxx and MPLAPACK archive artifacts are stored during D00 under
@@ -44,7 +44,7 @@ worker. Complex calls additionally compose this MPFR scope with the tested
 MPC scope in `octave-mplapack`; no builtin binary64 complex fallback is
 allowed.
 
-The final installed MPLAPACK interface is expected to provide:
+The final installed MPLAPACK interface provides:
 
 ```text
 pkg-config module: mplapack_mpfr
