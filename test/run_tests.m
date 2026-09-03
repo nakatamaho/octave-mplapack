@@ -58,3 +58,5 @@ assert (test (fullfile (test_dir, "complex_gemm.tst"), "quiet", stdout));
 fprintf ("PASS: C05 complex Cgemm tests\n");
 assert (test (fullfile (test_dir, "complex_gesv.tst"), "quiet", stdout));
 fprintf ("PASS: C06 complex Cgesv tests\n");
+assert (test (fullfile (test_dir, "complex_rank.tst"), "quiet", stdout));
+fprintf ("PASS: C07 complex rank-revealing tests\n");

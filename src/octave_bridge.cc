@@ -38,6 +38,7 @@
 #include "mp_blas.h"
 #include "mp_complex_blas.h"
 #include "mp_complex_lapack.h"
+#include "mp_complex_rank.h"
 #include "mp_lapack.h"
 #include "mp_precision.h"
 
@@ -2775,8 +2776,26 @@ complex_mldivide_operation (const octave_value& lhs_value,
         }
 
       return make_complex_inspection_result (
-        octave_mplapack::mplapack_mpc_matrix_solve (*lhs.matrix,
-                                                     *rhs_matrix));
+        lhs.matrix->rows () == lhs.matrix->columns ()
+          ? octave_mplapack::mplapack_mpc_matrix_solve (*lhs.matrix,
+                                                        *rhs_matrix)
+          : octave_mplapack::mplapack_mpc_matrix_rank_solve (
+              *lhs.matrix, *rhs_matrix).solution);
+    }
+  catch (const octave_mplapack::MpcCgelsyError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcCgelsyError::Kind::convergence)
+        error_with_id ("mplapack:mp:ConvergenceFailure",
+                       "MPLAPACK Cgelsy failed to converge (info %d)",
+                       static_cast<int> (exception.info ()));
+      if (exception.kind ()
+          == octave_mplapack::MpcCgelsyError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:RankRevealingError",
+                       "MPLAPACK Cgelsy rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:RankRevealingInternalError", "%s",
+                     exception.what ());
     }
   catch (const octave_mplapack::MpcCgesvError& exception)
     {

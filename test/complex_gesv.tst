@@ -91,14 +91,10 @@
 %!   end_try_catch
 %!   assert (caught);
 %!   nonsquare = mp (complex (ones (2, 1), zeros (2, 1)));
-%!   caught = false;
-%!   try
-%!     nonsquare \ rhs;
-%!   catch exception
-%!     caught = true;
-%!     assert (strcmp (exception.identifier, "mplapack:mp:NonSquareMatrix"));
-%!   end_try_catch
-%!   assert (caught);
+%!   nonsquare_solution = nonsquare \ rhs;
+%!   assert (__mplapack_core__ ("scalar_test_info", nonsquare_solution).precision_bits == 256);
+%!   assert (__mplapack_core__ ("scalar_test_info", nonsquare_solution).is_complex);
+%!   assert (double (nonsquare_solution), 1.5, 1e-12);
 %! unwind_protect_cleanup
 %!   mpbits (saved);
 %! end_unwind_protect
