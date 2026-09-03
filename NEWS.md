@@ -64,6 +64,12 @@
   minimum-norm least-squares solutions for rank-deficient and full-rank cases,
   with precision-derived `RCOND`, checked workspace queries, and uniformly
   operation-precision work buffers. Square systems retain the `Rgesv` path.
-- Rectangular solve, matrix assignment, logical indexing, matrix `char`,
-  general `cat`, comparisons, powers, and reductions remain
-  unimplemented.
+- Matrix logical indexing, matrix `char`, general `cat`, comparisons, powers,
+  and reductions remain unimplemented.
+- Added dense real `mp` Cholesky factorization through MPLAPACK MPFR `Rpotrf`,
+  with upper/lower selected-triangle semantics, optional status output,
+  precision-preserving operation-owned copies, and immutable public values.
+- Added non-pivoted dense real `mp` QR factorization through MPLAPACK MPFR
+  `Rgeqrf`/`Rorgqr`, including one-output `R`, full/economy two-output forms,
+  deprecated numeric-zero economy compatibility, and precision-preserving
+  immutable operation-owned buffers.
