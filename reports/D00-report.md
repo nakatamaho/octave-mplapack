@@ -2,16 +2,16 @@
 
 ## Result
 
-Pre-tag D00 gates PASS. The remaining operation is the authorized D00-T tag
-creation and remote verification; no numerical implementation is pending.
+All D00 gates PASS. The source freeze, reproducible archives, remote tags,
+and handoff metadata are complete; no numerical implementation is pending.
 
 Release conclusion:
 
-`RELEASE STACK NOT YET TAGGED` (D00-T in progress)
+`D00 PASS — RELEASE STACK FROZEN`
 
 D01 readiness:
 
-`NOT-READY UNTIL D00-T/H`
+`D01-READY`
 
 ## Historical checkpoint
 
@@ -19,11 +19,11 @@ REAL_V0_1_RC_COMMIT:
 `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
 
 REAL_V0_1_ARCHIVE:
-Historical archive identity retained by C12; not regenerated or modified in
-D00.
+`mplapack-0.1.0.tar.gz`, top-level directory `mplapack-0.1.0/`.
 
 REAL_V0_1_SHA256:
-Historical C12 record; not changed in D00.
+`35d004adf831c79fe470ff890ce3698dfe7e6f624ea31c174b1d60a03d110db6`
+(size `161819` bytes; two historical builds matched).
 
 ## C12 baseline
 
@@ -48,7 +48,7 @@ Tag: `v1.4.1` (existing annotated tag)
 
 Tag target: `v1.4.1^{}` = `32a7fb797202cdf92312ed9d133f96fdbcda590a`
 
-Archive: `/home/docker/work/d00-release-artifacts/gmpfrxx_mkII.1.4.1-A.tar.xz`
+Archive: `/home/docker/work/d00-release-artifacts/gmpfrxx_mkII.1.4.1.tar.xz`
 
 Archive size: `15176072` bytes
 
@@ -104,11 +104,9 @@ Freeze commit: `fa3ccb4376d2a52c2672322e5b7199a9224bed7f`
 
 Version: `3.0.1`
 
-Tag: `v3.0.1` pending D00-T; existing repository convention is lightweight
-`v3.0.0` tags.
+Tag: `v3.0.1`; existing repository convention is lightweight `v3.0.0` tags.
 
-Tag target: pending D00-T; must equal
-`fa3ccb4376d2a52c2672322e5b7199a9224bed7f`.
+Tag target: `fa3ccb4376d2a52c2672322e5b7199a9224bed7f`; remote target verified.
 
 Release branch: `topic/d00-3.0.1-release-freeze`, with the C12 topic work
 merged into `master` at `e6e1bcbf9513e9de47cb6c70afbd791e30868aae` and the
@@ -198,10 +196,10 @@ Version before: `0.2.0-dev`
 
 Version after: `0.2.0`
 
-Tag: `v0.2.0` pending D00-T; no earlier release-tag convention existed.
+Tag: `v0.2.0` annotated; no earlier release-tag convention existed.
 
-Tag target: pending D00-T; must equal
-`4a3eb50843a6bf365bdab1e82146ef1900a219f6`.
+Tag target: `4a3eb50843a6bf365bdab1e82146ef1900a219f6`; remote dereference
+verified. The annotated tag object is `91d9b53f279d45b763bfcc3ea1fb019efa457818`.
 
 Minimum Octave: `11.1.0` from `DESCRIPTION`.
 
@@ -260,7 +258,7 @@ Result: `G-D00-OCTAVE PASS`
 
 ## Full frozen-stack rebuild
 
-gmpfrxx archive only: PASS; extracted `gmpfrxx_mkII.1.4.1-A.tar.xz`, clean
+gmpfrxx archive only: PASS; extracted `gmpfrxx_mkII.1.4.1.tar.xz`, clean
 CMake build/install, 156/156 CTest.
 
 MPLAPACK archive only: PASS; extracted `mplapack-3.0.1.tar.xz`, configured,
@@ -321,8 +319,9 @@ Complete: PASS for versions, source commits, archive names, sizes, SHA256,
 dependencies, public interface, SONAMEs, licenses, historical provenance, and
 tested toolchain.
 
-D01 usable: pending exact remote tag verification; all source/archive data is
-otherwise complete.
+D01 usable: PASS; no repository archaeology is required to consume the
+frozen versions, commits, tags, archives, hashes, licenses, SONAMEs, or tested
+dependency order.
 
 ## Reproducibility
 
@@ -349,9 +348,9 @@ G-D00-PROVENANCE: `PASS`
 
 G-D00-REPRODUCIBLE: `PASS`
 
-G-D00-TAGS: `PENDING D00-T`
+G-D00-TAGS: `PASS`
 
-G-D00-HANDOFF: `PENDING D00-H`
+G-D00-HANDOFF: `PASS`
 
 ## Upstream changes made during D00
 
@@ -375,7 +374,8 @@ octave-mplapack:
 
 - `54bd7b33186da7a4f01f69bb4e3828971db7e588` — prepare 0.2.0 release
   metadata and D00 controller.
-- `739b3e9` — record D00-M release defect audit.
+- `739b3e9b9c09456676a7574bf65c30d837b78a72` — record D00-M release defect
+  audit.
 - `1042395` — record D00-M freeze gate.
 - `4a3eb50843a6bf365bdab1e82146ef1900a219f6` — align local CI with the
   0.2.0 complex release; update the release QA wall and use public MPLAPACK
@@ -407,12 +407,12 @@ MPC: 1.4.1
 
 ## Next milestone
 
-After D00-T and D00-H pass:
+Final D00 conclusion:
 
 `D00 PASS — RELEASE STACK FROZEN`
 
 `D01-READY`
 
-Proceed to `D01 — Octave Binary Distribution Architecture` only as a
-separate goal. Do not modify frozen numerical source in D01. If D01 finds a
-source-level defect, reopen the freeze as D00R1.
+`D01-READY`; D01 is a separate goal and is not started automatically. Do not
+modify frozen numerical source in D01. If D01 finds a source-level defect,
+reopen the freeze as D00R1.

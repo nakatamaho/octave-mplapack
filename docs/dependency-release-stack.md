@@ -1,21 +1,21 @@
 # D00 dependency release stack
 
 This is the canonical D01/Bxx/PPA handoff manifest. The source freeze commits
-below are the exact trees from which the recorded archives were generated.
-Release tags are created only after all pre-tag gates pass.
+below are the exact trees from which the recorded archives were generated, and
+the release tags have been verified against those exact commits.
 
 ## Frozen stack
 
 | Layer | Repository | Version | Freeze commit | Tag | Archive | SHA256 | Size | License | Depends on |
 |---|---|---:|---|---|---|---|---:|---|---|
-| gmpfrxx_mkII | `github.com/nakatamaho/gmpfrxx_mkII` | 1.4.1 | `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `v1.4.1` | `gmpfrxx_mkII.1.4.1-A.tar.xz` | `93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890` | 15176072 | BSD 2-Clause | GMP, MPFR, MPC headers/libraries |
-| MPLAPACK | `github.com/nakatamaho/mplapack` | 3.0.1 | `fa3ccb4376d2a52c2672322e5b7199a9224bed7f` | pending D00-T (`v3.0.1`) | `mplapack-3.0.1.tar.xz` | `7c8d1d7759a487bc01e8c1625599ec77b6c7e297c19b20ca45e8c342f5165e64` | 86024224 | 2-clause BSD-style, with original LAPACK/BLAS notices | frozen gmpfrxx 1.4.1; GMP, MPFR, MPC |
-| octave-mplapack | `github.com/nakatamaho/octave-mplapack` | 0.2.0 | `4a3eb50843a6bf365bdab1e82146ef1900a219f6` | pending D00-T (`v0.2.0`) | `mplapack-0.2.0.tar.gz` | `0e83e26182b0fbd95a064437a97307eb74d9291b49d91c6e53dac181b24a94db` | 231432 | BSD 2-Clause | MPLAPACK 3.0.1; gmpfrxx 1.4.1; GMP, MPFR, MPC; Octave |
+| gmpfrxx_mkII | `github.com/nakatamaho/gmpfrxx_mkII` | 1.4.1 | `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `v1.4.1` | `gmpfrxx_mkII.1.4.1.tar.xz` | `93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890` | 15176072 | BSD 2-Clause | GMP, MPFR, MPC headers/libraries |
+| MPLAPACK | `github.com/nakatamaho/mplapack` | 3.0.1 | `fa3ccb4376d2a52c2672322e5b7199a9224bed7f` | `v3.0.1` | `mplapack-3.0.1.tar.xz` | `7c8d1d7759a487bc01e8c1625599ec77b6c7e297c19b20ca45e8c342f5165e64` | 86024224 | 2-clause BSD-style, with original LAPACK/BLAS notices | frozen gmpfrxx 1.4.1; GMP, MPFR, MPC |
+| octave-mplapack | `github.com/nakatamaho/octave-mplapack` | 0.2.0 | `4a3eb50843a6bf365bdab1e82146ef1900a219f6` | `v0.2.0` | `mplapack-0.2.0.tar.gz` | `0e83e26182b0fbd95a064437a97307eb74d9291b49d91c6e53dac181b24a94db` | 231432 | BSD 2-Clause | MPLAPACK 3.0.1; gmpfrxx 1.4.1; GMP, MPFR, MPC; Octave |
 
 Artifact paths used for D00 verification:
 
 ```text
-/home/docker/work/d00-release-artifacts/gmpfrxx_mkII.1.4.1-A.tar.xz
+/home/docker/work/d00-release-artifacts/gmpfrxx_mkII.1.4.1.tar.xz
 /home/docker/work/d00-release-artifacts/gmpfrxx_mkII.1.4.1-B.tar.xz
 /home/docker/work/d00-release-artifacts/mplapack-3.0.1.tar.xz
 /home/docker/work/d00-release-artifacts/mplapack-0.2.0.tar.gz
