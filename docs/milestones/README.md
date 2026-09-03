@@ -22,6 +22,7 @@ documented gate passes.
 | M14 | Dense indexed assignment with value semantics | Passed |
 | M15 | Full-rank rectangular dense solve | Passed |
 | M16 | Rank-deficient rectangular minimum-norm solve | Passed |
+| M17 | Dense real Cholesky factorization | Passed |
 | P00 | Packaging design | Planned |
 | P01 | Debian source package | Planned |
 | P02 | Local Debian build | Planned |

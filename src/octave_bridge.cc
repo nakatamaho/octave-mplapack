@@ -1719,6 +1719,72 @@ make_mldivide_result (octave_mplapack::MpfrMatrixStorage storage)
   return make_mtimes_result (std::move (storage));
 }
 
+octave_value_list
+mp_cholesky_operation (const octave_value& value, bool lower)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "chol expects one real mp value");
+
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_value payload = require_mp_payload (value);
+  const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                scalar.native_value ().mpfr_data (), MPFR_RNDN);
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "chol expects one real mp value");
+
+  try
+    {
+      const auto factor
+        = octave_mplapack::mplapack_mpfr_matrix_cholesky (*input, lower);
+      return ovl (make_mtimes_result (factor.factor),
+                  octave_value (static_cast<double> (factor.info)));
+    }
+  catch (const octave_mplapack::MpfrRpotrfError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrRpotrfError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:RpotrfError",
+                       "MPLAPACK Rpotrf rejected argument %d",
+                       -exception.info ());
+      error_with_id ("mplapack:mp:RpotrfInternalError", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      if (std::string (exception.what ()).find ("square")
+          != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CholeskyError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
 octave_value
 matrix_mtimes_operation (const octave_value& lhs_value,
                          const octave_value& rhs_value)
@@ -2518,6 +2584,16 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 3, command);
       return ovl (mp_mldivide_operation (args(1), args(2)));
+    }
+
+  if (command == "chol")
+    {
+      require_argument_count (args, 3, command);
+      const std::string option = require_string (args(2), "chol option");
+      if (option != "upper" && option != "lower")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "chol option must be \"upper\" or \"lower\"");
+      return mp_cholesky_operation (args(1), option == "lower");
     }
 
   if (command == "scalar_test_create")

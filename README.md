@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: under development.** M00 through M16 pass.
+**Status: under development.** M00 through M17 pass.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -69,7 +69,8 @@ element = A(2, 1)
 column = A(:, 2)
 double_A = double(A)
 disp(A)
-% native MPLAPACK MPFR Rgemm/Rgesv results
+R = chol (mp ({"4", "2"; "2", "10"}));
+% native MPLAPACK MPFR Rgemm/Rgesv/Rgelss/Rpotrf results
 ```
 
 This loads the private native module, reports the Octave, MPLAPACK, and MPFR
@@ -104,11 +105,13 @@ canonical matrix display. M11 adds native MPFR matrix `+`, `-`, `.*`, and `./`,
 unary signs, and two-dimensional singleton expansion. M12 adds read-only
 transpose, conjugate transpose for real values, and column-major reshape;
 these structural operations preserve source precision and do not consult the
-ambient precision default.
+ambient precision default. M17 adds dense real `chol` through MPLAPACK MPFR
+`Rpotrf`, including selected-triangle semantics and optional status output,
+while preserving immutable source values and stored precision.
 
 ## Intended future API
 
-The following workflow is available through M16:
+The following workflow is available through M17:
 
 ```octave
 pkg load mplapack
@@ -170,10 +173,11 @@ M13  Dense horizontal and vertical concatenation
 M14  Dense indexed assignment with value semantics
 M15  Full-rank rectangular dense solve
 M16  Rank-deficient rectangular minimum-norm solve
+M17  Dense real Cholesky factorization
 
 P00-P06  Debian/Ubuntu/PPA packaging
 ```
 
-M00 through M16 are complete. Consult
+M00 through M17 are complete. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.
