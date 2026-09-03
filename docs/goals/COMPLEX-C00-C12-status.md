@@ -8,7 +8,10 @@ Current milestone: COMPLETE
 
 Last PASS milestone: C12
 
-octave-mplapack branch/tip: `topic/complex-c00-c12` / `36cd341a8c14ce2d0a6790b287e5f7a7b0846cd3`
+octave-mplapack tested implementation: `topic/complex-c00-c12` /
+`36cd341a8c14ce2d0a6790b287e5f7a7b0846cd3`
+
+C12 report/status commit: `f3439178f6ca68615849d209b17d3db5917c698b`
 
 MPLAPACK tested commit: `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` (`topic/octave-mplapack-complex-mpfr-scope`)
 

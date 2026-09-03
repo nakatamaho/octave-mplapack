@@ -6,6 +6,8 @@ COMPLEX_START_COMMIT: `4aed479ef9cb8dff24f0326e1c2ec2a7c1ed83a3`
 
 COMPLEX_FINAL_COMMIT: `36cd341a8c14ce2d0a6790b287e5f7a7b0846cd3`
 
+C12 report/status commit: `f3439178f6ca68615849d209b17d3db5917c698b`
+
 The final tested implementation commit is the C12 commit above. The
 subsequent report/status commit contains documentation only and does not
 change the tested implementation.
