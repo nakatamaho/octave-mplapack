@@ -40,6 +40,7 @@
 #include "mp_complex_lapack.h"
 #include "mp_complex_rank.h"
 #include "mp_complex_cholesky.h"
+#include "mp_complex_qr.h"
 #include "mp_lapack.h"
 #include "mp_precision.h"
 
@@ -2983,6 +2984,67 @@ mp_cholesky_operation (const octave_value& value, bool lower)
 }
 
 octave_value_list
+complex_qr_operation (const octave_value& value, bool economy, bool want_q)
+{
+  const octave_value payload = require_mp_payload (value);
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+               scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "qr expects one complex mp value");
+
+  try
+    {
+      const auto factors
+        = octave_mplapack::mplapack_mpc_matrix_qr (*input, economy, want_q);
+      const octave_value r = make_complex_inspection_result (factors.r);
+      if (! want_q)
+        return ovl (r);
+      return ovl (make_complex_inspection_result (factors.q), r);
+    }
+  catch (const octave_mplapack::MpcQrError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcQrError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:QrError",
+                       "MPLAPACK complex QR rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:QrInternalError", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:QrError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
 mp_qr_operation (const octave_value& value, bool economy, bool want_q)
 {
   if (! is_mp_value (value))
@@ -4222,6 +4284,9 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       if (outputs != "r" && outputs != "qr")
         error_with_id ("mplapack:mp:InvalidArguments",
                        "qr output mode is invalid");
+      if (is_complex_payload (args(1)))
+        return complex_qr_operation (args(1), option == "econ",
+                                     outputs == "qr");
       return mp_qr_operation (args(1), option == "econ", outputs == "qr");
     }
 
