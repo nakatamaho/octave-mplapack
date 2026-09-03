@@ -297,15 +297,6 @@
 
 %!test
 %! a = mp ("1");
-%! complex_id = "mplapack:mp:ComplexUnsupported";
-%! m06_expect_binary_error ("plus", a, 1 + 2i, complex_id);
-%! m06_expect_binary_error ("plus", 1 + 2i, a, complex_id);
-%! m06_expect_binary_error ("minus", a, 1 + 2i, complex_id);
-%! m06_expect_binary_error ("times", a, 1 + 2i, complex_id);
-%! m06_expect_binary_error ("rdivide", a, 1 + 2i, complex_id);
-
-%!test
-%! a = mp ("1");
 %! b = mp ("2");
 %! unsupported = {@() a / b, ...
 %!                @() a ^ b, @() a .^ b, @() sin (a), ...

@@ -52,3 +52,5 @@ assert (test (fullfile (test_dir, "complex_matrix.tst"), "quiet", stdout));
 fprintf ("PASS: C02 complex dense matrix tests\n");
 assert (test (fullfile (test_dir, "complex_structural.tst"), "quiet", stdout));
 fprintf ("PASS: C03 complex structural tests\n");
+assert (test (fullfile (test_dir, "complex_elementwise.tst"), "quiet", stdout));
+fprintf ("PASS: C04 complex element-wise tests\n");

@@ -30,6 +30,7 @@
 #include "mp_complex_matrix_value.h"
 #include "mp_matrix_inspection.h"
 #include "mp_matrix_arithmetic.h"
+#include "mp_complex_arithmetic.h"
 #include "mp_matrix_structure.h"
 #include "mp_complex_structure.h"
 #include "mp_matrix_concat.h"
@@ -551,6 +552,41 @@ make_double_matrix_storage (const octave_value& value,
       values.push_back (input.xelem (row, column));
   return octave_mplapack::MpfrMatrixStorage (rows, columns, precision_bits,
                                               values);
+}
+
+octave_mplapack::MpfrComplexMatrixStorage
+make_complex_double_matrix_storage (const octave_value& value,
+                                     mpfr_prec_t precision_bits)
+{
+  if (! value.is_double_type () || value.is_real_scalar ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "expected a non-scalar double matrix");
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional matrix operands are supported");
+
+  const std::size_t rows = checked_size_dimension (value.rows ());
+  const std::size_t columns = checked_size_dimension (value.columns ());
+  std::vector<std::complex<double>> values;
+  values.reserve (octave_mplapack::MpfrComplexMatrixStorage::
+                  checked_element_count (rows, columns));
+  if (value.isreal ())
+    {
+      const Matrix input = value.matrix_value ();
+      for (octave_idx_type column = 0; column < input.columns (); ++column)
+        for (octave_idx_type row = 0; row < input.rows (); ++row)
+          values.emplace_back (input.xelem (row, column), 0.0);
+    }
+  else
+    {
+      const ComplexMatrix input = value.complex_matrix_value ();
+      for (octave_idx_type column = 0; column < input.columns (); ++column)
+        for (octave_idx_type row = 0; row < input.rows (); ++row)
+          values.emplace_back (input.xelem (row, column).real (),
+                               input.xelem (row, column).imag ());
+    }
+  return octave_mplapack::MpfrComplexMatrixStorage (
+    rows, columns, precision_bits, values);
 }
 
 octave_value
@@ -2074,6 +2110,165 @@ value_shape_info (const octave_value& value)
   return info;
 }
 
+enum class ComplexScalarBinaryOperation
+{
+  add,
+  subtract,
+  multiply,
+  divide
+};
+
+bool
+is_complex_arithmetic_operand (const octave_value& value)
+{
+  if (is_mp_value (value))
+    return is_complex_payload (value);
+  return value.is_double_type () && ! value.isreal ();
+}
+
+mpfr_prec_t
+arithmetic_mp_precision (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    return octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+      .storage ().precision_bits ();
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    return octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+      .storage ().precision_bits ();
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return octave_mplapack_mpc_scalar_internal::checked_value (payload)
+      .storage ().precision_bits ();
+  return octave_mplapack_mpc_matrix_internal::checked_value (payload)
+    .storage ().precision_bits ();
+}
+
+struct PreparedComplexArithmeticOperand
+{
+  octave_value payload;
+  std::optional<octave_mplapack::MpfrComplexScalarStorage> scalar_owned;
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> matrix_owned;
+  octave_mplapack::MpcElementwiseOperand view;
+};
+
+PreparedComplexArithmeticOperand
+prepare_complex_arithmetic_operand (const octave_value& value,
+                                    mpfr_prec_t operation_precision)
+{
+  PreparedComplexArithmeticOperand prepared;
+  if (is_mp_value (value))
+    {
+      prepared.payload = require_mp_payload (value);
+      if (prepared.payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        prepared.view = octave_mplapack::MpcElementwiseOperand::from_real_scalar (
+          octave_mplapack_mpfr_scalar_internal::checked_value (
+            prepared.payload).storage ());
+      else if (prepared.payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        prepared.view = octave_mplapack::MpcElementwiseOperand::from_real_matrix (
+          octave_mplapack_mpfr_matrix_internal::checked_value (
+            prepared.payload).storage ());
+      else if (prepared.payload.type_id ()
+               == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        prepared.view = octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+          octave_mplapack_mpc_scalar_internal::checked_value (
+            prepared.payload).storage ());
+      else
+        prepared.view = octave_mplapack::MpcElementwiseOperand::from_complex_matrix (
+          octave_mplapack_mpc_matrix_internal::checked_value (
+            prepared.payload).storage ());
+      return prepared;
+    }
+
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "complex element-wise arithmetic supports mp and double operands");
+  if (value.is_real_scalar () || value.is_complex_scalar ())
+    {
+      const Complex scalar = value.complex_value ();
+      prepared.scalar_owned.emplace (scalar.real (), scalar.imag (),
+                                     operation_precision);
+      prepared.view
+        = octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+          *prepared.scalar_owned);
+      return prepared;
+    }
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional matrix operands are supported");
+  prepared.matrix_owned.emplace (
+    make_complex_double_matrix_storage (value, operation_precision));
+  prepared.view
+    = octave_mplapack::MpcElementwiseOperand::from_complex_matrix (
+      *prepared.matrix_owned);
+  return prepared;
+}
+
+octave_value
+complex_scalar_binary_operation (const octave_value& lhs_value,
+                                 const octave_value& rhs_value,
+                                 ComplexScalarBinaryOperation operation)
+{
+  mpfr_prec_t operation_precision = 0;
+  if (is_mp_value (lhs_value))
+    operation_precision = arithmetic_mp_precision (lhs_value);
+  if (is_mp_value (rhs_value))
+    operation_precision = std::max (operation_precision,
+                                   arithmetic_mp_precision (rhs_value));
+  if (operation_precision == 0)
+    operation_precision = octave_mplapack::default_precision_bits ();
+
+  const auto native_operation = [&] ()
+  {
+    switch (operation)
+      {
+      case ComplexScalarBinaryOperation::add:
+        return octave_mplapack::MpcElementwiseBinaryOperation::add;
+      case ComplexScalarBinaryOperation::subtract:
+        return octave_mplapack::MpcElementwiseBinaryOperation::subtract;
+      case ComplexScalarBinaryOperation::multiply:
+        return octave_mplapack::MpcElementwiseBinaryOperation::multiply;
+      case ComplexScalarBinaryOperation::divide:
+        return octave_mplapack::MpcElementwiseBinaryOperation::divide;
+      }
+    throw std::logic_error ("unknown complex element-wise operation");
+  } ();
+
+  try
+    {
+      auto lhs = prepare_complex_arithmetic_operand (lhs_value,
+                                                     operation_precision);
+      auto rhs = prepare_complex_arithmetic_operand (rhs_value,
+                                                     operation_precision);
+      return make_complex_inspection_result (
+        octave_mplapack::mpc_matrix_elementwise_binary (
+          lhs.view, rhs.view, native_operation));
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      const std::string message = exception.what ();
+      if (message.find ("nonconformant") != std::string::npos)
+        error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:UnsupportedOperand", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:ArithmeticError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
 enum class ScalarBinaryOperation
 {
   add,
@@ -2107,6 +2302,28 @@ scalar_binary_operation (const octave_value& lhs_value,
                          const octave_value& rhs_value,
                          ScalarBinaryOperation operation)
 {
+  if (is_complex_arithmetic_operand (lhs_value)
+      || is_complex_arithmetic_operand (rhs_value))
+    {
+      const auto complex_operation = [&] ()
+      {
+        switch (operation)
+          {
+          case ScalarBinaryOperation::add:
+            return ComplexScalarBinaryOperation::add;
+          case ScalarBinaryOperation::subtract:
+            return ComplexScalarBinaryOperation::subtract;
+          case ScalarBinaryOperation::multiply:
+            return ComplexScalarBinaryOperation::multiply;
+          case ScalarBinaryOperation::divide:
+            return ComplexScalarBinaryOperation::divide;
+          }
+        throw std::logic_error ("unknown complex element-wise operation");
+      } ();
+      return complex_scalar_binary_operation (lhs_value, rhs_value,
+                                              complex_operation);
+    }
+
   const bool lhs_is_mp = is_mp_value (lhs_value);
   const bool rhs_is_mp = is_mp_value (rhs_value);
 
@@ -3105,6 +3322,29 @@ mp_mldivide_operation (const octave_value& lhs_value,
 octave_value
 scalar_negate (const octave_value& value)
 {
+  if (is_mp_value (value) && is_complex_payload (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        return make_internal_complex_scalar (
+          octave_mplapack::mpc_scalar_negate (
+            octave_mplapack_mpc_scalar_internal::checked_value (payload)
+              .storage ()));
+      try
+        {
+          return make_complex_inspection_result (
+            octave_mplapack::mpc_matrix_negate (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ()));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:ArithmeticError", "%s",
+                         exception.what ());
+        }
+    }
+
   if (is_mp_value (value) && is_matrix_payload (value))
     {
       try
