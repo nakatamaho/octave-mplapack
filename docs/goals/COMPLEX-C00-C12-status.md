@@ -4,11 +4,11 @@ REAL_V0_1_RC_COMMIT: `0bef79cddd3fdd70abafdf38bc1a4ab492652d33`
 
 COMPLEX_START_COMMIT: `4aed479ef9cb8dff24f0326e1c2ec2a7c1ed83a3`
 
-Current milestone: C10
+Current milestone: C11L
 
-Last PASS milestone: C10
+Last PASS milestone: C11
 
-octave-mplapack branch/tip: `topic/complex-c00-c12` / `570fa1b6a5047c133825183f4a3337bf81de4641`
+octave-mplapack branch/tip: `topic/complex-c00-c12` / `64d8b1d296299afccfd1e77d459969f7a52221e2`
 
 MPLAPACK tested commit: `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` (`topic/octave-mplapack-complex-mpfr-scope`)
 
@@ -45,8 +45,11 @@ permutation mapping for matrix/vector outputs, reconstruction, orthogonality,
 1024/2048-bit pivot-order canaries, ambient precision, immutability,
 lifetime, empty shapes, and real Rgeqp3 parity.
 
-Full regression status: C10 PASS. The full native real+complex sanitizer wall
-and complete public M01-M23+C01-C10 wall pass.
+Full regression status: C11 PASS. The full native real+complex sanitizer wall
+and complete public M01-M23+C01-C11 wall pass. C11 mixed real/complex
+promotion, Cgemm/Cgesv/Cgelsy participation, concat, assignment, structural
+reshape, builtin-double mixing, no-demotion, ambient precision, lifetime, and
+the full native/public C11 walls pass.
 
 Release policy: MPLAPACK 3.0.1 remains a planned dependency version. No
 release commit, archive, or final tags are frozen in C00-C12.

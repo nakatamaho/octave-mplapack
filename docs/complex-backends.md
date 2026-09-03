@@ -61,6 +61,12 @@ source uses the complex pivoted Householder path. The binding initializes
 `JPVT` to zero, validates the returned one-based permutation, maps it to the
 public matrix/vector forms, and reuses the precision-scoped `Cungqr` path.
 
+The C11 structural audit confirms that mixed concatenation copies real and
+complex operands directly into an MPC destination at the maximum stored MP
+precision. Mixed numerical operations continue to select the existing real
+or complex implementation from operand kind; no real-only operation is
+rerouted through a complex kernel.
+
 ## Upstream fixes introduced during C00-C12
 
 - MPLAPACK commit `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` adds and installs

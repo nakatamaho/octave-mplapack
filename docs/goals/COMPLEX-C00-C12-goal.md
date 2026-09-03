@@ -1350,31 +1350,10 @@ All PASS -> `C11 PASS`.
 
 ---
 
-# C11L ― Optional Complex LU Decision
+# C11L ― Mandatory Complex LU via `Cgetrf`
 
-The M20 roadmap did not assign a dedicated complex LU milestone.
-
-C11/C12 must explicitly decide:
-
-```text
-Is complex lu required in the first complex release?
-```
-
-Default recommendation:
-
-```text
-NO
-```
-
-to avoid silently expanding scope.
-
-If selected, insert:
-
-```text
-C11L ― Complex LU via Cgetrf
-```
-
-and reproduce M21 semantics:
+Complex LU is mandatory in this goal. Reproduce M21 semantics through
+MPLAPACK `Cgetrf`:
 
 ```text
 packed one-output
@@ -1386,7 +1365,8 @@ singular factors
 source-precision pivoting
 ```
 
-Do not implement complex LU as an incidental side change.
+Do not implement complex LU as an incidental side change; C11L is a required
+milestone between C11 and C12.
 
 ---
 
@@ -2087,4 +2067,3 @@ DEPENDENCY-FREEZE-READY / NOT-READY
 ```
 
 Stop after this report.
-
