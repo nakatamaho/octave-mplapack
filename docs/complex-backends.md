@@ -78,10 +78,22 @@ rerouted through a complex kernel.
 
 ## Upstream fixes introduced during C00-C12
 
-- MPLAPACK commit `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` adds and installs
-  `mplapack_mpfr_precision.h`, and includes it from the public MPFR headers.
-  This supplies the real MPFR precision scope required by the complex
-  implementation. No `gmpfrxx_mkII` fix was required through C11L.
+### MPLAPACK MPFR precision scope header
+
+- Repository: `mplapack`;
+- Problem: the public MPFR headers did not install the uniform-precision scope
+  interface needed to establish one MPFR/MPC operation precision at complex
+  LAPACK boundaries;
+- Reproducer: a clean consumer build using `pkg-config mplapack_mpfr` failed
+  the required installed-header check for `mplapack_mpfr_precision.h`;
+- Topic branch: `topic/octave-mplapack-complex-mpfr-scope`;
+- Fix commit: `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d`;
+- Tests: controlled shared MPFR installation, `check-deps`, native real and
+  complex sanitizer walls, public M01–M23+C01–C11L wall, and package
+  install/load/unload/reinstall smoke;
+- First milestone requiring it: C00 complex precision scaffold.
+
+No `gmpfrxx_mkII` fix was required through C12.
 
 No final MPLAPACK 3.0.1 release commit, archive, or dependency tag is frozen
 by this development goal.
