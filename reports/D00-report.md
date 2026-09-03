@@ -323,6 +323,31 @@ D01 usable: PASS; no repository archaeology is required to consume the
 frozen versions, commits, tags, archives, hashes, licenses, SONAMEs, or tested
 dependency order.
 
+## Frozen stack
+
+```text
+gmpfrxx_mkII:
+    version: 1.4.1
+    commit: 32a7fb797202cdf92312ed9d133f96fdbcda590a
+    tag: v1.4.1
+    archive: gmpfrxx_mkII.1.4.1.tar.xz
+    sha256: 93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890
+
+MPLAPACK:
+    version: 3.0.1
+    commit: fa3ccb4376d2a52c2672322e5b7199a9224bed7f
+    tag: v3.0.1
+    archive: mplapack-3.0.1.tar.xz
+    sha256: 7c8d1d7759a487bc01e8c1625599ec77b6c7e297c19b20ca45e8c342f5165e64
+
+octave-mplapack:
+    version: 0.2.0
+    commit: 4a3eb50843a6bf365bdab1e82146ef1900a219f6
+    tag: v0.2.0
+    archive: mplapack-0.2.0.tar.gz
+    sha256: 0e83e26182b0fbd95a064437a97307eb74d9291b49d91c6e53dac181b24a94db
+```
+
 ## Reproducibility
 
 ```text
