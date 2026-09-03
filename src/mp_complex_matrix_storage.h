@@ -48,6 +48,15 @@ public:
   const NativeScalar& at (std::size_t row, std::size_t column) const;
 
   bool all_elements_have_uniform_precision () const noexcept;
+  bool element_exactly_equal_text (std::size_t row, std::size_t column,
+                                   const std::string& text) const;
+  bool element_exactly_equal_double (std::size_t row, std::size_t column,
+                                     const std::complex<double>& value) const
+    noexcept;
+  bool element_exactly_equal (std::size_t row, std::size_t column,
+                              const MpfrComplexMatrixStorage& other,
+                              std::size_t other_row,
+                              std::size_t other_column) const;
   static std::size_t checked_element_count (std::size_t rows,
                                             std::size_t columns);
   static MplapackInteger checked_mplapack_dimension (std::size_t value);

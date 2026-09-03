@@ -48,3 +48,5 @@ assert (test (fullfile (test_dir, "release_closure.tst"), "quiet", stdout));
 fprintf ("PASS: M22 real API and release closure tests\n");
 assert (test (fullfile (test_dir, "complex_scalar.tst"), "quiet", stdout));
 fprintf ("PASS: C01 complex scalar construction and conversion tests\n");
+assert (test (fullfile (test_dir, "complex_matrix.tst"), "quiet", stdout));
+fprintf ("PASS: C02 complex dense matrix tests\n");

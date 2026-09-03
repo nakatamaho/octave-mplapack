@@ -111,6 +111,54 @@ MpfrComplexMatrixStorage::all_elements_have_uniform_precision () const noexcept
            && value.imag_precision () == m_precision_bits; });
 }
 
+bool
+MpfrComplexMatrixStorage::element_exactly_equal_text (
+  std::size_t row, std::size_t column, const std::string& text) const
+{
+  NativeScalar expected = NativeScalar::with_precision (m_precision_bits);
+  if (expected.set_str (text, 10) != 0)
+    throw std::invalid_argument ("invalid complex matrix comparison text");
+  const NativeScalar& actual = at (row, column);
+  return mpfr_equal_p (mpc_realref (actual.mpc_data ()),
+                       mpc_realref (expected.mpc_data ())) != 0
+         && mpfr_equal_p (mpc_imagref (actual.mpc_data ()),
+                          mpc_imagref (expected.mpc_data ())) != 0;
+}
+
+bool
+MpfrComplexMatrixStorage::element_exactly_equal_double (
+  std::size_t row, std::size_t column,
+  const std::complex<double>& value) const noexcept
+{
+  try
+    {
+      NativeScalar expected = NativeScalar::with_precision (m_precision_bits,
+                                                              value.real (),
+                                                              value.imag ());
+      const NativeScalar& actual = at (row, column);
+      return mpfr_equal_p (mpc_realref (actual.mpc_data ()),
+                           mpc_realref (expected.mpc_data ())) != 0
+             && mpfr_equal_p (mpc_imagref (actual.mpc_data ()),
+                              mpc_imagref (expected.mpc_data ())) != 0;
+    }
+  catch (...)
+    { return false; }
+}
+
+bool
+MpfrComplexMatrixStorage::element_exactly_equal (
+  std::size_t row, std::size_t column,
+  const MpfrComplexMatrixStorage& other, std::size_t other_row,
+  std::size_t other_column) const
+{
+  const NativeScalar& lhs = at (row, column);
+  const NativeScalar& rhs = other.at (other_row, other_column);
+  return mpfr_equal_p (mpc_realref (lhs.mpc_data ()),
+                       mpc_realref (rhs.mpc_data ())) != 0
+         && mpfr_equal_p (mpc_imagref (lhs.mpc_data ()),
+                          mpc_imagref (rhs.mpc_data ())) != 0;
+}
+
 std::size_t
 MpfrComplexMatrixStorage::checked_element_count (std::size_t rows,
                                                  std::size_t columns)

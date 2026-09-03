@@ -116,11 +116,16 @@ check-lapack: $(LAPACK_TEST)
 
 $(INSPECTION_TEST): ../test/mp_matrix_inspection_test.cc \
   mp_matrix_inspection.cc mp_matrix_inspection.h mp_matrix_storage.cc \
-  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h | check-deps
 	mkdir -p $(dir $@)
 	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
 	  $(MPLAPACK_CFLAGS) -I. ../test/mp_matrix_inspection_test.cc \
 	  mp_matrix_inspection.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_complex_precision.cc \
 	  $(MPLAPACK_LIBS) -o $@
 
 check-inspection: $(INSPECTION_TEST)
