@@ -48,15 +48,21 @@ Tag: `v1.4.1` (existing annotated tag)
 
 Tag target: `v1.4.1^{}` = `32a7fb797202cdf92312ed9d133f96fdbcda590a`
 
-Archive: `/home/docker/work/d00-release-artifacts/gmpfrxx_mkII.1.4.1.tar.xz`
+Archive: `https://github.com/nakatamaho/gmpfrxx_mkII/releases/download/v1.4.1/gmpfrxx_mkII.1.4.1.tar.xz`
 
-Archive size: `15176072` bytes
+Archive size: `15176064` bytes
 
-SHA256 A: `93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890`
+SHA256 A (published GitHub asset download): `395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4`
 
-SHA256 B: `93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890`
+SHA256 B (independent published-asset download): `395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4`
 
-Hashes identical: `PASS`
+Hashes identical: `PASS` (two independent downloads of the published asset)
+
+D00 reproduction A/B: `PASS`; both local reproductions are `15176072` bytes
+with SHA256 `93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890`.
+
+Published-archive equivalence: `PASS`; extracted files and tar entry metadata
+match the D00 reproduction, with the difference confined to XZ compression.
 
 License: BSD 2-Clause (`LICENSE`)
 
@@ -331,7 +337,8 @@ gmpfrxx_mkII:
     commit: 32a7fb797202cdf92312ed9d133f96fdbcda590a
     tag: v1.4.1
     archive: gmpfrxx_mkII.1.4.1.tar.xz
-    sha256: 93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890
+    archive_url: https://github.com/nakatamaho/gmpfrxx_mkII/releases/download/v1.4.1/gmpfrxx_mkII.1.4.1.tar.xz
+    sha256: 395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4
 
 MPLAPACK:
     version: 3.0.1
@@ -351,13 +358,18 @@ octave-mplapack:
 ## Reproducibility
 
 ```text
-gmpfrxx A == gmpfrxx B: PASS
+gmpfrxx published asset download A == B: PASS
+gmpfrxx D00 reproduction build A == B: PASS
 MPLAPACK A == MPLAPACK B: PASS
 octave-mplapack A == octave-mplapack B: PASS
 ```
 
-All archives have one expected top-level directory, identical A/B file lists,
-no `.git`, no private build products, and no developer-path-only files.
+All published/downloaded archives have one expected top-level directory and
+the two published gmpfrxx downloads are byte-identical. The independently
+generated D00 gmpfrxx A/B archives are also byte-identical; their XZ stream
+differs from the already-published asset, while the extracted files and tar
+entry metadata match. No archive contains `.git`, private build products, or
+developer-path-only files.
 
 ## Gates
 

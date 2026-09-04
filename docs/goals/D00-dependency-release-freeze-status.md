@@ -17,11 +17,11 @@ are fixed and verified. The handoff manifest and final report are complete.
 
 | Substage | Result | Evidence |
 |---|---|---|
-| D00-G gmpfrxx_mkII | PASS | Version 1.4.1, existing tag `v1.4.1`, commit `32a7fb797202cdf92312ed9d133f96fdbcda590a`, clean install, 156/156 CTest, scalar/precision/TLS/MPC probes, reproducible standalone archive |
+| D00-G gmpfrxx_mkII | PASS | Version 1.4.1, existing tag `v1.4.1`, commit `32a7fb797202cdf92312ed9d133f96fdbcda590a`, clean install, 156/156 CTest, scalar/precision/TLS/MPC probes, published GitHub archive verified; local A/B archive reproduction retained below |
 | D00-M MPLAPACK 3.0.1 | PASS | Freeze `fa3ccb4376d2a52c2672322e5b7199a9224bed7f`; C12 scope work retained; archive-only build against frozen gmpfrxx; public precision header and external consumers pass; archive SHA256 `7c8d1d7759a487bc01e8c1625599ec77b6c7e297c19b20ca45e8c342f5165e64` |
 | D00-O octave-mplapack 0.2.0 | PASS | Source freeze `4a3eb50843a6bf365bdab1e82146ef1900a219f6`; version 0.2.0; release QA script corrected for complex/public-header coverage; source archive SHA256 `0e83e26182b0fbd95a064437a97307eb74d9291b49d91c6e53dac181b24a94db` |
 | D00-S frozen-stack rebuild | PASS | Three-layer rebuild from source archives only; clean Octave archive build/install; M00-M23 real wall, C00-C12 complex wall, C11L, sanitizer wall, and package lifecycle pass |
-| D00-R reproducibility | PASS | gmpfrxx A/B, MPLAPACK A/B, and octave-mplapack A/B source archives have identical SHA256 and identical file lists/top-level directory |
+| D00-R reproducibility | PASS | Local gmpfrxx A/B, MPLAPACK A/B, and octave-mplapack A/B source archives have identical SHA256 and identical file lists/top-level directory; the published gmpfrxx asset is separately recorded as the canonical distribution artifact and has an extraction-equivalent XZ stream |
 | D00-T tags | PASS | MPLAPACK `v3.0.1` and octave-mplapack `v0.2.0` pushed and verified against their exact freeze commits |
 | D00-H handoff | PASS | Final manifest and report contain versions, commits, tags, archives, hashes, sizes, licenses, dependency graph, SONAMEs, and regression evidence |
 
@@ -33,8 +33,11 @@ GMPFRXX_FREEZE_COMMIT=32a7fb797202cdf92312ed9d133f96fdbcda590a
 GMPFRXX_RELEASE_VERSION=1.4.1
 GMPFRXX_RELEASE_TAG=v1.4.1
 GMPFRXX_ARCHIVE=gmpfrxx_mkII.1.4.1.tar.xz
-GMPFRXX_ARCHIVE_SIZE=15176072
-GMPFRXX_SHA256=93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890
+GMPFRXX_ARCHIVE_URL=https://github.com/nakatamaho/gmpfrxx_mkII/releases/download/v1.4.1/gmpfrxx_mkII.1.4.1.tar.xz
+GMPFRXX_ARCHIVE_SIZE=15176064
+GMPFRXX_SHA256=395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4
+GMPFRXX_D00_REPRODUCTION_ARCHIVE_SIZE=15176072
+GMPFRXX_D00_REPRODUCTION_SHA256=93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890
 
 MPLAPACK_C12_TESTED_COMMIT=a59e5a0a429b05e8f07cf7a8feab1f48aef7431d
 MPLAPACK_C12_INTEGRATION_COMMIT=e6e1bcbf9513e9de47cb6c70afbd791e30868aae
@@ -74,6 +77,16 @@ fixed without changing numerical algorithms:
 attempt to promote them was removed from the D00 branch by force-push and is
 not part of the release tree. The external M20/M21 probes were validated
 through the installed public backend headers instead.
+
+The canonical gmpfrxx archive record uses the existing GitHub Release asset,
+which is already published from tag `v1.4.1`. Its size is `15176064` bytes and
+its SHA256 is
+`395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4`.
+The independently generated local D00 A/B archives remain recorded as
+`15176072` bytes with SHA256
+`93fbf257ab3c3e00342109fea9096f43cf32e29fd1b7dbafd91f8e23f81b3890` each.
+The extracted trees and tar metadata are equivalent; the byte difference is
+limited to the XZ compression stream.
 
 ## Policy confirmations
 
