@@ -25,8 +25,8 @@ set -euo pipefail
 # Input archives:
 #   /home/docker/src/gmpfrxx_mkII.1.4.1.tar.xz
 #   /home/docker/src/mplapack-3.0.1.tar.xz
-#   /home/docker/src/mplapack-interop-0.2.1.tar.gz (default release channel)
-#   /home/docker/src/mplapack-interop-0.2.1-dev.tar.gz (test channel)
+#   /home/docker/src/mplapack-interop-0.3.1.tar.gz (default release channel)
+#   /home/docker/src/mplapack-interop-0.3.1-dev.tar.gz (test channel)
 #
 # Use OCTAVE_CHANNEL=dev only for development-archive testing.
 #
@@ -55,14 +55,14 @@ die() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
 
 case "$OCTAVE_CHANNEL" in
     dev)
-        OCTAVE_VERSION=0.2.1-dev
-        OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.2.1-dev.tar.gz}"
-        OCTAVE_SHA256="${OCTAVE_SHA256:-ab041a1e6408db5323a76d7e46b75bd8daefea2e06ad50331bc455aee7caab98}"
+        [[ -n "${OCTAVE_TAR:-}" ]] || die "OCTAVE_CHANNEL=dev requires OCTAVE_TAR=/path/to/mplapack-interop-0.3.1-dev.tar.gz"
+        [[ -n "${OCTAVE_SHA256:-}" ]] || die "OCTAVE_CHANNEL=dev requires OCTAVE_SHA256=<sha256>"
+        OCTAVE_VERSION=0.3.1-dev
         ;;
     release)
-        OCTAVE_VERSION=0.2.1
-        OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.2.1.tar.gz}"
-        OCTAVE_SHA256="${OCTAVE_SHA256:-28769e877e0588a59d9c0d6736fb875624df8b836f570cc9e87eda7d74936d0f}"
+        OCTAVE_VERSION=0.3.1
+        OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.3.1.tar.gz}"
+        OCTAVE_SHA256="${OCTAVE_SHA256:-21a7c6751a17e783196c0e28e45d521a9251a1e3f2c210f38ab733fc89e0624b}"
         ;;
     *)
         die "OCTAVE_CHANNEL must be dev or release"
@@ -353,7 +353,7 @@ EOF
 chmod +x "$PREFIX/bin/octave-mplapack"
 
 # ----------------------------------------------------------------------
-# 7. Install mplapack-interop 0.2.1 into an isolated local package DB
+# 7. Install mplapack-interop 0.3.1 into an isolated local package DB
 # ----------------------------------------------------------------------
 
 say "Installing $OCTAVE_PACKAGE $OCTAVE_VERSION"
@@ -413,6 +413,9 @@ Z = mp ([1+2i, 2-1i; 3, 4+3i]);
 zb = mp ([1; 2i]);
 zx = Z \\ zb;
 assert (norm (double (Z*zx - zb)) < 1e-12);
+
+Zr = Z / Z;
+assert (max (max (abs (double (Zr) - eye (2)))) < 1e-12);
 
 [Qz, Rz] = qr (Z);
 assert (norm (double (Qz*Rz - Z), "fro") < 1e-12);
@@ -478,9 +481,9 @@ Optional environment switches:
       Override parallel build jobs.
 
   OCTAVE_CHANNEL=dev
-      Use the placed 0.2.1-dev archive (the default test channel).
+      Use the placed 0.3.1-dev archive (the default test channel).
 
   OCTAVE_CHANNEL=release OCTAVE_SHA256=<sha256>
-      Use the final 0.2.1 archive after D01R1 source freeze.
+      Use the final 0.3.1 archive after D02R1 source freeze.
 
 EOF
