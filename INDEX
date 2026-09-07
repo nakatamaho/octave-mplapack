@@ -25,6 +25,7 @@ Factorizations
  chol
  qr
  lu
+ eig
   det
   inv
 Reductions

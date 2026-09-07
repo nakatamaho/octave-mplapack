@@ -48,6 +48,7 @@
 #include "mp_norm.h"
 #include "mp_svd.h"
 #include "mp_rank_condition.h"
+#include "mp_structured_eig.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -4201,6 +4202,144 @@ mp_svd_operation (const octave_value& value, bool economy, bool want_factors)
 }
 
 octave_value_list
+mp_structured_eig_operation (const octave_value& value,
+                             const std::string& output_mode)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "eig expects one real or complex mp value");
+  if (output_mode != "values" && output_mode != "matrix"
+      && output_mode != "vector")
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "eig output mode is invalid");
+
+  const octave_value payload = require_mp_payload (value);
+  if (is_complex_payload (value))
+    {
+      std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                   scalar.native_value ().mpc_data (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                  .storage ();
+      else
+        error_with_id ("mplapack:mp:InvalidInput",
+                       "eig expects one complex mp value");
+
+      try
+        {
+          const auto result
+            = octave_mplapack::mplapack_mpc_matrix_structured_eig (*input);
+          if (output_mode == "values")
+            return ovl (make_inspection_result (result.eigenvalues));
+          const octave_value vectors
+            = make_complex_inspection_result (result.vectors);
+          const octave_value second
+            = output_mode == "vector"
+                ? make_inspection_result (result.eigenvalues)
+                : make_inspection_result (result.diagonal);
+          return ovl (vectors, second);
+        }
+      catch (const octave_mplapack::MpcStructuredEigError& exception)
+        {
+          if (exception.info () < 0)
+            error_with_id ("mplapack:mp:EigError",
+                           "MPLAPACK Cheevd rejected argument %d",
+                           -exception.info ());
+          error_with_id ("mplapack:mp:ConvergenceFailure",
+                         "MPLAPACK Cheevd failed to converge (info %d)",
+                         exception.info ());
+        }
+      catch (const std::overflow_error& exception)
+        {
+          error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                         exception.what ());
+        }
+      catch (const std::invalid_argument& exception)
+        {
+          error_with_id ("mplapack:mp:InvalidInput", "%s",
+                         exception.what ());
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:EigError", "%s", exception.what ());
+        }
+      return ovl ();
+    }
+
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                scalar.native_value ().mpfr_data (), MPFR_RNDN);
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "eig expects one real mp value");
+
+  try
+    {
+      const auto result
+        = octave_mplapack::mplapack_mpfr_matrix_structured_eig (*input);
+      if (output_mode == "values")
+        return ovl (make_inspection_result (result.eigenvalues));
+      const octave_value vectors = make_inspection_result (result.vectors);
+      const octave_value second
+        = output_mode == "vector"
+            ? make_inspection_result (result.eigenvalues)
+            : make_inspection_result (result.diagonal);
+      return ovl (vectors, second);
+    }
+  catch (const octave_mplapack::MpfrStructuredEigError& exception)
+    {
+      if (exception.info () < 0)
+        error_with_id ("mplapack:mp:EigError",
+                       "MPLAPACK Rsyevd rejected argument %d",
+                       -exception.info ());
+      error_with_id ("mplapack:mp:ConvergenceFailure",
+                     "MPLAPACK Rsyevd failed to converge (info %d)",
+                     exception.info ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:EigError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
 complex_pivoted_qr_operation (const octave_value& value, bool economy,
                               bool vector_output)
 {
@@ -5630,6 +5769,13 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
                        "__mplapack_core__(\"rank\") expects one or two arguments");
       return ovl (mp_rank_operation (args(1),
                                      args.length () == 3 ? &args(2) : nullptr));
+    }
+
+  if (command == "eig")
+    {
+      require_argument_count (args, 3, command);
+      return mp_structured_eig_operation (
+        args(1), require_string (args(2), "eig output mode"));
     }
 
   if (command == "cond")

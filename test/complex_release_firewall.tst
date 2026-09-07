@@ -13,7 +13,7 @@
 %!test
 %! mpbits (256);
 %! A = mp ([1 + 1i, 2; 3, 4 - 1i]);
-%! assert_rejected (@() eig (A), "complex eig fallback");
+%! assert_rejected (@() eig (A), "non-Hermitian eig must remain deferred to N05");
 %! assert_rejected (@() sin (A), "complex sin fallback");
 %! assert_rejected (@() exp (A), "complex exp fallback");
 %! assert_rejected (@() sqrt (A), "complex sqrt fallback");

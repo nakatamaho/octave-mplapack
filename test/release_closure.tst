@@ -59,7 +59,7 @@
 
 %!test
 %! A = mp ([1, 2; 3, 4]);
-%! assert_fails (@() eig (A), "eig must reject mp matrices");
+%! assert_fails (@() eig (A), "N04 eig must reject nonsymmetric matrices");
 %! assert_fails (@() sin (A), "sin must reject mp matrices");
 %! assert_fails (@() exp (A), "exp must reject mp matrices");
 %! assert_fails (@() sqrt (A), "sqrt must reject mp matrices");
@@ -73,6 +73,9 @@
 %! assert (rank (A), 2);
 %! assert (double (cond (A)) > 14);
 %! assert (double (rcond (A)) > 0);
+%! S = mp ([2, 1; 1, 2]);
+%! [Vs, Ds] = eig (S);
+%! assert (double (norm (S * Vs - Vs * Ds, "fro")) < 1e-12);
 
 %!test
 %! help_text = evalc ("help @mp/qr");

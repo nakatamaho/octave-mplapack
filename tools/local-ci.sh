@@ -42,6 +42,7 @@ make -C src check-norm
 make -C src check-det-inv
 make -C src check-svd
 make -C src check-rank-condition
+make -C src check-structured-eig
 
 mplapack_include_dir=$(pkg-config --variable=includedir mplapack_mpfr)
 if [ ! -f "$mplapack_include_dir/mplapack_mpfr_precision.h" ]; then
@@ -81,7 +82,8 @@ make -C src check-complex-lu
 make -C src check-det-inv
 make -C src check-svd
 make -C src check-rank-condition
-echo "PASS: D00 ASan/UBSan/LSan real and complex storage, arithmetic, BLAS, LAPACK, rank, Cholesky, QR, pivoted QR, concatenation, assignment, and LU QA"
+make -C src check-structured-eig
+echo "PASS: D00 ASan/UBSan/LSan real and complex storage, arithmetic, BLAS, LAPACK, rank, Cholesky, QR, pivoted QR, concatenation, assignment, LU, and structured eig QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -308,6 +310,16 @@ fi
 
 if ! nm -D -C "$module" | grep -Eq ' U Cgecon\('; then
   echo "FAIL: N03 native module lacks an unresolved Cgecon reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rsyevd\('; then
+  echo "FAIL: N04 native module lacks an unresolved Rsyevd reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cheevd\('; then
+  echo "FAIL: N04 native module lacks an unresolved Cheevd reference" >&2
   exit 1
 fi
 
@@ -715,16 +727,24 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   src/mp_rank_condition.h src/mp_rank_condition.cc \
   test/rank_condition.tst test/mp_rank_condition_test.cc \
   docs/rank-condition.md docs/milestones/N03-rank-condition.md \
-  inst/@mp/rank.m inst/@mp/cond.m inst/@mp/rcond.m; do
+  inst/@mp/rank.m inst/@mp/cond.m inst/@mp/rcond.m \
+  src/mp_structured_eig.h src/mp_structured_eig.cc \
+  test/eig_structured.tst test/mp_structured_eig_test.cc \
+  inst/@mp/eig.m docs/eig.md docs/milestones/N04-eig-structured.md; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1
   fi
 done
 
-  if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22|\.build-n00|\.build-n01|\.build-n02|\.build-n03)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22|\.build-n00|\.build-n01|\.build-n02|\.build-n03)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
+  exit 1
+fi
+
+if grep -Eq '(^|/)\.build-n04/' "$archive_listing"; then
+  echo "FAIL: package archive contains the N04 native build directory" >&2
   exit 1
 fi
 

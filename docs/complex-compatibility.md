@@ -15,7 +15,8 @@ The following complex operations are intentionally rejected by the package's
 compatibility firewall. They must fail cleanly without conversion to a
 binary64 result, crash, or recursive dispatch:
 
-- `eig`;
+- general or non-Hermitian `eig` (structured Hermitian `eig` is supported by
+  N04);
 - `sin`, `exp`, `sqrt`, and other unimplemented transcendentals;
 - power (`^` and `.^`), ordered comparisons, equality/logical operations,
   sparse conversion, and right division;
@@ -51,6 +52,13 @@ conditions, `rcond`, and the second output of `det` use native
 `Rgecon`/`Cgecon` estimators. Frobenius condition numbers are computed from
 the singular values. All condition results are real MPFR values, including
 for complex inputs, and square-only norm variants reject nonsquare matrices.
+
+N04 adds standard structured `eig` for exactly symmetric real and Hermitian
+complex matrices. Real input uses MPFR `Rsyevd`; complex input uses MPC/MPFR
+`Cheevd`. Eigenvalues and diagonal output are real `mp`; real eigenvectors are
+real `mp`, and complex eigenvectors are complex `mp`. The public path performs
+an exact represented symmetry/Hermitian check and rejects general matrices
+until N05. Destructive LAPACK calls receive operation-owned copies.
 
 ## Lifecycle
 

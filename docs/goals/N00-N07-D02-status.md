@@ -1,10 +1,10 @@
 # N00-N07-D02 status
 
-Status: **N03 PASS — arbitrary-precision rank/condition APIs complete**
+Status: **N04 PASS — structured symmetric/Hermitian eig complete**
 
 The D01R1 frozen package identity remains unchanged. The development line is
-now `mplapack-interop` 0.3.0-dev. N00, N01, N02, and N03 are complete;
-N04-N07 and D02 remain pending.
+now `mplapack-interop` 0.3.0-dev. N00, N01, N02, N03, and N04 are complete;
+N05-N07 and D02 remain pending.
 
 ## N00 identity
 
@@ -15,7 +15,8 @@ Current source before N00 commit: 9384236f6c7f360e86e8a3616e1c0bdb36873b57
 N00 commit: dbe320fa4ed7f1d5541991796ab2df20e2687ec2
 N01 implementation commit: 91a034d2f1acdf739b7ec3b30cc5e333ee6de4f1
 N02 implementation commit: 9f05418f3fc700914727e00b4321ee3ecd061dfe
-N03 implementation commit: pending status/report commit
+N03 implementation commit: ab8ed68fb4e04c821bb50a0e08e578474ee1cfcd
+N04 implementation commit: pending final commit below
 Development version: 0.3.0-dev
 Frozen predecessor: mplapack-interop 0.2.1 / v0.2.1
 Historical predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
@@ -111,7 +112,7 @@ N00 PASS — NORM API AND BACKEND COMPLETE
 N01 PASS — DETERMINANT AND INVERSE COMPLETE
 N02 PASS — SVD COMPLETE
 N03 PASS — RANK / COND / RCOND COMPLETE
-NEXT: N04 — symmetric/Hermitian eig
+NEXT: N05 — general eig + mandatory Grcar QA
 ```
 
 ## N01 — `det` / `inv`
@@ -302,6 +303,65 @@ deterministic source archive contents: PASS
 full tools/local-ci.sh: PASS (exit code 0)
 ```
 
-N03 is the current completed milestone. Its implementation and report are
+N03 was the preceding completed milestone. Its implementation and report were
 committed and pushed before continuing automatically to N04. The D01R1
 0.2.1 tag and archive remain unchanged.
+
+## N04 — structured symmetric/Hermitian `eig`
+
+### Implementation
+
+```text
+real symmetric input: exact represented symmetry check, MPFR Rsyevd
+complex Hermitian input: exact represented Hermitian check, MPC/MPFR Cheevd
+lambda = eig(A): real mp eigenvalue column vector
+[V,D] = eig(A): real mp diagonal D
+[V,d] = eig(A,"vector"): real mp eigenvalue column vector d
+real symmetric eigenvectors: real mp
+complex Hermitian eigenvectors: complex mp
+general and generalized eig: rejected and deferred to N05/N06
+```
+
+The native backend uses operation-owned destructive copies and one MPFR or
+composed MPFR/MPC precision scope at the stored input precision. It performs
+no binary64 fallback and never routes real input through the complex kernel.
+Repeated-eigenvalue QA checks residuals and orthogonality rather than
+non-unique eigenvector entries. High-dynamic-range 1024/2048-bit fixtures,
+ambient precision, exact detection, and input immutability are covered.
+
+### Gates
+
+```text
+G-N04-DETECTION:         PASS
+G-N04-REAL-SYMMETRIC:    PASS
+G-N04-COMPLEX-HERMITIAN: PASS
+G-N04-VECTOR:            PASS
+G-N04-MATRIX:            PASS
+G-N04-RESIDUAL:          PASS
+G-N04-ORTHOGONALITY:     PASS
+G-N04-DEGENERATE:        PASS
+G-N04-PRECISION:         PASS
+G-N04-REGRESSION:        PASS
+```
+
+### Regression evidence
+
+```text
+tools/check-tree.sh: PASS
+tools/check-format.sh: PASS for current N04 files
+native Rsyevd/Cheevd sanitizer test: PASS
+public N04 structured eig tests: PASS
+M00-M23 real regression: PASS
+C00-C12 complex regression: PASS
+C11L complex Cgetrf: PASS
+1024-bit / 2^-700 canary: PASS
+2048-bit / 2^-1500 canary: PASS
+ambient precision and scope restoration: PASS
+input immutability and exact rejection: PASS
+ASan: PASS
+UBSan: PASS
+LSan: PASS
+```
+
+The complete N04 wall passed before the N04 implementation, report, and status
+were committed and pushed. The D01R1 0.2.1 tag and archive remain unchanged.
