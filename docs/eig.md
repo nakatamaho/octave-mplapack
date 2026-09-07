@@ -1,34 +1,40 @@
-# Structured eigenvalues
+# Dense eigenproblems
 
-The 0.3.0 development line supports the dense standard eigenproblem for
-exactly represented real symmetric and complex Hermitian `mp` matrices.
+The 0.3.0 development line supports dense standard eigenproblems for real and
+complex two-dimensional `mp` matrices.
 
 ```octave
 lambda = eig (A)
 [V, D] = eig (A)
-[V, D] = eig (A, "matrix")
 [V, d] = eig (A, "vector")
+[V, D, W] = eig (A)
+[V, D] = eig (A, "balance")
+[V, D] = eig (A, "nobalance")
 ```
 
-Real symmetric input is evaluated by MPLAPACK MPFR `Rsyevd`; complex Hermitian
-input is evaluated by MPC/MPFR `Cheevd`. Both routines receive operation-owned
-copies. The operation enters one precision scope matching the stored input
-precision, so MPFR/MPC temporaries and outputs remain uniform at that
-precision. The input is never modified.
+Exactly represented real symmetric and complex Hermitian inputs use
+MPLAPACK MPFR `Rsyevd` and MPC/MPFR `Cheevd`. General real inputs use
+`Rgeevx`; general complex inputs use `Cgeevx`. Every destructive driver call
+receives an operation-owned copy inside one scope matching the stored input
+precision. No path converts a complex problem to builtin binary64 arithmetic.
 
-Eigenvalues are returned as a real `mp` column vector. With two outputs, `D`
-is a real `mp` diagonal matrix and `d` is the same real `mp` column vector in
-the explicit vector form. Real symmetric eigenvectors are real `mp`; complex
-Hermitian eigenvectors are complex `mp`. The expected identities are
-`A*V = V*D` and `V'*V = I` (using transpose rather than ctranspose for real
-input).
+Structured eigenvalues and diagonal matrices are real `mp` values. General
+eigenvalues, right eigenvectors, left eigenvectors, and diagonal matrices are
+complex `mp` values, including when the real general problem happens to have
+only real eigenvalues. The standard identities are
+`A*V = V*D` and `W'*A = D*W'`, where `'` is the complex-conjugate transpose.
+For `[V,d]`, `d` is the complex eigenvalue column vector.
 
-Detection is an exact represented-value check: every real off-diagonal pair
-must compare exactly, while a complex Hermitian pair must have equal real
-parts and exactly opposite imaginary parts, with zero imaginary diagonal.
-This avoids routing a nearly symmetric general matrix through the structured
-driver. General and generalized eigenvalue problems are deferred to N05 and
-N06 respectively and are rejected with package-owned errors.
+The optional `"balance"` and `"nobalance"` flags select the `Rgeevx`/`Cgeevx`
+expert-driver path. `"matrix"` and `"vector"` select the two-output layout;
+the latter is rejected with one output because the Octave-compatible vector
+form requires two outputs. Structured `Rsyevd`/`Cheevd` inputs have no
+balancing stage, so a balance flag has no numerical effect on that path.
 
-Eigenvectors for repeated eigenvalues are not compared element by element;
-their invariant-subspace residuals and orthogonality are the stable contract.
+The structured/general choice is based on an exact represented-value check:
+real off-diagonal pairs must compare exactly, while complex Hermitian pairs
+must have equal real parts, opposite imaginary parts, and zero imaginary
+diagonal entries. Nearly symmetric, non-Hermitian, Grcar, nearly defective,
+and badly scaled matrices therefore exercise the general backend explicitly.
+Generalized `eig(A,B)`, sparse eig, and N-dimensional eig remain deferred to
+N06 and are rejected with package-owned diagnostics.

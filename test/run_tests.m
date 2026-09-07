@@ -82,3 +82,5 @@ assert (test (fullfile (test_dir, "rank_condition.tst"), "quiet", stdout));
 fprintf ("PASS: N03 rank and condition tests\n");
 assert (test (fullfile (test_dir, "eig_structured.tst"), "quiet", stdout));
 fprintf ("PASS: N04 structured symmetric/Hermitian eig tests\n");
+assert (test (fullfile (test_dir, "eig_general.tst"), "quiet", stdout));
+fprintf ("PASS: N05 general eig and Grcar tests\n");

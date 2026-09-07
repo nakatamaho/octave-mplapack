@@ -193,6 +193,20 @@ fill_diagonal (MpfrMatrixStorage& diagonal,
 namespace octave_mplapack
 {
 
+bool
+mplapack_mpfr_matrix_is_exactly_symmetric (
+  const MpfrMatrixStorage& input) noexcept
+{
+  return is_exactly_symmetric (input);
+}
+
+bool
+mplapack_mpc_matrix_is_exactly_hermitian (
+  const MpfrComplexMatrixStorage& input) noexcept
+{
+  return is_exactly_hermitian (input);
+}
+
 MpfrStructuredEigResult
 mplapack_mpfr_matrix_structured_eig (const MpfrMatrixStorage& input)
 {

@@ -14,19 +14,20 @@ Supported syntax includes scalar and dense two-dimensional real or complex
 construction, indexing and in-bounds assignment, arithmetic, mixed real/
 complex `*` and `\`, `chol`, full/economy QR (including documented pivoted
 three-output forms), LU, `norm`, `det`, `inv`, `svd`, `rank`, `cond`, `rcond`,
-structured symmetric/Hermitian `eig`, transpose, reshape, and concatenation.
+structured/general standard `eig` (including balance controls and three-output
+left eigenvectors), transpose, reshape, and concatenation.
 Factorization and norm methods use the selected MPLAPACK MPFR/MPC backend and
 copy destructive inputs.
 
 Intentional differences are no sparse or N-D values, no matrix `char`,
 limited vector-linear indexing, no growth or deletion assignment, no
-comparisons/logical operators or reductions, no general/generalized `eig`, power,
+comparisons/logical operators or reductions, no generalized `eig`, power,
 unimplemented transcendental, or update
 APIs. Three-output sparse permutation forms and `qr(A,B)` are not provided.
 
 Unsupported matrix functions are expected to fail cleanly. M22's compatibility
-firewall checks representative general/non-Hermitian `eig`,
-`sin`, `exp`, `sqrt`, power, and comparison calls for the absence of implicit
+firewall checks generalized `eig(A,B)`, `sin`, `exp`, `sqrt`, power, and
+comparison calls for the absence of implicit
 binary64 fallback, crashes, and recursion.
 
 The package does not promise identical error text to builtin Octave. It does

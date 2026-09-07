@@ -38,7 +38,8 @@ N00 adds arbitrary-precision `norm`; N01 adds dense real/complex `det` and
 N02 adds dense real/complex `svd` through `Rgesvd`/`Cgesvd`; N03 adds
 `rank`, `cond`, and `rcond` through MPFR/MPC singular values and
 `Rgecon`/`Cgecon`; N04 adds structured symmetric/Hermitian `eig` through
-`Rsyevd`/`Cheevd`.
+`Rsyevd`/`Cheevd`; N05 adds general standard `eig` through `Rgeevx`/`Cgeevx`,
+including balance controls and left eigenvectors.
 
 M22 closed the real-only API and M23 froze the v0.1.0 release candidate for
 PPA packaging. See the [v0.1 API inventory](docs/v0.1-api.md),
@@ -70,9 +71,9 @@ not replace clean package/install QA.
 The current surface includes dense real and complex `mp`, precision-controlled
 construction, arithmetic, mixed real/complex `*` and `\`, indexing and
 in-bounds assignment, `chol`, full/economy and pivoted `qr`, `lu`, `norm`,
-`det`, `inv`, `svd`, `rank`, `cond`, `rcond`, structured symmetric/Hermitian
-`eig`, and dense concatenation. Sparse, N-D, reductions, general/generalized
-`eig`, powers, and unimplemented transcendentals remain explicitly
+`det`, `inv`, `svd`, `rank`, `cond`, `rcond`, structured and general standard
+`eig`, and dense concatenation. Sparse, N-D, reductions, generalized `eig`,
+powers, and unimplemented transcendentals remain explicitly
 unsupported; see the [complex API](docs/complex-api.md) and [compatibility
 limits](docs/complex-compatibility.md).
 

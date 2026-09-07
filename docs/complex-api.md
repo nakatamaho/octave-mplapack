@@ -1,7 +1,7 @@
 # Complex `mp` API
 
 This is the C00–C12 implementation inventory carried by the 0.2.1 package;
-the N00-N04 additions are listed for the 0.3.0-dev development line.
+the N00-N05 additions are listed for the 0.3.0-dev development line.
 Release identity and dependency provenance are maintained in
 `docs/dependency-release-stack.md`.
 
@@ -52,6 +52,7 @@ an existing value or override `p_op`.
 | condition | `cond(A)`, `cond(A,1)`, `cond(A,2)`, `cond(A,Inf)`, `cond(A,"fro")` | `Rgecon`/`Cgecon` or singular values |
 | reciprocal condition | `rcond(A)` | `Rgecon`/`Cgecon` 1-norm estimator |
 | structured eig | `eig(A)` for real symmetric or complex Hermitian input; matrix/vector outputs | `Rsyevd`/`Cheevd` |
+| general eig | standard real/complex `eig`, matrix/vector/balance/nobalance forms, and `[V,D,W]` | `Rgeevx`/`Cgeevx` |
 | mixed structural | horizontal/vertical concat; real/complex assignment | MPC destination at max stored precision |
 
 For LU, one output is the packed factor. Two outputs return `A=L*U`; three
@@ -72,3 +73,10 @@ the same operation precision. Destructive `Cgesv`, `Cpotrf`, QR, and `Cgetrf`
 calls receive operation-owned copies. There is no silent builtin binary64
 complex fallback. Explicit `double(...)` conversion is outside this numerical
 contract.
+
+N05 adds general standard `eig`. Real nonsymmetric inputs and complex
+non-Hermitian inputs return complex `mp` eigenvalues and eigenvectors through
+`Rgeevx`/`Cgeevx`; `eig(A,"balance")` and `eig(A,"nobalance")` select the
+expert-driver balance mode. Three outputs return right vectors, a complex
+diagonal matrix, and left vectors satisfying `W'*A = D*W'`. Generalized
+`eig(A,B)` remains deferred to N06.

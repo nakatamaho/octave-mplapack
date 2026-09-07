@@ -1,10 +1,10 @@
 # N00-N07-D02 status
 
-Status: **N04 PASS — structured symmetric/Hermitian eig complete**
+Status: **N05 PASS — general standard eig and Grcar QA complete**
 
 The D01R1 frozen package identity remains unchanged. The development line is
-now `mplapack-interop` 0.3.0-dev. N00, N01, N02, N03, and N04 are complete;
-N05-N07 and D02 remain pending.
+now `mplapack-interop` 0.3.0-dev. N00, N01, N02, N03, N04, and N05 are
+complete; N06-N07 and D02 remain pending.
 
 ## N00 identity
 
@@ -16,7 +16,8 @@ N00 commit: dbe320fa4ed7f1d5541991796ab2df20e2687ec2
 N01 implementation commit: 91a034d2f1acdf739b7ec3b30cc5e333ee6de4f1
 N02 implementation commit: 9f05418f3fc700914727e00b4321ee3ecd061dfe
 N03 implementation commit: ab8ed68fb4e04c821bb50a0e08e578474ee1cfcd
-N04 implementation commit: pending final commit below
+N04 implementation commit: 455b5df72c65bb4475c6436429dae005910eb88f
+N05 implementation commit: pending final commit below
 Development version: 0.3.0-dev
 Frozen predecessor: mplapack-interop 0.2.1 / v0.2.1
 Historical predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
@@ -112,7 +113,7 @@ N00 PASS — NORM API AND BACKEND COMPLETE
 N01 PASS — DETERMINANT AND INVERSE COMPLETE
 N02 PASS — SVD COMPLETE
 N03 PASS — RANK / COND / RCOND COMPLETE
-NEXT: N05 — general eig + mandatory Grcar QA
+NEXT: N06 — generalized eig(A,B)
 ```
 
 ## N01 — `det` / `inv`
@@ -365,3 +366,76 @@ LSan: PASS
 
 The complete N04 wall passed before the N04 implementation, report, and status
 were committed and pushed. The D01R1 0.2.1 tag and archive remain unchanged.
+
+## N05 — general standard `eig` and mandatory Grcar QA
+
+### Implementation
+
+```text
+real nonsymmetric input: MPFR Rgeevx
+complex non-Hermitian input: MPC/MPFR Cgeevx
+structured exact symmetric/Hermitian input: retained N04 Rsyevd/Cheevd dispatch
+lambda = eig(A): complex mp eigenvalue column for the general path
+[V,D] = eig(A): complex mp right vectors and diagonal matrix
+[V,d] = eig(A,"vector"): complex mp right vectors and eigenvalue column
+[V,D] = eig(A,"matrix"): explicit matrix form
+[V,D,W] = eig(A): complex mp right/diagonal/left outputs
+eig(A,"balance"): explicit Rgeevx/Cgeevx balancing path
+eig(A,"nobalance"): explicit Rgeevx/Cgeevx nobalance path
+```
+
+Real LAPACK conjugate-pair columns are converted explicitly to complex MPC
+storage. General real outputs are therefore complex `mp` even when the
+eigenvalues are all real. Every destructive call uses an operation-owned copy,
+one stored-precision MPFR or MPFR/MPC scope, checked workspace/INFO, and
+uniform-precision work arrays. No real input is routed through a complex
+kernel and no builtin binary64 fallback exists.
+
+The compatibility firewall now rejects only deferred generalized `eig(A,B)`
+for this area. The permanent Grcar fixture exercises default/balance
+equivalence, explicit balance/nobalance, right and left residuals, and
+128/256/512-bit precision progression. Near-Jordan, nearly repeated, badly
+scaled, 1024-bit `2^-700`, 2048-bit `2^-1500`, ambient precision, and input
+immutability cases are covered.
+
+### Gates
+
+```text
+G-N05-BACKEND:             PASS
+G-N05-REAL-GENERAL:       PASS
+G-N05-COMPLEX-GENERAL:    PASS
+G-N05-BALANCE:            PASS
+G-N05-NOBALANCE:          PASS
+G-N05-RIGHT-EIGENVECTORS: PASS
+G-N05-LEFT-EIGENVECTORS:  PASS
+G-N05-GRCAR:              PASS
+G-N05-NEAR-DEFECTIVE:     PASS
+G-N05-PRECISION:          PASS
+G-N05-REGRESSION:         PASS
+```
+
+### Regression evidence
+
+```text
+tools/check-tree.sh: PASS
+tools/check-format.sh: PASS
+native Rgeevx/Cgeevx sanitizer test: PASS
+public N04/N05 eig tests: PASS
+M00-M23 real regression: PASS
+C00-C12 complex regression: PASS
+C11L complex Cgetrf: PASS
+1024-bit / 2^-700 canary: PASS
+2048-bit / 2^-1500 canary: PASS
+ambient precision and scope restoration: PASS
+input immutability and native lifetime tests: PASS
+ASan: PASS
+UBSan: PASS
+LSan: PASS
+clean archive extraction build: PASS
+package install/load/smoke/help/examples/unload/uninstall/reinstall: PASS
+deterministic source archive contents: PASS
+full tools/local-ci.sh: PASS (exit code 0)
+```
+
+N05 is complete and the next milestone is N06 generalized `eig(A,B)`. The
+D01R1 0.2.1 tag and archive remain unchanged.

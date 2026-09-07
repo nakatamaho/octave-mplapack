@@ -111,6 +111,8 @@ src/mp_rank_condition.h
 src/mp_rank_condition.cc
 src/mp_structured_eig.h
 src/mp_structured_eig.cc
+src/mp_general_eig.h
+src/mp_general_eig.cc
 test/run_tests.m
 test/build_probe.tst
 test/native_value.tst
@@ -158,6 +160,8 @@ test/rank_condition.tst
 test/mp_rank_condition_test.cc
 test/mp_structured_eig_test.cc
 test/eig_structured.tst
+test/mp_general_eig_test.cc
+test/eig_general.tst
 test/matrix_inspection.tst
 test/mp_matrix_inspection_test.cc
 test/elementwise.tst
@@ -227,6 +231,8 @@ docs/rank-condition.md
 docs/milestones/N03-rank-condition.md
 docs/eig.md
 docs/milestones/N04-eig-structured.md
+docs/milestones/N05-eig-general.md
+reports/N05-report.md
 docs/v0.1-release-manifest.md
 docs/matrix-assignment.md
 docs/milestones/M14-indexed-assignment.md

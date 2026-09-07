@@ -14,7 +14,7 @@ SOURCE = octave_bridge.cc mp_value.cc mp_matrix_value.cc mp_blas.cc mp_lapack.cc
   mp_complex_arithmetic.cc mp_complex_blas.cc mp_complex_lapack.cc \
   mp_complex_rank.cc mp_complex_cholesky.cc mp_complex_qr.cc \
   mp_complex_lu.cc mp_complex_matrix_concat.cc mp_norm.cc mp_det_inv.cc \
-  mp_svd.cc mp_rank_condition.cc mp_structured_eig.cc
+  mp_svd.cc mp_rank_condition.cc mp_structured_eig.cc mp_general_eig.cc
 HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
   mp_matrix_storage.h mp_matrix_inspection.h mp_matrix_arithmetic.h \
   mp_matrix_structure.h mp_matrix_concat.h \
@@ -25,7 +25,7 @@ HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
   mp_complex_structure.h mp_complex_arithmetic.h mp_complex_blas.h \
   mp_complex_lapack.h mp_complex_rank.h mp_complex_cholesky.h mp_complex_qr.h \
   mp_complex_lu.h mp_complex_matrix_concat.h mp_norm.h mp_det_inv.h mp_svd.h \
-  mp_rank_condition.h mp_structured_eig.h
+  mp_rank_condition.h mp_structured_eig.h mp_general_eig.h
 STORAGE_TEST = .build-m02/mp_scalar_storage_test
 ARITHMETIC_TEST = .build-m06/mp_scalar_arithmetic_test
 MATRIX_TEST = .build-m07/mp_matrix_storage_test
@@ -54,6 +54,7 @@ DET_INV_TEST = .build-n01/mp_det_inv_test
 SVD_TEST = .build-n02/mp_svd_test
 RANK_CONDITION_TEST = .build-n03/mp_rank_condition_test
 STRUCTURED_EIG_TEST = .build-n04/mp_structured_eig_test
+GENERAL_EIG_TEST = .build-n05/mp_general_eig_test
 MPLAPACK_VERSION := $(shell $(PKG_CONFIG) --modversion $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
@@ -68,7 +69,8 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
   check-complex-arithmetic check-complex-blas check-complex-lapack \
   check-complex-rank check-complex-cholesky check-complex-qr \
   check-complex-pivoted-qr check-complex-concat check-complex-lu check-norm \
-  check-det-inv check-svd check-rank-condition check-structured-eig clean
+  check-det-inv check-svd check-rank-condition check-structured-eig \
+  check-general-eig clean
 .DELETE_ON_ERROR:
 
 all: $(TARGET)
@@ -573,6 +575,23 @@ check-structured-eig: $(STRUCTURED_EIG_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 	UBSAN_OPTIONS=halt_on_error=1 $(STRUCTURED_EIG_TEST)
 
+$(GENERAL_EIG_TEST): ../test/mp_general_eig_test.cc \
+  mp_general_eig.cc mp_general_eig.h mp_complex_precision.cc \
+  mp_complex_precision.h mp_complex_matrix_storage.cc \
+  mp_complex_matrix_storage.h mp_complex_scalar_storage.cc \
+  mp_complex_scalar_storage.h mp_matrix_storage.cc mp_matrix_storage.h \
+  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_general_eig_test.cc \
+	  mp_general_eig.cc mp_complex_precision.cc \
+	  mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-general-eig: $(GENERAL_EIG_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(GENERAL_EIG_TEST)
+
 check-deps:
 	@$(MKOCTFILE) --help >/dev/null 2>&1 || { \
 	  echo "FAIL: mkoctfile command not found: $(MKOCTFILE)" >&2; exit 1; }
@@ -591,4 +610,4 @@ check-deps:
 
 clean:
 	$(RM) $(TARGET) *.o *.lo
-	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21 .build-m22 .build-c00 .build-c06 .build-c07 .build-c08 .build-c09 .build-c10 .build-c11 .build-c11l .build-n00 .build-n01 .build-n02 .build-n03 .build-n04
+	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21 .build-m22 .build-c00 .build-c06 .build-c07 .build-c08 .build-c09 .build-c10 .build-c11 .build-c11l .build-n00 .build-n01 .build-n02 .build-n03 .build-n04 .build-n05

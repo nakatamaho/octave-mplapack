@@ -59,7 +59,9 @@
 
 %!test
 %! A = mp ([1, 2; 3, 4]);
-%! assert_fails (@() eig (A), "N04 eig must reject nonsymmetric matrices");
+%! [Vg, Dg] = eig (A);
+%! assert (double (norm (A * Vg - Vg * Dg, "fro")) < 1e-12, ...
+%!         "N05 general eig real residual");
 %! assert_fails (@() sin (A), "sin must reject mp matrices");
 %! assert_fails (@() exp (A), "exp must reject mp matrices");
 %! assert_fails (@() sqrt (A), "sqrt must reject mp matrices");

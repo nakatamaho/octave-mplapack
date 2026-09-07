@@ -7,6 +7,10 @@ The development line begins the numerical API completion after the frozen
 all operation paths preserve stored MPFR/MPC precision and avoid binary64
 fallbacks.
 
+N05 adds dense general standard `eig` through MPLAPACK `Rgeevx`/`Cgeevx`,
+including balance/nobalance controls, right and left eigenvectors, permanent
+Grcar coverage, and high-precision real conjugate-pair conversion.
+
 ## 0.2.1
 
 The GNU Octave package public identity is now `mplapack-interop`, version

@@ -59,6 +59,12 @@ MpfrStructuredEigResult mplapack_mpfr_matrix_structured_eig (
 MpcStructuredEigResult mplapack_mpc_matrix_structured_eig (
   const MpfrComplexMatrixStorage& input);
 
+bool mplapack_mpfr_matrix_is_exactly_symmetric (
+  const MpfrMatrixStorage& input) noexcept;
+
+bool mplapack_mpc_matrix_is_exactly_hermitian (
+  const MpfrComplexMatrixStorage& input) noexcept;
+
 } // namespace octave_mplapack
 
 #endif

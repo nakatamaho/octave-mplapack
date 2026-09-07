@@ -13,7 +13,12 @@
 %!test
 %! mpbits (256);
 %! A = mp ([1 + 1i, 2; 3, 4 - 1i]);
-%! assert_rejected (@() eig (A), "non-Hermitian eig must remain deferred to N05");
+%! [Vg, Dg, Wg] = eig (A);
+%! assert (double (norm (A * Vg - Vg * Dg, "fro")) < 1e-12, ...
+%!         "N05 general eig complex right residual");
+%! assert (double (norm (ctranspose (Wg) * A - Dg * ctranspose (Wg), ...
+%!                        "fro")) < 1e-12, ...
+%!         "N05 general eig complex left residual");
 %! assert_rejected (@() sin (A), "complex sin fallback");
 %! assert_rejected (@() exp (A), "complex exp fallback");
 %! assert_rejected (@() sqrt (A), "complex sqrt fallback");
