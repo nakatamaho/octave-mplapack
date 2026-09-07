@@ -13,7 +13,8 @@ S01: PASS; committed and pushed as 29f3539 (full SHA in git history)
 S02: PASS; committed and pushed as 07c047d08d64ecd8c0d623cd2e1e621882b6c8b9
 S03: PASS; committed and pushed as a71c13f and 5714787
 S04: PASS; committed and pushed as 2247480a4835519f27cb53b6a39173d05f16bdc8
-S05-S08: not started
+S05: PASS; committed and pushed as b97ed2ea231cbb9bb1fd8b7334911d86cb2db7db
+S06-S08: not started
 D03: not started
 ```
 
@@ -189,6 +190,46 @@ and isolated install/lifecycle QA against the frozen dependencies.
 S04 PASS — MATRIX UTILITIES AND CONSTRUCTORS CLOSED
 ```
 
+## S05 evidence
+
+Implementation commit: `b97ed2ea231cbb9bb1fd8b7334911d86cb2db7db`.
+
+```text
+colon/range forms: PASS — native MPFR increasing, decreasing, empty, and high-precision step cases
+linspace: PASS — native MPFR real and MPC complex endpoints, counts, and endpoint semantics
+logspace: PASS — native MPFR powers of ten and Octave pi endpoint special case
+floor/ceil/fix/round: PASS — native MPFR element-wise rounding
+rem/mod: PASS — native MPFR signs and two-dimensional singleton expansion
+hypot/atan2: PASS — native MPFR utility arithmetic and singleton expansion
+signbit: PASS — native MPFR signed-zero and matrix logical results
+eps: PASS — local stored-precision MPFR spacing
+complex unsupported forms: PASS — explicit firewall for complex colon/logspace/rounding utilities
+1024/2048 precision and ambient default isolation: PASS
+binary64 numerical fallback: NONE
+```
+
+```text
+G-S05-COLON: PASS
+G-S05-LINSPACE: PASS
+G-S05-LOGSPACE: PASS
+G-S05-ROUNDING: PASS
+G-S05-REM: PASS
+G-S05-MOD: PASS
+G-S05-UTILITY: PASS
+G-S05-EPS: PASS
+G-S05-PRECISION: PASS
+G-S05-REGRESSION: PASS
+```
+
+The post-milestone `tools/local-ci.sh` wall passed M00–M23,
+C00–C12/C11L, N00–N08, S00–S05, native ASan/UBSan/LSan, clean rebuild #2,
+deterministic package generation, and isolated install/lifecycle QA against
+the frozen dependencies.
+
+```text
+S05 PASS — RANGES, ROUNDING, AND UTILITY ARITHMETIC CLOSED
+```
+
 ## Next milestone
 
-Proceed automatically to S05 — Ranges, rounding, and utility arithmetic.
+Proceed automatically to S06 — Descriptive statistics.

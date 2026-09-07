@@ -18,7 +18,7 @@ precision/value test have passed.
 | reductions and extrema | SUPPORTED | S02 native MPFR/MPC reductions, NaN flags, dimensions, and min/max |
 | comparisons, logicals, logical indexing, `find` | SUPPORTED | S03 native MPFR/MPC comparison, truth, indexing, and find tests |
 | matrix utilities and constructors | SUPPORTED | S04 native MPFR/MPC `diag`, `triu`/`tril`, `repmat`, flips, `rot90`, `cat(1/2)`, and `like` constructors |
-| ranges, rounding, utility arithmetic | PLANNED-S05 | Not yet implemented in the S-series |
+| ranges, rounding, utility arithmetic | SUPPORTED | S05 native MPFR/MPC range, spacing, rounding, and utility tests |
 | descriptive statistics | PLANNED-S06 | Not yet implemented in the S-series |
 | graphics boundary wrappers | PLANNED-S07 | No automatic graphics conversion is present yet |
 | ordinary script corpus closure | PLANNED-S08 | Corpus is added after S00-S07 |
@@ -107,6 +107,34 @@ paths; dimensions above two remain rejected. `zeros`, `ones`, `eye`, `NaN`,
 and `Inf` support the explicit `"like"` form when the template is an `mp`
 value. These constructors preserve template precision and real/complex
 storage kind, and all special values are written through MPFR/MPC directly.
+
+## S05 semantics
+
+The two- and three-argument colon forms construct real MPFR row vectors by
+repeated native MPFR addition at the operation precision. Increasing,
+decreasing, empty, negative-step, high-precision decimal-step, and zero-step
+cases are covered; a step that rounds away at the selected precision is
+rejected instead of silently looping. Complex colon ranges are an explicit
+unsupported boundary.
+
+`linspace` uses native MPFR for real endpoints and MPC for complex endpoints,
+with exact first and last values, Octave-compatible default counts, and the
+`n == 0`/`n == 1` cases. `logspace` uses native MPFR powers of ten and retains
+the supplied final endpoint for Octave's `pi` special case. Complex logspace
+is intentionally rejected.
+
+`floor`, `ceil`, `fix`, and `round` operate element-wise through MPFR and
+retain the source precision. `rem`, `mod`, `hypot`, and `atan2` use native
+MPFR with two-dimensional singleton expansion; remainder/modulus signs follow
+their respective Octave conventions. `signbit` exposes native MPFR sign bits
+as logical values, including signed zero. `eps` returns the local MPFR spacing
+above each stored value, so it is neither binary64-derived nor a constant.
+Complex rounding, remainder/modulus, utility forms, `signbit`, and `eps` are
+rejected explicitly where the dense mp contract is real-only.
+
+All S05 numerical paths avoid binary64 generation and preserve the operation's
+MPFR/MPC precision scope. The dedicated S05 tests include 1024-bit `2^-700`
+and 2048-bit `2^-1500` canaries and ambient-precision restoration.
 
 ## Known intentional stops
 
