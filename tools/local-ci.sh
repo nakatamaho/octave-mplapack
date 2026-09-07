@@ -744,7 +744,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/milestones/M23-v0.1-freeze.md \
   examples/01_scalar_precision.m examples/02_matrix_arithmetic.m \
   examples/03_linear_solve.m examples/04_factorizations.m \
-  examples/05_hilbert_inverse.m \
+  examples/05_hilbert_inverse.m examples/06_grcar_eig.m \
   tools/dev-octave.sh tools/verify-release-candidate.sh \
   docs/mplapack-interop-hilbert.md docs/binary-distribution.md \
   docs/binary-redistribution-licenses.md docs/dependency-release-stack-r1.md \
@@ -768,7 +768,9 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   test/eig_general.tst test/mp_general_eig_test.cc \
   src/mp_generalized_eig.h src/mp_generalized_eig.cc \
   test/eig_generalized.tst test/mp_generalized_eig_test.cc \
+  test/n07_closure.tst \
   inst/@mp/eig.m docs/eig.md docs/generalized-eig.md \
+  docs/v0.3-api.md \
   docs/milestones/N04-eig-structured.md docs/milestones/N05-eig-general.md \
   docs/milestones/N06-eig-generalized.md; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then

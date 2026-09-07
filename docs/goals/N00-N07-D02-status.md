@@ -1,10 +1,10 @@
 # N00-N07-D02 status
 
-Status: **N06 PASS — generalized eig QA complete**
+Status: **N07 PASS — numerical API closure complete**
 
 The D01R1 frozen package identity remains unchanged. The development line is
-now `mplapack-interop` 0.3.0-dev. N00, N01, N02, N03, N04, and N05 are
-complete; N07 and D02 remain pending.
+now `mplapack-interop` 0.3.0-dev. N00, N01, N02, N03, N04, N05, N06, and
+N07 are complete; D02 remains pending.
 
 ## N00 identity
 
@@ -18,7 +18,8 @@ N02 implementation commit: 9f05418f3fc700914727e00b4321ee3ecd061dfe
 N03 implementation commit: ab8ed68fb4e04c821bb50a0e08e578474ee1cfcd
 N04 implementation commit: 455b5df72c65bb4475c6436429dae005910eb88f
 N05 implementation commit: 61e8afa0c6af780f30948347f51c95b60d397d1a
-N06 implementation commit: pending final commit below
+N06 implementation commit: 9929b2360b717f7817005bccc9eb5fa193697aa2
+N07 implementation commit: pending final commit below
 Development version: 0.3.0-dev
 Frozen predecessor: mplapack-interop 0.2.1 / v0.2.1
 Historical predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
@@ -496,5 +497,58 @@ clean package archive extraction/build/install/lifecycle: PASS
 deterministic source package archive: PASS
 ```
 
-N06 is complete. The next milestone is N07 numerical API closure. No D02
-release tag or final 0.3.0 archive is created in N06.
+N06 is complete. N07 now closes the documented 0.3.0-dev numerical API
+surface and adds no new numerical algorithm. The next milestone is D02 final
+source freeze. No D02 release tag or final 0.3.0 archive is created here.
+
+## N07 — numerical API closure
+
+N07 completes the development-line API and documentation audit for the
+accepted dense real/complex surface. It documents norm, determinant/inverse,
+SVD, rank/condition, standard and generalized eigenvalue interfaces, the
+precision/ownership contract, supported inputs, and explicit compatibility
+deferrals. The permanent `examples/06_grcar_eig.m` example uses a 32-by-32
+Grcar matrix at 1024-bit MP precision and evaluates its residual with native
+high-precision operations.
+
+The N07 compatibility firewall verifies clean rejection of standalone
+`schur`, `qz`, `hess`, `expm`, `logm`, sparse/N-dimensional values, powers,
+comparisons/logical operations, and right division. Generalized eigensystems
+remain supported through the N06 real/complex definite and QZ paths.
+
+### N07 gates
+
+```text
+G-N07-API:          PASS
+G-N07-DOCS:         PASS
+G-N07-GRCAR:        PASS
+G-N07-FIREWALL:     PASS
+G-N07-REGRESSION:   PASS
+```
+
+### N07 regression evidence
+
+```text
+tools/check-tree.sh: PASS
+tools/check-format.sh: PASS
+native N00-N06 backend/unit tests: PASS
+N07 public compatibility firewall: PASS
+N07 permanent Grcar(32) residual: PASS
+Grcar high-precision example at 1024 bits: PASS
+full test/run_tests.m: PASS (M00-M23, C00-C12 including C11L, N00-N07)
+ASan: PASS
+UBSan: PASS
+LSan: PASS
+1024-bit / 2^-700 and 2048-bit / 2^-1500: PASS
+ambient precision and scope restoration: PASS
+input immutability and native lifetime tests: PASS
+clean archive extraction build: PASS
+deterministic source archive contents: PASS
+package install/load/smoke/help/examples/unload/uninstall/reinstall: PASS
+full tools/local-ci.sh: PASS (exit code 0)
+```
+
+N07 is complete. D02 is the release-engineering milestone for changing the
+development version to 0.3.0, reproducing the final source archive, and
+creating the final package tag only after every D02 gate passes. No D02 tag
+or final 0.3.0 archive has been created.
