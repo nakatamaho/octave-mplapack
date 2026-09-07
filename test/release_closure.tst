@@ -60,7 +60,6 @@
 %!test
 %! A = mp ([1, 2; 3, 4]);
 %! assert_fails (@() eig (A), "eig must reject mp matrices");
-%! assert_fails (@() svd (A), "svd must reject mp matrices");
 %! assert_fails (@() rank (A), "rank must reject mp matrices");
 %! assert_fails (@() sin (A), "sin must reject mp matrices");
 %! assert_fails (@() exp (A), "exp must reject mp matrices");
@@ -70,6 +69,8 @@
 %! assert_fails (@() (A / A), "right division must reject mp matrices");
 %! assert (double (det (A)), -2, 1e-12);
 %! assert (double (A * inv (A)), eye (2), 1e-12);
+%! [U, S, V] = svd (A);
+%! assert (double (norm (A - U * S * transpose (V), "fro")) < 1e-12);
 
 %!test
 %! help_text = evalc ("help @mp/qr");

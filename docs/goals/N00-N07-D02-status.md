@@ -1,10 +1,10 @@
 # N00-N07-D02 status
 
-Status: **N01 PASS — arbitrary-precision determinant and inverse complete**
+Status: **N02 PASS — arbitrary-precision SVD complete**
 
 The D01R1 frozen package identity remains unchanged. The development line is
-now `mplapack-interop` 0.3.0-dev. N00 and N01 are complete; N02-N07 and D02
-remain pending.
+now `mplapack-interop` 0.3.0-dev. N00, N01, and N02 are complete; N03-N07
+and D02 remain pending.
 
 ## N00 identity
 
@@ -14,6 +14,7 @@ Branch: topic/d01r1-mplapack-interop
 Current source before N00 commit: 9384236f6c7f360e86e8a3616e1c0bdb36873b57
 N00 commit: dbe320fa4ed7f1d5541991796ab2df20e2687ec2
 N01 implementation commit: 91a034d2f1acdf739b7ec3b30cc5e333ee6de4f1
+N02 implementation commit: see the commit adding this status update
 Development version: 0.3.0-dev
 Frozen predecessor: mplapack-interop 0.2.1 / v0.2.1
 Historical predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
@@ -97,7 +98,8 @@ created by N00.
 
 ## Scope and deferrals
 
-N00 adds only `norm`; N01 adds only `det` and `inv`. `svd`, `rank`, `cond`,
+N00 adds only `norm`; N01 adds only `det` and `inv`; N02 adds only `svd`.
+`rank`, `cond`,
 `rcond`, symmetric and general eigenvalue routines, generalized eigenvalue
 routines, and final closure remain assigned to N02-N07. No Debian, PPA,
 Launchpad, registry, or binary-distribution work was started.
@@ -107,7 +109,8 @@ Launchpad, registry, or binary-distribution work was started.
 ```text
 N00 PASS — NORM API AND BACKEND COMPLETE
 N01 PASS — DETERMINANT AND INVERSE COMPLETE
-NEXT: N02 — svd
+N02 PASS — SVD COMPLETE
+NEXT: N03 — rank / cond / rcond
 ```
 
 ## N01 — `det` / `inv`
@@ -165,4 +168,65 @@ full tools/local-ci.sh: PASS (exit code 0)
 N01 implementation is committed as
 `91a034d2f1acdf739b7ec3b30cc5e333ee6de4f1` on
 `topic/d01r1-mplapack-interop` and pushed. The D01R1
-0.2.1 tag and archive remain unchanged. The next milestone is N02.
+0.2.1 tag and archive remain unchanged. The next milestone is N03.
+
+## N02 — `svd`
+
+### Implementation
+
+```text
+real one-output singular values: existing N00 Rgesvd helper
+complex one-output singular values: existing N00 Cgesvd helper
+real factors: Rgesvd full/economy U, diagonal S, V from VT transpose
+complex factors: Cgesvd full/economy U, diagonal real S, V from VT conjugate transpose
+full shapes: U m-by-m, S m-by-n, V n-by-n
+economy shapes: U m-by-k, S k-by-k, V n-by-k, k=min(m,n)
+numeric 0 option: accepted as deprecated economy spelling
+empty and scalar shapes: covered without invalid zero-size LAPACK calls
+```
+
+All LAPACK inputs are operation-owned copies. Real values stay on `Rgesvd`,
+complex values stay on `Cgesvd`, the S output is real `mp` for complex input,
+workspace queries and INFO are checked, and no binary64 fallback exists.
+
+### N02 gates
+
+```text
+G-N02-BACKEND:        PASS
+G-N02-ONE-OUTPUT:     PASS
+G-N02-FULL:           PASS
+G-N02-ECON:           PASS
+G-N02-REAL:           PASS
+G-N02-COMPLEX:        PASS
+G-N02-RECONSTRUCTION: PASS
+G-N02-ORTHOGONALITY:  PASS
+G-N02-WORKSPACE:      PASS
+G-N02-PRECISION:      PASS
+G-N02-REGRESSION:     PASS
+```
+
+### N02 regression wall
+
+```text
+native sanitized SVD test: PASS
+public real/complex SVD tests: PASS
+full/economy/numeric-0 shape tests: PASS
+scalar and empty shape tests: PASS
+reconstruction and orthogonality/unitarity: PASS
+input immutability: PASS
+1024-bit / 2^-700 canary: PASS
+2048-bit / 2^-1500 canary: PASS
+ambient precision and scope restoration: PASS
+M00-M23 real regression: PASS
+C00-C12 complex regression: PASS
+C11L complex Cgetrf: PASS
+ASan: PASS
+UBSan: PASS
+LSan: PASS
+clean archive extraction build and lifecycle: PASS
+full tools/local-ci.sh: PASS (exit code 0)
+```
+
+N02 is committed on `topic/d01r1-mplapack-interop` and will be pushed with
+this milestone update. The D01R1 0.2.1 tag and archive remain unchanged. The
+next milestone is N03.

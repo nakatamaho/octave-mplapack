@@ -24,11 +24,12 @@ classdef mp
   ## in-bounds value-semantic indexed assignment; matrix `char` remains
   ## deferred. M17-M21 add dense real `chol`, full/economy and pivoted `qr`,
   ## and packed/permutation-aware `lu`. N00 adds arbitrary-precision `norm`;
-  ## N01 adds real/complex `det` and `inv` through LU and GETRI. C01-C12 add
+  ## N01 adds real/complex `det` and `inv` through LU and GETRI. N02 adds
+  ## real/complex `svd` through GESVD. C01-C12 add
   ## complex MPC values, mixed real/complex operations, and the corresponding
   ## C* LAPACK paths.
   ## The development release is `0.3.0-dev`; N00 adds arbitrary-precision
-  ## `norm` and N01 adds `det`/`inv`; unsupported functions are
+  ## `norm`, N01 adds `det`/`inv`, and N02 adds `svd`; unsupported functions are
   ## documented in `docs/complex-compatibility.md`.
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
   ## @end deftypefn

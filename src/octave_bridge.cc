@@ -46,6 +46,7 @@
 #include "mp_lapack.h"
 #include "mp_det_inv.h"
 #include "mp_norm.h"
+#include "mp_svd.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -3773,6 +3774,146 @@ mp_qr_operation (const octave_value& value, bool economy, bool want_q)
 }
 
 octave_value_list
+mp_svd_operation (const octave_value& value, bool economy, bool want_factors)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "svd expects one real or complex mp value");
+
+  const octave_value payload = require_mp_payload (value);
+  const bool complex = is_complex_payload (value);
+
+  if (complex)
+    {
+      std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                   scalar.native_value ().mpc_data (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                  .storage ();
+      else
+        error_with_id ("mplapack:mp:InvalidInput",
+                       "svd expects one complex mp value");
+
+      try
+        {
+          if (! want_factors)
+            return ovl (make_inspection_result (
+              octave_mplapack::mplapack_mpc_singular_values (*input)));
+
+          const auto factors
+            = octave_mplapack::mplapack_mpc_matrix_svd (*input, economy);
+          return ovl (make_complex_inspection_result (factors.u),
+                      make_inspection_result (factors.s),
+                      make_complex_inspection_result (factors.v));
+        }
+      catch (const octave_mplapack::MpcSvdError& exception)
+        {
+          if (exception.kind ()
+              == octave_mplapack::MpcSvdError::Kind::convergence)
+            error_with_id ("mplapack:mp:ConvergenceFailure",
+                           "MPLAPACK Cgesvd failed to converge (info %d)",
+                           static_cast<int> (exception.info ()));
+          if (exception.kind ()
+              == octave_mplapack::MpcSvdError::Kind::invalid_argument)
+            error_with_id ("mplapack:mp:SvdError",
+                           "MPLAPACK Cgesvd rejected argument %d",
+                           -static_cast<int> (exception.info ()));
+          error_with_id ("mplapack:mp:SvdError", "%s", exception.what ());
+        }
+      catch (const std::overflow_error& exception)
+        {
+          error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                         exception.what ());
+        }
+      catch (const std::invalid_argument& exception)
+        {
+          error_with_id ("mplapack:mp:InvalidInput", "%s",
+                         exception.what ());
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:SvdError", "%s", exception.what ());
+        }
+      return ovl ();
+    }
+
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                scalar.native_value ().mpfr_data (), MPFR_RNDN);
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "svd expects one real mp value");
+
+  try
+    {
+      if (! want_factors)
+        return ovl (make_inspection_result (
+          octave_mplapack::mplapack_mpfr_singular_values (*input)));
+
+      const auto factors
+        = octave_mplapack::mplapack_mpfr_matrix_svd (*input, economy);
+      return ovl (make_inspection_result (factors.u),
+                  make_inspection_result (factors.s),
+                  make_inspection_result (factors.v));
+    }
+  catch (const octave_mplapack::MpfrSvdError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrSvdError::Kind::convergence)
+        error_with_id ("mplapack:mp:ConvergenceFailure",
+                       "MPLAPACK Rgesvd failed to converge (info %d)",
+                       static_cast<int> (exception.info ()));
+      if (exception.kind ()
+          == octave_mplapack::MpfrSvdError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:SvdError",
+                       "MPLAPACK Rgesvd rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:SvdError", "%s", exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:SvdError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
 complex_pivoted_qr_operation (const octave_value& value, bool economy,
                               bool vector_output)
 {
@@ -5172,6 +5313,21 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 2, command);
       return ovl (mp_inverse_operation (args(1)));
+    }
+
+  if (command == "svd")
+    {
+      require_argument_count (args, 4, command);
+      const std::string option = require_string (args(2), "svd option");
+      const std::string outputs = require_string (args(3), "svd output mode");
+      if (option != "full" && option != "econ")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "svd option must be \"full\" or \"econ\"");
+      if (outputs != "values" && outputs != "factors")
+        error_with_id ("mplapack:mp:InvalidArguments",
+                       "svd output mode is invalid");
+      return mp_svd_operation (args(1), option == "econ",
+                               outputs == "factors");
     }
 
   if (command == "chol")

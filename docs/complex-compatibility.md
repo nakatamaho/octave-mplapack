@@ -15,7 +15,7 @@ The following complex operations are intentionally rejected by the package's
 compatibility firewall. They must fail cleanly without conversion to a
 binary64 result, crash, or recursive dispatch:
 
-- `eig`, `svd`, `rank`, and `cond`;
+- `eig`, `rank`, and `cond`;
 - `sin`, `exp`, `sqrt`, and other unimplemented transcendentals;
 - power (`^` and `.^`), ordered comparisons, equality/logical operations,
   sparse conversion, and right division;
@@ -38,6 +38,11 @@ matrices. They use `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri`, respectively, with
 stored-precision operation scopes, checked workspace queries, exact zero for
 singular determinants, and operation-owned destructive copies. The optional
 determinant reciprocal-condition output remains deferred to N03.
+
+N02 adds dense arbitrary-precision `svd` through `Rgesvd`/`Cgesvd`, including
+one-output real singular values and full/economy three-output factors. Complex
+SVD returns real `S` and native MPC `U`/`V` factors; no binary64 fallback is
+used.
 
 ## Lifecycle
 

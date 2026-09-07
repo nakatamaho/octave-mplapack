@@ -13,7 +13,7 @@ historical v0.1 real-only release notes remain in `v0.1-api.md`.
 Supported syntax includes scalar and dense two-dimensional real or complex
 construction, indexing and in-bounds assignment, arithmetic, mixed real/
 complex `*` and `\`, `chol`, full/economy QR (including documented pivoted
-three-output forms), LU, `norm`, `det`, `inv`, transpose, reshape, and
+three-output forms), LU, `norm`, `det`, `inv`, `svd`, transpose, reshape, and
 concatenation.
 Factorization and norm methods use the selected MPLAPACK MPFR/MPC backend and
 copy destructive inputs.
@@ -21,11 +21,11 @@ copy destructive inputs.
 Intentional differences are no sparse or N-D values, no matrix `char`,
 limited vector-linear indexing, no growth or deletion assignment, no
 comparisons/logical operators or reductions, and no `rank`, `cond`, `eig`,
-`svd`, power, unimplemented transcendental, or update
+power, unimplemented transcendental, or update
 APIs. Three-output sparse permutation forms and `qr(A,B)` are not provided.
 
 Unsupported matrix functions are expected to fail cleanly. M22's compatibility
-firewall checks representative `eig`, `svd`, `rank`,
+firewall checks representative `eig`, `rank`,
 `sin`, `exp`, `sqrt`, power, and comparison calls for the absence of implicit
 binary64 fallback, crashes, and recursion.
 

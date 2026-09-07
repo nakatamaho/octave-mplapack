@@ -14,7 +14,6 @@
 %! mpbits (256);
 %! A = mp ([1 + 1i, 2; 3, 4 - 1i]);
 %! assert_rejected (@() eig (A), "complex eig fallback");
-%! assert_rejected (@() svd (A), "complex svd fallback");
 %! assert_rejected (@() rank (A), "complex rank fallback");
 %! assert_rejected (@() cond (A), "complex cond fallback");
 %! assert_rejected (@() sin (A), "complex sin fallback");
@@ -33,3 +32,6 @@
 %! X = inv (A);
 %! assert (isfinite (double (d)));
 %! assert (double (norm (A * X - mp (complex (eye (2), zeros (2))))) < 1e-12);
+%! [U, S, V] = svd (A);
+%! assert (__mplapack_core__ ("value_is_real", S));
+%! assert (double (norm (A - U * S * ctranspose (V), "fro")) < 1e-12);
