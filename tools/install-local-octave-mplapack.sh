@@ -62,7 +62,7 @@ case "$OCTAVE_CHANNEL" in
     release)
         OCTAVE_VERSION=0.2.1
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.2.1.tar.gz}"
-        OCTAVE_SHA256="${OCTAVE_SHA256:-d4a0d12a3b0e46c9784543b9f0b18ac941fa4220574431a11a7e146193c85114}"
+        OCTAVE_SHA256="${OCTAVE_SHA256:-28769e877e0588a59d9c0d6736fb875624df8b836f570cc9e87eda7d74936d0f}"
         ;;
     *)
         die "OCTAVE_CHANNEL must be dev or release"
