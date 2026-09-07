@@ -9,15 +9,15 @@ The source package and a platform binary package are separate release
 classes:
 
 ```text
-source: mplapack-interop-0.2.1.tar.gz
-binary: mplapack-interop-0.2.1-octave<api>-<os>-<arch>.tar.gz
+source: mplapack-interop-0.3.0.tar.gz
+binary: mplapack-interop-0.3.0-octave<api>-<os>-<arch>.tar.gz
 ```
 
 The internal DESCRIPTION of both forms remains:
 
 ```text
 Name: mplapack-interop
-Version: 0.2.1
+Version: 0.3.0
 ```
 
 Normal users install a binary with `pkg install` and load it with
@@ -51,7 +51,7 @@ and manifest.
 The planned installed layout is:
 
 ```text
-mplapack-interop-0.2.1/
+mplapack-interop-0.3.0/
 ├── DESCRIPTION
 ├── COPYING
 ├── LICENSE
@@ -68,8 +68,8 @@ no binary package copies private libraries into `/usr/lib`, `/usr/local/lib`,
 or another global directory. `pkg uninstall` therefore removes the package
 and its private runtime together.
 
-The current Octave 11.1 `pkg build` audit produced
-`mplapack-interop-0.2.1-dev-x86_64-pc-linux-gnu-api-v61.tar.gz`, put the `.oct`
+The current Octave 11.1 `pkg build` audit produced a development binary
+archive, put the `.oct`
 under `src/`, and preserved DESCRIPTION identity. It also showed that raw
 `pkg build` archives whatever the build leaves in the source tree; the
 release build must therefore run from a clean extraction and exclude QA
@@ -151,11 +151,11 @@ It must identify the exact source URL and checksum from
 
 | Target | Artifact pattern | Loader check |
 |---|---|---|
-| B01 Linux x86_64 | `mplapack-interop-0.2.1-octave11-linux-x86_64.tar.gz` | `$ORIGIN`/`DT_RUNPATH`, `readelf`, `ldd -r` |
-| B02 Linux arm64 | `mplapack-interop-0.2.1-octave11-linux-aarch64.tar.gz` | `$ORIGIN`/`DT_RUNPATH`, target `readelf`, `ldd -r` |
-| B03 macOS arm64 | `mplapack-interop-0.2.1-octave11-macos-arm64.tar.gz` | `@loader_path`/`@rpath`, `otool -L` |
-| B04 macOS x86_64 | `mplapack-interop-0.2.1-octave11-macos-x86_64.tar.gz` | `@loader_path`/`@rpath`, `otool -L` |
-| B05 Windows x86_64 | `mplapack-interop-0.2.1-octave11-windows-x86_64.tar.gz` | package-local DLL search, `objdump -p` |
+| B01 Linux x86_64 | `mplapack-interop-0.3.0-octave11-linux-x86_64.tar.gz` | `$ORIGIN`/`DT_RUNPATH`, `readelf`, `ldd -r` |
+| B02 Linux arm64 | `mplapack-interop-0.3.0-octave11-linux-aarch64.tar.gz` | `$ORIGIN`/`DT_RUNPATH`, target `readelf`, `ldd -r` |
+| B03 macOS arm64 | `mplapack-interop-0.3.0-octave11-macos-arm64.tar.gz` | `@loader_path`/`@rpath`, `otool -L` |
+| B04 macOS x86_64 | `mplapack-interop-0.3.0-octave11-macos-x86_64.tar.gz` | `@loader_path`/`@rpath`, `otool -L` |
+| B05 Windows x86_64 | `mplapack-interop-0.3.0-octave11-windows-x86_64.tar.gz` | package-local DLL search, `objdump -p` |
 
 The `octave11` label is shorthand for the audited Octave 11/API-v61 family;
 the manifest remains authoritative and contains the full API key.

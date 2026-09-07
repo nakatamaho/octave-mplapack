@@ -1,15 +1,15 @@
 # octave-mplapack
 
-**Status: 0.3.0-dev development line; 0.2.1 is frozen.** C00 through C12 pass,
-including mandatory complex `Cgetrf` LU, and the public complex API is closed.
-The 0.2.1 package identity is `mplapack-interop`; the public GNU Octave
+**Status: 0.3.0 release candidate; 0.2.1 is historical.** C00 through C12
+pass, including mandatory complex `Cgetrf` LU, and the public complex API is
+closed. The 0.3.0 package identity is `mplapack-interop`; the public GNU Octave
 class/API remains `mp`, `mpbits`, and `mpdigits`.
 The real-only v0.1.0 release candidate remains historical. The historical D00
 stack is recorded in [`docs/dependency-release-stack.md`](docs/dependency-release-stack.md);
 the forward `mplapack-interop` handoff is in
 [`docs/dependency-release-stack-r1.md`](docs/dependency-release-stack-r1.md).
-N00–N07 and the 0.3.0 source freeze are tracked separately from the frozen
-0.2.1 package.
+N00–N07 and the 0.3.0 source freeze are tracked in the D02 release records;
+the 0.2.1 package remains historical provenance.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -62,7 +62,7 @@ Install a locally built release-candidate archive with Octave's package manager
 (the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-interop-0.2.1.tar.gz
+octave:1> pkg install mplapack-interop-0.3.0.tar.gz
 octave:2> pkg load mplapack-interop
 ```
 

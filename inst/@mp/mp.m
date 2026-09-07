@@ -28,7 +28,7 @@ classdef mp
   ## real/complex `svd` through GESVD. C01-C12 add
   ## complex MPC values, mixed real/complex operations, the corresponding C*
   ## LAPACK paths, and N06 generalized eig through the definite/QZ drivers.
-  ## The development release is `0.3.0-dev`; N00 adds arbitrary-precision
+  ## The release is `0.3.0`; N00 adds arbitrary-precision
   ## `norm`, N01 adds `det`/`inv`, and N02 adds `svd`; unsupported functions are
   ## documented in `docs/complex-compatibility.md`.
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.

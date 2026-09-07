@@ -1,9 +1,9 @@
 # Complex `mp` API
 
-This is the C00–C12 implementation inventory carried by the 0.2.1 package;
-the N00-N06 additions are listed for the 0.3.0-dev development line.
+This is the C00–C12 implementation inventory carried by the 0.3.0 package;
+the N00-N07 additions complete the current release surface.
 Release identity and dependency provenance are maintained in
-`docs/dependency-release-stack.md`.
+`docs/dependency-release-stack-r1.md` and the D02 freeze report.
 
 ## Values and construction
 

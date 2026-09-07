@@ -663,10 +663,10 @@ if [ "$package_name" != "mplapack-interop" ]; then
   exit 1
 fi
 case $package_version in
-  0.2.1|0.2.1-dev|0.3.0-dev)
+  0.2.1|0.2.1-dev|0.3.0-dev|0.3.0)
     ;;
   *)
-    echo "FAIL: D01R1/N00 requires DESCRIPTION version 0.2.1, 0.2.1-dev, or 0.3.0-dev" >&2
+    echo "FAIL: D01R1/N00/D02 requires DESCRIPTION version 0.2.1, 0.2.1-dev, 0.3.0-dev, or 0.3.0" >&2
     exit 1
     ;;
 esac

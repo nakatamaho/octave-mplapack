@@ -1,11 +1,10 @@
 # News
 
-## 0.3.0-dev
+## 0.3.0
 
-The development line begins the numerical API completion after the frozen
-0.2.1 package identity. N00 adds native arbitrary-precision `norm` support;
-all operation paths preserve stored MPFR/MPC precision and avoid binary64
-fallbacks.
+This release completes the numerical API after the frozen 0.2.1 package
+identity. N00 adds native arbitrary-precision `norm` support; all operation
+paths preserve stored MPFR/MPC precision and avoid binary64 fallbacks.
 
 N05 adds dense general standard `eig` through MPLAPACK `Rgeevx`/`Cgeevx`,
 including balance/nobalance controls, right and left eigenvectors, permanent
@@ -16,6 +15,11 @@ N06 adds dense generalized `eig(A,B)` through the definite
 `chol`/`qz` algorithm selection, matrix/vector eigenvalue layouts, left
 eigenvectors, singular-B infinite eigenvalues, mixed real/complex promotion,
 and 1024/2048-bit precision canaries without binary64 fallback.
+
+N07 closes the documented dense real/complex API surface, adds the permanent
+high-precision Grcar example, and records the compatibility firewall. The
+0.3.0 source archive and tag are created only after the complete freeze
+regression and reproducibility gates pass.
 
 ## 0.2.1
 
