@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: 0.3.1 development; 0.3.0 is frozen and 0.2.1 is historical.**
+**Status: 0.3.1 source frozen; 0.3.0 is historical and 0.2.1 is historical.**
 C00 through C12 pass, including mandatory complex `Cgetrf` LU, and the public
 complex API is closed. N08 adds dense right division. The package identity is
 `mplapack-interop`; the public GNU Octave class/API remains `mp`, `mpbits`, and
