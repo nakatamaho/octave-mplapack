@@ -4,6 +4,24 @@ set -euo pipefail
 # Local installation helper for the D01R1 candidate stack.
 # Hard-coded for the user's Linux/Docker layout.
 #
+# This script verifies the frozen candidate archives, builds the local
+# gmpfrxx_mkII/MPLAPACK stack, and installs the mplapack-interop Octave
+# package into an isolated prefix.  With no arguments, the generated wrapper
+# starts the configured Octave environment and loads the package:
+#
+#   /home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
+#
+# In an Octave session started through that wrapper, the package can also be
+# loaded explicitly with:
+#
+#   pkg load mplapack-interop
+#
+# The historical `pkg load mplapack` name is not provided by the renamed
+# D01R1 package.
+#
+# The development archive is selected by default; use OCTAVE_CHANNEL=release
+# for a final 0.2.1 archive after its SHA256 has been recorded.
+#
 # Input archives:
 #   /home/docker/src/gmpfrxx_mkII.1.4.1.tar.xz
 #   /home/docker/src/mplapack-3.0.1.tar.xz
