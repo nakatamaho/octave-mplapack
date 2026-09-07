@@ -1,10 +1,10 @@
 # N00-N07-D02 status
 
-Status: **N00 PASS — arbitrary-precision real and complex norm complete**
+Status: **N01 PASS — arbitrary-precision determinant and inverse complete**
 
 The D01R1 frozen package identity remains unchanged. The development line is
-now `mplapack-interop` 0.3.0-dev, and N00 is the first numerical/API
-milestone on that line. N01-N07 and D02 remain pending.
+now `mplapack-interop` 0.3.0-dev. N00 and N01 are complete; N02-N07 and D02
+remain pending.
 
 ## N00 identity
 
@@ -12,6 +12,8 @@ milestone on that line. N01-N07 and D02 remain pending.
 Repository: nakatamaho/octave-mplapack
 Branch: topic/d01r1-mplapack-interop
 Current source before N00 commit: 9384236f6c7f360e86e8a3616e1c0bdb36873b57
+N00 commit: dbe320fa4ed7f1d5541991796ab2df20e2687ec2
+N01 implementation commit: see the commit adding this status update
 Development version: 0.3.0-dev
 Frozen predecessor: mplapack-interop 0.2.1 / v0.2.1
 Historical predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
@@ -95,14 +97,70 @@ created by N00.
 
 ## Scope and deferrals
 
-N00 adds only `norm`. `det`, `inv`, `svd`, `rank`, `cond`, `rcond`, symmetric
-and general eigenvalue routines, generalized eigenvalue routines, and final
-closure remain assigned to N01-N07. No Debian, PPA, Launchpad, registry, or
-binary-distribution work was started.
+N00 adds only `norm`; N01 adds only `det` and `inv`. `svd`, `rank`, `cond`,
+`rcond`, symmetric and general eigenvalue routines, generalized eigenvalue
+routines, and final closure remain assigned to N02-N07. No Debian, PPA,
+Launchpad, registry, or binary-distribution work was started.
 
 ## Result
 
 ```text
 N00 PASS — NORM API AND BACKEND COMPLETE
-NEXT: N01 — det/inv
+N01 PASS — DETERMINANT AND INVERSE COMPLETE
+NEXT: N02 — svd
 ```
+
+## N01 — `det` / `inv`
+
+### Implementation
+
+```text
+det real: Rgetrf, pivot parity, U diagonal product
+det complex: Cgetrf, pivot parity, U diagonal product
+inv real: Rgetrf, checked Rgetri workspace query, Rgetri
+inv complex: Cgetrf, checked Cgetri workspace query, Cgetri
+singular determinant: exact MPFR/MPC zero
+singular inverse: mplapack:mp:SingularMatrix
+det second reciprocal-condition output: explicitly deferred to N03
+```
+
+All destructive calls use operation-owned copies. Real inputs remain on real
+MPLAPACK kernels, complex inputs remain on MPC kernels, and no builtin
+binary64 fallback was introduced.
+
+### N01 gates
+
+```text
+G-N01-DET:          PASS
+G-N01-DET-PIVOT:    PASS
+G-N01-INV:          PASS
+G-N01-WORKSPACE:    PASS
+G-N01-SINGULAR:     PASS
+G-N01-PRECISION:    PASS
+G-N01-IMMUTABILITY: PASS
+G-N01-REAL-COMPLEX: PASS
+G-N01-REGRESSION:   PASS
+```
+
+### N01 regression wall
+
+```text
+native N01 sanitizer test: PASS
+public N01 det/inv tests: PASS
+M00-M23 real regression: PASS
+C00-C12 complex regression: PASS
+C11L complex Cgetrf: PASS
+1024-bit / 2^-700 canary: PASS
+2048-bit / 2^-1500 canary: PASS
+ambient precision and scope restoration: PASS
+input immutability and singular diagnostics: PASS
+ASan: PASS
+UBSan: PASS
+LSan: PASS
+clean 0.3.0-dev archive rebuild/retest: PASS
+package install/load/smoke/help/examples/unload/uninstall/reinstall: PASS
+full tools/local-ci.sh: PASS (exit code 0)
+```
+
+N01 is committed on `topic/d01r1-mplapack-interop` and pushed. The D01R1
+0.2.1 tag and archive remain unchanged. The next milestone is N02.

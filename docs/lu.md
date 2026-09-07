@@ -49,6 +49,7 @@ factorized: a positive `Rgetrf` `INFO` is retained internally and does not
 turn `lu` into a solve-style error.  A zero diagonal in `U` means the factors
 do not define an inverse, not that factor extraction failed.
 
-Only dense real values are supported.  Sparse/UMFPACK threshold and Q/R
-outputs, complex LU, `luupdate`, `det`, `inv`, rank, condition estimation,
-and triangular-solve optimizations are outside M21.
+M21's original scope was dense real values.  Sparse/UMFPACK threshold and Q/R
+outputs, `luupdate`, rank, condition estimation, and triangular-solve
+optimizations remain outside M21. N01 separately adds public dense real and
+complex `det` and `inv` through the corresponding GETRF/GETRI paths.

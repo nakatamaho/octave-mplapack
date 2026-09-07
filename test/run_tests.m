@@ -74,3 +74,5 @@ assert (test (fullfile (test_dir, "complex_release_firewall.tst"), "quiet", stdo
 fprintf ("PASS: C12 complex compatibility firewall tests\n");
 assert (test (fullfile (test_dir, "norm.tst"), "quiet", stdout));
 fprintf ("PASS: N00 norm tests\n");
+assert (test (fullfile (test_dir, "det_inv.tst"), "quiet", stdout));
+fprintf ("PASS: N01 determinant and inverse tests\n");

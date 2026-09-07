@@ -15,7 +15,7 @@ The following complex operations are intentionally rejected by the package's
 compatibility firewall. They must fail cleanly without conversion to a
 binary64 result, crash, or recursive dispatch:
 
-- `eig`, `svd`, `det`, `inv`, `rank`, and `cond`;
+- `eig`, `svd`, `rank`, and `cond`;
 - `sin`, `exp`, `sqrt`, and other unimplemented transcendentals;
 - power (`^` and `.^`), ordered comparisons, equality/logical operations,
   sparse conversion, and right division;
@@ -32,6 +32,12 @@ N00 adds arbitrary-precision `norm` for real and complex vectors and dense
 matrices. Supported forms and deferred matrix p/options are documented in
 [`norm.md`](norm.md); the implementation uses MPFR/MPC-native absolute values,
 `Rlange`/`Clange`, `Rnrm2`/`RCnrm2`, and `Rgesvd`/`Cgesvd`.
+
+N01 adds arbitrary-precision `det` and `inv` for dense real and complex
+matrices. They use `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri`, respectively, with
+stored-precision operation scopes, checked workspace queries, exact zero for
+singular determinants, and operation-owned destructive copies. The optional
+determinant reciprocal-condition output remains deferred to N03.
 
 ## Lifecycle
 

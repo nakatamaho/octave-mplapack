@@ -36,9 +36,10 @@ unwind_protect_cleanup
 end_unwind_protect
 ```
 
-`H \ I` is intentional. The package does not provide `inv(mp)`; solving
-against the identity uses the public MPLAPACK-backed left-division path and
-supports multiple right-hand sides. `hilb(n)` is not used because its builtin
+`H \ I` remains a useful multiple-right-hand-side solve. N01 also provides
+`inv(H)` when an explicit inverse is desired, using the same stored precision
+and operation-owned LAPACK path. The solve uses the public MPLAPACK-backed
+left-division path and supports multiple right-hand sides. `hilb(n)` is not used because its builtin
 result is a binary64 matrix. `double` appears only in the final diagnostic,
 after the high-precision calculation is complete. The wrapper restores the
 caller's ambient MPFR precision even if the calculation raises an error.

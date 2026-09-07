@@ -15,8 +15,6 @@
 %! A = mp ([1 + 1i, 2; 3, 4 - 1i]);
 %! assert_rejected (@() eig (A), "complex eig fallback");
 %! assert_rejected (@() svd (A), "complex svd fallback");
-%! assert_rejected (@() det (A), "complex det fallback");
-%! assert_rejected (@() inv (A), "complex inv fallback");
 %! assert_rejected (@() rank (A), "complex rank fallback");
 %! assert_rejected (@() cond (A), "complex cond fallback");
 %! assert_rejected (@() sin (A), "complex sin fallback");
@@ -31,3 +29,7 @@
 %! assert_rejected (@() (A & A), "complex logical-and fallback");
 %! assert_rejected (@() sparse (A), "complex sparse fallback");
 %! assert_rejected (@() (A / A), "complex right-division fallback");
+%! d = det (A);
+%! X = inv (A);
+%! assert (isfinite (double (d)));
+%! assert (double (norm (A * X - mp (complex (eye (2), zeros (2))))) < 1e-12);

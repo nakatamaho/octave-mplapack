@@ -1,7 +1,7 @@
 # Complex `mp` API
 
-This is the C00–C12 implementation inventory carried by package version
-`0.2.1`.
+This is the C00–C12 implementation inventory carried by the 0.2.1 package;
+the N00/N01 additions are listed for the 0.3.0-dev development line.
 Release identity and dependency provenance are maintained in
 `docs/dependency-release-stack.md`.
 
@@ -45,6 +45,8 @@ an existing value or override `p_op`.
 | pivoted QR | three-output matrix/vector/deprecated economy forms | `Cgeqp3`/`Cungqr` |
 | LU | packed, two-output, matrix/vector permutation forms | MPLAPACK `Cgetrf` |
 | norms | vector 0/1/2/Inf/-Inf/Fro and positive finite p; matrix 1/2/Inf/Fro | MPFR/MPC native norms and `Cgesvd` |
+| determinant | dense real/complex one-output `det(A)` | `Rgetrf`/`Cgetrf` and MPFR/MPC diagonal product |
+| inverse | dense real/complex `inv(A)` | `Rgetrf`/`Rgetri` or `Cgetrf`/`Cgetri` |
 | mixed structural | horizontal/vertical concat; real/complex assignment | MPC destination at max stored precision |
 
 For LU, one output is the packed factor. Two outputs return `A=L*U`; three

@@ -25,3 +25,7 @@ Factorizations
  chol
  qr
  lu
+  det
+  inv
+Reductions
+ norm

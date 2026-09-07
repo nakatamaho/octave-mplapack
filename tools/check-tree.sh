@@ -98,6 +98,8 @@ src/mp_matrix_assignment.h
 src/octave_bridge.cc
 src/mp_norm.h
 src/mp_norm.cc
+src/mp_det_inv.h
+src/mp_det_inv.cc
 test/run_tests.m
 test/build_probe.tst
 test/native_value.tst
@@ -137,6 +139,8 @@ test/pivoted_qr.tst
 test/release_closure.tst
 test/norm.tst
 test/mp_norm_test.cc
+test/det_inv.tst
+test/mp_det_inv_test.cc
 test/matrix_inspection.tst
 test/mp_matrix_inspection_test.cc
 test/elementwise.tst
@@ -198,6 +202,8 @@ docs/milestones/M22-real-release-closure.md
 docs/milestones/M23-v0.1-freeze.md
 docs/norm.md
 docs/milestones/N00-norm.md
+docs/determinant-inverse.md
+docs/milestones/N01-det-inv.md
 docs/v0.1-release-manifest.md
 docs/matrix-assignment.md
 docs/milestones/M14-indexed-assignment.md

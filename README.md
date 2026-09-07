@@ -33,6 +33,8 @@ compatibility firewall. See [`docs/complex-api.md`](docs/complex-api.md) and
 M21 adds dense real LU through MPLAPACK MPFR `Rgetrf`, including packed,
 two-output, row-permutation-matrix, and 1-based permutation-vector forms for
 square, rectangular, and singular matrices. See [`docs/lu.md`](docs/lu.md).
+N00 adds arbitrary-precision `norm`; N01 adds dense real/complex `det` and
+`inv` through stored-precision `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri` paths.
 
 M22 closed the real-only API and M23 froze the v0.1.0 release candidate for
 PPA packaging. See the [v0.1 API inventory](docs/v0.1-api.md),
@@ -63,8 +65,8 @@ not replace clean package/install QA.
 
 The current surface includes dense real and complex `mp`, precision-controlled
 construction, arithmetic, mixed real/complex `*` and `\`, indexing and
-in-bounds assignment, `chol`, full/economy and pivoted `qr`, `lu`, and dense
-concatenation. Sparse, N-D, reductions, `det`, `inv`, `rank`, and `cond`,
+in-bounds assignment, `chol`, full/economy and pivoted `qr`, `lu`, `norm`,
+`det`, `inv`, and dense concatenation. Sparse, N-D, reductions, `rank`, and `cond`,
 `eig`, `svd`, powers, and unimplemented transcendentals remain explicitly
 unsupported; see the [complex API](docs/complex-api.md) and [compatibility
 limits](docs/complex-compatibility.md).
@@ -74,8 +76,8 @@ limits](docs/complex-compatibility.md).
 The package includes a 1024-bit Hilbert inverse example in
 [`examples/05_hilbert_inverse.m`](examples/05_hilbert_inverse.m). It constructs
 each `1/(i+j-1)` from decimal `mp` values and computes all inverse columns as
-`H \ I`; this avoids the binary64 matrix produced by builtin `hilb(n)` and does
-not assume an unimplemented `inv(mp)` method.
+`H \ I`; this avoids the binary64 matrix produced by builtin `hilb(n)`. N01
+also provides the explicit `inv(H)` API.
 
 The external MPLAPACK C++ consumer boundary is validated separately by the
 MPLAPACK release QA. Its source is intentionally not copied into this Octave
@@ -180,7 +182,8 @@ one-output `qr(A)` returns `R` and two-output forms return `Q,R`. M19 adds
 column-pivoted three-output `qr` through `Rgeqp3`, reusing `Rorgqr` for `Q`.
 M21 adds dense real `lu` through `Rgetrf`; packed one-output factors,
 permutation-aware two/three-output factors, and vector row pivots preserve the
-stored operand precision.
+stored operand precision. N00 adds `norm`; N01 adds `det` and `inv` through
+stored-precision `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri` paths.
 
 ## Current feature status
 

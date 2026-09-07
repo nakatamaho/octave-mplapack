@@ -44,6 +44,7 @@
 #include "mp_complex_qr.h"
 #include "mp_complex_lu.h"
 #include "mp_lapack.h"
+#include "mp_det_inv.h"
 #include "mp_norm.h"
 #include "mp_precision.h"
 
@@ -3316,6 +3317,196 @@ mp_norm_operation (const octave_value& value, const octave_value& p)
 }
 
 octave_value
+mp_det_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "det expects one mp value");
+
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          std::optional<octave_mplapack::MpfrComplexMatrixStorage>
+            scalar_matrix;
+          const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            {
+              const auto& scalar
+                = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ();
+              scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+              mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                       scalar.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+              input = &*scalar_matrix;
+            }
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                       .storage ();
+          else
+            throw std::invalid_argument ("det expects a valid complex mp value");
+          return make_internal_complex_scalar (
+            octave_mplapack::mplapack_mpc_matrix_det (*input));
+        }
+
+      std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                    scalar.native_value ().mpfr_data (), MPFR_RNDN);
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                   .storage ();
+      else
+        throw std::invalid_argument ("det expects a valid real mp value");
+      return make_internal_scalar (
+        octave_mplapack::mplapack_mpfr_matrix_det (*input));
+    }
+  catch (const octave_mplapack::MpfrDetInvError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrDetInvError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:DetError",
+                       "MPLAPACK Rgetrf rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:DetError", "%s", exception.what ());
+    }
+  catch (const octave_mplapack::MpcDetInvError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcDetInvError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:DetError",
+                       "MPLAPACK Cgetrf rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:DetError", "%s", exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      if (std::string (exception.what ()).find ("square")
+          != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:DetError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+mp_inverse_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "inv expects one mp value");
+
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          std::optional<octave_mplapack::MpfrComplexMatrixStorage>
+            scalar_matrix;
+          const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            {
+              const auto& scalar
+                = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ();
+              scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+              mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                       scalar.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+              input = &*scalar_matrix;
+            }
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                       .storage ();
+          else
+            throw std::invalid_argument ("inv expects a valid complex mp value");
+          return make_complex_inspection_result (
+            octave_mplapack::mplapack_mpc_matrix_inverse (*input));
+        }
+
+      std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                    scalar.native_value ().mpfr_data (), MPFR_RNDN);
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                   .storage ();
+      else
+        throw std::invalid_argument ("inv expects a valid real mp value");
+      return make_inspection_result (
+        octave_mplapack::mplapack_mpfr_matrix_inverse (*input));
+    }
+  catch (const octave_mplapack::MpfrDetInvError& exception)
+    {
+      if (exception.kind () == octave_mplapack::MpfrDetInvError::Kind::singular)
+        error_with_id ("mplapack:mp:SingularMatrix",
+                       "inv: input matrix is singular");
+      if (exception.kind ()
+          == octave_mplapack::MpfrDetInvError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:InvError",
+                       "MPLAPACK Rgetri rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:InvError", "%s", exception.what ());
+    }
+  catch (const octave_mplapack::MpcDetInvError& exception)
+    {
+      if (exception.kind () == octave_mplapack::MpcDetInvError::Kind::singular)
+        error_with_id ("mplapack:mp:SingularMatrix",
+                       "inv: input matrix is singular");
+      if (exception.kind ()
+          == octave_mplapack::MpcDetInvError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:InvError",
+                       "MPLAPACK Cgetri rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:InvError", "%s", exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      if (std::string (exception.what ()).find ("square")
+          != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:InvError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
 make_mtimes_result (octave_mplapack::MpfrMatrixStorage storage)
 {
   if (storage.rows () == 1 && storage.columns () == 1)
@@ -4969,6 +5160,18 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 3, command);
       return ovl (mp_norm_operation (args(1), args(2)));
+    }
+
+  if (command == "det")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (mp_det_operation (args(1)));
+    }
+
+  if (command == "inv")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (mp_inverse_operation (args(1)));
     }
 
   if (command == "chol")

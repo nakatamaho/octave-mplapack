@@ -88,6 +88,8 @@ find $source_roots -type f \
   ! -path '*/.build-m19/*' \
   ! -path '*/.build-m21/*' \
   ! -path '*/.build-m22/*' \
+  ! -path '*/.build-n00/*' \
+  ! -path '*/.build-n01/*' \
   ! -path '*/.build-c00/*' \
   ! -path '*/.build-c03/*' \
   ! -path '*/.build-c04/*' \
