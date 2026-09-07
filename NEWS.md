@@ -9,10 +9,12 @@ numeric API remains `mp`, `mpbits`, and `mpdigits`.  Existing `mplapack` 0.2.0
 source/tag/archive provenance is retained as a historical release and is not
 an alias for the new package.
 
-The release documentation adds a standalone MPLAPACK MPFR interop example and
-an Octave high-precision Hilbert inverse example.  The inverse is computed as
-`H \\ I`, because `inv(mp)` is intentionally outside the public API and the
-example must not pass through binary64 `hilb(n)` construction.
+The release documentation adds an Octave high-precision Hilbert inverse
+example.  The inverse is computed as `H \\ I`, because `inv(mp)` is
+intentionally outside the public API and the example must not pass through
+binary64 `hilb(n)` construction.  The separate MPLAPACK public-header
+consumer is covered by MPLAPACK release QA and is not copied into this
+package's examples.
 
 ## 0.2.0
 
