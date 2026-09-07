@@ -14,8 +14,6 @@
 %! mpbits (256);
 %! A = mp ([1 + 1i, 2; 3, 4 - 1i]);
 %! assert_rejected (@() eig (A), "complex eig fallback");
-%! assert_rejected (@() rank (A), "complex rank fallback");
-%! assert_rejected (@() cond (A), "complex cond fallback");
 %! assert_rejected (@() sin (A), "complex sin fallback");
 %! assert_rejected (@() exp (A), "complex exp fallback");
 %! assert_rejected (@() sqrt (A), "complex sqrt fallback");
@@ -35,3 +33,6 @@
 %! [U, S, V] = svd (A);
 %! assert (__mplapack_core__ ("value_is_real", S));
 %! assert (double (norm (A - U * S * ctranspose (V), "fro")) < 1e-12);
+%! assert (rank (A), 2);
+%! assert (double (cond (A)) > 1);
+%! assert (double (rcond (A)) > 0);

@@ -1,10 +1,10 @@
 # N00-N07-D02 status
 
-Status: **N02 PASS — arbitrary-precision SVD complete**
+Status: **N03 PASS — arbitrary-precision rank/condition APIs complete**
 
 The D01R1 frozen package identity remains unchanged. The development line is
-now `mplapack-interop` 0.3.0-dev. N00, N01, and N02 are complete; N03-N07
-and D02 remain pending.
+now `mplapack-interop` 0.3.0-dev. N00, N01, N02, and N03 are complete;
+N04-N07 and D02 remain pending.
 
 ## N00 identity
 
@@ -15,6 +15,7 @@ Current source before N00 commit: 9384236f6c7f360e86e8a3616e1c0bdb36873b57
 N00 commit: dbe320fa4ed7f1d5541991796ab2df20e2687ec2
 N01 implementation commit: 91a034d2f1acdf739b7ec3b30cc5e333ee6de4f1
 N02 implementation commit: 9f05418f3fc700914727e00b4321ee3ecd061dfe
+N03 implementation commit: pending status/report commit
 Development version: 0.3.0-dev
 Frozen predecessor: mplapack-interop 0.2.1 / v0.2.1
 Historical predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
@@ -99,9 +100,8 @@ created by N00.
 ## Scope and deferrals
 
 N00 adds only `norm`; N01 adds only `det` and `inv`; N02 adds only `svd`.
-`rank`, `cond`,
-`rcond`, symmetric and general eigenvalue routines, generalized eigenvalue
-routines, and final closure remain assigned to N02-N07. No Debian, PPA,
+Symmetric and general eigenvalue routines, generalized eigenvalue routines,
+and final closure remain assigned to N04-N07. No Debian, PPA,
 Launchpad, registry, or binary-distribution work was started.
 
 ## Result
@@ -110,7 +110,8 @@ Launchpad, registry, or binary-distribution work was started.
 N00 PASS — NORM API AND BACKEND COMPLETE
 N01 PASS — DETERMINANT AND INVERSE COMPLETE
 N02 PASS — SVD COMPLETE
-NEXT: N03 — rank / cond / rcond
+N03 PASS — RANK / COND / RCOND COMPLETE
+NEXT: N04 — symmetric/Hermitian eig
 ```
 
 ## N01 — `det` / `inv`
@@ -230,4 +231,77 @@ full tools/local-ci.sh: PASS (exit code 0)
 N02 implementation is committed as
 `9f05418f3fc700914727e00b4321ee3ecd061dfe` on
 `topic/d01r1-mplapack-interop` and pushed. The D01R1 0.2.1 tag and archive
-remain unchanged. The next milestone is N03.
+remain unchanged. N03 is now complete; the next milestone is N04.
+
+## N03 — `rank` / `cond` / `rcond`
+
+### Implementation
+
+```text
+rank(A): MPFR/MPC singular values with stored-precision default threshold
+rank(A,tol): explicit real MPFR tolerance, promoted to p_op
+cond(A), cond(A,2): Rgesvd/Cgesvd singular-value ratio
+cond(A,1): Rgetrf/Rgecon or Cgetrf/Cgecon 1-norm estimator
+cond(A,Inf): Rgetrf/Rgecon or Cgetrf/Cgecon infinity-norm estimator
+cond(A,"fro"): Frobenius singular-value identity for square matrices
+rcond(A): Rgetrf/Rgecon or Cgetrf/Cgecon 1-norm reciprocal estimator
+det(A) second output: same 1-norm reciprocal estimator
+```
+
+Rank uses `max(size(A))*sigma_max*Rlamch_mpfr("E")`, with all terms formed
+at the one operation precision. Condition and reciprocal-condition paths use
+operation-owned destructive copies. Real input remains on real MPLAPACK
+kernels, complex input remains on complex MPLAPACK kernels, condition outputs
+are real MPFR values, and no binary64 fallback or explicit inverse is used.
+
+The initial N03 native test exposed that the frozen MPLAPACK `Rgecon`
+implementation consumes four contiguous real work blocks, not three. The
+operation was corrected to allocate 4n real work values; the corresponding
+complex `Cgecon` path uses its audited 2n complex plus 2n real work arrays.
+This was a release-contract integration defect in the new estimator path and
+was repaired before the full gate.
+
+### N03 gates
+
+```text
+G-N03-RANK:           PASS
+G-N03-RANK-PRECISION: PASS
+G-N03-COND2:          PASS
+G-N03-COND1:          PASS
+G-N03-CONDINF:        PASS
+G-N03-CONDFRO:        PASS
+G-N03-RCOND:          PASS
+G-N03-SINGULAR:       PASS
+G-N03-REAL:           PASS
+G-N03-COMPLEX:        PASS
+G-N03-PRECISION:      PASS
+G-N03-REGRESSION:     PASS
+```
+
+### N03 regression wall
+
+```text
+tools/check-tree.sh: PASS
+tools/check-format.sh: PASS
+native rank/condition sanitizer test: PASS
+public N03 rank/condition tests: PASS
+det two-output reciprocal-condition test: PASS
+M00-M23 real regression: PASS
+C00-C12 complex regression: PASS
+C11L complex Cgetrf: PASS
+1024-bit / 2^-700 canary: PASS
+2048-bit / 2^-1500 canary: PASS
+ambient precision and scope restoration: PASS
+input immutability and singular/empty behavior: PASS
+ASan: PASS
+UBSan: PASS
+LSan: PASS
+clean 0.3.0-dev archive extraction build: PASS
+isolated package lifecycle: PASS
+deterministic source archive contents: PASS
+full tools/local-ci.sh: PASS (exit code 0)
+```
+
+N03 is the current completed milestone. Its implementation and report are
+committed and pushed before continuing automatically to N04. The D01R1
+0.2.1 tag and archive remain unchanged.

@@ -90,7 +90,9 @@
 %! nonsquare = mp ([1, 2, 3]);
 %! fail ("det (nonsquare)", "square");
 %! fail ("inv (nonsquare)", "square");
-%! fail ("[d, c] = det (A)", "too many outputs");
+%! [d, c] = det (A);
+%! assert (double (d), -2, 1e-12);
+%! assert (double (c) > 0 && double (c) < 1);
 %! fail ("[x, y] = inv (A)", "too many outputs");
 
 %!test

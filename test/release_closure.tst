@@ -60,7 +60,6 @@
 %!test
 %! A = mp ([1, 2; 3, 4]);
 %! assert_fails (@() eig (A), "eig must reject mp matrices");
-%! assert_fails (@() rank (A), "rank must reject mp matrices");
 %! assert_fails (@() sin (A), "sin must reject mp matrices");
 %! assert_fails (@() exp (A), "exp must reject mp matrices");
 %! assert_fails (@() sqrt (A), "sqrt must reject mp matrices");
@@ -71,6 +70,9 @@
 %! assert (double (A * inv (A)), eye (2), 1e-12);
 %! [U, S, V] = svd (A);
 %! assert (double (norm (A - U * S * transpose (V), "fro")) < 1e-12);
+%! assert (rank (A), 2);
+%! assert (double (cond (A)) > 14);
+%! assert (double (rcond (A)) > 0);
 
 %!test
 %! help_text = evalc ("help @mp/qr");
@@ -79,3 +81,5 @@
 %! assert (! isempty (strfind (help_text, "lu")));
 %! help_text = evalc ("help @mp/rows");
 %! assert (! isempty (strfind (help_text, "rows")));
+%! help_text = evalc ("help @mp/rank");
+%! assert (! isempty (strfind (help_text, "rank")));

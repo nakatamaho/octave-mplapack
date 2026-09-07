@@ -61,6 +61,9 @@ inst/@mp/mtimes.m
 inst/@mp/mldivide.m
 inst/@mp/norm.m
 inst/@mp/svd.m
+inst/@mp/rank.m
+inst/@mp/cond.m
+inst/@mp/rcond.m
 inst/@mp/mrdivide.m
 inst/@mp/transpose.m
 inst/@mp/ctranspose.m
@@ -103,6 +106,8 @@ src/mp_det_inv.h
 src/mp_det_inv.cc
 src/mp_svd.h
 src/mp_svd.cc
+src/mp_rank_condition.h
+src/mp_rank_condition.cc
 test/run_tests.m
 test/build_probe.tst
 test/native_value.tst
@@ -146,6 +151,8 @@ test/det_inv.tst
 test/mp_det_inv_test.cc
 test/svd.tst
 test/mp_svd_test.cc
+test/rank_condition.tst
+test/mp_rank_condition_test.cc
 test/matrix_inspection.tst
 test/mp_matrix_inspection_test.cc
 test/elementwise.tst
@@ -211,6 +218,8 @@ docs/determinant-inverse.md
 docs/milestones/N01-det-inv.md
 docs/svd.md
 docs/milestones/N02-svd.md
+docs/rank-condition.md
+docs/milestones/N03-rank-condition.md
 docs/v0.1-release-manifest.md
 docs/matrix-assignment.md
 docs/milestones/M14-indexed-assignment.md

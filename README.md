@@ -35,7 +35,9 @@ two-output, row-permutation-matrix, and 1-based permutation-vector forms for
 square, rectangular, and singular matrices. See [`docs/lu.md`](docs/lu.md).
 N00 adds arbitrary-precision `norm`; N01 adds dense real/complex `det` and
 `inv` through stored-precision `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri` paths;
-N02 adds dense real/complex `svd` through `Rgesvd`/`Cgesvd`.
+N02 adds dense real/complex `svd` through `Rgesvd`/`Cgesvd`; N03 adds
+`rank`, `cond`, and `rcond` through MPFR/MPC singular values and
+`Rgecon`/`Cgecon`.
 
 M22 closed the real-only API and M23 froze the v0.1.0 release candidate for
 PPA packaging. See the [v0.1 API inventory](docs/v0.1-api.md),
@@ -67,8 +69,8 @@ not replace clean package/install QA.
 The current surface includes dense real and complex `mp`, precision-controlled
 construction, arithmetic, mixed real/complex `*` and `\`, indexing and
 in-bounds assignment, `chol`, full/economy and pivoted `qr`, `lu`, `norm`,
-`det`, `inv`, `svd`, and dense concatenation. Sparse, N-D, reductions, `rank`, and `cond`,
-`eig`, powers, and unimplemented transcendentals remain explicitly
+`det`, `inv`, `svd`, `rank`, `cond`, `rcond`, and dense concatenation. Sparse,
+N-D, reductions, `eig`, powers, and unimplemented transcendentals remain explicitly
 unsupported; see the [complex API](docs/complex-api.md) and [compatibility
 limits](docs/complex-compatibility.md).
 

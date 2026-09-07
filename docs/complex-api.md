@@ -1,7 +1,7 @@
 # Complex `mp` API
 
 This is the C00–C12 implementation inventory carried by the 0.2.1 package;
-the N00-N02 additions are listed for the 0.3.0-dev development line.
+the N00-N03 additions are listed for the 0.3.0-dev development line.
 Release identity and dependency provenance are maintained in
 `docs/dependency-release-stack.md`.
 
@@ -48,6 +48,9 @@ an existing value or override `p_op`.
 | determinant | dense real/complex one-output `det(A)` | `Rgetrf`/`Cgetrf` and MPFR/MPC diagonal product |
 | inverse | dense real/complex `inv(A)` | `Rgetrf`/`Rgetri` or `Cgetrf`/`Cgetri` |
 | SVD | one-output values and full/economy `[U,S,V]=svd(A)` | `Rgesvd`/`Cgesvd` |
+| rank | `rank(A)` and `rank(A,tol)` | MPFR/MPC singular values |
+| condition | `cond(A)`, `cond(A,1)`, `cond(A,2)`, `cond(A,Inf)`, `cond(A,"fro")` | `Rgecon`/`Cgecon` or singular values |
+| reciprocal condition | `rcond(A)` | `Rgecon`/`Cgecon` 1-norm estimator |
 | mixed structural | horizontal/vertical concat; real/complex assignment | MPC destination at max stored precision |
 
 For LU, one output is the packed factor. Two outputs return `A=L*U`; three

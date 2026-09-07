@@ -41,6 +41,7 @@ make -C src check-dependency
 make -C src check-norm
 make -C src check-det-inv
 make -C src check-svd
+make -C src check-rank-condition
 
 mplapack_include_dir=$(pkg-config --variable=includedir mplapack_mpfr)
 if [ ! -f "$mplapack_include_dir/mplapack_mpfr_precision.h" ]; then
@@ -79,6 +80,7 @@ make -C src check-complex-concat
 make -C src check-complex-lu
 make -C src check-det-inv
 make -C src check-svd
+make -C src check-rank-condition
 echo "PASS: D00 ASan/UBSan/LSan real and complex storage, arithmetic, BLAS, LAPACK, rank, Cholesky, QR, pivoted QR, concatenation, assignment, and LU QA"
 make -C src clean
 
@@ -296,6 +298,16 @@ fi
 
 if ! nm -D -C "$module" | grep -Eq ' U Cgesvd\('; then
   echo "FAIL: N02 native module lacks an unresolved Cgesvd reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgecon\('; then
+  echo "FAIL: N03 native module lacks an unresolved Rgecon reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cgecon\('; then
+  echo "FAIL: N03 native module lacks an unresolved Cgecon reference" >&2
   exit 1
 fi
 
@@ -699,14 +711,18 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   test/mp_det_inv_test.cc docs/determinant-inverse.md \
   docs/milestones/N01-det-inv.md inst/@mp/det.m inst/@mp/inv.m \
   src/mp_svd.h src/mp_svd.cc test/svd.tst test/mp_svd_test.cc \
-  docs/svd.md docs/milestones/N02-svd.md inst/@mp/svd.m; do
+  docs/svd.md docs/milestones/N02-svd.md inst/@mp/svd.m \
+  src/mp_rank_condition.h src/mp_rank_condition.cc \
+  test/rank_condition.tst test/mp_rank_condition_test.cc \
+  docs/rank-condition.md docs/milestones/N03-rank-condition.md \
+  inst/@mp/rank.m inst/@mp/cond.m inst/@mp/rcond.m; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22|\.build-n00|\.build-n01|\.build-n02)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+  if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22|\.build-n00|\.build-n01|\.build-n02|\.build-n03)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -758,6 +774,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "pivoted_qr.tst")));
       assert (test (fullfile (root, "test", "lu.tst")));
       assert (test (fullfile (root, "test", "release_closure.tst")));
+      assert (test (fullfile (root, "test", "rank_condition.tst")));
       examples = dir (fullfile (root, "examples", "*.m"));
       for example = 1:numel (examples)
         evalc ("run (fullfile (root, \"examples\", examples(example).name));");

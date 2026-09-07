@@ -15,7 +15,7 @@ The following complex operations are intentionally rejected by the package's
 compatibility firewall. They must fail cleanly without conversion to a
 binary64 result, crash, or recursive dispatch:
 
-- `eig`, `rank`, and `cond`;
+- `eig`;
 - `sin`, `exp`, `sqrt`, and other unimplemented transcendentals;
 - power (`^` and `.^`), ordered comparisons, equality/logical operations,
   sparse conversion, and right division;
@@ -36,13 +36,21 @@ matrices. Supported forms and deferred matrix p/options are documented in
 N01 adds arbitrary-precision `det` and `inv` for dense real and complex
 matrices. They use `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri`, respectively, with
 stored-precision operation scopes, checked workspace queries, exact zero for
-singular determinants, and operation-owned destructive copies. The optional
-determinant reciprocal-condition output remains deferred to N03.
+singular determinants, and operation-owned destructive copies. N03 completes
+the determinant reciprocal-condition output.
 
 N02 adds dense arbitrary-precision `svd` through `Rgesvd`/`Cgesvd`, including
 one-output real singular values and full/economy three-output factors. Complex
 SVD returns real `S` and native MPC `U`/`V` factors; no binary64 fallback is
 used.
+
+N03 adds dense arbitrary-precision `rank`, `cond`, and `rcond`. Rank uses
+MPFR/MPC singular values and a stored-precision default threshold. The 2-norm
+condition path uses those same singular values; 1-norm and infinity-norm
+conditions, `rcond`, and the second output of `det` use native
+`Rgecon`/`Cgecon` estimators. Frobenius condition numbers are computed from
+the singular values. All condition results are real MPFR values, including
+for complex inputs, and square-only norm variants reject nonsquare matrices.
 
 ## Lifecycle
 
