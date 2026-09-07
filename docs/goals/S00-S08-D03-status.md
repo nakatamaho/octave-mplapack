@@ -12,7 +12,8 @@ S00: PASS; committed and pushed as c17b48c0a8bf7e39c3c9a111bcc8e3ae0c60e048
 S01: PASS; committed and pushed as 29f3539 (full SHA in git history)
 S02: PASS; committed and pushed as 07c047d08d64ecd8c0d623cd2e1e621882b6c8b9
 S03: PASS; committed and pushed as a71c13f and 5714787
-S04-S08: not started
+S04: PASS; committed and pushed as 2247480a4835519f27cb53b6a39173d05f16bdc8
+S05-S08: not started
 D03: not started
 ```
 
@@ -150,6 +151,43 @@ G-S03-REGRESSION: PASS
 S03 PASS — COMPARISONS, LOGICALS, AND LOGICAL INDEXING CLOSED
 ```
 
+## S04 evidence
+
+Implementation commit: `2247480a4835519f27cb53b6a39173d05f16bdc8`.
+
+```text
+diag construction/extraction and offsets: PASS
+triu/tril dense copies and offsets: PASS; "pack" explicitly rejected
+zeros/ones/eye/NaN/Inf "like" constructors: PASS
+repmat scalar/vector dimensions: PASS
+flip/fliplr/flipud/rot90: PASS
+cat(1/2): PASS through native concat paths
+real/complex precision preservation: PASS
+1024/2048 precision and ambient default isolation: PASS
+binary64 numerical fallback: NONE
+```
+
+```text
+G-S04-DIAG: PASS
+G-S04-TRIU: PASS
+G-S04-TRIL: PASS
+G-S04-LIKE-CONSTRUCTORS: PASS
+G-S04-REPMAT: PASS
+G-S04-FLIP: PASS
+G-S04-ROT90: PASS
+G-S04-CAT: PASS
+G-S04-PRECISION: PASS
+G-S04-REGRESSION: PASS
+```
+
+The post-milestone wall passed M00–M23, C00–C12/C11L, N00–N08, S00–S04,
+native ASan/UBSan/LSan, clean rebuild #2, deterministic package generation,
+and isolated install/lifecycle QA against the frozen dependencies.
+
+```text
+S04 PASS — MATRIX UTILITIES AND CONSTRUCTORS CLOSED
+```
+
 ## Next milestone
 
-Proceed automatically to S04 — Matrix utilities and constructors.
+Proceed automatically to S05 — Ranges, rounding, and utility arithmetic.
