@@ -1,0 +1,52 @@
+# Ordinary Octave script compatibility
+
+This document records the compatibility audit for `mplapack-interop`. The
+tested runtime is GNU Octave 11.1.0 with the native MPFR/MPC `mp` type. A
+function is marked `SUPPORTED` only after an actual public call and a native
+precision/value test have passed.
+
+## Classification
+
+| Area | Classification | Evidence / current boundary |
+|---|---|---|
+| dense arithmetic, solve, factorization, eig, SVD, norm | SUPPORTED | Existing M00-M23, C00-C12/C11L, N00-N08 walls |
+| `abs`, `arg`, `angle`, `sign` | SUPPORTED | S00 public scalar/matrix and complex tests |
+| `isnan`, `isinf`, `isfinite`, `isreal` | SUPPORTED | S00 real/complex special-value tests |
+| `isequal`, `isequaln` | SUPPORTED | S00 exact-value, shape, and NaN tests |
+| `isscalar`, `isvector`, `ismatrix`, `isempty`, `isnumeric` | SUPPORTED | S00 generic predicate audit on mp values |
+| `power`, elementary functions | PLANNED-S01 | Not yet implemented in the S-series |
+| reductions and extrema | PLANNED-S02 | Not yet implemented in the S-series |
+| comparisons, logicals, logical indexing, `find` | PLANNED-S03 | Not yet implemented in the S-series |
+| matrix utilities and constructors | PLANNED-S04 | Existing structural API is narrower than this target |
+| ranges, rounding, utility arithmetic | PLANNED-S05 | Not yet implemented in the S-series |
+| descriptive statistics | PLANNED-S06 | Not yet implemented in the S-series |
+| graphics boundary wrappers | PLANNED-S07 | No automatic graphics conversion is present yet |
+| ordinary script corpus closure | PLANNED-S08 | Corpus is added after S00-S07 |
+| sparse, symbolic, signal/image-specialized, ODE/PDE, optimization APIs | INTENTIONALLY-DEFERRED | Outside the dense ordinary-script target |
+| general N-D support | INTENTIONALLY-DEFERRED | Current public mp contract is two-dimensional |
+
+## S00 semantics
+
+`abs` returns real MPFR magnitudes. `angle` and `arg` return real MPFR
+arguments; complex inputs use MPC argument semantics and real signed-zero
+inputs use the same quadrant behavior as Octave. `sign` uses native MPFR
+signs for real values and native MPC `x/abs(x)` for nonzero complex values;
+complex zero returns positive complex zero as in Octave.
+
+The predicate methods return builtin logical scalars or matrices. A complex
+value is NaN or infinite when either component has that property, and finite
+only when both components are finite. `isequal` compares exact native values
+and shape while treating NaNs as unequal; `isequaln` treats corresponding
+NaNs as equal. No S00 mathematical path converts through binary64.
+
+Generic structural predicates were audited rather than duplicated where
+Octave already handles the `mp` class. `isnumeric` required the small public
+`@mp/isnumeric` wrapper because Octave otherwise reports a classdef `mp`
+object as nonnumeric.
+
+## Known intentional stops
+
+The compatibility firewall still rejects APIs that are outside the current
+surface. Graphics conversion is not enabled by S00; when S07 adds it, the
+conversion will be confined to the final plotting boundary and never reused
+by numerical functions.

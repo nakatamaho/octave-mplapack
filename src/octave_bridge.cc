@@ -52,6 +52,7 @@
 #include "mp_structured_eig.h"
 #include "mp_general_eig.h"
 #include "mp_generalized_eig.h"
+#include "mp_script_compat.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -5726,6 +5727,140 @@ scalar_negate (const octave_value& value)
   return octave_value ();
 }
 
+octave_value
+script_unary_operation (const octave_value& value,
+                        octave_mplapack::MpScriptUnaryOperation operation)
+{
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          if (operation == octave_mplapack::MpScriptUnaryOperation::sign)
+            {
+              if (payload.type_id ()
+                  == octave_mplapack_mpc_scalar_internal::static_type_id ())
+                return make_internal_complex_scalar (
+                  octave_mplapack::mpc_script_unary (
+                    octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                      .storage (), operation));
+              return make_complex_inspection_result (
+                octave_mplapack::mpc_script_unary (
+                  octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                    .storage (), operation));
+            }
+
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            return make_internal_scalar (
+              octave_mplapack::mpc_script_real_unary (
+                octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                  .storage (), operation));
+          return make_inspection_result (octave_mplapack::mpc_script_real_unary (
+            octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage (), operation));
+        }
+
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        return make_internal_scalar (octave_mplapack::mpfr_script_unary (
+          octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage (), operation));
+      return make_inspection_result (octave_mplapack::mpfr_script_unary (
+        octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+          .storage (), operation));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+script_predicate_operation (const octave_value& value,
+                            octave_mplapack::MpScriptPredicate predicate)
+{
+  const octave_value payload = require_mp_payload (value);
+  octave_mplapack::MpScriptPredicateResult result;
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            result = octave_mplapack::mpc_script_predicate (
+              octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage (), predicate);
+          else
+            result = octave_mplapack::mpc_script_predicate (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage (), predicate);
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        result = octave_mplapack::mpfr_script_predicate (
+          octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage (), predicate);
+      else
+        result = octave_mplapack::mpfr_script_predicate (
+          octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage (), predicate);
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+
+  if (result.rows == 1 && result.columns == 1)
+    return octave_value (result.values.at (0) != 0);
+
+  boolMatrix logicals (checked_octave_dimension_for_inspection (result.rows),
+                       checked_octave_dimension_for_inspection (result.columns));
+  for (std::size_t column = 0; column < result.columns; ++column)
+    for (std::size_t row = 0; row < result.rows; ++row)
+      logicals (static_cast<octave_idx_type> (row),
+               static_cast<octave_idx_type> (column))
+        = result.values.at (column * result.rows + row) != 0;
+  return octave_value (logicals);
+}
+
+bool
+script_equal_operation (const octave_value& lhs_value,
+                        const octave_value& rhs_value,
+                        bool nan_equal)
+{
+  if (! is_mp_value (lhs_value) || ! is_mp_value (rhs_value))
+    return false;
+
+  const octave_value lhs = require_mp_payload (lhs_value);
+  const octave_value rhs = require_mp_payload (rhs_value);
+  if (lhs.type_id () != rhs.type_id ())
+    return false;
+
+  if (lhs.type_id () == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    return octave_mplapack::mpfr_script_equal (
+      octave_mplapack_mpfr_scalar_internal::checked_value (lhs).storage (),
+      octave_mplapack_mpfr_scalar_internal::checked_value (rhs).storage (),
+      nan_equal);
+  if (lhs.type_id () == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    return octave_mplapack::mpfr_script_equal (
+      octave_mplapack_mpfr_matrix_internal::checked_value (lhs).storage (),
+      octave_mplapack_mpfr_matrix_internal::checked_value (rhs).storage (),
+      nan_equal);
+  if (lhs.type_id () == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return octave_mplapack::mpc_script_equal (
+      octave_mplapack_mpc_scalar_internal::checked_value (lhs).storage (),
+      octave_mplapack_mpc_scalar_internal::checked_value (rhs).storage (),
+      nan_equal);
+  return octave_mplapack::mpc_script_equal (
+    octave_mplapack_mpc_matrix_internal::checked_value (lhs).storage (),
+    octave_mplapack_mpc_matrix_internal::checked_value (rhs).storage (),
+    nan_equal);
+}
+
 octave_value_list
 version_info ()
 {
@@ -5902,6 +6037,51 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       if (is_complex_payload (args(1)))
         return ovl (complex_conj_result (args(1)));
       return ovl (require_mp_payload (args(1)));
+    }
+
+  if (command == "script_unary")
+    {
+      require_argument_count (args, 3, command);
+      const std::string operation = require_string (args(2), "unary operation");
+      if (operation == "abs")
+        return ovl (script_unary_operation (
+          args(1), octave_mplapack::MpScriptUnaryOperation::absolute));
+      if (operation == "angle")
+        return ovl (script_unary_operation (
+          args(1), octave_mplapack::MpScriptUnaryOperation::angle));
+      if (operation == "sign")
+        return ovl (script_unary_operation (
+          args(1), octave_mplapack::MpScriptUnaryOperation::sign));
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "unknown script unary operation: %s", operation.c_str ());
+    }
+
+  if (command == "script_predicate")
+    {
+      require_argument_count (args, 3, command);
+      const std::string predicate = require_string (args(2), "predicate");
+      if (predicate == "isnan")
+        return ovl (script_predicate_operation (
+          args(1), octave_mplapack::MpScriptPredicate::isnan));
+      if (predicate == "isinf")
+        return ovl (script_predicate_operation (
+          args(1), octave_mplapack::MpScriptPredicate::isinf));
+      if (predicate == "isfinite")
+        return ovl (script_predicate_operation (
+          args(1), octave_mplapack::MpScriptPredicate::isfinite));
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "unknown script predicate: %s", predicate.c_str ());
+    }
+
+  if (command == "value_equal")
+    {
+      require_argument_count (args, 4, command);
+      const std::string mode = require_string (args(3), "equality mode");
+      if (mode != "isequal" && mode != "isequaln")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "equality mode must be isequal or isequaln");
+      return ovl (script_equal_operation (args(1), args(2),
+                                          mode == "isequaln"));
     }
 
   if (command == "matrix_subscript")

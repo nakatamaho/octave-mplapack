@@ -13,6 +13,7 @@ inst
 inst/@mp
 src
 test
+test/script-compat
 tools
 docs
 docs/milestones
@@ -66,6 +67,16 @@ inst/@mp/rank.m
 inst/@mp/cond.m
 inst/@mp/rcond.m
 inst/@mp/mrdivide.m
+inst/@mp/abs.m
+inst/@mp/angle.m
+inst/@mp/arg.m
+inst/@mp/sign.m
+inst/@mp/isnan.m
+inst/@mp/isinf.m
+inst/@mp/isfinite.m
+inst/@mp/isequal.m
+inst/@mp/isequaln.m
+inst/@mp/isnumeric.m
 inst/@mp/transpose.m
 inst/@mp/ctranspose.m
 inst/@mp/reshape.m
@@ -101,6 +112,8 @@ src/mp_matrix_concat.h
 src/mp_matrix_assignment.cc
 src/mp_matrix_assignment.h
 src/octave_bridge.cc
+src/mp_script_compat.h
+src/mp_script_compat.cc
 src/mp_norm.h
 src/mp_norm.cc
 src/mp_det_inv.h
@@ -116,6 +129,7 @@ src/mp_general_eig.cc
 src/mp_generalized_eig.h
 src/mp_generalized_eig.cc
 test/run_tests.m
+test/script-compat/s00.tst
 test/mrdivide.tst
 test/build_probe.tst
 test/native_value.tst
@@ -238,6 +252,9 @@ docs/milestones/N03-rank-condition.md
 docs/eig.md
 docs/generalized-eig.md
 docs/v0.3-api.md
+docs/octave-script-compatibility.md
+docs/goals/S00-S08-D03-status.md
+reports/S00-report.md
 docs/milestones/N04-eig-structured.md
 docs/milestones/N05-eig-general.md
 docs/milestones/N06-eig-generalized.md

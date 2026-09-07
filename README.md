@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: 0.3.1 source frozen; 0.3.0 is historical and 0.2.1 is historical.**
+**Status: 0.4.0-dev development; 0.3.1 is frozen and 0.3.0/0.2.1 are historical.**
 C00 through C12 pass, including mandatory complex `Cgetrf` LU, and the public
 complex API is closed. N08 adds dense right division. The package identity is
 `mplapack-interop`; the public GNU Octave class/API remains `mp`, `mpbits`, and
@@ -10,6 +10,7 @@ stack is recorded in [`docs/dependency-release-stack.md`](docs/dependency-releas
 the forward `mplapack-interop` handoff is in
 [`docs/dependency-release-stack-r1.md`](docs/dependency-release-stack-r1.md).
 N00–N08 and the 0.3.1 source freeze are tracked in the D02R1 release records;
+the S00–S08 script-compatibility work is tracked in the S-series records;
 the 0.2.1 package remains historical provenance.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,

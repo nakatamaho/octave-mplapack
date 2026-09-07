@@ -1,5 +1,12 @@
 # News
 
+## 0.4.0 (development)
+
+S00 begins the ordinary Octave script-compatibility series with native
+arbitrary-precision `abs`, `arg`, `angle`, and `sign`, special-value
+predicates, exact `isequal`/`isequaln`, and the `isnumeric` class predicate.
+The 0.3.1 source release remains immutable while the S-series is developed.
+
 ## 0.3.1
 
 N08 adds dense real and complex matrix right division with `/`, including
