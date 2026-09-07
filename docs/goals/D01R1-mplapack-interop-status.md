@@ -42,7 +42,14 @@ docs/mplapack-interop-hilbert.md
 The Octave example uses `H \ I` at 1024 bits; the C++ example uses public
 MPLAPACK MPFR headers and `Rgetrf`/`Rgetri`/`Rgemm` under
 `MplapackMpfrPrecisionScope`. Both examples avoid a binary64 Hilbert
-construction.
+construction. The Octave example restores the caller's ambient `mpbits`
+setting with `unwind_protect`.
+
+The current QA-stack local wall completed successfully after this fix:
+M00–M23, C00–C12, mandatory C11L, lifecycle tests, clean rebuild/retest, and
+ASan/UBSan-enabled native tests all passed. This evidence still awaits
+repetition against an MPLAPACK installation rebuilt from the current
+macOS-fixed 3.0.1 RC.
 
 ### G-D01R1-BINARY-ARCH — design recorded
 

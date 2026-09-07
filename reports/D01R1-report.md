@@ -82,8 +82,8 @@ Freeze commit: pending
 Tag: pending
 Tag target: pending
 Archive: mplapack-interop-0.2.1-dev.tar.gz (development archive)
-Archive size: 244xxx bytes, exact final value pending clean rebuild
-SHA256 A: ef818dd193d2cecb168d717670b35fc7bd1af3c46f97b9e1a0760d2f4c67139c (pre-architecture-doc update)
+Archive size: 248535 bytes (development archive; not the final release archive)
+SHA256 A: 717125aa1113c472df34cfaecc50002ddb47c639d7ef14bc3461d0d72dabb481
 SHA256 B: pending
 Hashes identical: not yet final
 Top-level directory: mplapack-interop-0.2.1-dev
@@ -106,7 +106,14 @@ At 1024 bits, `Rgetrf`/`Rgetri` followed by `Rgemm` reported
 The Octave example `examples/05_hilbert_inverse.m` was installed and loaded
 under the renamed package identity. It computed `H \ I` at 1024 bits and
 reported `binary64 residual infinity norm: 1.185e-302`. The explicit
-`double` conversion is used only for the final diagnostic.
+`double` conversion is used only for the final diagnostic. The example now
+restores the caller's ambient `mpbits` value with `unwind_protect`.
+
+The current QA-stack `tools/local-ci.sh` wall completed successfully after
+that restoration fix: M00–M23, C00–C12, mandatory C11L, lifecycle tests,
+clean rebuild/retest, and ASan/UBSan-enabled native tests all passed. This is
+not yet a final frozen-stack result because the installed MPLAPACK provenance
+still needs to be rebuilt and verified from the current macOS-fixed 3.0.1 RC.
 
 ## Octave binary package audit
 
@@ -206,7 +213,7 @@ G-D01R1-DEPS: PENDING — current MPLAPACK QA RC differs from original D00 row
 G-D01R1-RENAME: IN PROGRESS
 G-D01R1-IDENTITY: PENDING final 0.2.1 archive/tag
 G-D01R1-NUMERICAL-EQUIVALENCE: PENDING final diff audit
-G-D01R1-REGRESSION: PENDING full wall on final renamed source
+G-D01R1-REGRESSION: PASS on current QA stack; final frozen dependency wall pending
 G-D01R1-REPRODUCIBLE: PENDING final archive A/B
 G-D01R1-BINARY-ARCH: IN PROGRESS; design documented, relocation proof B01-owned
 ```
