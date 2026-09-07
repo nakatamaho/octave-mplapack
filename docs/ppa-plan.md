@@ -1,5 +1,10 @@
 # Real-only PPA handoff plan
 
+Forward user-facing package identity: `mplapack-interop`. The repository is
+still `octave-mplapack`; a future Debian binary package may be named
+`octave-mplapack-interop`, subject to the PPA policy milestone. No Debian
+metadata or PPA work is performed in D01R1.
+
 M20 established `REAL-PPA-GO`; complex support is not a prerequisite for the
 real-only release. M23 freezes the upstream candidate and records the exact
 source/archive handoff. No Debian upload or PPA publication is performed here.
@@ -35,11 +40,10 @@ Build-Depends are `debhelper-compat`, `octave-dev`, `pkg-config`, the
 MPLAPACK MPFR development package, MPFR/MPC/GMP as needed or propagated, and
 standard C++ build tools.
 
-The public package name remains `octave-mplapack`; complex support can arrive
-as a later package update because M20 found the complex symbols in the same
-MPLAPACK MPFR library. Final Debian names, symbols, shlibs, and license files
-belong to PPA1/PPA2. No source-tree path, temporary prefix, or Git checkout is
-allowed in a package build.
+The public package name for future PPA policy is `octave-mplapack-interop`;
+the Octave package loaded by users is `mplapack-interop`. Final Debian names,
+symbols, shlibs, and license files belong to PPA1/PPA2. No source-tree path,
+temporary prefix, or Git checkout is allowed in a package build.
 
 ## Handoff blockers
 

@@ -1,5 +1,19 @@
 # News
 
+## 0.2.1
+
+The GNU Octave package public identity is now `mplapack-interop`, version
+`0.2.1`.  The rename avoids presenting the Octave package as the MPLAPACK
+upstream project; the repository remains `octave-mplapack` and the public
+numeric API remains `mp`, `mpbits`, and `mpdigits`.  Existing `mplapack` 0.2.0
+source/tag/archive provenance is retained as a historical release and is not
+an alias for the new package.
+
+The release documentation adds a standalone MPLAPACK MPFR interop example and
+an Octave high-precision Hilbert inverse example.  The inverse is computed as
+`H \\ I`, because `inv(mp)` is intentionally outside the public API and the
+example must not pass through binary64 `hilb(n)` construction.
+
 ## 0.2.0
 
 The first public real-plus-complex release adds dense complex `mp` scalars and

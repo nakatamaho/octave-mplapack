@@ -1,5 +1,9 @@
 # Octave compatibility
 
+The public package identity is `mplapack-interop`. The repository remains
+`octave-mplapack`, and the numeric class/API names remain `mp`, `mpbits`, and
+`mpdigits`.
+
 C12 validates the real and complex public surface with GNU Octave 11.1.0. The
 normal Octave syntax is used for supported operations and the `mp` class keeps
 immutable native storage. Existing values retain their stored precision;

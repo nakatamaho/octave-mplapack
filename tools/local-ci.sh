@@ -85,7 +85,7 @@ M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
   required = {"name", "version", "date", "title", "author", ...
               "maintainer", "description", "license"};
   assert (all (isfield (metadata, required)));
-  assert (strcmp (metadata.name, "mplapack"));
+  assert (strcmp (metadata.name, "mplapack-interop"));
   rmpath (pkg_private);
 '
 echo "PASS: Octave DESCRIPTION parser"
@@ -570,10 +570,18 @@ make -C src clean
 tools/build-package.sh
 package_name=$(sed -n 's/^Name: *//p' DESCRIPTION)
 package_version=$(sed -n 's/^Version: *//p' DESCRIPTION)
-if [ "$package_version" != "0.2.0" ]; then
-  echo "FAIL: D00 requires frozen DESCRIPTION version 0.2.0" >&2
+if [ "$package_name" != "mplapack-interop" ]; then
+  echo "FAIL: D01R1 requires DESCRIPTION package name mplapack-interop" >&2
   exit 1
 fi
+case $package_version in
+  0.2.1|0.2.1-dev)
+    ;;
+  *)
+    echo "FAIL: D01R1 requires DESCRIPTION version 0.2.1 or 0.2.1-dev" >&2
+    exit 1
+    ;;
+esac
 package_dir=$package_name-$package_version
 archive=$repo_root/dist/$package_dir.tar.gz
 first_hash=$(sha256sum "$archive" | awk '{ print $1 }')
@@ -648,7 +656,10 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/milestones/M23-v0.1-freeze.md \
   examples/01_scalar_precision.m examples/02_matrix_arithmetic.m \
   examples/03_linear_solve.m examples/04_factorizations.m \
+  examples/05_hilbert_inverse.m examples/interop_hilbert_inverse_mpfr.cpp \
   tools/dev-octave.sh tools/verify-release-candidate.sh \
+  docs/mplapack-interop-hilbert.md docs/binary-distribution.md \
+  docs/binary-redistribution-licenses.md docs/dependency-release-stack-r1.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -688,7 +699,7 @@ mkdir -p "$test_home" "$neutral_dir"
     octave --no-gui --quiet --no-init-file --eval '
       archive = getenv ("M01_ARCHIVE");
       pkg ("install", "-verbose", archive);
-      [description, status] = pkg ("describe", "mplapack");
+      [description, status] = pkg ("describe", "mplapack-interop");
       assert (numel (description) == 1);
       assert (any (strcmp (status, {"Loaded", "Not loaded"})));
       metadata = description{1};
@@ -703,7 +714,7 @@ mkdir -p "$test_home" "$neutral_dir"
     MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     octave --no-gui --quiet --no-init-file --eval '
       root = getenv ("M01_REPO_ROOT");
-      pkg ("load", "mplapack");
+      pkg ("load", "mplapack-interop");
       assert (test (fullfile (root, "test", "concat.tst")));
       assert (test (fullfile (root, "test", "assignment.tst")));
       assert (test (fullfile (root, "test", "chol.tst")));
@@ -834,10 +845,10 @@ mkdir -p "$test_home" "$neutral_dir"
       unload_text = char (unload_value);
       unload_double = double (unload_value);
       assert (evalc ("disp (unload_value)"), [unload_text, "\n"]);
-      pkg ("unload", "mplapack");
+      pkg ("unload", "mplapack-interop");
       assert (strcmp (class (unload_value), "mp"));
       assert (strcmp (class (unload_matrix), "mp"));
-      pkg ("load", "mplapack");
+      pkg ("load", "mplapack-interop");
       assert (size (unload_matrix), [2, 2]);
       unload_matrix_info = __mplapack_core__ (
         "matrix_test_info", unload_matrix);
@@ -864,11 +875,11 @@ mkdir -p "$test_home" "$neutral_dir"
       clear reloaded_state_value reloaded_state_info;
       destroy_while_unloaded = mp ("1.5");
       destroy_matrix_while_unloaded = mp ([1, 2; 3, 4]);
-      pkg ("unload", "mplapack");
+      pkg ("unload", "mplapack-interop");
       assert (strcmp (class (destroy_while_unloaded), "mp"));
       clear destroy_while_unloaded;
       clear destroy_matrix_while_unloaded;
-      pkg ("load", "mplapack");
+      pkg ("load", "mplapack-interop");
       reloaded_value = __mplapack_core__ (
         "scalar_test_create", "1.5", 256);
       reloaded_info = __mplapack_core__ (
@@ -876,8 +887,8 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (reloaded_info.precision_bits == 256);
       assert (__mplapack_core__ ("module_test_locked"));
       clear reloaded_value;
-      pkg ("unload", "mplapack");
-      pkg ("uninstall", "mplapack");
+      pkg ("unload", "mplapack-interop");
+      pkg ("uninstall", "mplapack-interop");
     '
 )
 
@@ -905,7 +916,7 @@ mkdir -p "$test_home" "$neutral_dir"
 HOME=$test_home M01_REPO_ROOT=$repo_root \
     MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     octave --no-gui --quiet --no-init-file --eval '
-      pkg ("load", "mplapack");
+      pkg ("load", "mplapack-interop");
       root = getenv ("M01_REPO_ROOT");
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");

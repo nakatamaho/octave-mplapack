@@ -64,6 +64,7 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
 .DELETE_ON_ERROR:
 
 all: $(TARGET)
+	$(RM) -r .build-m22
 
 $(TARGET): $(SOURCE) $(HEADERS) | check-dependency
 	@echo "Building $(TARGET) with MKOCTFILE=$(MKOCTFILE)"

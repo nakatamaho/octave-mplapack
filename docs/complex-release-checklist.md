@@ -23,7 +23,8 @@ freeze MPLAPACK 3.0.1 or begin D00, Debian, PPA, or Launchpad work.
 
 ## Development identity
 
-- package version: `0.2.0-dev`;
+- package identity: `mplapack-interop`;
+- package version: `0.2.1-dev`;
 - MPLAPACK pkg-config identity: `mplapack_mpfr 3.0.1`;
 - final release commit/tag/archive: not frozen here;
 - Debian package, Launchpad upload, and PPA work: not started;

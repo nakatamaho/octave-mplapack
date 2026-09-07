@@ -1,6 +1,7 @@
 # Complex `mp` API
 
-This is the C00–C12 implementation inventory for package version `0.2.0`.
+This is the C00–C12 implementation inventory carried by package version
+`0.2.1`.
 Release identity and dependency provenance are maintained in
 `docs/dependency-release-stack.md`.
 

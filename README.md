@@ -1,10 +1,13 @@
 # octave-mplapack
 
-**Status: 0.2.0 real-plus-complex release line.** C00 through C12 pass,
+**Status: 0.2.1-dev `mplapack-interop` release line.** C00 through C12 pass,
 including mandatory complex `Cgetrf` LU, and the public complex API is closed.
-The real-only v0.1.0 release candidate remains historical. The exact frozen
-dependency stack is recorded in
-[`docs/dependency-release-stack.md`](docs/dependency-release-stack.md).
+The 0.2.1 package identity is `mplapack-interop`; the public GNU Octave
+class/API remains `mp`, `mpbits`, and `mpdigits`.
+The real-only v0.1.0 release candidate remains historical. The historical D00
+stack is recorded in [`docs/dependency-release-stack.md`](docs/dependency-release-stack.md);
+the forward `mplapack-interop` handoff is in
+[`docs/dependency-release-stack-r1.md`](docs/dependency-release-stack-r1.md).
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -37,10 +40,10 @@ manifest.
 
 ## Goal
 
-`octave-mplapack` will provide GNU Octave access to MPLAPACK
-multiple-precision linear algebra through an Octave-native multiprecision
-numeric type named `mp`. MPLAPACK is the numerical backend rather than the
-user-facing programming model.
+`mplapack-interop` provides GNU Octave access to MPLAPACK multiple-precision
+linear algebra through an Octave-native multiprecision numeric type named
+`mp`. MPLAPACK is the numerical backend rather than the user-facing
+programming model.
 
 ## Quick start
 
@@ -48,8 +51,8 @@ Install a locally built release-candidate archive with Octave's package manager
 (the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-0.2.0.tar.gz
-octave:2> pkg load mplapack
+octave:1> pkg install mplapack-interop-0.2.1-dev.tar.gz
+octave:2> pkg load mplapack-interop
 ```
 
 For a checkout, `tools/dev-octave.sh` verifies the `pkg-config` dependency,
@@ -64,21 +67,44 @@ concatenation. Sparse, N-D, reductions, `det`, `inv`, `rank`, `cond`, `norm`,
 unsupported; see the [complex API](docs/complex-api.md) and [compatibility
 limits](docs/complex-compatibility.md).
 
+### Hilbert inverse example
+
+The package includes a 1024-bit Hilbert inverse example in
+[`examples/05_hilbert_inverse.m`](examples/05_hilbert_inverse.m). It constructs
+each `1/(i+j-1)` from decimal `mp` values and computes all inverse columns as
+`H \ I`; this avoids the binary64 matrix produced by builtin `hilb(n)` and does
+not assume an unimplemented `inv(mp)` method. The matching external
+MPLAPACK-interop C++ consumer is
+[`examples/interop_hilbert_inverse_mpfr.cpp`](examples/interop_hilbert_inverse_mpfr.cpp).
+Compile it against the installed public interface with:
+
+```sh
+c++ -std=c++17 -O2 -o hilbert_inverse_mpfr \
+  examples/interop_hilbert_inverse_mpfr.cpp \
+  $(pkg-config --cflags --libs mplapack_mpfr)
+./hilbert_inverse_mpfr
+```
+
+The C++ example uses `MplapackMpfrPrecisionScope`, `Rgetrf`, `Rgetri`, and
+`Rgemm`, and includes only `mpblas_mpfr.h`, `mplapack_mpfr.h`, and
+`mplapack_mpfr_precision.h`. Its residual is reported in MPFR arithmetic.
+
 The required MPLAPACK MPFR dependency is discovered through `pkg-config` and
 must provide the uniform-precision scope interface. The package never vendors
 or searches a developer-specific MPLAPACK path.
 
 ## Initial backend
 
-The initial backend is **MPFR real arithmetic**. MPLAPACK remains a separately
-installed dependency discovered with `pkg-config`; it is not vendored here.
+The backend is MPLAPACK's MPFR/MPC implementation for real and complex values.
+MPLAPACK remains a separately installed dependency discovered through
+`pkg-config`; it is not vendored here.
 
 ## Working diagnostic
 
 With the current source package installed:
 
 ```octave
-pkg load mplapack
+pkg load mplapack-interop
 info = mplapack_version()
 
 a = mp("0.1");
@@ -164,7 +190,7 @@ M21 adds dense real `lu` through `Rgetrf`; packed one-output factors,
 permutation-aware two/three-output factors, and vector row pivots preserve the
 stored operand precision.
 
-## v0.1 feature status
+## Current feature status
 
 | Feature | Scalar | Dense matrix | Backend | Status |
 |---|---:|---:|---|---|
@@ -174,7 +200,8 @@ stored operand precision.
 | `chol` | yes | yes | `Rpotrf` | supported |
 | `qr` / pivoted `qr` | yes | yes | `Rgeqrf`/`Rgeqp3`/`Rorgqr` | supported |
 | `lu` | yes | yes | `Rgetrf` | supported |
-| complex / sparse | no | no | future | deferred |
+| complex | yes | yes | `Cgemm`/`Cgesv`/`Cgelsy`/`Cpotrf`/`Cgeqrf`/`Cgeqp3`/`Cgetrf` | supported |
+| sparse | no | no | future | deferred |
 
 ## Release provenance
 
@@ -185,12 +212,12 @@ commit in the repository-only release manifest
 `mplapack_mpfr` through `pkg-config`. Binary distribution and PPA work are
 separate later milestones.
 
-## Intended future API
+## Public API baseline
 
-The following workflow is available through M19:
+The following workflow is available in the current release line:
 
 ```octave
-pkg load mplapack
+pkg load mplapack-interop
 
 mpdigits(100);
 
@@ -220,11 +247,11 @@ that exact value when converting to MPFR. Thus the two `0.1` values above are
 intentionally different. See
 [`docs/precision-semantics.md`](docs/precision-semantics.md).
 
-## Non-goals for 0.1.0
+## Historical 0.1.0 non-goals
 
 - Wrapping every MPLAPACK routine
 - Supporting every MPLAPACK backend
-- Complex multiprecision arithmetic
+- Complex multiprecision arithmetic (implemented in the 0.2.x line)
 - Replacing Octave BLAS/LAPACK
 - Transparent conversion of all Octave code to multiprecision
 - Complete MATLAB compatibility
@@ -256,6 +283,8 @@ M20  Complex architecture audit and design freeze (no public complex support)
 M21  Dense real LU factorization
 M22  Real v0.1 API and release closure
 M23  v0.1.0 feature freeze and release candidate
+
+D01R1  Rename package identity to mplapack-interop and freeze binary architecture
 
 PPA1-PPA4  Debian/Ubuntu/PPA packaging and final release
 ```
