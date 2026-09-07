@@ -112,6 +112,7 @@ find $source_roots -type f \
   ! -path '*/.build-m19/*' \
   ! -path '*/.build-m21/*' \
   ! -path 'docs/v0.1-release-manifest.md' \
+  ! -path 'tools/install-local-octave-mplapack.sh' \
   ! -path '*/.libs/*' \
   ! -path '*/.deps/*' \
   -print | LC_ALL=C sort > "$manifest"
