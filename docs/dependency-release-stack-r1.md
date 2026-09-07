@@ -1,24 +1,23 @@
 # D01R1 forward dependency and package stack
 
-This is the forward-looking handoff for the renamed GNU Octave package. The
+This is the forward handoff for the renamed GNU Octave package. The
 historical D00 manifest remains authoritative for the old `mplapack` 0.2.0
 identity and is not rewritten.
 
 ## Identity table
 
-| Layer | Version | Commit | Tag | Archive | SHA256 | Status |
-|---|---:|---|---|---|---|---|
-| gmpfrxx_mkII | 1.4.1 | `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `v1.4.1` | `gmpfrxx_mkII.1.4.1.tar.xz` | `395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4` | unchanged from D00 |
-| MPLAPACK | 3.0.1 | `c21a9f56224308afda9e7424ca9928d4cf840f7a` | pending release-tag revalidation | `mplapack-3.0.1.tar.xz` | `f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1` | corrected candidate, 85807808 bytes; generated Makefile.in fix present; release QA maintained separately |
-| octave-mplapack | 0.2.1 | pending | pending | `mplapack-interop-0.2.1.tar.gz` | pending | D01R1 release candidate |
+| Layer | Version | Exact source identity | Tag | Archive | SHA256 | Size | Status |
+|---|---:|---|---|---|---|---:|---|
+| gmpfrxx_mkII | 1.4.1 | `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `v1.4.1` | `gmpfrxx_mkII.1.4.1.tar.xz` | `395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4` | 15176064 | frozen |
+| MPLAPACK | 3.0.1 | `c21a9f56224308afda9e7424ca9928d4cf840f7a` | external QA/tag owner | `mplapack-3.0.1.tar.xz` | `f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1` | 85807808 | supplied candidate used and verified |
+| mplapack-interop | 0.2.1 | `b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6` | `v0.2.1` | `mplapack-interop-0.2.1.tar.gz` | `28769e877e0588a59d9c0d6736fb875624df8b836f570cc9e87eda7d74936d0f` | 247628 | frozen |
 
-The supplied MPLAPACK candidate includes the macOS `/bin/sh`, QD/DD
-load-check, Automake load-probe, and external-gmpfrxx pkg-config fixes. It
-differs from the older D00 candidate (`fa3ccb...`, SHA256 `7c8d1d...`). The
-corrected archive was audited against `c21a9f562`: its `Makefile.am`, public
-precision header, and generated `Makefile.in` MPFR branch all contain the
-expected interface. It is still a candidate until the separate MPLAPACK
-release QA accepts it and creates the release tag.
+The MPLAPACK archive supplied for D01R1 includes the macOS `/bin/sh`
+pkg-config generation fix, macOS QD/DD load-check fixes, the Automake load
+probe fix, the external-gmpfrxx pkg-config include-path fix, the public
+precision-scope header, and generated release files. MPLAPACK release QA and
+`v3.0.1` tag creation are maintained separately by its release maintainer;
+this worktree neither creates nor modifies that tag.
 
 ## Historical D00 package
 
@@ -34,7 +33,7 @@ SHA256: 0e83e26182b0fbd95a064437a97307eb74d9291b49d91c6e53dac181b24a94db
 This identity is retained as provenance only. It is not an alias package for
 `mplapack-interop`.
 
-## Forward dependency graph
+## Dependency graph
 
 ```text
 mplapack-interop 0.2.1
@@ -49,13 +48,42 @@ GMP / MPFR / MPC
 The Octave package uses the MPLAPACK `mplapack_mpfr` pkg-config interface and
 the public `mpblas_mpfr.h`, `mplapack_mpfr.h`, and
 `mplapack_mpfr_precision.h` headers. Internal aggregate headers `mpblas.h`
-and `mplapack.h`, which rely on internal `INTEGER`/`REAL` definitions, are not
-installed as public development headers.
+and `mplapack.h`, which rely on internal `INTEGER`/`REAL` definitions, are
+not installed as public development headers.
 
-## Freeze procedure
+The final tested runtime closure on the audit host is:
 
-The final D01R1 row for `octave-mplapack` is filled only after the renamed
-source is set to `Name: mplapack-interop`, `Version: 0.2.1`, its archive is
-reproduced byte-identically, and tag `v0.2.1` points at that exact source
-freeze commit. The final MPLAPACK row must likewise identify the exact
-release tag and archive used by the full regression.
+```text
+libmplapack_mpfr.so.3
+libmpc.so.3
+libmpfr.so.6
+libgmp.so.10
+libstdc++.so.6, libgcc_s.so.1, libc.so.6
+```
+
+GMP, MPFR, and MPC are build/header dependencies of the MPLAPACK MPFR
+backend and runtime shared-library dependencies of `libmplapack_mpfr.so.3`.
+gmpfrxx_mkII supplies the public C++ MPFR/MPC value interface and has no
+separate runtime library in this stack.
+
+## Provenance and QA handoff
+
+The final Octave build was made against the installed prefixes derived from
+the gmpfrxx and MPLAPACK archives above. `pkg-config --modversion
+mplapack_mpfr` reported 3.0.1, the precision-scope header was found in the
+installed MPLAPACK include directory, and `readelf`/`ldd` checks found no
+missing dependencies or unresolved relocations. Full M00-M23, C00-C12,
+mandatory C11L, lifecycle, precision-canary, firewall, and sanitizer walls
+passed.
+
+The source package was generated twice with `SOURCE_DATE_EPOCH=0`, produced
+the identical SHA256 shown above, and the same archive was copied to:
+
+```text
+/home/docker/src/mplapack-interop-0.2.1.tar.gz
+```
+
+This document is the D01 handoff. Future binary/package work must consume the
+exact archive/version/commit identities recorded here. If the external
+MPLAPACK release maintainer changes the source after QA, re-run the dependency
+and full-stack audit before using it as a release dependency.

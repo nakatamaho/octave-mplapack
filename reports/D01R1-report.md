@@ -2,15 +2,12 @@
 
 ## Result
 
-D01R1 IN PROGRESS — the public package rename and architecture audit are
-underway. The final `0.2.1` source identity, complete regression wall, final
-dependency reconciliation, reproducible release archive, and `v0.2.1` tag are
-not yet frozen.
+D01R1 PASS — MPLAPACK-INTEROP IDENTITY FROZEN
 
-Release identity conclusion: NOT-FROZEN
+Release identity conclusion: MPLAPACK-INTEROP IDENTITY FROZEN
 
-Binary distribution conclusion: ARCHITECTURE DEFINED; B01-READY PENDING FINAL
-SOURCE/DEPENDENCY FREEZE
+Binary distribution conclusion: B01-READY; architecture frozen, production
+B01-B05 builds not started.
 
 ## Historical D00 package identity
 
@@ -22,10 +19,10 @@ Old freeze commit: 4a3eb50843a6bf365bdab1e82146ef1900a219f6
 Old tag: v0.2.0
 Old archive: mplapack-0.2.0.tar.gz
 Old SHA256: 0e83e26182b0fbd95a064437a97307eb74d9291b49d91c6e53dac181b24a94db
-Old tag unchanged: YES (not modified by D01R1)
+Old tag unchanged: YES
 ```
 
-## Dependency candidates
+## Frozen dependencies
 
 ### gmpfrxx_mkII
 
@@ -33,7 +30,9 @@ Old tag unchanged: YES (not modified by D01R1)
 Version: 1.4.1
 Commit: 32a7fb797202cdf92312ed9d133f96fdbcda590a
 Tag: v1.4.1
+Tag target: 32a7fb797202cdf92312ed9d133f96fdbcda590a
 Archive: gmpfrxx_mkII.1.4.1.tar.xz
+Archive size: 15176064 bytes
 SHA256: 395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4
 Changed during D01R1: NO
 ```
@@ -42,38 +41,61 @@ Changed during D01R1: NO
 
 ```text
 Version: 3.0.1
-D00 candidate: fa3ccb4376d2a52c2672322e5b7199a9224bed7f
-D00 candidate SHA256: 7c8d1d7759a487bc01e8c1625599ec77b6c7e297c19b20ca45e8c342f5165e64
-Current QA candidate before pkg-config fix: 76cbb400aed5e8be7e9f2cfa02f27a95a5e564e4
-Current QA archive before pkg-config fix: mplapack-3.0.1.tar.xz
-Current QA archive SHA256 before pkg-config fix: 0739d73de62e9918874d80fe4d119cc60605f3772036455b65b9f24eb52f7e0f
-Current source after pkg-config fix: c21a9f56224308afda9e7424ca9928d4cf840f7a
-Supplied corrected RC archive: mplapack-3.0.1.tar.xz
-Supplied corrected RC archive SHA256: f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1
-Supplied corrected RC archive size: 85807808 bytes
-Supplied corrected RC archive audit: Makefile.am, public precision header, and generated Makefile.in fixed
-Current final archive: pending separate MPLAPACK release-QA regeneration
+Tested source commit: c21a9f56224308afda9e7424ca9928d4cf840f7a
+Archive: mplapack-3.0.1.tar.xz
+Archive size: 85807808 bytes
+SHA256: f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1
 Runtime SONAME: libmplapack_mpfr.so.3
-Changed during D01R1: release-blocking pkg-config include-path fix was pushed by this repository's prior handoff; final QA is maintained separately
+Tag: not created in this worktree
+Release QA/tag owner: external MPLAPACK release maintainer
+Changed during D01R1: NO; corrected candidate supplied before final QA
 ```
 
-The pre-fix QA candidate includes the user-supplied macOS fixes `98fa308ac`,
-`20f2f414d`, and `76cbb400a`. Commit `c21a9f562` adds the release-blocking
-external-gmpfrxx include path to the MPFR pkg-config outputs. The supplied
-`f969c503...` archive contains the corrected `Makefile.am` and generated
-`Makefile.in`, and both were verified with the public precision header against
-the source commit. The previous `0739d73...` archive predates the source fix.
-The corrected archive remains a candidate until the separate MPLAPACK release
-QA accepts it and creates the release tag.
+The supplied candidate includes the macOS `/bin/sh` pkg-config generation
+fix, macOS QD/DD shared-library load-check fixes, Automake load-probe fix,
+and external-gmpfrxx pkg-config include-path fix. It also contains the public
+`mplapack_mpfr_precision.h` and generated release files. The older D00
+candidate `fa3ccb4376d2a52c2672322e5b7199a9224bed7f` and SHA256
+`7c8d1d7759a487bc01e8c1625599ec77b6c7e297c19b20ca45e8c342f5165e64` were
+not used for the final D01R1 build. MPLAPACK release QA and release-tag
+creation remain the responsibility of the release maintainer; no MPLAPACK
+tag was created or modified here.
+
+## Package identity
+
+```text
+Repository: nakatamaho/octave-mplapack
+Package Name: mplapack-interop
+Version before: 0.2.1-dev
+Version after: 0.2.1
+Freeze commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
+Tag: v0.2.1
+Tag target: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
+Remote tag object: e48d6502850fce3ada5beecd9562240077414cf7
+Archive: mplapack-interop-0.2.1.tar.gz
+Archive size: 247628 bytes
+SHA256 A: 28769e877e0588a59d9c0d6736fb875624df8b836f570cc9e87eda7d74936d0f
+SHA256 B: 28769e877e0588a59d9c0d6736fb875624df8b836f570cc9e87eda7d74936d0f
+Hashes identical: YES
+Top-level directory: mplapack-interop-0.2.1/
+Archive generated from tag: YES; hash identical to pre-tag candidate
+Archive installed at: /home/docker/src/mplapack-interop-0.2.1.tar.gz
+```
+
+The package archive intentionally excludes the developer-only
+`tools/install-local-octave-mplapack.sh`, which contains the local
+`/home/docker` layout. The installer remains in the repository and the
+standalone `/home/docker` helper; it defaults to the final archive and records
+the final archive SHA256.
 
 ## Package-name preflight
 
 ```text
 Octave: GNU Octave 11.1.0
-Temporary package: isolated /tmp/d01r1-name-preflight fixture
+Temporary package: isolated throwaway package
 Name: mplapack-interop
 Install: PASS
-pkg list: PASS, name displayed with hyphen
+pkg list: PASS
 pkg describe: PASS
 pkg load: PASS
 pkg unload: PASS
@@ -82,112 +104,148 @@ Hyphen supported: YES
 Result: G-D01R1-NAME-SYNTAX PASS
 ```
 
-## New package identity (development state)
+## Rename diff audit
 
 ```text
-Repository: nakatamaho/octave-mplapack
-Package Name: mplapack-interop
-Version before: 0.2.0
-Version after: 0.2.1-dev (temporary)
-Freeze commit: pending
-Tag: pending
-Tag target: pending
-Archive: mplapack-interop-0.2.1-dev.tar.gz (development archive)
-Archive size: 247571 bytes (development archive; not the final release archive)
-SHA256 A: ab041a1e6408db5323a76d7e46b75bd8daefea2e06ad50331bc455aee7caab98
-SHA256 B: ab041a1e6408db5323a76d7e46b75bd8daefea2e06ad50331bc455aee7caab98
-Hashes identical: YES (development archive only)
-Top-level directory: mplapack-interop-0.2.1-dev
-pkg list identity: verified in installed development archive
-pkg describe identity: verified
-pkg load identity: verified
-Result: development rename PASS; final identity pending
+DESCRIPTION: Name mplapack-interop, Version 0.2.1
+README/NEWS/INDEX: updated to the renamed package identity
+Help/examples/tests: updated and exercised with pkg load mplapack-interop
+Release tooling: updated for the final archive and package identity
+Package lifecycle: install/load/unload/uninstall/reinstall PASS
+Historical D00 documentation: preserved
+Internal numerical symbols: not renamed
+Numerical source changed during D01R1: NO
+Result: G-D01R1-RENAME PASS
 ```
 
-The final archive section is updated only from the final `0.2.1` source tree.
-
-## Example QA
-
-The Octave example `examples/05_hilbert_inverse.m` was installed and loaded
-under the renamed package identity. It computed `H \ I` at 1024 bits and
-reported `binary64 residual infinity norm: 1.185e-302`. The explicit
-`double` conversion is used only for the final diagnostic. The example now
-restores the caller's ambient `mpbits` value with `unwind_protect`.
-
-The external MPLAPACK public-header consumer boundary is maintained and
-validated by the separate MPLAPACK release QA. Its C++ source is intentionally
-not shipped in this Octave package.
-
-The current QA-stack `tools/local-ci.sh` wall completed successfully after
-that restoration fix: M00–M23, C00–C12, mandatory C11L, lifecycle tests,
-clean rebuild/retest, and ASan/UBSan-enabled native tests all passed. This is
-not yet a final frozen-stack result because MPLAPACK release QA and the final
-candidate/archive are maintained separately by the release maintainer.
-
-## Octave binary package audit
+## Migration QA
 
 ```text
-pkg build: PASS (design probe)
-Binary archive: mplapack-interop-0.2.1-dev-x86_64-pc-linux-gnu-api-v61.tar.gz
-Internal Name: mplapack-interop
-Architecture-dependent directory: encoded in archive basename/API key
+Old v0.2.0 tag: unchanged
+Old package source/archive: retained as historical provenance
+Old unload/uninstall behavior: not changed by D01R1
+New 0.2.1 install: PASS
+New pkg list/describe/load: PASS
+Real smoke: PASS
+Complex smoke: PASS
+Stale old package entry in clean package database: NO
+Unload/reinstall: PASS
+Result: PASS
+```
+
+## Full regression on the final candidate stack
+
+The final `tools/local-ci.sh` run used the installed gmpfrxx 1.4.1 archive
+and supplied MPLAPACK 3.0.1 candidate archive. The environment selected the
+local prefix explicitly:
+
+```text
+PKG_CONFIG_PATH=/home/docker/opt/octave-mplapack-stack/lib/pkgconfig:/home/docker/opt/octave-mplapack-stack/lib64/pkgconfig
+LD_LIBRARY_PATH=/home/docker/opt/octave-mplapack-stack/lib:/home/docker/opt/octave-mplapack-stack/lib64:/usr/local/lib
+SOURCE_DATE_EPOCH=0
+```
+
+```text
+M00-M23 real regression: PASS
+C00-C12 complex regression: PASS
+C11L complex Cgetrf: PASS
+Compatibility firewall: PASS
+1024-bit canaries: PASS
+2048-bit canaries: PASS
+low/high ambient precision: PASS
+precision-scope restoration: PASS
+operation-owned input immutability: PASS
+native lifetime/shutdown tests: PASS
+ASan: PASS
+UBSan: PASS
+LSan: PASS
+Package install/load/real smoke/complex smoke/help/examples/unload/uninstall/reinstall: PASS
+Result: G-D01R1-REGRESSION PASS
+```
+
+The native tests covered real Rgemm, Rgesv, Rgels, Rgelss, Rpotrf, Rgeqrf,
+Rorgqr, Rgeqp3, and Rgetrf, plus complex Cgemm, Cgesv, Cgelsy, Cpotrf,
+Cgeqrf, Cungqr, Cgeqp3, and Cgetrf. The wall also checked signed-zero and
+special values, mixed real/complex operands, thread/lifetime behavior,
+public precision scope, shared-library relocations, and a negative dependency
+diagnostic.
+
+## Reproducibility and standalone archive
+
+```text
+Build A: PASS
+Build B: PASS
+File lists: identical
+Top-level directory: identical
+Version metadata: identical
+SHA256 A/B: identical
+Git metadata required: NO
+Source-worktree headers required: NO
+Clean extraction build: PASS
+Result: G-D01R1-REPRODUCIBLE PASS
+```
+
+The final source archive is the canonical `pkg install` input and has also
+been placed at `/home/docker/src/mplapack-interop-0.2.1.tar.gz`.
+
+## Octave binary-distribution architecture audit
+
+```text
+pkg build design probe: PASS
+Binary archive internal Name: mplapack-interop
+Architecture-dependent path: Octave API-qualified directory
 .oct location: src/__mplapack_core__.oct
-Raw probe issue: pkg build includes source-tree QA output if left behind
-Final policy: clean extraction plus package-local runtime and release cleanup
-Production B01 artifact: NOT BUILT
-Result: architecture probe recorded; relocation proof pending B01
+Linux loader design: $ORIGIN/DT_RUNPATH
+macOS loader design: @loader_path/@rpath
+Windows loader design: package-local DLL directory
+Production B01-B05 artifacts: NOT BUILT
+Result: G-D01R1-BINARY-ARCH PASS
 ```
+
+The package-local runtime layout, ABI key, relocation checks, target matrix,
+and license handoff are defined in `docs/binary-distribution.md`. This
+milestone freezes architecture only; it does not perform binary distribution.
 
 ## ABI compatibility key
 
 ```text
-Octave version: 11.1.0
-Octave API version: api-v61
-OS/architecture: Linux x86_64 (x86_64-pc-linux-gnu)
-Compiler/toolchain: GNU C++ 15.2.0
-Required key: Octave major/minor + API + OS + architecture
-Result: PASS for audit host; target matrix recorded for B01-B05
+Octave: 11.1.0
+Octave API: api-v61
+OS: Linux
+Architecture: x86_64
+Compiler/toolchain: GNU C++ 15.2.0 / GNU Make
+Required B01-B05 key: Octave major/minor + API + OS + architecture
+Result: PASS for the audit host; target matrix handed to B01-B05
 ```
 
 ## Runtime dependency closure
 
 ```text
 MPLAPACK runtime: libmplapack_mpfr.so.3
-MPC: libmpc.so.3
-MPFR: libmpfr.so.6
-GMP: libgmp.so.10
+MPC runtime: libmpc.so.3
+MPFR runtime: libmpfr.so.6
+GMP runtime: libgmp.so.10
 C/C++ runtimes: libstdc++.so.6, libgcc_s.so.1, libc.so.6
-Octave libraries: host Octave loader/runtime, not bundled
-Other: any gmpfrxx provider is an explicit manifest item if required
-Result: audited with readelf/ldd; final package-local closure belongs to B01-B05
+Octave libraries: host Octave runtime; not bundled in D01R1
+gmpfrxx: header/interface dependency; no separate runtime library
+Provenance: readelf/ldd and installed-prefix checks PASS
 ```
 
-## Binary runtime layout
+## Licensing inventory
 
 ```text
-Common layout: package files + src/__mplapack_core__.oct + runtime/ + manifest
-Package-local runtime directory: runtime/
-.oct location: src/__mplapack_core__.oct
-Manifest location: docs/binary-manifest.json (or package-preserved equivalent)
+octave-mplapack / mplapack-interop: BSD-2-Clause
+gmpfrxx_mkII: BSD-2-Clause
+MPLAPACK: 2-clause BSD-style terms with original LAPACK/BLAS notices
+GMP: dual GPL-2+ / LGPL-3+
+MPFR: LGPL-3+
+MPC: LGPL-3+
 ```
 
-| Target | Loader strategy | Environment variable required |
-|---|---|---|
-| B01/B02 Linux | `$ORIGIN`/`DT_RUNPATH`; `readelf`, `ldd -r` | none |
-| B03/B04 macOS | `@loader_path`/`@rpath`; `otool -L` | none |
-| B05 Windows | package-local DLL directory; `objdump -p`/`ntldd` | none |
+Detailed binary redistribution analysis remains outside D01R1 and belongs to
+the later binary/package milestones.
 
-The current development module has no relative runpath and therefore used an
-isolated library path for the design probe. That is not a final binary claim.
-
-## Licensing
-
-See [`docs/binary-redistribution-licenses.md`](../docs/binary-redistribution-licenses.md).
-The inventory records BSD 2-Clause for this project and gmpfrxx, MPLAPACK's
-2-clause BSD-style terms plus LAPACK/BLAS notices, GMP's dual GPL-2+/LGPL-3+
-terms, MPFR/MPC LGPL-3+ terms, and future toolchain/runtime review items.
-
-## Binary artifact naming
+## Binary artifact naming handoff
 
 ```text
 Source: mplapack-interop-0.2.1.tar.gz
@@ -201,37 +259,96 @@ B05: mplapack-interop-0.2.1-octave11-windows-x86_64.tar.gz
 ## F00 and PPA handoff
 
 ```text
-Octave Packages name: mplapack-interop
-Repository: https://github.com/nakatamaho/octave-mplapack
-Index work started: NO
-Recommended Debian binary: octave-mplapack-interop
-Dependency order: gmpfrxx_mkII -> MPLAPACK -> mplapack-interop
-PPA work started: NO
+Octave Packages index work: NO
+PPA work: NO
+Debian package: NOT CREATED
+Launchpad upload: NOT PERFORMED
+Recommended dependency order: gmpfrxx_mkII -> MPLAPACK -> mplapack-interop
 ```
 
 ## Revised release stack
 
-See [`docs/dependency-release-stack-r1.md`](../docs/dependency-release-stack-r1.md).
-The renamed package's final commit/tag/archive/checksum remain pending.
+```text
+gmpfrxx_mkII:
+    version: 1.4.1
+    commit: 32a7fb797202cdf92312ed9d133f96fdbcda590a
+    tag: v1.4.1
+    archive: gmpfrxx_mkII.1.4.1.tar.xz
+    sha256: 395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4
+
+MPLAPACK:
+    version: 3.0.1
+    commit: c21a9f56224308afda9e7424ca9928d4cf840f7a
+    tag: external release QA/tag owner
+    archive: mplapack-3.0.1.tar.xz
+    sha256: f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1
+
+mplapack-interop:
+    version: 0.2.1
+    commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
+    tag: v0.2.1
+    archive: mplapack-interop-0.2.1.tar.gz
+    sha256: 28769e877e0588a59d9c0d6736fb875624df8b836f570cc9e87eda7d74936d0f
+```
 
 ## Gates
 
 ```text
 G-D01R1-NAME-SYNTAX: PASS
-G-D01R1-DEPS: PENDING — corrected candidate awaits separate MPLAPACK release QA/tag
-G-D01R1-RENAME: IN PROGRESS
-G-D01R1-IDENTITY: PENDING final 0.2.1 archive/tag
-G-D01R1-NUMERICAL-EQUIVALENCE: PENDING final diff audit
-G-D01R1-REGRESSION: PASS on current QA stack; final frozen dependency wall pending
-G-D01R1-REPRODUCIBLE: PENDING final archive A/B
-G-D01R1-BINARY-ARCH: IN PROGRESS; design documented, relocation proof B01-owned
+G-D01R1-DEPS: PASS
+G-D01R1-RENAME: PASS
+G-D01R1-IDENTITY: PASS
+G-D01R1-NUMERICAL-EQUIVALENCE: PASS
+G-D01R1-REGRESSION: PASS
+G-D01R1-REPRODUCIBLE: PASS
+G-D01R1-BINARY-ARCH: PASS
+```
+
+## Changes made during D01R1
+
+```text
+octave-mplapack:
+  rename package identity mplapack -> mplapack-interop
+  freeze package version 0.2.1
+  add deterministic source archive/release metadata
+  make Bash syntax checking follow the script shebang
+  exclude the /home/docker-specific developer installer from public archives
+  record the final archive checksum in the developer installer
+  numerical implementation: unchanged
+
+gmpfrxx_mkII:
+  no changes
+
+MPLAPACK:
+  no changes in this worktree; external release QA/tag ownership retained
+```
+
+## Commits / push verification
+
+```text
+dd123dcb8eeeb8a1b2db33e8b4255891b2b3dcbe  Freeze package metadata
+dfc23fd4cc4dec756471660936b3246600612624  Use Bash syntax checks
+0354f74                               Installer defaults to frozen release
+d2e0db5                               Exclude developer-only installer
+b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6  Record final archive checksum
+Branch pushed: topic/d01r1-0.2.1-release-freeze
+Remote branch tip: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
+Tag pushed: v0.2.1
+Remote tag target: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
 ```
 
 ## Known limitations
 
-- The corrected MPLAPACK candidate has passed the archive-content audit; its
-  separate full release QA and `v3.0.1` tag are still pending.
-- The source package is temporarily `0.2.1-dev`; no `v0.2.1` tag has been
-  created.
-- No B01–B05 production binary, Debian package, PPA upload, or registry
-  submission has been started.
+- The MPLAPACK 3.0.1 release tag is intentionally not created or modified in
+  this worktree; its release maintainer owns final MPLAPACK QA and tagging.
+- No B01-B05 binary, Debian package, PPA upload, Launchpad upload, or Octave
+  Packages registry submission was performed.
+- If a later source-level defect is found in a frozen dependency, reopen the
+  appropriate dependency freeze rather than altering this package tag.
+
+## Next milestone
+
+D01R1 is complete and B01-READY, but B01 is not started automatically. The
+active numerical/API sequence continues with N00. Any future source-level
+change to the frozen package or dependencies requires a new release-freeze
+review.
