@@ -6,7 +6,8 @@
 S03 PASS — COMPARISONS, LOGICALS, AND LOGICAL INDEXING CLOSED
 ```
 
-Implementation commit: `a71c13f`.
+Implementation commits: `a71c13f` (native bridge) and `5714787` (public
+wrappers).
 
 ## Public API
 

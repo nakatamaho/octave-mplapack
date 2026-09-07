@@ -11,7 +11,7 @@ active package version: 0.4.0-dev
 S00: PASS; committed and pushed as c17b48c0a8bf7e39c3c9a111bcc8e3ae0c60e048
 S01: PASS; committed and pushed as 29f3539 (full SHA in git history)
 S02: PASS; committed and pushed as 07c047d08d64ecd8c0d623cd2e1e621882b6c8b9
-S03: PASS; committed and pushed as a71c13f
+S03: PASS; committed and pushed as a71c13f and 5714787
 S04-S08: not started
 D03: not started
 ```
@@ -120,7 +120,7 @@ S02 PASS — REDUCTIONS AND EXTREMA CLOSED
 
 ## S03 evidence
 
-Implementation commit: `a71c13f`.
+Implementation commits: `a71c13f` and `5714787`.
 
 ```text
 comparisons: native MPFR real relations and native MPC equality/inequality
