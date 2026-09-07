@@ -8,7 +8,7 @@
 %!   A = mp ([1, 2; 3, 4]);
 %!   assert (norm (double (A / mp ("2")) - [1, 2; 3, 4] / 2, "fro") < 1e-12);
 %!   Z = mp ([1 + 2i, 2 - 1i; 3, 4 + 3i]);
-%!   assert (norm (double (Z / mp ("2")) - double (Z) / 2, "fro") < 1e-12);
+%!   assert (norm (double (Z / mp ("2")) - double (Z) ./ 2, "fro") < 1e-12);
 %!   B = mp ([1 + 1i; 2 - 1i]);
 %!   Bd = double (B);
 %!   expected = 2 * ctranspose (Bd) ./ sum (abs (Bd) .^ 2);
@@ -40,7 +40,17 @@
 %!   W_before = double (W);
 %!   Y = Z / W;
 %!   assert (size (Y), [2, 2]);
-%!   assert (norm (double (Y) - Z_before / W_before, "fro") < 1e-12);
+%!   det_w = W_before(1, 1) * W_before(2, 2) ...
+%!           - W_before(1, 2) * W_before(2, 1);
+%!   expected = [(Z_before(1, 1) * W_before(2, 2) ...
+%!                - Z_before(1, 2) * W_before(2, 1)) / det_w, ...
+%!               (Z_before(1, 2) * W_before(1, 1) ...
+%!                - Z_before(1, 1) * W_before(1, 2)) / det_w; ...
+%!               (Z_before(2, 1) * W_before(2, 2) ...
+%!                - Z_before(2, 2) * W_before(2, 1)) / det_w, ...
+%!               (Z_before(2, 2) * W_before(1, 1) ...
+%!                - Z_before(2, 1) * W_before(1, 2)) / det_w];
+%!   assert (norm (double (Y) - expected, "fro") < 1e-12);
 %!   assert (double (Z), Z_before);
 %!   assert (double (W), W_before);
 %!   info = __mplapack_core__ ("matrix_test_info", Y);
@@ -77,7 +87,8 @@
 %!   Bc = mp ([1 + 1i, 2, 3 - 1i; 1i, 1 - 1i, 2]);
 %!   Ac = Tc * Bc;
 %!   assert (size (Ac / Bc), [2, 2]);
-%!   assert (norm (double (Ac / Bc) - double (Ac) / double (Bc), "fro") < 1e-11);
+%!   expected = double (Tc);
+%!   assert (norm (double (Ac / Bc) - expected, "fro") < 1e-11);
 %! unwind_protect_cleanup
 %!   mpbits (saved);
 %! end_unwind_protect
@@ -99,7 +110,15 @@
 %!
 %!   Z = mp ([1 + 1i, 2; 3, 4 - 1i]);
 %!   W = mp ([1 + 1i, 2; 2 + 2i, 4]);
-%!   assert (norm (double (Z / W) - double (Z) / double (W), "fro") < 1e-11);
+%!   r = [1 + 1i, 2];
+%!   Zd = double (Z);
+%!   alpha1 = (Zd(1, 1) * conj (r(1)) ...
+%!             + Zd(1, 2) * conj (r(2))) / 6;
+%!   alpha2 = (Zd(2, 1) * conj (r(1)) ...
+%!             + Zd(2, 2) * conj (r(2))) / 6;
+%!   expected = [alpha1 / 5, 2 * alpha1 / 5; ...
+%!               alpha2 / 5, 2 * alpha2 / 5];
+%!   assert (norm (double (Z / W) - expected, "fro") < 1e-11);
 %! unwind_protect_cleanup
 %!   mpbits (saved);
 %! end_unwind_protect
@@ -113,8 +132,19 @@
 %!   assert (norm (double (A / B) - A / double (B), "fro") < 1e-12);
 %!   Z = mp ([1 + 2i, 2 - 1i; 3, 4 + 3i]);
 %!   Bc = [2 - 1i, 1 + 1i; 1, 3 + 2i];
-%!   assert (norm (double (Z / Bc) - double (Z) / Bc, "fro") < 1e-12);
-%!   assert (norm (double (Bc / Z) - Bc / double (Z), "fro") < 1e-12);
+%!   det_b = Bc(1, 1) * Bc(2, 2) - Bc(1, 2) * Bc(2, 1);
+%!   Zd = double (Z);
+%!   expected = [(Zd(1, 1) * Bc(2, 2) - Zd(1, 2) * Bc(2, 1)) / det_b, ...
+%!               (Zd(1, 2) * Bc(1, 1) - Zd(1, 1) * Bc(1, 2)) / det_b; ...
+%!               (Zd(2, 1) * Bc(2, 2) - Zd(2, 2) * Bc(2, 1)) / det_b, ...
+%!               (Zd(2, 2) * Bc(1, 1) - Zd(2, 1) * Bc(1, 2)) / det_b];
+%!   assert (norm (double (Z / Bc) - expected, "fro") < 1e-12);
+%!   det_z = Zd(1, 1) * Zd(2, 2) - Zd(1, 2) * Zd(2, 1);
+%!   expected = [(Bc(1, 1) * Zd(2, 2) - Bc(1, 2) * Zd(2, 1)) / det_z, ...
+%!               (Bc(1, 2) * Zd(1, 1) - Bc(1, 1) * Zd(1, 2)) / det_z; ...
+%!               (Bc(2, 1) * Zd(2, 2) - Bc(2, 2) * Zd(2, 1)) / det_z, ...
+%!               (Bc(2, 2) * Zd(1, 1) - Bc(2, 1) * Zd(1, 2)) / det_z];
+%!   assert (norm (double (Bc / Z) - expected, "fro") < 1e-12);
 %!   assert (__mplapack_core__ ("matrix_test_info", A / B).precision_bits == 256);
 %! unwind_protect_cleanup
 %!   mpbits (saved);
