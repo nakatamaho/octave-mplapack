@@ -87,10 +87,10 @@ Freeze commit: pending
 Tag: pending
 Tag target: pending
 Archive: mplapack-interop-0.2.1-dev.tar.gz (development archive)
-Archive size: 247347 bytes (development archive; not the final release archive)
-SHA256 A: d55e1456dd6ea00944c670866a9e932cd226a8a3542b372a0f876097144ded11
-SHA256 B: pending
-Hashes identical: not yet final
+Archive size: 247410 bytes (development archive; not the final release archive)
+SHA256 A: 0e654cdcc40acc5789466323d620cd393944327eb4356584aac2d5ef3dea9646
+SHA256 B: 0e654cdcc40acc5789466323d620cd393944327eb4356584aac2d5ef3dea9646
+Hashes identical: YES (development archive only)
 Top-level directory: mplapack-interop-0.2.1-dev
 pkg list identity: verified in installed development archive
 pkg describe identity: verified
