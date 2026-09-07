@@ -230,9 +230,12 @@ docs/milestones/N02-svd.md
 docs/rank-condition.md
 docs/milestones/N03-rank-condition.md
 docs/eig.md
+docs/generalized-eig.md
 docs/milestones/N04-eig-structured.md
 docs/milestones/N05-eig-general.md
+docs/milestones/N06-eig-generalized.md
 reports/N05-report.md
+reports/N06-report.md
 docs/v0.1-release-manifest.md
 docs/matrix-assignment.md
 docs/milestones/M14-indexed-assignment.md

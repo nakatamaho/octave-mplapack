@@ -44,6 +44,7 @@ make -C src check-svd
 make -C src check-rank-condition
 make -C src check-structured-eig
 make -C src check-general-eig
+make -C src check-generalized-eig
 
 mplapack_include_dir=$(pkg-config --variable=includedir mplapack_mpfr)
 if [ ! -f "$mplapack_include_dir/mplapack_mpfr_precision.h" ]; then
@@ -85,7 +86,8 @@ make -C src check-svd
 make -C src check-rank-condition
 make -C src check-structured-eig
 make -C src check-general-eig
-echo "PASS: D00 ASan/UBSan/LSan real and complex storage, arithmetic, BLAS, LAPACK, rank, Cholesky, QR, pivoted QR, concatenation, assignment, LU, structured eig, and general eig QA"
+make -C src check-generalized-eig
+echo "PASS: D00 ASan/UBSan/LSan real and complex storage, arithmetic, BLAS, LAPACK, rank, Cholesky, QR, pivoted QR, concatenation, assignment, LU, structured eig, general eig, and generalized eig QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -332,6 +334,26 @@ fi
 
 if ! nm -D -C "$module" | grep -Eq ' U Cgeevx\('; then
   echo "FAIL: N05 native module lacks an unresolved Cgeevx reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rggev\('; then
+  echo "FAIL: N06 native module lacks an unresolved Rggev reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cggev\('; then
+  echo "FAIL: N06 native module lacks an unresolved Cggev reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rsygvd\('; then
+  echo "FAIL: N06 native module lacks an unresolved Rsygvd reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Chegvd\('; then
+  echo "FAIL: N06 native module lacks an unresolved Chegvd reference" >&2
   exit 1
 fi
 
@@ -744,22 +766,25 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   test/eig_structured.tst test/mp_structured_eig_test.cc \
   src/mp_general_eig.h src/mp_general_eig.cc \
   test/eig_general.tst test/mp_general_eig_test.cc \
-  inst/@mp/eig.m docs/eig.md docs/milestones/N04-eig-structured.md \
-  docs/milestones/N05-eig-general.md; do
+  src/mp_generalized_eig.h src/mp_generalized_eig.cc \
+  test/eig_generalized.tst test/mp_generalized_eig_test.cc \
+  inst/@mp/eig.m docs/eig.md docs/generalized-eig.md \
+  docs/milestones/N04-eig-structured.md docs/milestones/N05-eig-general.md \
+  docs/milestones/N06-eig-generalized.md; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22|\.build-n00|\.build-n01|\.build-n02|\.build-n03|\.build-n04|\.build-n05)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22|\.build-n00|\.build-n01|\.build-n02|\.build-n03|\.build-n04|\.build-n05|\.build-n06)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
 fi
 
-if grep -Eq '(^|/)\.build-n0[45]/' "$archive_listing"; then
-  echo "FAIL: package archive contains an N04/N05 native build directory" >&2
+if grep -Eq '(^|/)\.build-n0[456]/' "$archive_listing"; then
+  echo "FAIL: package archive contains an N04/N05/N06 native build directory" >&2
   exit 1
 fi
 

@@ -13,6 +13,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <octave/oct.h>
@@ -50,6 +51,7 @@
 #include "mp_rank_condition.h"
 #include "mp_structured_eig.h"
 #include "mp_general_eig.h"
+#include "mp_generalized_eig.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -4210,7 +4212,8 @@ mp_structured_eig_operation (const octave_value& value,
     error_with_id ("mplapack:mp:InvalidInput",
                    "eig expects one real or complex mp value");
   if (output_mode != "values" && output_mode != "matrix"
-      && output_mode != "vector")
+      && output_mode != "vector" && output_mode != "diagonal"
+      && output_mode != "left" && output_mode != "left-vector")
     error_with_id ("mplapack:mp:InvalidArguments",
                    "eig output mode is invalid");
 
@@ -4245,12 +4248,16 @@ mp_structured_eig_operation (const octave_value& value,
             = octave_mplapack::mplapack_mpc_matrix_structured_eig (*input);
           if (output_mode == "values")
             return ovl (make_inspection_result (result.eigenvalues));
+          if (output_mode == "diagonal")
+            return ovl (make_inspection_result (result.diagonal));
           const octave_value vectors
             = make_complex_inspection_result (result.vectors);
           const octave_value second
-            = output_mode == "vector"
+            = output_mode == "vector" || output_mode == "left-vector"
                 ? make_inspection_result (result.eigenvalues)
                 : make_inspection_result (result.diagonal);
+          if (output_mode == "left" || output_mode == "left-vector")
+            return ovl (vectors, second, vectors);
           return ovl (vectors, second);
         }
       catch (const octave_mplapack::MpcStructuredEigError& exception)
@@ -4307,11 +4314,15 @@ mp_structured_eig_operation (const octave_value& value,
         = octave_mplapack::mplapack_mpfr_matrix_structured_eig (*input);
       if (output_mode == "values")
         return ovl (make_inspection_result (result.eigenvalues));
+      if (output_mode == "diagonal")
+        return ovl (make_inspection_result (result.diagonal));
       const octave_value vectors = make_inspection_result (result.vectors);
       const octave_value second
-        = output_mode == "vector"
+        = output_mode == "vector" || output_mode == "left-vector"
             ? make_inspection_result (result.eigenvalues)
             : make_inspection_result (result.diagonal);
+      if (output_mode == "left" || output_mode == "left-vector")
+        return ovl (vectors, second, vectors);
       return ovl (vectors, second);
     }
   catch (const octave_mplapack::MpfrStructuredEigError& exception)
@@ -4399,7 +4410,8 @@ mp_general_eig_operation (const octave_value& value,
                           const std::string& output_mode, bool balance)
 {
   if (output_mode != "values" && output_mode != "matrix"
-      && output_mode != "vector" && output_mode != "left")
+      && output_mode != "vector" && output_mode != "diagonal"
+      && output_mode != "left" && output_mode != "left-vector")
     error_with_id ("mplapack:mp:InvalidArguments",
                    "eig output mode is invalid");
 
@@ -4435,6 +4447,8 @@ mp_general_eig_operation (const octave_value& value,
                                                                 balance);
           if (output_mode == "values")
             return ovl (make_complex_inspection_result (result.eigenvalues));
+          if (output_mode == "diagonal")
+            return ovl (make_complex_inspection_result (result.diagonal));
           const octave_value vectors
             = make_complex_inspection_result (result.right_vectors);
           const octave_value diagonal
@@ -4442,9 +4456,15 @@ mp_general_eig_operation (const octave_value& value,
           if (output_mode == "vector")
             return ovl (vectors,
                         make_complex_inspection_result (result.eigenvalues));
-          if (output_mode == "left")
+          if (output_mode == "left" || output_mode == "left-vector")
+            {
+              if (output_mode == "left-vector")
+                return ovl (vectors,
+                            make_complex_inspection_result (result.eigenvalues),
+                            make_complex_inspection_result (result.left_vectors));
             return ovl (vectors, diagonal,
                         make_complex_inspection_result (result.left_vectors));
+            }
           return ovl (vectors, diagonal);
         }
       catch (const octave_mplapack::MpcGeneralEigError& exception)
@@ -4499,6 +4519,8 @@ mp_general_eig_operation (const octave_value& value,
         = octave_mplapack::mplapack_mpfr_matrix_general_eig (*input, balance);
       if (output_mode == "values")
         return ovl (make_complex_inspection_result (result.eigenvalues));
+      if (output_mode == "diagonal")
+        return ovl (make_complex_inspection_result (result.diagonal));
       const octave_value vectors
         = make_complex_inspection_result (result.right_vectors);
       const octave_value diagonal
@@ -4506,9 +4528,15 @@ mp_general_eig_operation (const octave_value& value,
       if (output_mode == "vector")
         return ovl (vectors,
                     make_complex_inspection_result (result.eigenvalues));
-      if (output_mode == "left")
-        return ovl (vectors, diagonal,
-                    make_complex_inspection_result (result.left_vectors));
+      if (output_mode == "left" || output_mode == "left-vector")
+        {
+          if (output_mode == "left-vector")
+            return ovl (vectors,
+                        make_complex_inspection_result (result.eigenvalues),
+                        make_complex_inspection_result (result.left_vectors));
+          return ovl (vectors, diagonal,
+                      make_complex_inspection_result (result.left_vectors));
+        }
       return ovl (vectors, diagonal);
     }
   catch (const octave_mplapack::MpfrGeneralEigError& exception)
@@ -4525,6 +4553,246 @@ mp_general_eig_operation (const octave_value& value,
     {
       error_with_id ("mplapack:mp:DimensionOverflow", "%s",
                      exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:EigError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
+generalized_eig_result_to_octave (
+  const octave_mplapack::MpGeneralizedEigResult& result,
+  const std::string& output_mode)
+{
+  using RealResult = octave_mplapack::MpGeneralizedRealDefiniteEigResult;
+  using ComplexResult = octave_mplapack::MpGeneralizedComplexDefiniteEigResult;
+  using QzResult = octave_mplapack::MpGeneralizedQzEigResult;
+
+  if (output_mode == "values")
+    return std::visit ([] (const auto& value) -> octave_value_list
+    {
+      using Result = std::decay_t<decltype (value)>;
+      if constexpr (std::is_same_v<Result, QzResult>)
+        return ovl (make_complex_inspection_result (value.eigenvalues));
+      else
+        return ovl (make_inspection_result (value.eigenvalues));
+    }, result);
+
+  if (output_mode == "diagonal")
+    return std::visit ([] (const auto& value) -> octave_value_list
+    {
+      using Result = std::decay_t<decltype (value)>;
+      if constexpr (std::is_same_v<Result, QzResult>)
+        return ovl (make_complex_inspection_result (value.diagonal));
+      else
+        return ovl (make_inspection_result (value.diagonal));
+    }, result);
+
+  return std::visit ([&] (const auto& value) -> octave_value_list
+  {
+    using Result = std::decay_t<decltype (value)>;
+    const bool vector_output = output_mode == "vector"
+                               || output_mode == "left-vector";
+    if constexpr (std::is_same_v<Result, RealResult>)
+      {
+        const octave_value vectors = make_inspection_result (value.right_vectors);
+        const octave_value second = vector_output
+          ? make_inspection_result (value.eigenvalues)
+          : make_inspection_result (value.diagonal);
+        if (output_mode == "left" || output_mode == "left-vector")
+          return ovl (vectors, second, make_inspection_result (value.left_vectors));
+        return ovl (vectors, second);
+      }
+    else if constexpr (std::is_same_v<Result, ComplexResult>)
+      {
+        const octave_value vectors
+          = make_complex_inspection_result (value.right_vectors);
+        const octave_value second = vector_output
+          ? make_inspection_result (value.eigenvalues)
+          : make_inspection_result (value.diagonal);
+        if (output_mode == "left" || output_mode == "left-vector")
+          return ovl (vectors, second,
+                      make_complex_inspection_result (value.left_vectors));
+        return ovl (vectors, second);
+      }
+    else
+      {
+        const octave_value vectors
+          = make_complex_inspection_result (value.right_vectors);
+        const octave_value second = vector_output
+          ? make_complex_inspection_result (value.eigenvalues)
+          : make_complex_inspection_result (value.diagonal);
+        if (output_mode == "left" || output_mode == "left-vector")
+          return ovl (vectors, second,
+                      make_complex_inspection_result (value.left_vectors));
+        return ovl (vectors, second);
+      }
+  }, result);
+}
+
+using GeneralizedMatrix = std::variant<
+  octave_mplapack::MpfrMatrixStorage,
+  octave_mplapack::MpfrComplexMatrixStorage>;
+
+GeneralizedMatrix
+generalized_matrix_payload (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      octave_mplapack::MpfrMatrixStorage matrix (1, 1, scalar.precision_bits ());
+      mpfr_set (matrix.at (0, 0).mpfr_data (), scalar.native_value ().mpfr_data (),
+                MPFR_RNDN);
+      return matrix;
+    }
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    return octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+      .storage ();
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      octave_mplapack::MpfrComplexMatrixStorage matrix (
+        1, 1, scalar.precision_bits ());
+      mpc_set (matrix.at (0, 0).mpc_data (), scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return matrix;
+    }
+  if (payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    return octave_mplapack_mpc_matrix_internal::checked_value (payload)
+      .storage ();
+  error_with_id ("mplapack:mp:InvalidInput",
+                 "generalized eig expects mp matrix operands");
+  return octave_mplapack::MpfrMatrixStorage (0, 0,
+                                               octave_mplapack::default_precision_bits ());
+}
+
+mpfr_prec_t
+generalized_matrix_precision (const GeneralizedMatrix& matrix)
+{
+  return std::visit ([] (const auto& value) { return value.precision_bits (); },
+                     matrix);
+}
+
+GeneralizedMatrix
+generalized_matrix_at_precision (const GeneralizedMatrix& matrix,
+                                 mpfr_prec_t precision_bits,
+                                 bool complex_output)
+{
+  return std::visit ([&] (const auto& value) -> GeneralizedMatrix
+  {
+    if constexpr (std::is_same_v<std::decay_t<decltype (value)>,
+                                 octave_mplapack::MpfrMatrixStorage>)
+      {
+        if (! complex_output)
+          return octave_mplapack::MpfrMatrixStorage (
+            value.rows (), value.columns (), precision_bits, value);
+        octave_mplapack::MpfrComplexMatrixStorage converted (
+          value.rows (), value.columns (), precision_bits);
+        for (std::size_t column = 0; column < value.columns (); ++column)
+          for (std::size_t row = 0; row < value.rows (); ++row)
+            {
+              mpfr_set (mpc_realref (converted.at (row, column).mpc_data ()),
+                        value.at (row, column).mpfr_data (), MPFR_RNDN);
+              mpfr_set_zero (mpc_imagref (converted.at (row, column).mpc_data ()),
+                             1);
+            }
+        return converted;
+      }
+    else
+      {
+        if (complex_output && value.precision_bits () == precision_bits)
+          return value;
+        octave_mplapack::MpfrComplexMatrixStorage converted (
+          value.rows (), value.columns (), precision_bits);
+        for (std::size_t column = 0; column < value.columns (); ++column)
+          for (std::size_t row = 0; row < value.rows (); ++row)
+            mpc_set (converted.at (row, column).mpc_data (),
+                     value.at (row, column).mpc_data (),
+                     MPC_RND (MPFR_RNDN, MPFR_RNDN));
+        return converted;
+      }
+  }, matrix);
+}
+
+octave_value_list
+mp_generalized_eig_operation (const octave_value& value_a,
+                              const octave_value& value_b,
+                              const std::string& output_mode,
+                              const std::string& algorithm_name)
+{
+  if (output_mode != "values" && output_mode != "matrix"
+      && output_mode != "vector" && output_mode != "diagonal"
+      && output_mode != "left" && output_mode != "left-vector")
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "generalized eig output mode is invalid");
+  if (! is_mp_value (value_a) || ! is_mp_value (value_b))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "generalized eig expects two mp values");
+
+  octave_mplapack::GeneralizedEigAlgorithm algorithm;
+  if (algorithm_name == "auto")
+    algorithm = octave_mplapack::GeneralizedEigAlgorithm::auto_select;
+  else if (algorithm_name == "chol")
+    algorithm = octave_mplapack::GeneralizedEigAlgorithm::chol;
+  else if (algorithm_name == "qz")
+    algorithm = octave_mplapack::GeneralizedEigAlgorithm::qz;
+  else
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "generalized eig algorithm must be \"chol\" or \"qz\"");
+
+  try
+    {
+      auto a = generalized_matrix_payload (value_a);
+      auto b = generalized_matrix_payload (value_b);
+      const bool complex_output
+        = std::holds_alternative<octave_mplapack::MpfrComplexMatrixStorage> (a)
+          || std::holds_alternative<octave_mplapack::MpfrComplexMatrixStorage> (b);
+      const mpfr_prec_t precision = std::max (
+        generalized_matrix_precision (a), generalized_matrix_precision (b));
+      a = generalized_matrix_at_precision (a, precision, complex_output);
+      b = generalized_matrix_at_precision (b, precision, complex_output);
+
+      if (complex_output)
+        return generalized_eig_result_to_octave (
+          octave_mplapack::mplapack_mpc_matrix_generalized_eig (
+            std::get<octave_mplapack::MpfrComplexMatrixStorage> (a),
+            std::get<octave_mplapack::MpfrComplexMatrixStorage> (b), algorithm),
+          output_mode);
+      else
+        return generalized_eig_result_to_octave (
+          octave_mplapack::mplapack_mpfr_matrix_generalized_eig (
+            std::get<octave_mplapack::MpfrMatrixStorage> (a),
+            std::get<octave_mplapack::MpfrMatrixStorage> (b), algorithm),
+          output_mode);
+    }
+  catch (const octave_mplapack::MpGeneralizedEigError& exception)
+    {
+      if (exception.info () < 0)
+        error_with_id ("mplapack:mp:EigError",
+                       "MPLAPACK generalized eig rejected argument %d",
+                       -exception.info ());
+      error_with_id ("mplapack:mp:ConvergenceFailure",
+                     "MPLAPACK generalized eig failed (info %d)",
+                     exception.info ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s", exception.what ());
     }
   catch (const std::invalid_argument& exception)
     {
@@ -5992,6 +6260,14 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       return mp_eig_operation (
         args(1), require_string (args(2), "eig output mode"),
         require_string (args(3), "eig balance mode"));
+    }
+
+  if (command == "geig")
+    {
+      require_argument_count (args, 5, command);
+      return mp_generalized_eig_operation (
+        args(1), args(2), require_string (args(3), "generalized eig output mode"),
+        require_string (args(4), "generalized eig algorithm"));
     }
 
   if (command == "cond")

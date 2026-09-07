@@ -164,10 +164,11 @@
 %! end_unwind_protect
 
 %!test
-%! rejected = false;
-%! try
-%!   eig (mp ([1, 2; 2, 1]), mp (eye (2)));
-%! catch
-%!   rejected = true;
-%! end_try_catch
-%! assert (rejected, "generalized eig must remain deferred to N06");
+%! A = mp ([1, 2; 0, 3]);
+%! diagonal = eig (A, "matrix");
+%! vector = eig (A, "vector");
+%! assert (diag (double (diagonal)), double (vector), 1e-12);
+%! [V, d, W] = eig (A, "vector");
+%! assert (double (d), double (vector), 1e-12);
+%! assert_left_residual (A, diag (double (d)), W, 1e-12, ...
+%!                        "standard vector three-output left residual");

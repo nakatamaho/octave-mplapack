@@ -15,8 +15,8 @@ The following complex operations are intentionally rejected by the package's
 compatibility firewall. They must fail cleanly without conversion to a
 binary64 result, crash, or recursive dispatch:
 
-- generalized `eig(A,B)` (standard non-Hermitian `eig(A)` is supported by
-  N05; structured Hermitian `eig` remains on the N04 `Cheevd` path);
+- sparse generalized eig and standalone QZ APIs (dense generalized `eig(A,B)`
+  is supported by N06 through the definite/QZ MPLAPACK paths);
 - `sin`, `exp`, `sqrt`, and other unimplemented transcendentals;
 - power (`^` and `.^`), ordered comparisons, equality/logical operations,
   sparse conversion, and right division;
@@ -48,8 +48,9 @@ used.
 N05 adds standard general `eig` through MPFR `Rgeevx` and MPC/MPFR `Cgeevx`.
 Real general outputs are represented as complex `mp` so conjugate pairs retain
 their imaginary parts. Balance and nobalance forms, right/left residuals, and
-the permanent Grcar regression are covered. Generalized eigenproblems remain
-deferred to N06.
+the permanent Grcar regression are covered. N06 adds dense generalized
+eigenproblems with Octave-compatible `chol`/`qz` and `matrix`/`vector` options;
+no generalized path uses builtin binary64 arithmetic.
 
 N03 adds dense arbitrary-precision `rank`, `cond`, and `rcond`. Rank uses
 MPFR/MPC singular values and a stored-precision default threshold. The 2-norm

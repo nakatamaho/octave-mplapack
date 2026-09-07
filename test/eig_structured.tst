@@ -87,10 +87,9 @@
 %!                    "non-square eig must be rejected");
 %!   assert_rejected (@() eig (mp ([1, 2; 2, 1]), "bad-option"), ...
 %!                    "invalid eig option must be rejected");
-%!   assert_rejected (@() eig (mp ([1, 2; 2, 1]), "vector"), ...
-%!                    "one-output eig vector option must be rejected");
-%!   assert_rejected (@() eig (mp ([1, 2; 2, 1]), mp (eye (2))), ...
-%!                    "generalized eig must remain deferred");
+%!   vector_values = eig (mp ([1, 2; 2, 1]), "vector");
+%!   diagonal_values = eig (mp ([1, 2; 2, 1]), "matrix");
+%!   assert (diag (double (diagonal_values)), double (vector_values), 1e-12);
 %! unwind_protect_cleanup
 %!   mpbits (saved);
 %! end_unwind_protect

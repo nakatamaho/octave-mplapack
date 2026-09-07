@@ -1,10 +1,10 @@
 # N00-N07-D02 status
 
-Status: **N05 PASS — general standard eig and Grcar QA complete**
+Status: **N06 PASS — generalized eig QA complete**
 
 The D01R1 frozen package identity remains unchanged. The development line is
 now `mplapack-interop` 0.3.0-dev. N00, N01, N02, N03, N04, and N05 are
-complete; N06-N07 and D02 remain pending.
+complete; N07 and D02 remain pending.
 
 ## N00 identity
 
@@ -17,7 +17,8 @@ N01 implementation commit: 91a034d2f1acdf739b7ec3b30cc5e333ee6de4f1
 N02 implementation commit: 9f05418f3fc700914727e00b4321ee3ecd061dfe
 N03 implementation commit: ab8ed68fb4e04c821bb50a0e08e578474ee1cfcd
 N04 implementation commit: 455b5df72c65bb4475c6436429dae005910eb88f
-N05 implementation commit: pending final commit below
+N05 implementation commit: 61e8afa0c6af780f30948347f51c95b60d397d1a
+N06 implementation commit: pending final commit below
 Development version: 0.3.0-dev
 Frozen predecessor: mplapack-interop 0.2.1 / v0.2.1
 Historical predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
@@ -437,5 +438,63 @@ deterministic source archive contents: PASS
 full tools/local-ci.sh: PASS (exit code 0)
 ```
 
-N05 is complete and the next milestone is N06 generalized `eig(A,B)`. The
-D01R1 0.2.1 tag and archive remain unchanged.
+N05 is complete and N06 generalized `eig(A,B)` is now complete. The N06
+implementation uses the frozen MPLAPACK MPFR/MPC backend and preserves the
+one-operation/one-precision contract. The D01R1 0.2.1 tag and archive remain
+unchanged.
+
+## N06 implementation
+
+N06 adds dense generalized real and complex eigenproblems. Exactly symmetric
+or Hermitian pairs use `Rsygvd`/`Chegvd` for the default definite path; a
+non-positive-definite `B` falls back to QZ, and explicit `"qz"` uses
+`Rggev`/`Cggev`. Explicit `"chol"` requires the exact structured pair.
+
+The public wrapper supports Octave-compatible `matrix`/`vector` layouts,
+one-output diagonal/vector forms, three-output right/eigenvalue/left forms,
+mixed real/complex promotion, and rejection of generalized balance options.
+The native backend divides `alpha/beta` at the operation precision, preserves
+infinite eigenvalues for `beta = 0`, converts real conjugate pairs to complex
+MP storage, and keeps all destructive calls on owned copies.
+
+## N06 gates
+
+```text
+G-N06-API:                   PASS
+G-N06-QZ:                    PASS
+G-N06-CHOL:                  PASS
+G-N06-REAL:                  PASS
+G-N06-COMPLEX:               PASS
+G-N06-INFINITE-EIGENVALUES:  PASS
+G-N06-RIGHT-EIGENVECTORS:    PASS
+G-N06-LEFT-EIGENVECTORS:     PASS
+G-N06-MATRIX-VECTOR:         PASS
+G-N06-PRECISION:             PASS
+G-N06-REGRESSION:            PASS
+```
+
+## N06 regression evidence
+
+```text
+tools/check-tree.sh: PASS
+tools/check-format.sh: PASS
+native make -C src check-generalized-eig: PASS
+public test/eig_generalized.tst: PASS
+full test/run_tests.m: PASS (M00-M23, C00-C12 including C11L, N00-N06)
+full tools/local-ci.sh: PASS (exit code 0)
+ASan: PASS
+UBSan: PASS
+LSan: PASS
+real/complex definite and QZ residuals: PASS
+singular-B infinity and alpha/beta handling: PASS
+matrix/vector and three-output left-vector forms: PASS
+mixed real/complex pair: PASS
+1024-bit 2^-700 and 2048-bit 2^-1500: PASS
+ambient precision restoration: PASS
+input immutability: PASS
+clean package archive extraction/build/install/lifecycle: PASS
+deterministic source package archive: PASS
+```
+
+N06 is complete. The next milestone is N07 numerical API closure. No D02
+release tag or final 0.3.0 archive is created in N06.

@@ -11,6 +11,12 @@ N05 adds dense general standard `eig` through MPLAPACK `Rgeevx`/`Cgeevx`,
 including balance/nobalance controls, right and left eigenvectors, permanent
 Grcar coverage, and high-precision real conjugate-pair conversion.
 
+N06 adds dense generalized `eig(A,B)` through the definite
+`Rsygvd`/`Chegvd` and QZ `Rggev`/`Cggev` drivers. It supports Octave-compatible
+`chol`/`qz` algorithm selection, matrix/vector eigenvalue layouts, left
+eigenvectors, singular-B infinite eigenvalues, mixed real/complex promotion,
+and 1024/2048-bit precision canaries without binary64 fallback.
+
 ## 0.2.1
 
 The GNU Octave package public identity is now `mplapack-interop`, version
