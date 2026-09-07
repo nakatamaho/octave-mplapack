@@ -153,7 +153,8 @@ S03 PASS — COMPARISONS, LOGICALS, AND LOGICAL INDEXING CLOSED
 
 ## S04 evidence
 
-Implementation commit: `2247480a4835519f27cb53b6a39173d05f16bdc8`.
+Implementation commits: `2247480a4835519f27cb53b6a39173d05f16bdc8` and
+`a742fce4dc6f3c372a050e41f25eefe886561dab` (native matrix-structure backend).
 
 ```text
 diag construction/extraction and offsets: PASS
