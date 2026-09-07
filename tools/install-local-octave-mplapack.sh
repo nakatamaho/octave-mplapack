@@ -19,16 +19,16 @@ set -euo pipefail
 # The historical `pkg load mplapack` name is not provided by the renamed
 # D01R1 package.
 #
-# The development archive is selected by default; use OCTAVE_CHANNEL=release
-# for a final 0.2.1 archive after its SHA256 has been recorded.
+# The final release archive is selected by default; use OCTAVE_CHANNEL=dev
+# only when testing the separate development archive.
 #
 # Input archives:
 #   /home/docker/src/gmpfrxx_mkII.1.4.1.tar.xz
 #   /home/docker/src/mplapack-3.0.1.tar.xz
-#   /home/docker/src/mplapack-interop-0.2.1-dev.tar.gz (default test channel)
-#   /home/docker/src/mplapack-interop-0.2.1.tar.gz (release channel)
+#   /home/docker/src/mplapack-interop-0.2.1.tar.gz (default release channel)
+#   /home/docker/src/mplapack-interop-0.2.1-dev.tar.gz (test channel)
 #
-# Use OCTAVE_CHANNEL=release only after the final D01R1 source archive exists.
+# Use OCTAVE_CHANNEL=dev only for development-archive testing.
 #
 # Install prefix:
 #   /home/docker/opt/octave-mplapack-stack
@@ -48,7 +48,7 @@ GMPFRXX_SHA256=395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4
 MPLAPACK_SHA256=f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1
 MPLAPACK_SOURCE_COMMIT=c21a9f56224308afda9e7424ca9928d4cf840f7a
 OCTAVE_PACKAGE=mplapack-interop
-OCTAVE_CHANNEL="${OCTAVE_CHANNEL:-dev}"
+OCTAVE_CHANNEL="${OCTAVE_CHANNEL:-release}"
 
 say() { printf '\n==> %s\n' "$*"; }
 die() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
@@ -62,7 +62,7 @@ case "$OCTAVE_CHANNEL" in
     release)
         OCTAVE_VERSION=0.2.1
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.2.1.tar.gz}"
-        OCTAVE_SHA256="${OCTAVE_SHA256:-}"
+        OCTAVE_SHA256="${OCTAVE_SHA256:-d4a0d12a3b0e46c9784543b9f0b18ac941fa4220574431a11a7e146193c85114}"
         ;;
     *)
         die "OCTAVE_CHANNEL must be dev or release"
