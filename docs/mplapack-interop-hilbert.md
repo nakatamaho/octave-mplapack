@@ -1,13 +1,13 @@
-# Hilbert inverse: `mplapack-interop` and MPLAPACK
+# Hilbert inverse: `mplapack-interop`
 
-This example shows the same calculation at two public boundaries:
+This example shows a high-precision Hilbert inverse at the Octave package
+boundary:
 
-1. GNU Octave uses the `mplapack-interop` package and its public `mp` class.
-2. An independent C++ program uses the installed MPLAPACK MPFR interface.
+GNU Octave uses the `mplapack-interop` package and its public `mp` class.
 
 Hilbert matrices are ill-conditioned, so constructing them in binary64 first
-would hide the precision that the example is intended to demonstrate. Both
-examples therefore form `1/(i+j-1)` directly at the selected MPFR precision.
+would hide the precision that the example is intended to demonstrate. The
+example therefore forms `1/(i+j-1)` directly at the selected MPFR precision.
 
 ## Octave
 
@@ -46,30 +46,9 @@ caller's ambient MPFR precision even if the calculation raises an error.
 The runnable file is
 [`../examples/05_hilbert_inverse.m`](../examples/05_hilbert_inverse.m).
 
-## External MPLAPACK-interop C++
+## MPLAPACK release QA
 
-Build the companion consumer from an installed MPLAPACK 3.0.1 interface:
-
-```sh
-c++ -std=c++17 -O2 -o hilbert_inverse_mpfr \
-  examples/interop_hilbert_inverse_mpfr.cpp \
-  $(pkg-config --cflags --libs mplapack_mpfr)
-./hilbert_inverse_mpfr
-```
-
-The program includes only these public headers:
-
-```cpp
-#include <mpblas_mpfr.h>
-#include <mplapack_mpfr.h>
-#include <mplapack_mpfr_precision.h>
-```
-
-It enters `MplapackMpfrPrecisionScope(1024)`, performs `Rgetrf` and `Rgetri`
-on an operation-owned inverse buffer, and checks the result with MPFR
-`Rgemm`. The aggregate headers `mpblas.h` and `mplapack.h` are intentionally
-not included; they depend on internal `INTEGER`/`REAL` definitions and are
-not part of the installed public development interface.
-
-The runnable file is
-[`../examples/interop_hilbert_inverse_mpfr.cpp`](../examples/interop_hilbert_inverse_mpfr.cpp).
+The installed MPLAPACK public-header consumer boundary, including
+`MplapackMpfrPrecisionScope` and the MPFR backend routines, is validated by
+the separate MPLAPACK release QA. The C++ consumer source is intentionally
+not shipped in this Octave package's examples.

@@ -25,7 +25,7 @@ Old SHA256: 0e83e26182b0fbd95a064437a97307eb74d9291b49d91c6e53dac181b24a94db
 Old tag unchanged: YES (not modified by D01R1)
 ```
 
-## Frozen dependencies
+## Dependency candidates
 
 ### gmpfrxx_mkII
 
@@ -44,16 +44,21 @@ Changed during D01R1: NO
 Version: 3.0.1
 D00 candidate: fa3ccb4376d2a52c2672322e5b7199a9224bed7f
 D00 candidate SHA256: 7c8d1d7759a487bc01e8c1625599ec77b6c7e297c19b20ca45e8c342f5165e64
-Current QA candidate: 76cbb400aed5e8be7e9f2cfa02f27a95a5e564e4
-Current QA archive: mplapack-3.0.1.tar.xz
-Current QA SHA256: 0739d73de62e9918874d80fe4d119cc60605f3772036455b65b9f24eb52f7e0f
+Current QA candidate before pkg-config fix: 76cbb400aed5e8be7e9f2cfa02f27a95a5e564e4
+Current QA archive before pkg-config fix: mplapack-3.0.1.tar.xz
+Current QA archive SHA256 before pkg-config fix: 0739d73de62e9918874d80fe4d119cc60605f3772036455b65b9f24eb52f7e0f
+Current source after pkg-config fix: c21a9f56224308afda9e7424ca9928d4cf840f7a
+Current archive after pkg-config fix: pending separate MPLAPACK release-QA regeneration
 Runtime SONAME: libmplapack_mpfr.so.3
-Changed during D01R1: not by this repository; dependency identity requires reconciliation
+Changed during D01R1: release-blocking pkg-config include-path fix was pushed by this repository's prior handoff; final QA is maintained separately
 ```
 
-The current QA candidate includes the user-supplied macOS fixes
-`98fa308ac`, `20f2f414d`, and `76cbb400a`. It is recorded separately because
-it does not equal the original D00 candidate.
+The pre-fix QA candidate includes the user-supplied macOS fixes `98fa308ac`,
+`20f2f414d`, and `76cbb400a`. Commit `c21a9f562` adds the release-blocking
+external-gmpfrxx include path to the MPFR pkg-config outputs. The previous
+`0739d73...` archive predates that fix and is not a final release archive.
+MPLAPACK release QA, including regeneration and validation of the corrected
+archive, is maintained separately by the release maintainer.
 
 ## Package-name preflight
 
@@ -82,8 +87,8 @@ Freeze commit: pending
 Tag: pending
 Tag target: pending
 Archive: mplapack-interop-0.2.1-dev.tar.gz (development archive)
-Archive size: 248535 bytes (development archive; not the final release archive)
-SHA256 A: 717125aa1113c472df34cfaecc50002ddb47c639d7ef14bc3461d0d72dabb481
+Archive size: 247347 bytes (development archive; not the final release archive)
+SHA256 A: d55e1456dd6ea00944c670866a9e932cd226a8a3542b372a0f876097144ded11
 SHA256 B: pending
 Hashes identical: not yet final
 Top-level directory: mplapack-interop-0.2.1-dev
@@ -97,23 +102,21 @@ The final archive section is updated only from the final `0.2.1` source tree.
 
 ## Example QA
 
-The standalone C++ example
-`examples/interop_hilbert_inverse_mpfr.cpp` was compiled against the installed
-MPLAPACK MPFR interface from the current QA stack using only public headers.
-At 1024 bits, `Rgetrf`/`Rgetri` followed by `Rgemm` reported
-`||H * H^(-1) - I||_inf = 9.39273e-302`.
-
 The Octave example `examples/05_hilbert_inverse.m` was installed and loaded
 under the renamed package identity. It computed `H \ I` at 1024 bits and
 reported `binary64 residual infinity norm: 1.185e-302`. The explicit
 `double` conversion is used only for the final diagnostic. The example now
 restores the caller's ambient `mpbits` value with `unwind_protect`.
 
+The external MPLAPACK public-header consumer boundary is maintained and
+validated by the separate MPLAPACK release QA. Its C++ source is intentionally
+not shipped in this Octave package.
+
 The current QA-stack `tools/local-ci.sh` wall completed successfully after
 that restoration fix: M00–M23, C00–C12, mandatory C11L, lifecycle tests,
 clean rebuild/retest, and ASan/UBSan-enabled native tests all passed. This is
-not yet a final frozen-stack result because the installed MPLAPACK provenance
-still needs to be rebuilt and verified from the current macOS-fixed 3.0.1 RC.
+not yet a final frozen-stack result because MPLAPACK release QA and the final
+candidate/archive are maintained separately by the release maintainer.
 
 ## Octave binary package audit
 

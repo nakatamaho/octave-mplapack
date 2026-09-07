@@ -73,21 +73,11 @@ The package includes a 1024-bit Hilbert inverse example in
 [`examples/05_hilbert_inverse.m`](examples/05_hilbert_inverse.m). It constructs
 each `1/(i+j-1)` from decimal `mp` values and computes all inverse columns as
 `H \ I`; this avoids the binary64 matrix produced by builtin `hilb(n)` and does
-not assume an unimplemented `inv(mp)` method. The matching external
-MPLAPACK-interop C++ consumer is
-[`examples/interop_hilbert_inverse_mpfr.cpp`](examples/interop_hilbert_inverse_mpfr.cpp).
-Compile it against the installed public interface with:
+not assume an unimplemented `inv(mp)` method.
 
-```sh
-c++ -std=c++17 -O2 -o hilbert_inverse_mpfr \
-  examples/interop_hilbert_inverse_mpfr.cpp \
-  $(pkg-config --cflags --libs mplapack_mpfr)
-./hilbert_inverse_mpfr
-```
-
-The C++ example uses `MplapackMpfrPrecisionScope`, `Rgetrf`, `Rgetri`, and
-`Rgemm`, and includes only `mpblas_mpfr.h`, `mplapack_mpfr.h`, and
-`mplapack_mpfr_precision.h`. Its residual is reported in MPFR arithmetic.
+The external MPLAPACK C++ consumer boundary is validated separately by the
+MPLAPACK release QA. Its source is intentionally not copied into this Octave
+package's examples.
 
 The required MPLAPACK MPFR dependency is discovered through `pkg-config` and
 must provide the uniform-precision scope interface. The package never vendors

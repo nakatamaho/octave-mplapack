@@ -9,14 +9,16 @@ identity and is not rewritten.
 | Layer | Version | Commit | Tag | Archive | SHA256 | Status |
 |---|---:|---|---|---|---|---|
 | gmpfrxx_mkII | 1.4.1 | `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `v1.4.1` | `gmpfrxx_mkII.1.4.1.tar.xz` | `395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4` | unchanged from D00 |
-| MPLAPACK | 3.0.1 | `76cbb400aed5e8be7e9f2cfa02f27a95a5e564e4` | pending release-tag revalidation | `mplapack-3.0.1.tar.xz` | `0739d73de62e9918874d80fe4d119cc60605f3772036455b65b9f24eb52f7e0f` | latest macOS-fixed RC, not yet final |
+| MPLAPACK | 3.0.1 | `c21a9f56224308afda9e7424ca9928d4cf840f7a` | pending release-tag revalidation | pending regenerated archive | pending | latest macOS-fixed RC plus external-gmpfrxx pkg-config fix; release QA maintained separately |
 | octave-mplapack | 0.2.1-dev | pending | pending | `mplapack-interop-0.2.1-dev.tar.gz` | pending | D01R1 worktree |
 
-The MPLAPACK row records the latest RC supplied for QA after the macOS
-`/bin/sh`, QD/DD load-check, and Automake load-probe fixes. It differs from
-the older D00 candidate (`fa3ccb...`, SHA256 `7c8d1d...`), so D01R1 must not
-claim that the original D00 dependency identity is unchanged. A final
-release-stack gate requires one explicit, tagged MPLAPACK source identity.
+The MPLAPACK row records the latest RC after the macOS `/bin/sh`, QD/DD
+load-check, Automake load-probe, and external-gmpfrxx pkg-config include-path
+fixes. It differs from the older D00 candidate (`fa3ccb...`, SHA256
+`7c8d1d...`). The previous RC archive (`0739d73...`) predates the latest fix
+and is therefore not a final archive. MPLAPACK release QA and regeneration of
+the candidate archive are maintained separately; D01R1 must not claim a final
+MPLAPACK identity until that handoff supplies the tested archive and tag.
 
 ## Historical D00 package
 

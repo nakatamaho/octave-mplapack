@@ -35,21 +35,19 @@ stack:
 
 ```text
 examples/05_hilbert_inverse.m
-examples/interop_hilbert_inverse_mpfr.cpp
 docs/mplapack-interop-hilbert.md
 ```
 
-The Octave example uses `H \ I` at 1024 bits; the C++ example uses public
-MPLAPACK MPFR headers and `Rgetrf`/`Rgetri`/`Rgemm` under
-`MplapackMpfrPrecisionScope`. Both examples avoid a binary64 Hilbert
-construction. The Octave example restores the caller's ambient `mpbits`
-setting with `unwind_protect`.
+The Octave example uses `H \ I` at 1024 bits, avoids a binary64 Hilbert
+construction, and restores the caller's ambient `mpbits` setting with
+`unwind_protect`. The separate MPLAPACK public-header consumer and release QA
+are owned outside this Octave package and are not copied into its samples.
 
 The current QA-stack local wall completed successfully after this fix:
 M00–M23, C00–C12, mandatory C11L, lifecycle tests, clean rebuild/retest, and
 ASan/UBSan-enabled native tests all passed. This evidence still awaits
-repetition against an MPLAPACK installation rebuilt from the current
-macOS-fixed 3.0.1 RC.
+repetition against the final MPLAPACK 3.0.1 candidate; MPLAPACK release QA is
+being performed separately by the release maintainer.
 
 ### G-D01R1-BINARY-ARCH — design recorded
 
@@ -72,8 +70,10 @@ distribution build has been started.
 
 ## Current dependency evidence
 
-The latest MPLAPACK 3.0.1 RC supplied for QA is commit
-`76cbb400aed5e8be7e9f2cfa02f27a95a5e564e4`, archive SHA256
-`0739d73de62e9918874d80fe4d119cc60605f3772036455b65b9f24eb52f7e0f`.
-This supersedes the earlier pre-macOS-fix candidate for D01R1 QA; it is not
-claimed as a final public release until the required release gates pass.
+The latest MPLAPACK source after the external-gmpfrxx pkg-config include-path
+fix is commit `c21a9f56224308afda9e7424ca9928d4cf840f7a`. The prior RC archive
+from `76cbb400aed5e8be7e9f2cfa02f27a95a5e564e4` had SHA256
+`0739d73de62e9918874d80fe4d119cc60605f3772036455b65b9f24eb52f7e0f` and
+predates that fix. MPLAPACK release QA and corrected archive regeneration are
+being performed separately by the release maintainer; D01R1 does not claim a
+final MPLAPACK release identity until that handoff is complete.

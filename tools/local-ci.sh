@@ -656,7 +656,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/milestones/M23-v0.1-freeze.md \
   examples/01_scalar_precision.m examples/02_matrix_arithmetic.m \
   examples/03_linear_solve.m examples/04_factorizations.m \
-  examples/05_hilbert_inverse.m examples/interop_hilbert_inverse_mpfr.cpp \
+  examples/05_hilbert_inverse.m \
   tools/dev-octave.sh tools/verify-release-candidate.sh \
   docs/mplapack-interop-hilbert.md docs/binary-distribution.md \
   docs/binary-redistribution-licenses.md docs/dependency-release-stack-r1.md \
