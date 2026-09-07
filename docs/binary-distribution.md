@@ -3,6 +3,13 @@
 D01R1 freezes the architecture and handoff contract for future prebuilt
 Octave packages. It does not build or publish B01–B05 artifacts.
 
+D02 freezes the source input for that future work as
+`mplapack-interop 0.3.0`, commit
+`392b72786f34d0bc1efcf35e2fd0cf0de58ec64f`, tag `v0.3.0`, archive
+`mplapack-interop-0.3.0.tar.gz`, SHA256
+`1282f77f98bb7b137d1a8800d1d6d426ed06000595aebc03e5fa5ac48b3bdf98`, size
+306282 bytes. B01–B05 must consume this exact source identity.
+
 ## Package boundary
 
 The source package and a platform binary package are separate release
@@ -68,9 +75,8 @@ no binary package copies private libraries into `/usr/lib`, `/usr/local/lib`,
 or another global directory. `pkg uninstall` therefore removes the package
 and its private runtime together.
 
-The current Octave 11.1 `pkg build` audit produced a development binary
-archive, put the `.oct`
-under `src/`, and preserved DESCRIPTION identity. It also showed that raw
+The current Octave 11.1 `pkg build` audit produced a binary archive, put the
+`.oct` under `src/`, and preserved DESCRIPTION identity. It also showed that raw
 `pkg build` archives whatever the build leaves in the source tree; the
 release build must therefore run from a clean extraction and exclude QA
 probes/build products before publication.

@@ -1,10 +1,10 @@
 # N00-N07-D02 status
 
-Status: **N07 PASS — numerical API closure complete**
+Status: **D02 PASS — mplapack-interop 0.3.0 source frozen**
 
-The D01R1 frozen package identity remains unchanged. The development line is
-now `mplapack-interop` 0.3.0-dev. N00, N01, N02, N03, N04, N05, N06, and
-N07 are complete; D02 remains pending.
+The D01R1 frozen package identity remains unchanged as historical provenance.
+N00, N01, N02, N03, N04, N05, N06, N07, and D02 are complete. The final
+package identity is `mplapack-interop` 0.3.0 with tag `v0.3.0`.
 
 ## N00 identity
 
@@ -19,8 +19,10 @@ N03 implementation commit: ab8ed68fb4e04c821bb50a0e08e578474ee1cfcd
 N04 implementation commit: 455b5df72c65bb4475c6436429dae005910eb88f
 N05 implementation commit: 61e8afa0c6af780f30948347f51c95b60d397d1a
 N06 implementation commit: 9929b2360b717f7817005bccc9eb5fa193697aa2
-N07 implementation commit: pending final commit below
-Development version: 0.3.0-dev
+N07 implementation commit: 473143f5bab22478f232c734b8c79049c65e33dc
+D02 source-freeze commit: 392b72786f34d0bc1efcf35e2fd0cf0de58ec64f
+D02 tag: v0.3.0 (target 392b72786f34d0bc1efcf35e2fd0cf0de58ec64f)
+Release version: 0.3.0
 Frozen predecessor: mplapack-interop 0.2.1 / v0.2.1
 Historical predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
 ```
@@ -548,7 +550,32 @@ package install/load/smoke/help/examples/unload/uninstall/reinstall: PASS
 full tools/local-ci.sh: PASS (exit code 0)
 ```
 
-N07 is complete. D02 is the release-engineering milestone for changing the
-development version to 0.3.0, reproducing the final source archive, and
-creating the final package tag only after every D02 gate passes. No D02 tag
-or final 0.3.0 archive has been created.
+N07 is complete. D02 completed the release-engineering freeze without
+changing numerical implementation or dependency identity.
+
+## D02 — final 0.3.0 source freeze
+
+```text
+G-D02-SOURCE-FREEZE:    PASS — 392b72786f34d0bc1efcf35e2fd0cf0de58ec64f
+G-D02-VERSION:          PASS — DESCRIPTION version 0.3.0
+G-D02-REPRODUCIBLE:     PASS — independent clean-tree A/B archives identical
+G-D02-REGRESSION:       PASS — M00-M23, C00-C12/C11L, N00-N07, full CI
+G-D02-PACKAGE-LIFECYCLE: PASS — install/load/help/examples/unload/uninstall/reinstall
+G-D02-RUNTIME-CLOSURE:  PASS — frozen MPLAPACK SONAME and N06 symbols verified
+G-D02-DOCS:             PASS — binary handoff and dependency identity updated
+G-D02-TAG:              PASS — annotated v0.3.0, local/remote target verified
+G-D02-BINARY-HANDOFF:   PASS — exact 0.3.0 source identity recorded
+```
+
+```text
+Archive: mplapack-interop-0.3.0.tar.gz
+Archive size: 306282 bytes
+SHA256 A: 1282f77f98bb7b137d1a8800d1d6d426ed06000595aebc03e5fa5ac48b3bdf98
+SHA256 B: 1282f77f98bb7b137d1a8800d1d6d426ed06000595aebc03e5fa5ac48b3bdf98
+Top-level directory: mplapack-interop-0.3.0/
+Tagged archive: identical to pre-tag archive
+Installed copy: /home/docker/src/mplapack-interop-0.3.0.tar.gz
+```
+
+D02 is complete. The next milestone is B01 binary distribution architecture;
+it is not started automatically by this status update.
