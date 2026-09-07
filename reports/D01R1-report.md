@@ -48,10 +48,10 @@ Current QA candidate before pkg-config fix: 76cbb400aed5e8be7e9f2cfa02f27a95a5e5
 Current QA archive before pkg-config fix: mplapack-3.0.1.tar.xz
 Current QA archive SHA256 before pkg-config fix: 0739d73de62e9918874d80fe4d119cc60605f3772036455b65b9f24eb52f7e0f
 Current source after pkg-config fix: c21a9f56224308afda9e7424ca9928d4cf840f7a
-Supplied RC archive: mplapack-3.0.1.tar.xz
-Supplied RC archive SHA256: f0ff9ff1ceeccc1a24ceb16973508ea9d8cf6f7bfad8cc3b84109c9da720a7b3
-Supplied RC archive size: 85591016 bytes
-Supplied RC archive audit: Makefile.am fixed; generated Makefile.in stale
+Supplied corrected RC archive: mplapack-3.0.1.tar.xz
+Supplied corrected RC archive SHA256: f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1
+Supplied corrected RC archive size: 85807808 bytes
+Supplied corrected RC archive audit: Makefile.am, public precision header, and generated Makefile.in fixed
 Current final archive: pending separate MPLAPACK release-QA regeneration
 Runtime SONAME: libmplapack_mpfr.so.3
 Changed during D01R1: release-blocking pkg-config include-path fix was pushed by this repository's prior handoff; final QA is maintained separately
@@ -60,11 +60,11 @@ Changed during D01R1: release-blocking pkg-config include-path fix was pushed by
 The pre-fix QA candidate includes the user-supplied macOS fixes `98fa308ac`,
 `20f2f414d`, and `76cbb400a`. Commit `c21a9f562` adds the release-blocking
 external-gmpfrxx include path to the MPFR pkg-config outputs. The supplied
-`f0ff9ff1...` archive contains the corrected `Makefile.am`, but its generated
-`Makefile.in` still omits that assignment in the MPFR branch. The previous
-`0739d73...` archive also predates the source fix. Neither archive is accepted
-as final. MPLAPACK release QA and regeneration of the corrected archive are
-maintained separately by the release maintainer.
+`f969c503...` archive contains the corrected `Makefile.am` and generated
+`Makefile.in`, and both were verified with the public precision header against
+the source commit. The previous `0739d73...` archive predates the source fix.
+The corrected archive remains a candidate until the separate MPLAPACK release
+QA accepts it and creates the release tag.
 
 ## Package-name preflight
 
@@ -218,7 +218,7 @@ The renamed package's final commit/tag/archive/checksum remain pending.
 
 ```text
 G-D01R1-NAME-SYNTAX: PASS
-G-D01R1-DEPS: PENDING — supplied RC has a generated Makefile.in mismatch
+G-D01R1-DEPS: PENDING — corrected candidate awaits separate MPLAPACK release QA/tag
 G-D01R1-RENAME: IN PROGRESS
 G-D01R1-IDENTITY: PENDING final 0.2.1 archive/tag
 G-D01R1-NUMERICAL-EQUIVALENCE: PENDING final diff audit
@@ -229,9 +229,8 @@ G-D01R1-BINARY-ARCH: IN PROGRESS; design documented, relocation proof B01-owned
 
 ## Known limitations
 
-- The supplied MPLAPACK RC has a generated Makefile.in mismatch for the
-  external-gmpfrxx pkg-config include path; corrected regeneration and release
-  QA are pending.
+- The corrected MPLAPACK candidate has passed the archive-content audit; its
+  separate full release QA and `v3.0.1` tag are still pending.
 - The source package is temporarily `0.2.1-dev`; no `v0.2.1` tag has been
   created.
 - No B01–B05 production binary, Debian package, PPA upload, or registry

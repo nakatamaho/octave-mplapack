@@ -71,14 +71,13 @@ distribution build has been started.
 ## Current dependency evidence
 
 The latest MPLAPACK source after the external-gmpfrxx pkg-config include-path
-fix is commit `c21a9f56224308afda9e7424ca9928d4cf840f7a`. The supplied RC
+fix is commit `c21a9f56224308afda9e7424ca9928d4cf840f7a`. The corrected RC
 archive `mplapack-3.0.1.tar.xz` has SHA256
-`f0ff9ff1ceeccc1a24ceb16973508ea9d8cf6f7bfad8cc3b84109c9da720a7b3` and size
-85591016 bytes. Its `Makefile.am` contains the fix, but its generated
-`Makefile.in` does not; a tarball build without autoreconf can therefore still
-omit the installed gmpfrxx include directory. The prior RC archive from
-`76cbb400aed5e8be7e9f2cfa02f27a95a5e564e4` had SHA256
+`f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1` and size
+85807808 bytes. Its `Makefile.am`, public precision header, and generated
+`Makefile.in` MPFR branch were verified against the commit. The prior RC
+archive from `76cbb400aed5e8be7e9f2cfa02f27a95a5e564e4` had SHA256
 `0739d73de62e9918874d80fe4d119cc60605f3772036455b65b9f24eb52f7e0f`.
-MPLAPACK release QA and corrected archive regeneration are being performed
-separately by the release maintainer; D01R1 does not claim a final MPLAPACK
-release identity until that handoff is complete.
+MPLAPACK release QA and release-tag creation are being performed separately by
+the release maintainer; D01R1 does not claim a final MPLAPACK release identity
+until that handoff is complete.

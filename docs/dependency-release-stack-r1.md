@@ -9,17 +9,16 @@ identity and is not rewritten.
 | Layer | Version | Commit | Tag | Archive | SHA256 | Status |
 |---|---:|---|---|---|---|---|
 | gmpfrxx_mkII | 1.4.1 | `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `v1.4.1` | `gmpfrxx_mkII.1.4.1.tar.xz` | `395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4` | unchanged from D00 |
-| MPLAPACK | 3.0.1 | `c21a9f56224308afda9e7424ca9928d4cf840f7a` | pending release-tag revalidation | `mplapack-3.0.1.tar.xz` | `f0ff9ff1ceeccc1a24ceb16973508ea9d8cf6f7bfad8cc3b84109c9da720a7b3` | supplied RC, 85591016 bytes; generated Makefile.in still needs the pkg-config fix; release QA maintained separately |
+| MPLAPACK | 3.0.1 | `c21a9f56224308afda9e7424ca9928d4cf840f7a` | pending release-tag revalidation | `mplapack-3.0.1.tar.xz` | `f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1` | corrected candidate, 85807808 bytes; generated Makefile.in fix present; release QA maintained separately |
 | octave-mplapack | 0.2.1-dev | pending | pending | `mplapack-interop-0.2.1-dev.tar.gz` | pending | D01R1 worktree |
 
-The supplied MPLAPACK RC includes the macOS `/bin/sh`, QD/DD load-check,
-Automake load-probe, and `Makefile.am` external-gmpfrxx pkg-config fixes. It
+The supplied MPLAPACK candidate includes the macOS `/bin/sh`, QD/DD
+load-check, Automake load-probe, and external-gmpfrxx pkg-config fixes. It
 differs from the older D00 candidate (`fa3ccb...`, SHA256 `7c8d1d...`). The
-archive's generated `Makefile.in` was audited and does not yet contain the
-MPFR-branch `GMP_PC_CFLAGS` assignment, so the archive can still omit the
-installed gmpfrxx include directory when built without autoreconf. It is not a
-final archive until that generated-file mismatch is repaired and the separate
-MPLAPACK release QA accepts the result.
+corrected archive was audited against `c21a9f562`: its `Makefile.am`, public
+precision header, and generated `Makefile.in` MPFR branch all contain the
+expected interface. It is still a candidate until the separate MPLAPACK
+release QA accepts it and creates the release tag.
 
 ## Historical D00 package
 
