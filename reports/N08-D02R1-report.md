@@ -46,6 +46,79 @@ N08 reference hardening: 2ec10d506e609aca4c3e5ef4c5039a3683c5442c
 N08 completion record: 05da88ec0cc65febfed063a551e8cfc2fb0863e8
 ```
 
+## mrdivide public API and implementation
+
+```text
+scalar/scalar: PASS — direct native rdivide, no LAPACK
+matrix/scalar: PASS — direct native element-wise scaling
+scalar/matrix: PASS — audited Octave-compatible 1-by-p right solve
+matrix/matrix: PASS — dense A=m-by-n, B=p-by-n -> X=m-by-p
+square: PASS — Rgesv/Cgesv, with right-division rank retry on singular input
+rectangular: PASS — Rgelss/Cgelsy minimum-norm solve
+singular: PASS — right-division rank-revealing retry
+rank-deficient: PASS — transformed left-solve minimum-norm semantics
+real: PASS
+complex: PASS — MPC Cgesv/Cgelsy paths
+mixed: PASS — real/complex result-kind and builtin-double promotion
+empty: PASS — audited supported two-dimensional shapes and diagnostics
+special values: PASS — zero, signed zero, Inf, NaN, and complex cases
+conjugate transpose: PASS — exact (B' \\ A')' reduction
+explicit inverse used: NO
+binary64 fallback: NO
+operation precision: PASS — p_op=max participating mp precisions
+immutability: PASS — destructive LAPACK calls receive operation-owned copies
+```
+
+The general implementation reuses the existing `mldivide` operation and
+backend dispatch. The scalar paths remain direct element-wise operations.
+Complex normalization uses `ctranspose` at both sides of the solve; plain
+transpose is not used for complex right division.
+
+## Octave differential and precision QA
+
+```text
+Octave 11.1 scalar/matrix shape and error audit: PASS
+square full-rank differential: PASS
+rectangular differential: PASS
+singular/rank-deficient differential: PASS
+mixed real/complex differential: PASS
+dimension mismatch and empty-shape audit: PASS
+scalar/scalar and matrix/scalar direct-path audit: PASS
+1024-bit / 2^-700: PASS
+2048-bit / 2^-1500: PASS
+low ambient precision: PASS
+high ambient precision: PASS
+source precision preserved: PASS
+MPFR/MPC scope restoration: PASS
+native value lifetime after operand clear: PASS
+```
+
+The permanent Grcar integration expression
+`norm (A*V - V*D, "fro") / norm (A, "fro")` runs without rewriting `/` to
+`./`. Its 128-, 256-, 512-, and 1024-bit residual runs all passed. The
+Grcar residual is an integration/usability check, not an eigenvalue oracle.
+
+## Full regression and release lifecycle
+
+```text
+M00-M23 real regression: PASS
+C00-C12 complex regression: PASS
+C11L complex Cgetrf: PASS
+D01R1: PASS
+N00-N07: PASS
+N08: PASS
+Grcar eig integration: PASS
+SVD/rank/cond/rcond: PASS
+structured/general/generalized eig: PASS
+compatibility firewall: PASS
+ASan: PASS
+UBSan: PASS
+LSan: PASS
+package install/load/help/examples: PASS
+pkg unload/uninstall/reinstall/second smoke: PASS
+runtime closure: PASS
+```
+
 ## gmpfrxx_mkII
 
 ```text
@@ -253,6 +326,36 @@ ab937387c6aa93982dcde0fb2dd66eb0b14ec95c  freeze 0.3.1 metadata
 ## Gates
 
 ```text
+G-N08-SCALAR:                PASS
+G-N08-MATRIX-SCALAR:        PASS
+G-N08-MATRIX-MATRIX:        PASS
+G-N08-REAL:                 PASS
+G-N08-COMPLEX:              PASS
+G-N08-MIXED:                PASS
+G-N08-SQUARE:               PASS
+G-N08-RECTANGULAR:          PASS
+G-N08-RANK-DEFICIENT:       PASS
+G-N08-MINIMUM-NORM:         PASS
+G-N08-CONJUGATE-TRANSPOSE: PASS
+G-N08-PRECISION:            PASS
+G-N08-EMPTY:                PASS
+G-N08-SPECIAL:              PASS
+G-N08-IMMUTABILITY:         PASS
+G-N08-OCTAVE:               PASS
+G-N08-GRCAR-INTEGRATION:    PASS
+G-N08-REGRESSION:           PASS
+
+G-D02R1-SOURCE-FREEZE:      PASS
+G-D02R1-VERSION:            PASS
+G-D02R1-REPRODUCIBLE:       PASS
+G-D02R1-N08:                PASS
+G-D02R1-FULL-REGRESSION:    PASS
+G-D02R1-PACKAGE-LIFECYCLE:  PASS
+G-D02R1-RUNTIME-CLOSURE:    PASS
+G-D02R1-DOCS:               PASS
+G-D02R1-TAG:                PASS
+G-D02R1-BINARY-HANDOFF:     PASS
+
 G-D02R1-GMPFRXX:      PASS
 G-D02R1-MPLAPACK:     PASS
 G-D02R1-OCTAVE:       PASS
