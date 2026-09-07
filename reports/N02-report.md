@@ -16,7 +16,7 @@ N02 adds dense arbitrary-precision real and complex `svd` to the
 Repository: nakatamaho/octave-mplapack
 Branch: topic/d01r1-mplapack-interop
 Pre-N02 commit: 582e8a1377d90cf8e0e2c4798b5a9dbaef3c33d2
-N02 implementation commit: recorded after commit
+N02 implementation commit: 9f05418f3fc700914727e00b4321ee3ecd061dfe
 Development version: 0.3.0-dev
 Frozen predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
 Frozen predecessor tag: v0.2.1

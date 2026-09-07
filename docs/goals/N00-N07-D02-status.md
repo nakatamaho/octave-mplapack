@@ -14,7 +14,7 @@ Branch: topic/d01r1-mplapack-interop
 Current source before N00 commit: 9384236f6c7f360e86e8a3616e1c0bdb36873b57
 N00 commit: dbe320fa4ed7f1d5541991796ab2df20e2687ec2
 N01 implementation commit: 91a034d2f1acdf739b7ec3b30cc5e333ee6de4f1
-N02 implementation commit: see the commit adding this status update
+N02 implementation commit: 9f05418f3fc700914727e00b4321ee3ecd061dfe
 Development version: 0.3.0-dev
 Frozen predecessor: mplapack-interop 0.2.1 / v0.2.1
 Historical predecessor commit: b19f679aa4864c991c11bd05a78b0e4b1cbe4cc6
@@ -227,6 +227,7 @@ clean archive extraction build and lifecycle: PASS
 full tools/local-ci.sh: PASS (exit code 0)
 ```
 
-N02 is committed on `topic/d01r1-mplapack-interop` and will be pushed with
-this milestone update. The D01R1 0.2.1 tag and archive remain unchanged. The
-next milestone is N03.
+N02 implementation is committed as
+`9f05418f3fc700914727e00b4321ee3ecd061dfe` on
+`topic/d01r1-mplapack-interop` and pushed. The D01R1 0.2.1 tag and archive
+remain unchanged. The next milestone is N03.
