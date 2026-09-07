@@ -748,7 +748,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   tools/dev-octave.sh tools/verify-release-candidate.sh \
   docs/mplapack-interop-hilbert.md docs/binary-distribution.md \
   docs/mrdivide.md docs/milestones/N08-mrdivide.md \
-  docs/binary-redistribution-licenses.md docs/dependency-release-stack-r1.md \
+  docs/binary-redistribution-licenses.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
