@@ -59,6 +59,7 @@ inst/@mp/subsasgn.m
 inst/@mp/end.m
 inst/@mp/mtimes.m
 inst/@mp/mldivide.m
+inst/@mp/norm.m
 inst/@mp/mrdivide.m
 inst/@mp/transpose.m
 inst/@mp/ctranspose.m
@@ -95,6 +96,8 @@ src/mp_matrix_concat.h
 src/mp_matrix_assignment.cc
 src/mp_matrix_assignment.h
 src/octave_bridge.cc
+src/mp_norm.h
+src/mp_norm.cc
 test/run_tests.m
 test/build_probe.tst
 test/native_value.tst
@@ -132,6 +135,8 @@ test/m21_rgetrf_probe.cc
 test/m22_dependency_probe.cc
 test/pivoted_qr.tst
 test/release_closure.tst
+test/norm.tst
+test/mp_norm_test.cc
 test/matrix_inspection.tst
 test/mp_matrix_inspection_test.cc
 test/elementwise.tst
@@ -191,6 +196,8 @@ docs/release-checklist.md
 docs/milestones/M21-lu.md
 docs/milestones/M22-real-release-closure.md
 docs/milestones/M23-v0.1-freeze.md
+docs/norm.md
+docs/milestones/N00-norm.md
 docs/v0.1-release-manifest.md
 docs/matrix-assignment.md
 docs/milestones/M14-indexed-assignment.md

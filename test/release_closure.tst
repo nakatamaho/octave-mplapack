@@ -64,7 +64,6 @@
 %! assert_fails (@() det (A), "det must reject mp matrices");
 %! assert_fails (@() inv (A), "inv must reject mp matrices");
 %! assert_fails (@() rank (A), "rank must reject mp matrices");
-%! assert_fails (@() norm (A), "norm must reject mp matrices");
 %! assert_fails (@() sin (A), "sin must reject mp matrices");
 %! assert_fails (@() exp (A), "exp must reject mp matrices");
 %! assert_fails (@() sqrt (A), "sqrt must reject mp matrices");

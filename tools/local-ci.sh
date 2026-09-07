@@ -38,6 +38,7 @@ echo "PASS: mandatory D00 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 make -C src check-dependency
+make -C src check-norm
 
 mplapack_include_dir=$(pkg-config --variable=includedir mplapack_mpfr)
 if [ ! -f "$mplapack_include_dir/mplapack_mpfr_precision.h" ]; then
@@ -575,10 +576,10 @@ if [ "$package_name" != "mplapack-interop" ]; then
   exit 1
 fi
 case $package_version in
-  0.2.1|0.2.1-dev)
+  0.2.1|0.2.1-dev|0.3.0-dev)
     ;;
   *)
-    echo "FAIL: D01R1 requires DESCRIPTION version 0.2.1 or 0.2.1-dev" >&2
+    echo "FAIL: D01R1/N00 requires DESCRIPTION version 0.2.1, 0.2.1-dev, or 0.3.0-dev" >&2
     exit 1
     ;;
 esac
@@ -663,7 +664,8 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
-  inst/@mp/mrdivide.m; do
+  inst/@mp/mrdivide.m inst/@mp/norm.m docs/norm.md \
+  docs/milestones/N00-norm.md; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1

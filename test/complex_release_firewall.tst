@@ -19,7 +19,6 @@
 %! assert_rejected (@() inv (A), "complex inv fallback");
 %! assert_rejected (@() rank (A), "complex rank fallback");
 %! assert_rejected (@() cond (A), "complex cond fallback");
-%! assert_rejected (@() norm (A), "complex norm fallback");
 %! assert_rejected (@() sin (A), "complex sin fallback");
 %! assert_rejected (@() exp (A), "complex exp fallback");
 %! assert_rejected (@() sqrt (A), "complex sqrt fallback");

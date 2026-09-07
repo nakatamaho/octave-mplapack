@@ -44,6 +44,7 @@ an existing value or override `p_op`.
 | QR | one/two-output full/economy `qr` | `Cgeqrf`/`Cungqr` |
 | pivoted QR | three-output matrix/vector/deprecated economy forms | `Cgeqp3`/`Cungqr` |
 | LU | packed, two-output, matrix/vector permutation forms | MPLAPACK `Cgetrf` |
+| norms | vector 0/1/2/Inf/-Inf/Fro and positive finite p; matrix 1/2/Inf/Fro | MPFR/MPC native norms and `Cgesvd` |
 | mixed structural | horizontal/vertical concat; real/complex assignment | MPC destination at max stored precision |
 
 For LU, one output is the packed factor. Two outputs return `A=L*U`; three

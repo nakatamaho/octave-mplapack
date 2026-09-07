@@ -1,5 +1,12 @@
 # News
 
+## 0.3.0-dev
+
+The development line begins the numerical API completion after the frozen
+0.2.1 package identity. N00 adds native arbitrary-precision `norm` support;
+all operation paths preserve stored MPFR/MPC precision and avoid binary64
+fallbacks.
+
 ## 0.2.1
 
 The GNU Octave package public identity is now `mplapack-interop`, version

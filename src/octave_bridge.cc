@@ -44,6 +44,7 @@
 #include "mp_complex_qr.h"
 #include "mp_complex_lu.h"
 #include "mp_lapack.h"
+#include "mp_norm.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -3187,6 +3188,133 @@ complex_mldivide_operation (const octave_value& lhs_value,
   return octave_value ();
 }
 
+octave_mplapack::MpfrNormRequest
+parse_norm_request (const octave_value& value)
+{
+  octave_mplapack::MpfrNormRequest request;
+  if (value.is_string ())
+    {
+      const std::string option = require_string (value, "norm option");
+      if (option != "fro")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "norm string option must be \"fro\"");
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::frobenius;
+      return request;
+    }
+
+  if (! value.is_real_scalar () || value.islogical ())
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "norm p must be a real scalar or \"fro\"");
+
+  const double exponent = value.double_value ();
+  request.exponent = exponent;
+  if (std::isnan (exponent))
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "norm p must not be NaN");
+  if (std::isinf (exponent))
+    {
+      request.kind = exponent > 0
+                       ? octave_mplapack::MpfrNormRequest::Kind::infinity
+                       : octave_mplapack::MpfrNormRequest::Kind::negative_infinity;
+      return request;
+    }
+  if (exponent == 0.0)
+    {
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::zero;
+      return request;
+    }
+  if (exponent == 1.0)
+    {
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::one;
+      return request;
+    }
+  if (exponent == 2.0)
+    {
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::two;
+      return request;
+    }
+  if (exponent > 0.0)
+    {
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::finite;
+      return request;
+    }
+  error_with_id ("mplapack:mp:InvalidOption",
+                 "norm p must be nonnegative, Inf, or -Inf");
+  return request;
+}
+
+octave_value
+mp_norm_operation (const octave_value& value, const octave_value& p)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "norm expects one mp value");
+
+  const auto request = parse_norm_request (p);
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+          const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            {
+              const auto& scalar
+                = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ();
+              scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+              mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                       scalar.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+              input = &*scalar_matrix;
+            }
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                       .storage ();
+          else
+            throw std::invalid_argument ("norm expects a valid complex mp value");
+
+          return make_internal_scalar (
+            octave_mplapack::mplapack_mpc_norm (*input, request));
+        }
+
+      std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                    scalar.native_value ().mpfr_data (), MPFR_RNDN);
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                   .storage ();
+      else
+        throw std::invalid_argument ("norm expects a valid real mp value");
+
+      return make_internal_scalar (
+        octave_mplapack::mplapack_mpfr_norm (*input, request));
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidOption", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:NormError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
 octave_value
 make_mtimes_result (octave_mplapack::MpfrMatrixStorage storage)
 {
@@ -4835,6 +4963,12 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
           || is_complex_arithmetic_operand (args(2)))
         return ovl (complex_mldivide_operation (args(1), args(2)));
       return ovl (mp_mldivide_operation (args(1), args(2)));
+    }
+
+  if (command == "norm")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (mp_norm_operation (args(1), args(2)));
     }
 
   if (command == "chol")

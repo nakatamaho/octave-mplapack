@@ -15,7 +15,7 @@ The following complex operations are intentionally rejected by the package's
 compatibility firewall. They must fail cleanly without conversion to a
 binary64 result, crash, or recursive dispatch:
 
-- `eig`, `svd`, `det`, `inv`, `rank`, `cond`, and `norm`;
+- `eig`, `svd`, `det`, `inv`, `rank`, and `cond`;
 - `sin`, `exp`, `sqrt`, and other unimplemented transcendentals;
 - power (`^` and `.^`), ordered comparisons, equality/logical operations,
   sparse conversion, and right division;
@@ -27,6 +27,11 @@ claim stable package-owned rejection behavior for the audited unsupported
 surface and no implicit binary64 fallback. Public LU follows real M21 and has
 no separate status output; native `Cgetrf INFO` is checked, and singular
 partial factors are preserved.
+
+N00 adds arbitrary-precision `norm` for real and complex vectors and dense
+matrices. Supported forms and deferred matrix p/options are documented in
+[`norm.md`](norm.md); the implementation uses MPFR/MPC-native absolute values,
+`Rlange`/`Clange`, `Rnrm2`/`RCnrm2`, and `Rgesvd`/`Cgesvd`.
 
 ## Lifecycle
 
