@@ -137,6 +137,20 @@ inst/@mp/Inf.m
 inst/@mp/nan.m
 inst/@mp/inf.m
 inst/@mp/private/mp_parse_like_constructor.m
+inst/@mp/colon.m
+inst/@mp/linspace.m
+inst/@mp/logspace.m
+inst/@mp/floor.m
+inst/@mp/ceil.m
+inst/@mp/fix.m
+inst/@mp/round.m
+inst/@mp/rem.m
+inst/@mp/mod.m
+inst/@mp/hypot.m
+inst/@mp/atan2.m
+inst/@mp/signbit.m
+inst/@mp/eps.m
+inst/@mp/private/mp_binary_utility.m
 inst/@mp/transpose.m
 inst/@mp/ctranspose.m
 inst/@mp/reshape.m
@@ -180,6 +194,8 @@ src/mp_script_logic.h
 src/mp_script_logic.cc
 src/mp_script_structure.h
 src/mp_script_structure.cc
+src/mp_script_ranges.h
+src/mp_script_ranges.cc
 src/mp_norm.h
 src/mp_norm.cc
 src/mp_det_inv.h
@@ -200,6 +216,7 @@ test/script-compat/s01.tst
 test/script-compat/s02.tst
 test/script-compat/s03.tst
 test/script-compat/s04.tst
+test/script-compat/s05.tst
 test/mrdivide.tst
 test/build_probe.tst
 test/native_value.tst

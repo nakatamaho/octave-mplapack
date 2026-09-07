@@ -57,6 +57,7 @@
 #include "mp_script_reductions.h"
 #include "mp_script_logic.h"
 #include "mp_script_structure.h"
+#include "mp_script_ranges.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -6926,6 +6927,239 @@ script_structure_operation (const octave_value& value,
   return octave_value ();
 }
 
+mpfr_prec_t
+script_utility_precision (const octave_value_list& args, int first, int last)
+{
+  mpfr_prec_t precision = MPFR_PREC_MIN;
+  bool has_mp = false;
+  for (int index = first; index < last; ++index)
+    if (is_mp_value (args(index)))
+      {
+        has_mp = true;
+        precision = std::max (precision, arithmetic_mp_precision (args(index)));
+      }
+  if (! has_mp)
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "utility operation requires at least one mp operand");
+  return precision;
+}
+
+octave_mplapack::MpfrScalarStorage
+script_real_scalar_argument (const octave_value& value, mpfr_prec_t precision,
+                             const char *description)
+{
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (is_complex_payload (value))
+        error_with_id ("mplapack:mp:ComplexUnsupported",
+                       "%s does not accept complex mp values", description);
+      if (payload.type_id ()
+          != octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        error_with_id ("mplapack:mp:MatrixUnsupported",
+                       "%s accepts scalar mp values only", description);
+      const auto& source
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ().native_value ();
+      auto result
+        = octave_mplapack::MpfrScalarStorage::NativeScalar::with_precision (
+            precision);
+      mpfr_set (result.mpfr_data (), source.mpfr_data (), MPFR_RNDN);
+      return octave_mplapack::MpfrScalarStorage (std::move (result));
+    }
+  if (! value.isnumeric () || value.islogical () || value.is_string ()
+      || ! value.isreal () || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s expects a real numeric scalar", description);
+  return octave_mplapack::MpfrScalarStorage (value.double_value (), precision);
+}
+
+octave_mplapack::MpfrComplexScalarStorage
+script_complex_scalar_argument (const octave_value& value,
+                                mpfr_prec_t precision,
+                                const char *description)
+{
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ()
+          || payload.type_id ()
+             == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        error_with_id ("mplapack:mp:MatrixUnsupported",
+                       "%s accepts scalar mp values only", description);
+      auto result
+        = octave_mplapack::MpfrComplexScalarStorage::NativeScalar::with_precision (
+            precision);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        mpc_set (result.mpc_data (),
+                 octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                   .storage ().native_value ().mpc_data (),
+                 MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      else
+        mpc_set_fr (result.mpc_data (),
+                    octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                      .storage ().native_value ().mpfr_data (),
+                    MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return octave_mplapack::MpfrComplexScalarStorage (std::move (result));
+    }
+  if (! value.isnumeric () || value.islogical () || value.is_string ()
+      || ! value.is_real_scalar () && ! value.is_complex_scalar ())
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s expects a numeric scalar", description);
+  const Complex scalar = value.complex_value ();
+  return octave_mplapack::MpfrComplexScalarStorage (
+    scalar.real (), scalar.imag (), precision);
+}
+
+std::size_t
+script_utility_count (const octave_value& value, const char *description)
+{
+  return require_nonnegative_structure_dimension (value, description);
+}
+
+octave_value
+script_range_operation (const octave_value_list& args)
+{
+  if (args.length () != 3 && args.length () != 4)
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "colon expects two endpoints or an endpoint and a step");
+  const mpfr_prec_t precision = script_utility_precision (args, 1, args.length ());
+  if (is_complex_arithmetic_operand (args(1))
+      || (args.length () == 4 && is_complex_arithmetic_operand (args(2)))
+      || is_complex_arithmetic_operand (args(args.length () - 1)))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex colon ranges are not supported");
+  const auto first = script_real_scalar_argument (args(1), precision, "colon");
+  octave_mplapack::MpfrScalarStorage step (1.0, precision);
+  const octave_value& last = args(args.length () - 1);
+  if (args.length () == 4)
+    step = script_real_scalar_argument (args(2), precision, "colon step");
+  return make_inspection_result (octave_mplapack::mpfr_script_colon (
+    first, step, script_real_scalar_argument (last, precision, "colon endpoint")));
+}
+
+octave_value
+script_linspace_operation (const octave_value_list& args)
+{
+  if (args.length () != 3 && args.length () != 4)
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "linspace expects two endpoints and an optional count");
+  const mpfr_prec_t precision = script_utility_precision (args, 1, 3);
+  const std::size_t count = args.length () == 4
+    ? script_utility_count (args(3), "linspace count") : 100;
+  const bool complex = is_complex_arithmetic_operand (args(1))
+                       || is_complex_arithmetic_operand (args(2));
+  if (complex)
+    return make_complex_inspection_result (octave_mplapack::mpc_script_linspace (
+      script_complex_scalar_argument (args(1), precision, "linspace"),
+      script_complex_scalar_argument (args(2), precision, "linspace"), count));
+  return make_inspection_result (octave_mplapack::mpfr_script_linspace (
+    script_real_scalar_argument (args(1), precision, "linspace"),
+    script_real_scalar_argument (args(2), precision, "linspace"), count));
+}
+
+octave_value
+script_logspace_operation (const octave_value_list& args)
+{
+  if (args.length () != 3 && args.length () != 4)
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "logspace expects two endpoints and an optional count");
+  if (is_complex_arithmetic_operand (args(1))
+      || is_complex_arithmetic_operand (args(2)))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex logspace endpoints are not supported");
+  const mpfr_prec_t precision = script_utility_precision (args, 1, 3);
+  const std::size_t count = args.length () == 4
+    ? script_utility_count (args(3), "logspace count") : 50;
+  return make_inspection_result (octave_mplapack::mpfr_script_logspace (
+    script_real_scalar_argument (args(1), precision, "logspace"),
+    script_real_scalar_argument (args(2), precision, "logspace"), count));
+}
+
+octave_value
+script_round_operation (const octave_value& value,
+                        const std::string& operation)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s expects an mp value", operation.c_str ());
+  if (is_complex_payload (value))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "%s is implemented for real mp values only", operation.c_str ());
+  const auto source = script_real_matrix_operand (
+    value, arithmetic_mp_precision (value));
+  const auto select = [&] ()
+  {
+    if (operation == "floor")
+      return octave_mplapack::MpScriptRoundingOperation::floor;
+    if (operation == "ceil")
+      return octave_mplapack::MpScriptRoundingOperation::ceil;
+    if (operation == "fix")
+      return octave_mplapack::MpScriptRoundingOperation::fix;
+    return octave_mplapack::MpScriptRoundingOperation::round;
+  } ();
+  return make_inspection_result (octave_mplapack::mpfr_script_round (source, select));
+}
+
+octave_value
+script_real_binary_utility (const octave_value& lhs,
+                            const octave_value& rhs,
+                            const std::string& operation)
+{
+  if (is_complex_arithmetic_operand (lhs)
+      || is_complex_arithmetic_operand (rhs))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "%s is implemented for real mp values only", operation.c_str ());
+  const octave_value_list operands = ovl (lhs, rhs);
+  const mpfr_prec_t precision = script_utility_precision (operands, 0, 2);
+  const auto left = script_real_matrix_operand (lhs, precision);
+  const auto right = script_real_matrix_operand (rhs, precision);
+  if (operation == "rem" || operation == "mod")
+    return make_inspection_result (octave_mplapack::mpfr_script_remainder (
+      left, right, operation == "mod"));
+  if (operation == "hypot")
+    return make_inspection_result (octave_mplapack::mpfr_script_hypot (
+      left, right));
+  return make_inspection_result (octave_mplapack::mpfr_script_atan2 (
+    left, right));
+}
+
+octave_value
+script_signbit_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "signbit expects an mp value");
+  if (is_complex_payload (value))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "signbit is implemented for real mp values only");
+  const auto source = script_real_matrix_operand (
+    value, arithmetic_mp_precision (value));
+  if (source.rows () == 1 && source.columns () == 1)
+    return octave_value (mpfr_signbit (source.at (0, 0).mpfr_data ()) != 0);
+  boolMatrix result (checked_octave_dimension_for_inspection (source.rows ()),
+                     checked_octave_dimension_for_inspection (source.columns ()));
+  for (std::size_t column = 0; column < source.columns (); ++column)
+    for (std::size_t row = 0; row < source.rows (); ++row)
+      result (static_cast<octave_idx_type> (row),
+              static_cast<octave_idx_type> (column))
+        = mpfr_signbit (source.at (row, column).mpfr_data ()) != 0;
+  return octave_value (result);
+}
+
+octave_value
+script_eps_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "eps expects an mp value");
+  if (is_complex_payload (value))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "eps is implemented for real mp values only");
+  return make_inspection_result (octave_mplapack::mpfr_script_eps (
+    script_real_matrix_operand (value, arithmetic_mp_precision (value))));
+}
+
 octave_value
 script_reduce_operation (
   const octave_value& value,
@@ -7701,6 +7935,75 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         }
       return ovl (script_structure_operation (
         args(1), require_string (args(2), "structure operation"), args, 3));
+    }
+
+  if (command == "script_range")
+    {
+      try
+        { return ovl (script_range_operation (args)); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:RangeError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_linspace")
+    {
+      try
+        { return ovl (script_linspace_operation (args)); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:RangeError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_logspace")
+    {
+      try
+        { return ovl (script_logspace_operation (args)); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:RangeError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_round")
+    {
+      require_argument_count (args, 3, command);
+      try
+        {
+          const std::string operation = require_string (args(2), "rounding operation");
+          if (operation != "floor" && operation != "ceil"
+              && operation != "fix" && operation != "round")
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "unknown rounding operation: %s", operation.c_str ());
+          return ovl (script_round_operation (args(1), operation));
+        }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:UtilityError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_binary_utility")
+    {
+      require_argument_count (args, 4, command);
+      const std::string operation = require_string (args(3), "utility operation");
+      if (operation != "rem" && operation != "mod"
+          && operation != "hypot" && operation != "atan2")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown binary utility operation: %s", operation.c_str ());
+      try
+        { return ovl (script_real_binary_utility (args(1), args(2), operation)); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:UtilityError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_signbit")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (script_signbit_operation (args(1)));
+    }
+
+  if (command == "script_eps")
+    {
+      require_argument_count (args, 2, command);
+      try
+        { return ovl (script_eps_operation (args(1))); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:UtilityError", "%s", exception.what ()); }
     }
 
   if (command == "value_equal")
