@@ -58,6 +58,7 @@
 #include "mp_script_logic.h"
 #include "mp_script_structure.h"
 #include "mp_script_ranges.h"
+#include "mp_script_statistics.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -7160,6 +7161,145 @@ script_eps_operation (const octave_value& value)
     script_real_matrix_operand (value, arithmetic_mp_precision (value))));
 }
 
+struct ParsedStatisticsOptions
+{
+  octave_mplapack::MpScriptStatisticsOptions statistics;
+  bool output_double = false;
+};
+
+ParsedStatisticsOptions
+parse_statistics_options (const octave_value_list& args, int first,
+                          const octave_value& value,
+                          const std::string& operation)
+{
+  const bool range_like = operation == "range" || operation == "bounds";
+  int option_first = first;
+  ParsedStatisticsOptions result;
+  if (operation == "var" || operation == "std")
+    {
+      if (option_first < args.length () && args(option_first).isnumeric ())
+        {
+          const octave_value weight = args(option_first++);
+          if (! weight.isempty ())
+            {
+              if (weight.islogical () || ! weight.isreal ()
+                  || ! weight.is_real_scalar ())
+                error_with_id ("mplapack:mp:InvalidOption",
+                               "%s normalization must be scalar 0 or 1",
+                               operation.c_str ());
+              const double supplied = weight.double_value ();
+              if (! std::isfinite (supplied)
+                  || (supplied != 0.0 && supplied != 1.0))
+                error_with_id ("mplapack:mp:InvalidOption",
+                               "%s normalization must be scalar 0 or 1",
+                               operation.c_str ());
+              result.statistics.correction
+                = supplied == 1.0 ? 1U : 0U;
+            }
+        }
+    }
+
+  const ParsedScriptOptions parsed
+    = parse_script_options (args, option_first, script_default_dimension (value),
+                            range_like, false);
+  result.statistics.dimension = parsed.reduction.dimension;
+  result.statistics.all = parsed.reduction.all;
+  result.statistics.omit_nan = parsed.reduction.omit_nan;
+  result.output_double = parsed.reduction.output_double;
+  return result;
+}
+
+octave_value_list
+script_statistics_operation (const octave_value& value,
+                             const std::string& operation,
+                             const octave_value_list& args)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s requires an mp value", operation.c_str ());
+  if (operation != "mean" && operation != "median" && operation != "var"
+      && operation != "std" && operation != "range" && operation != "bounds")
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "unknown statistics operation: %s", operation.c_str ());
+
+  const ParsedStatisticsOptions parsed
+    = parse_statistics_options (args, 3, value, operation);
+  const bool complex = is_complex_arithmetic_operand (value);
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  try
+    {
+      if (complex)
+        {
+          const auto source = script_complex_matrix_operand (value, precision);
+          if (operation == "mean")
+            return ovl (script_complex_matrix_result (
+              octave_mplapack::mpc_script_mean (source, parsed.statistics),
+              parsed.output_double));
+          if (operation == "median")
+            return ovl (script_complex_matrix_result (
+              octave_mplapack::mpc_script_median (source, parsed.statistics),
+              parsed.output_double));
+          if (operation == "var" || operation == "std")
+            {
+              const auto result = octave_mplapack::mpc_script_variance (
+                source, parsed.statistics, operation == "std");
+              return ovl (
+                script_real_matrix_result (std::move (result.values),
+                                           parsed.output_double),
+                script_complex_matrix_result (std::move (result.means),
+                                              parsed.output_double));
+            }
+          if (operation == "range")
+            return ovl (script_complex_matrix_result (
+              octave_mplapack::mpc_script_range (source, parsed.statistics),
+              parsed.output_double));
+          const auto result
+            = octave_mplapack::mpc_script_bounds (source, parsed.statistics);
+          return ovl (
+            script_complex_matrix_result (std::move (result.lower),
+                                          parsed.output_double),
+            script_complex_matrix_result (std::move (result.upper),
+                                          parsed.output_double));
+        }
+
+      const auto source = script_real_matrix_operand (value, precision);
+      if (operation == "mean")
+        return ovl (script_real_matrix_result (
+          octave_mplapack::mpfr_script_mean (source, parsed.statistics),
+          parsed.output_double));
+      if (operation == "median")
+        return ovl (script_real_matrix_result (
+          octave_mplapack::mpfr_script_median (source, parsed.statistics),
+          parsed.output_double));
+      if (operation == "var" || operation == "std")
+        {
+          const auto result = octave_mplapack::mpfr_script_variance (
+            source, parsed.statistics, operation == "std");
+          return ovl (
+            script_real_matrix_result (std::move (result.values),
+                                       parsed.output_double),
+            script_real_matrix_result (std::move (result.means),
+                                       parsed.output_double));
+        }
+      if (operation == "range")
+        return ovl (script_real_matrix_result (
+          octave_mplapack::mpfr_script_range (source, parsed.statistics),
+          parsed.output_double));
+      const auto result
+        = octave_mplapack::mpfr_script_bounds (source, parsed.statistics);
+      return ovl (
+        script_real_matrix_result (std::move (result.lower),
+                                   parsed.output_double),
+        script_real_matrix_result (std::move (result.upper),
+                                   parsed.output_double));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StatisticsError", "%s", exception.what ());
+    }
+  return ovl (octave_value ());
+}
+
 octave_value
 script_reduce_operation (
   const octave_value& value,
@@ -8004,6 +8144,15 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         { return ovl (script_eps_operation (args(1))); }
       catch (const std::exception& exception)
         { error_with_id ("mplapack:mp:UtilityError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_statistics")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:mp:InvalidArguments",
+                       "script_statistics expects an mp value and operation");
+      return script_statistics_operation (
+        args(1), require_string (args(2), "statistics operation"), args);
     }
 
   if (command == "value_equal")

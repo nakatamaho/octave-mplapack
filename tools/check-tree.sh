@@ -151,6 +151,13 @@ inst/@mp/atan2.m
 inst/@mp/signbit.m
 inst/@mp/eps.m
 inst/@mp/private/mp_binary_utility.m
+inst/@mp/private/mp_statistic_result.m
+inst/@mp/mean.m
+inst/@mp/median.m
+inst/@mp/var.m
+inst/@mp/std.m
+inst/@mp/range.m
+inst/@mp/bounds.m
 inst/@mp/transpose.m
 inst/@mp/ctranspose.m
 inst/@mp/reshape.m
@@ -196,6 +203,8 @@ src/mp_script_structure.h
 src/mp_script_structure.cc
 src/mp_script_ranges.h
 src/mp_script_ranges.cc
+src/mp_script_statistics.h
+src/mp_script_statistics.cc
 src/mp_norm.h
 src/mp_norm.cc
 src/mp_det_inv.h
@@ -217,6 +226,7 @@ test/script-compat/s02.tst
 test/script-compat/s03.tst
 test/script-compat/s04.tst
 test/script-compat/s05.tst
+test/script-compat/s06.tst
 test/mrdivide.tst
 test/build_probe.tst
 test/native_value.tst
