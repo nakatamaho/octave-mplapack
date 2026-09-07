@@ -663,10 +663,10 @@ if [ "$package_name" != "mplapack-interop" ]; then
   exit 1
 fi
 case $package_version in
-  0.2.1|0.2.1-dev|0.3.0-dev|0.3.0)
+  0.2.1|0.2.1-dev|0.3.0-dev|0.3.0|0.3.1-dev|0.3.1)
     ;;
   *)
-    echo "FAIL: D01R1/N00/D02 requires DESCRIPTION version 0.2.1, 0.2.1-dev, 0.3.0-dev, or 0.3.0" >&2
+    echo "FAIL: D01R1/N00-N08/D02R1 requires DESCRIPTION version 0.2.1, 0.2.1-dev, 0.3.0-dev, 0.3.0, 0.3.1-dev, or 0.3.1" >&2
     exit 1
     ;;
 esac
@@ -738,7 +738,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/milestones/M20-complex-architecture.md \
   inst/@mp/lu.m test/lu.tst test/mp_lapack_lu_test.cc \
   test/m21_rgetrf_probe.cc docs/lu.md docs/milestones/M21-lu.md \
-  test/m22_dependency_probe.cc test/release_closure.tst \
+  test/m22_dependency_probe.cc test/release_closure.tst test/mrdivide.tst \
   docs/v0.1-api.md docs/octave-compatibility.md docs/ppa-plan.md \
   docs/release-checklist.md docs/milestones/M22-real-release-closure.md \
   docs/milestones/M23-v0.1-freeze.md \
@@ -747,6 +747,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   examples/05_hilbert_inverse.m examples/06_grcar_eig.m \
   tools/dev-octave.sh tools/verify-release-candidate.sh \
   docs/mplapack-interop-hilbert.md docs/binary-distribution.md \
+  docs/mrdivide.md docs/milestones/N08-mrdivide.md \
   docs/binary-redistribution-licenses.md docs/dependency-release-stack-r1.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
@@ -836,6 +837,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "pivoted_qr.tst")));
       assert (test (fullfile (root, "test", "lu.tst")));
       assert (test (fullfile (root, "test", "release_closure.tst")));
+      assert (test (fullfile (root, "test", "mrdivide.tst")));
       assert (test (fullfile (root, "test", "rank_condition.tst")));
       examples = dir (fullfile (root, "examples", "*.m"));
       for example = 1:numel (examples)
@@ -944,6 +946,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "qr.tst")));
       assert (test (fullfile (root, "test", "pivoted_qr.tst")));
       assert (test (fullfile (root, "test", "lu.tst")));
+      assert (test (fullfile (root, "test", "mrdivide.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));

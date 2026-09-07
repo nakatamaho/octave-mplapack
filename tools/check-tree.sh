@@ -116,6 +116,7 @@ src/mp_general_eig.cc
 src/mp_generalized_eig.h
 src/mp_generalized_eig.cc
 test/run_tests.m
+test/mrdivide.tst
 test/build_probe.tst
 test/native_value.tst
 test/native_lifetime.m

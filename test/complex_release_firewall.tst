@@ -30,7 +30,7 @@
 %! assert_rejected (@() logical (A), "complex logical fallback");
 %! assert_rejected (@() (A & A), "complex logical-and fallback");
 %! assert_rejected (@() sparse (A), "complex sparse fallback");
-%! assert_rejected (@() (A / A), "complex right-division fallback");
+%! assert (double (A / A), eye (2), 1e-12);
 %! d = det (A);
 %! X = inv (A);
 %! assert (isfinite (double (d)));

@@ -88,3 +88,5 @@ assert (test (fullfile (test_dir, "eig_generalized.tst"), "quiet", stdout));
 fprintf ("PASS: N06 generalized eig and QZ/Cholesky tests\n");
 assert (test (fullfile (test_dir, "n07_closure.tst"), "quiet", stdout));
 fprintf ("PASS: N07 numerical API closure and compatibility firewall tests\n");
+assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));
+fprintf ("PASS: N08 dense real and complex right-division tests\n");

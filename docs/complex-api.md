@@ -1,7 +1,7 @@
 # Complex `mp` API
 
-This is the C00–C12 implementation inventory carried by the 0.3.0 package;
-the N00-N07 additions complete the current release surface.
+This is the C00–C12 implementation inventory carried by the 0.3.1 package;
+the N00-N08 additions complete the current release surface.
 Release identity and dependency provenance are maintained in
 `docs/dependency-release-stack-r1.md` and the D02 freeze report.
 
@@ -40,6 +40,7 @@ an existing value or override `p_op`.
 | multiplication | `*` for scalar/matrix and mixed real/complex dense operands | MPLAPACK `Cgemm` |
 | square solve | `A \ B` | MPLAPACK `Cgesv` |
 | rectangular solve | full-rank/rank-revealing `A \ B` | MPLAPACK `Cgelsy` |
+| right division | dense `A / B`, including rank-deficient `B` | conjugate-transpose `Cgelsy`/`Cgesv` path |
 | Cholesky | `chol(A)`, `chol(A,"upper"/"lower")`, optional status | MPLAPACK `Cpotrf` |
 | QR | one/two-output full/economy `qr` | `Cgeqrf`/`Cungqr` |
 | pivoted QR | three-output matrix/vector/deprecated economy forms | `Cgeqp3`/`Cungqr` |

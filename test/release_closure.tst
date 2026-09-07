@@ -67,7 +67,7 @@
 %! assert_fails (@() sqrt (A), "sqrt must reject mp matrices");
 %! assert_fails (@() (A ^ 2), "power must reject mp matrices");
 %! assert_fails (@() (A == A), "comparison must reject mp matrices");
-%! assert_fails (@() (A / A), "right division must reject mp matrices");
+%! assert (double (A / A), eye (2), 1e-12);
 %! assert (double (det (A)), -2, 1e-12);
 %! assert (double (A * inv (A)), eye (2), 1e-12);
 %! [U, S, V] = svd (A);

@@ -12,7 +12,7 @@ historical v0.1 real-only release notes remain in `v0.1-api.md`.
 
 Supported syntax includes scalar and dense two-dimensional real or complex
 construction, indexing and in-bounds assignment, arithmetic, mixed real/
-complex `*` and `\`, `chol`, full/economy QR (including documented pivoted
+complex `*`, `\`, and `/`, `chol`, full/economy QR (including documented pivoted
 three-output forms), LU, `norm`, `det`, `inv`, `svd`, `rank`, `cond`, `rcond`,
 structured/general standard `eig` (including balance controls and three-output
 left eigenvectors), dense generalized `eig(A,B)` with `chol`/`qz` and

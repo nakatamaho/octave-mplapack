@@ -1,14 +1,15 @@
 # octave-mplapack
 
-**Status: 0.3.0 release candidate; 0.2.1 is historical.** C00 through C12
-pass, including mandatory complex `Cgetrf` LU, and the public complex API is
-closed. The 0.3.0 package identity is `mplapack-interop`; the public GNU Octave
-class/API remains `mp`, `mpbits`, and `mpdigits`.
+**Status: 0.3.1 development; 0.3.0 is frozen and 0.2.1 is historical.**
+C00 through C12 pass, including mandatory complex `Cgetrf` LU, and the public
+complex API is closed. N08 adds dense right division. The package identity is
+`mplapack-interop`; the public GNU Octave class/API remains `mp`, `mpbits`, and
+`mpdigits`.
 The real-only v0.1.0 release candidate remains historical. The historical D00
 stack is recorded in [`docs/dependency-release-stack.md`](docs/dependency-release-stack.md);
 the forward `mplapack-interop` handoff is in
 [`docs/dependency-release-stack-r1.md`](docs/dependency-release-stack-r1.md).
-N00–N07 and the 0.3.0 source freeze are tracked in the D02 release records;
+N00–N08 and the 0.3.1 source freeze are tracked in the D02R1 release records;
 the 0.2.1 package remains historical provenance.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
@@ -58,11 +59,11 @@ programming model.
 
 ## Quick start
 
-Install a locally built release-candidate archive with Octave's package manager
+Install a locally built source archive with Octave's package manager
 (the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-interop-0.3.0.tar.gz
+octave:1> pkg install mplapack-interop-0.3.1.tar.gz
 octave:2> pkg load mplapack-interop
 ```
 
@@ -71,7 +72,7 @@ builds the native module, and starts a configured development session. It does
 not replace clean package/install QA.
 
 The current surface includes dense real and complex `mp`, precision-controlled
-construction, arithmetic, mixed real/complex `*` and `\`, indexing and
+construction, arithmetic, mixed real/complex `*`, `\`, and `/`, indexing and
 in-bounds assignment, `chol`, full/economy and pivoted `qr`, `lu`, `norm`,
 `det`, `inv`, `svd`, `rank`, `cond`, `rcond`, structured and general standard
 and generalized `eig`, and dense concatenation. Sparse, N-D, reductions,
@@ -200,6 +201,7 @@ stored-precision `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri` paths.
 | `+ - .* ./` | yes | yes | MPFR | supported |
 | `*` | yes | yes | `Rgemm` | supported |
 | `\` | yes | yes | `Rgesv`/`Rgelss` | supported |
+| `/` | yes | yes | transpose solve; `Rgesv`/`Rgelss` | supported |
 | `chol` | yes | yes | `Rpotrf` | supported |
 | `qr` / pivoted `qr` | yes | yes | `Rgeqrf`/`Rgeqp3`/`Rorgqr` | supported |
 | `lu` | yes | yes | `Rgetrf` | supported |

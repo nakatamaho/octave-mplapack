@@ -1,5 +1,15 @@
 # News
 
+## 0.3.1
+
+N08 adds dense real and complex matrix right division with `/`, including
+scalar forms, mixed `mp`/double operands, rectangular least-squares solves,
+rank-deficient minimum-norm results, and the complex conjugate-transpose
+identity. Existing `mldivide` square-singular error behavior is unchanged;
+right division uses a private rank-revealing retry for Octave-compatible
+singular results. All paths preserve one-operation/one-precision MPFR/MPC
+semantics and operation-owned destructive-call buffers.
+
 ## 0.3.0
 
 This release completes the numerical API after the frozen 0.2.1 package

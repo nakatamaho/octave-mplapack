@@ -197,14 +197,7 @@
 %!                     "M08 dimension mismatch unexpectedly succeeded"));
 %!   assert (strcmp (exception.identifier, "mplapack:mp:DimensionMismatch"));
 %! end_try_catch
-%! try
-%!   A / A;
-%!   error ("M08 matrix division unexpectedly succeeded");
-%! catch exception
-%!   assert (! strcmp (exception.message, ...
-%!                     "M08 matrix division unexpectedly succeeded"));
-%!   assert (strcmp (exception.identifier, "mplapack:NotImplemented"));
-%! end_try_catch
+%! assert (double (A / A), eye (2), 1e-12);
 
 %!test
 %! saved = mpbits ();

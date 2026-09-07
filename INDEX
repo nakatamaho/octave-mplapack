@@ -16,6 +16,8 @@ Matrix inspection
 Arithmetic and structure
  mtimes
  mldivide
+ mrdivide
+ rdivide
  transpose
  ctranspose
  reshape

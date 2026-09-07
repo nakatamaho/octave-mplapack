@@ -19,7 +19,7 @@ binary64 result, crash, or recursive dispatch:
   is supported by N06 through the definite/QZ MPLAPACK paths);
 - `sin`, `exp`, `sqrt`, and other unimplemented transcendentals;
 - power (`^` and `.^`), ordered comparisons, equality/logical operations,
-  sparse conversion, and right division;
+  and sparse conversion;
 - sparse matrices, N-dimensional matrices, growth/deletion assignment, and
   unsupported cell/text matrix forms.
 

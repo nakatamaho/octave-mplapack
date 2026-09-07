@@ -3036,7 +3036,8 @@ complex_mtimes_operation (const octave_value& lhs_value,
 
 octave_value
 complex_mldivide_operation (const octave_value& lhs_value,
-                            const octave_value& rhs_value)
+                            const octave_value& rhs_value,
+                            bool force_rank_revealing = false)
 {
   mpfr_prec_t operation_precision = 0;
   if (is_mp_value (lhs_value))
@@ -3130,7 +3131,7 @@ complex_mldivide_operation (const octave_value& lhs_value,
         rhs_matrix.emplace (*rhs.matrix);
       else
         {
-          if (lhs.matrix->rows () != 1 || lhs.matrix->columns () != 1)
+          if (lhs.matrix->rows () != 1)
             throw std::invalid_argument (
               "matrix left division requires a dense right-hand matrix");
           rhs_matrix.emplace (1, 1, operation_precision);
@@ -3139,12 +3140,14 @@ complex_mldivide_operation (const octave_value& lhs_value,
                    MPC_RND (MPFR_RNDN, MPFR_RNDN));
         }
 
+      if (lhs.matrix->rows () == lhs.matrix->columns ()
+          && ! force_rank_revealing)
+        return make_complex_inspection_result (
+          octave_mplapack::mplapack_mpc_matrix_solve (*lhs.matrix,
+                                                      *rhs_matrix));
       return make_complex_inspection_result (
-        lhs.matrix->rows () == lhs.matrix->columns ()
-          ? octave_mplapack::mplapack_mpc_matrix_solve (*lhs.matrix,
-                                                        *rhs_matrix)
-          : octave_mplapack::mplapack_mpc_matrix_rank_solve (
-              *lhs.matrix, *rhs_matrix).solution);
+        octave_mplapack::mplapack_mpc_matrix_rank_solve (
+          *lhs.matrix, *rhs_matrix).solution);
     }
   catch (const octave_mplapack::MpcCgelsyError& exception)
     {
@@ -5445,7 +5448,8 @@ mp_mtimes_operation (const octave_value& lhs_value,
 
 octave_value
 mp_mldivide_operation (const octave_value& lhs_value,
-                       const octave_value& rhs_value)
+                       const octave_value& rhs_value,
+                       bool force_rank_revealing = false)
 {
   const bool lhs_is_mp = is_mp_value (lhs_value);
   const bool rhs_is_mp = is_mp_value (rhs_value);
@@ -5593,7 +5597,7 @@ mp_mldivide_operation (const octave_value& lhs_value,
         error_with_id ("mplapack:mp:UnsupportedOperand",
                        "matrix left division requires a dense mp or real double right-hand side");
 
-      if (lhs->rows () != lhs->columns ())
+      if (lhs->rows () != lhs->columns () || force_rank_revealing)
         return make_mldivide_result (
           octave_mplapack::mplapack_mpfr_matrix_rank_revealing_solve (
             *lhs, *rhs).solution);
@@ -6204,6 +6208,15 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
           || is_complex_arithmetic_operand (args(2)))
         return ovl (complex_mldivide_operation (args(1), args(2)));
       return ovl (mp_mldivide_operation (args(1), args(2)));
+    }
+
+  if (command == "mldivide_rank")
+    {
+      require_argument_count (args, 3, command);
+      if (is_complex_arithmetic_operand (args(1))
+          || is_complex_arithmetic_operand (args(2)))
+        return ovl (complex_mldivide_operation (args(1), args(2), true));
+      return ovl (mp_mldivide_operation (args(1), args(2), true));
     }
 
   if (command == "norm")

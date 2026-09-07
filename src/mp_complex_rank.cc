@@ -83,9 +83,6 @@ MpcRankRevealingSolveResult
 mplapack_mpc_matrix_rank_solve (const MpfrComplexMatrixStorage& lhs,
                                 const MpfrComplexMatrixStorage& rhs)
 {
-  if (lhs.rows () == lhs.columns ())
-    throw std::invalid_argument (
-      "MPLAPACK Cgelsy is only used for rectangular matrices");
   if (rhs.rows () != lhs.rows ())
     throw std::invalid_argument ("matrix solve dimensions must agree");
 

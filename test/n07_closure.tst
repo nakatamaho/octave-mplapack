@@ -27,7 +27,7 @@
 %!   assert_rejected (@() (C < C), "ordered complex comparison must remain unsupported");
 %!   assert_rejected (@() (C == C), "complex equality must remain unsupported");
 %!   assert_rejected (@() (C ^ 2), "complex power must remain unsupported");
-%!   assert_rejected (@() (C / C), "complex right division must remain unsupported");
+%!   assert (double (C / C), eye (2), 1e-12);
 %! unwind_protect_cleanup
 %!   mpbits (saved);
 %! end_unwind_protect
