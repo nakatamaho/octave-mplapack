@@ -19,7 +19,7 @@ precision/value test have passed.
 | comparisons, logicals, logical indexing, `find` | SUPPORTED | S03 native MPFR/MPC comparison, truth, indexing, and find tests |
 | matrix utilities and constructors | SUPPORTED | S04 native MPFR/MPC `diag`, `triu`/`tril`, `repmat`, flips, `rot90`, `cat(1/2)`, and `like` constructors |
 | ranges, rounding, utility arithmetic | SUPPORTED | S05 native MPFR/MPC range, spacing, rounding, and utility tests |
-| descriptive statistics | PLANNED-S06 | Not yet implemented in the S-series |
+| descriptive statistics | SUPPORTED | S06 native MPFR/MPC mean, median, variance, standard deviation, range, and bounds |
 | graphics boundary wrappers | PLANNED-S07 | No automatic graphics conversion is present yet |
 | ordinary script corpus closure | PLANNED-S08 | Corpus is added after S00-S07 |
 | sparse, symbolic, signal/image-specialized, ODE/PDE, optimization APIs | INTENTIONALLY-DEFERRED | Outside the dense ordinary-script target |
@@ -135,6 +135,35 @@ rejected explicitly where the dense mp contract is real-only.
 All S05 numerical paths avoid binary64 generation and preserve the operation's
 MPFR/MPC precision scope. The dedicated S05 tests include 1024-bit `2^-700`
 and 2048-bit `2^-1500` canaries and ambient-precision restoration.
+
+## S06 semantics
+
+`mean` supports the default and explicit two-dimensional dimensions, `"all"`,
+`omitnan`/`includenan`, and an explicit `"double"` output boundary. Real
+means use MPFR accumulators; complex means use MPC accumulators and retain
+their complex result. `median` sorts with native MPFR ordering for real data
+and native magnitude/phase ordering for complex data, then averages the two
+middle native values for even-sized slices.
+
+`var` and `std` support the common normalization forms `0` (N-1) and `1` (N),
+the default and explicit dimensions, `"all"`, NaN flags, and the optional
+second output containing the mean. Complex variance and standard deviation
+are real MPFR values computed from native squared magnitudes, while their
+second output is the native complex mean. The implementation first computes
+the mean and then accumulates squared deviations, avoiding the
+catastrophically cancelling sum-of-squares formula.
+
+`range` and `bounds` use native minimum/maximum ordering and default to
+`omitnan`, matching Octave's statistics functions. Their complex ordering is
+the same native magnitude/phase ordering used by the existing dense extrema
+surface; complex `range` subtracts the selected native lower bound from the
+selected upper bound. Empty/all-NaN slices produce native NaN results.
+
+S06 accepts only the dense two-dimensional statistics surface. Weighted
+statistics, multi-dimensional vector-dimension forms, and unrelated
+statistics families remain outside this milestone. No statistics path routes
+through builtin binary64 arithmetic or through a complex kernel for a
+real-only input.
 
 ## Known intentional stops
 

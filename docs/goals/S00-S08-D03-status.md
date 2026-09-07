@@ -14,7 +14,8 @@ S02: PASS; committed and pushed as 07c047d08d64ecd8c0d623cd2e1e621882b6c8b9
 S03: PASS; committed and pushed as a71c13f and 5714787
 S04: PASS; committed and pushed as 2247480a4835519f27cb53b6a39173d05f16bdc8
 S05: PASS; committed and pushed as b97ed2ea231cbb9bb1fd8b7334911d86cb2db7db
-S06-S08: not started
+S06: PASS; committed and pushed as 0f3e9c8dd4bb00067c117e2144d0e1f3c7179d0b
+S07-S08: not started
 D03: not started
 ```
 
@@ -230,6 +231,49 @@ the frozen dependencies.
 S05 PASS — RANGES, ROUNDING, AND UTILITY ARITHMETIC CLOSED
 ```
 
+## S06 evidence
+
+Implementation commit: `0f3e9c8dd4bb00067c117e2144d0e1f3c7179d0b`.
+
+```text
+mean: PASS — native MPFR real and MPC complex accumulators
+median: PASS — native MPFR ordering/sorting and complex magnitude/phase audit
+var: PASS — native two-pass MPFR/MPC stable variance, N-1 and N normalization
+std: PASS — native MPFR square root and optional second-output mean
+range: PASS — native min/max ordering and subtraction
+bounds: PASS — native lower/upper values and two-output form
+real dimensions/all forms: PASS
+complex mean/median/variance/range/bounds audit: PASS
+omitnan/includenan: PASS with Octave defaults preserved
+stability: PASS — mean-then-deviation accumulation, no naive cancellation formula
+1024/2048 precision and ambient default isolation: PASS
+binary64 numerical fallback: NONE
+```
+
+```text
+G-S06-MEAN: PASS
+G-S06-MEDIAN: PASS
+G-S06-VAR: PASS
+G-S06-STD: PASS
+G-S06-RANGE: PASS
+G-S06-BOUNDS: PASS
+G-S06-REAL: PASS
+G-S06-COMPLEX-AUDIT: PASS
+G-S06-NANFLAG: PASS
+G-S06-STABILITY: PASS
+G-S06-PRECISION: PASS
+G-S06-REGRESSION: PASS
+```
+
+The post-milestone `tools/local-ci.sh` wall passed M00–M23,
+C00–C12/C11L, N00–N08, S00–S06, native ASan/UBSan/LSan, clean rebuild #2,
+deterministic package generation, and isolated install/lifecycle QA against
+the frozen dependencies.
+
+```text
+S06 PASS — BASIC DESCRIPTIVE STATISTICS CLOSED
+```
+
 ## Next milestone
 
-Proceed automatically to S06 — Descriptive statistics.
+Proceed automatically to S07 — Graphics boundary bridge.
