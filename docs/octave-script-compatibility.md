@@ -17,7 +17,7 @@ precision/value test have passed.
 | `power`, elementary functions | SUPPORTED | S01 native MPFR/MPC power and elementary-function tests |
 | reductions and extrema | SUPPORTED | S02 native MPFR/MPC reductions, NaN flags, dimensions, and min/max |
 | comparisons, logicals, logical indexing, `find` | SUPPORTED | S03 native MPFR/MPC comparison, truth, indexing, and find tests |
-| matrix utilities and constructors | PLANNED-S04 | Existing structural API is narrower than this target |
+| matrix utilities and constructors | SUPPORTED | S04 native MPFR/MPC `diag`, `triu`/`tril`, `repmat`, flips, `rot90`, `cat(1/2)`, and `like` constructors |
 | ranges, rounding, utility arithmetic | PLANNED-S05 | Not yet implemented in the S-series |
 | descriptive statistics | PLANNED-S06 | Not yet implemented in the S-series |
 | graphics boundary wrappers | PLANNED-S07 | No automatic graphics conversion is present yet |
@@ -90,6 +90,23 @@ NaN is true and a complex value is true when either component is nonzero.
 supports linear, row/column, and three-output forms, including a count and
 `"first"`/`"last"` direction. Dense numeric vector and logical-mask indexing
 and value-semantic assignment follow column-major order.
+
+## S04 semantics
+
+`diag` constructs or extracts two-dimensional diagonals with an optional
+offset. `triu` and `tril` preserve the dense matrix shape and support an
+optional diagonal offset; the sparse-style `"pack"` form is intentionally
+rejected because the package's dense two-dimensional contract has no packed
+output type. `repmat` accepts scalar repetition counts or a two-element
+dimension vector.
+
+`flip`, `fliplr`, and `flipud` copy rows or columns natively, and `rot90`
+supports arbitrary integer quarter-turn counts. `cat(1, ...)` and
+`cat(2, ...)` use the existing native vertical and horizontal concatenation
+paths; dimensions above two remain rejected. `zeros`, `ones`, `eye`, `NaN`,
+and `Inf` support the explicit `"like"` form when the template is an `mp`
+value. These constructors preserve template precision and real/complex
+storage kind, and all special values are written through MPFR/MPC directly.
 
 ## Known intentional stops
 

@@ -98,3 +98,5 @@ assert (test (fullfile (test_dir, "script-compat", "s02.tst"), "quiet", stdout))
 fprintf ("PASS: S02 script compatibility tests\n");
 assert (test (fullfile (test_dir, "script-compat", "s03.tst"), "quiet", stdout));
 fprintf ("PASS: S03 script compatibility tests\n");
+assert (test (fullfile (test_dir, "script-compat", "s04.tst"), "quiet", stdout));
+fprintf ("PASS: S04 script compatibility tests\n");

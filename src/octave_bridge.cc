@@ -56,6 +56,7 @@
 #include "mp_script_compat.h"
 #include "mp_script_reductions.h"
 #include "mp_script_logic.h"
+#include "mp_script_structure.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -6657,6 +6658,274 @@ script_complex_matrix_operand (const octave_value& value,
   return make_complex_double_matrix_storage (value, precision);
 }
 
+std::int64_t
+require_signed_structure_integer (const octave_value& value,
+                                  const char *description)
+{
+  if (! value.isnumeric () || value.islogical () || value.is_string ()
+      || ! value.isreal () || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "%s must be a real integer scalar", description);
+  const double supplied = value.double_value ();
+  if (! std::isfinite (supplied) || std::trunc (supplied) != supplied
+      || static_cast<long double> (supplied)
+           < static_cast<long double> (std::numeric_limits<std::int64_t>::min ())
+      || static_cast<long double> (supplied)
+           > static_cast<long double> (std::numeric_limits<std::int64_t>::max ()))
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "%s must be an integer in the supported range",
+                   description);
+  return static_cast<std::int64_t> (supplied);
+}
+
+std::size_t
+require_nonnegative_structure_dimension (const octave_value& value,
+                                         const char *description)
+{
+  if (! value.isnumeric () || value.islogical () || value.is_string ()
+      || ! value.isreal () || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s must be a nonnegative integer scalar", description);
+  const double supplied = value.double_value ();
+  if (! std::isfinite (supplied) || std::trunc (supplied) != supplied
+      || supplied < 0.0
+      || static_cast<long double> (supplied)
+           > static_cast<long double> (
+                std::numeric_limits<octave_idx_type>::max ()))
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s must be a nonnegative integer scalar", description);
+  return checked_size_dimension (static_cast<octave_idx_type> (supplied));
+}
+
+std::vector<std::size_t>
+parse_structure_dimensions (const octave_value_list& args, int first,
+                            const char *description)
+{
+  if (first >= args.length ())
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s requires one or two dimensions", description);
+
+  std::vector<std::size_t> dimensions;
+  if (args.length () == first + 1 && args(first).isnumeric ()
+      && ! args(first).islogical () && ! args(first).is_string ()
+      && ! args(first).is_real_scalar ())
+    {
+      const octave_value& vector = args(first);
+      if (! vector.isreal () || vector.ndims () != 2
+          || (vector.rows () != 1 && vector.columns () != 1)
+          || vector.numel () == 0 || vector.numel () > 2)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "%s dimension vector must contain one or two integers",
+                       description);
+      const NDArray values = vector.array_value ();
+      for (octave_idx_type index = 0; index < values.numel (); ++index)
+        dimensions.push_back (require_nonnegative_structure_dimension (
+          octave_value (values(index)), description));
+    }
+  else
+    {
+      for (int index = first; index < args.length (); ++index)
+        dimensions.push_back (require_nonnegative_structure_dimension (
+          args(index), description));
+      if (dimensions.size () > 2)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "%s accepts at most two dimensions", description);
+    }
+  if (dimensions.size () == 1)
+    dimensions.push_back (dimensions.front ());
+  return dimensions;
+}
+
+std::pair<std::size_t, std::size_t>
+parse_repmat_dimensions (const octave_value_list& args, int first)
+{
+  const auto dimensions = parse_structure_dimensions (args, first, "repmat");
+  return {dimensions.at (0), dimensions.at (1)};
+}
+
+octave_value
+script_structure_operation (const octave_value& value,
+                            const std::string& operation,
+                            const octave_value_list& args, int first)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s requires an mp value", operation.c_str ());
+
+  try
+    {
+      const mpfr_prec_t precision = arithmetic_mp_precision (value);
+      if (operation == "diag")
+        {
+          if (args.length () != first && args.length () != first + 1)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "diag accepts an optional diagonal offset");
+          const std::int64_t diagonal = args.length () == first
+            ? 0 : require_signed_structure_integer (args(first), "diag offset");
+          if (is_complex_payload (value))
+            {
+              const auto source = script_complex_matrix_operand (value, precision);
+              return make_complex_inspection_result (
+                octave_mplapack::mpc_script_diag (
+                  source, source.rows () == 1 || source.columns () == 1,
+                  diagonal));
+            }
+          const auto source = script_real_matrix_operand (value, precision);
+          return make_inspection_result (octave_mplapack::mpfr_script_diag (
+            source, source.rows () == 1 || source.columns () == 1, diagonal));
+        }
+
+      if (operation == "triu" || operation == "tril")
+        {
+          if (args.length () != first && args.length () != first + 1)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "%s accepts an optional diagonal offset",
+                           operation.c_str ());
+          const std::int64_t diagonal = args.length () == first
+            ? 0 : require_signed_structure_integer (
+                args(first), "triangular diagonal offset");
+          const bool upper = operation == "triu";
+          if (is_complex_payload (value))
+            return make_complex_inspection_result (
+              octave_mplapack::mpc_script_triangular (
+                script_complex_matrix_operand (value, precision), diagonal,
+                upper));
+          return make_inspection_result (octave_mplapack::mpfr_script_triangular (
+            script_real_matrix_operand (value, precision), diagonal, upper));
+        }
+
+      if (operation == "repmat")
+        {
+          const auto repetitions = parse_repmat_dimensions (args, first);
+          if (is_complex_payload (value))
+            return make_complex_inspection_result (
+              octave_mplapack::mpc_script_repmat (
+                script_complex_matrix_operand (value, precision),
+                repetitions.first, repetitions.second));
+          return make_inspection_result (octave_mplapack::mpfr_script_repmat (
+            script_real_matrix_operand (value, precision),
+            repetitions.first, repetitions.second));
+        }
+
+      if (operation == "flip")
+        {
+          if (args.length () != first && args.length () != first + 1)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "flip accepts an optional dimension");
+          const int dimension = args.length () == first
+            ? 0 : static_cast<int> (require_signed_structure_integer (
+                args(first), "flip dimension"));
+          if (dimension != 0 && dimension != 1 && dimension != 2)
+            error_with_id ("mplapack:mp:InvalidDimension",
+                           "flip dimension must be 1 or 2");
+          if (is_complex_payload (value))
+            {
+              const auto source = script_complex_matrix_operand (value, precision);
+              const int selected = dimension == 0
+                ? (source.rows () != 1 ? 1 : 2) : dimension;
+              return make_complex_inspection_result (
+                octave_mplapack::mpc_script_flip (source, selected));
+            }
+          const auto source = script_real_matrix_operand (value, precision);
+          const int selected = dimension == 0
+            ? (source.rows () != 1 ? 1 : 2) : dimension;
+          return make_inspection_result (
+            octave_mplapack::mpfr_script_flip (source, selected));
+        }
+
+      if (operation == "rot90")
+        {
+          if (args.length () != first && args.length () != first + 1)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "rot90 accepts an optional integer count");
+          const std::int64_t supplied = args.length () == first
+            ? 1 : require_signed_structure_integer (args(first), "rot90 count");
+          if (supplied < static_cast<std::int64_t> (std::numeric_limits<int>::min ())
+              || supplied > static_cast<std::int64_t> (std::numeric_limits<int>::max ()))
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "rot90 count is outside the supported range");
+          const int turns = static_cast<int> (supplied);
+          if (is_complex_payload (value))
+            return make_complex_inspection_result (
+              octave_mplapack::mpc_script_rot90 (
+                script_complex_matrix_operand (value, precision), turns));
+          return make_inspection_result (octave_mplapack::mpfr_script_rot90 (
+            script_real_matrix_operand (value, precision), turns));
+        }
+
+      if (operation == "like")
+        {
+          const std::vector<std::size_t> dimensions
+            = parse_structure_dimensions (args, first, "like constructor");
+          const std::size_t rows = dimensions.at (0);
+          const std::size_t columns = dimensions.at (1);
+          const std::string kind = require_string (args(2), "constructor kind");
+          if (kind != "zeros" && kind != "ones" && kind != "eye"
+              && kind != "nan" && kind != "inf")
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "unknown like constructor kind");
+
+          if (is_complex_payload (value))
+            {
+              octave_mplapack::MpfrMpcPrecisionScope scope (precision);
+              octave_mplapack::MpfrComplexMatrixStorage result (
+                rows, columns, precision);
+              for (std::size_t index = 0; index < result.numel (); ++index)
+                {
+                  if (kind == "nan")
+                    mpc_set_nan (result.data ()[index].mpc_data ());
+                  else if (kind == "inf")
+                    {
+                      mpfr_set_inf (mpc_realref (
+                        result.data ()[index].mpc_data ()), 1);
+                      mpfr_set_zero (mpc_imagref (
+                        result.data ()[index].mpc_data ()), 0);
+                    }
+                  else if (kind == "ones")
+                    mpc_set_ui (result.data ()[index].mpc_data (), 1,
+                                MPC_RND (MPFR_RNDN, MPFR_RNDN));
+                  else
+                    mpc_set_ui (result.data ()[index].mpc_data (), 0,
+                                MPC_RND (MPFR_RNDN, MPFR_RNDN));
+                }
+              if (kind == "eye")
+                {
+                  for (std::size_t index = 0;
+                       index < std::min (rows, columns); ++index)
+                    mpc_set_ui (result.at (index, index).mpc_data (), 1,
+                                MPC_RND (MPFR_RNDN, MPFR_RNDN));
+                }
+              return make_complex_inspection_result (std::move (result));
+            }
+
+          octave_mplapack::MpfrMatrixStorage result (rows, columns, precision);
+          for (std::size_t index = 0; index < result.numel (); ++index)
+            {
+              if (kind == "nan")
+                mpfr_set_nan (result.data ()[index].mpfr_data ());
+              else if (kind == "inf")
+                mpfr_set_inf (result.data ()[index].mpfr_data (), 1);
+              else
+                mpfr_set_ui (result.data ()[index].mpfr_data (),
+                             kind == "ones" ? 1UL : 0UL, MPFR_RNDN);
+            }
+          if (kind == "eye")
+            {
+              for (std::size_t index = 0;
+                   index < std::min (rows, columns); ++index)
+                mpfr_set_ui (result.at (index, index).mpfr_data (), 1,
+                             MPFR_RNDN);
+            }
+          return make_inspection_result (std::move (result));
+        }
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
 octave_value
 script_reduce_operation (
   const octave_value& value,
@@ -7416,6 +7685,23 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
 
   if (command == "script_find")
     return script_find_operation (args);
+
+  if (command == "script_structure")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:InvalidArguments",
+                       "script_structure expects an mp value and operation");
+      if (args(1).is_string () && args(1).string_value () == "like")
+        {
+          if (args.length () < 5)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "like constructor expects a kind, template, and dimensions");
+          return ovl (script_structure_operation (
+            args(3), "like", args, 4));
+        }
+      return ovl (script_structure_operation (
+        args(1), require_string (args(2), "structure operation"), args, 3));
+    }
 
   if (command == "value_equal")
     {

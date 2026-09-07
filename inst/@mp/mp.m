@@ -33,6 +33,8 @@ classdef mp
   ## compatibility predicates and elementary scalar operations. Unsupported
   ## functions are documented in `docs/octave-script-compatibility.md`.
   ## N-dimensional, mixed-cell, and cell-of-@code{mp} inputs are unsupported.
+  ## S04 adds native dense matrix utilities and explicit @code{"like"}
+  ## constructors for @code{mp} templates.
   ## @end deftypefn
 
   properties (Access = private, Hidden = true)

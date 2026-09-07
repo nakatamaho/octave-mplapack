@@ -15,7 +15,10 @@ S03 adds native MPFR/MPC comparisons, logical conversion and element-wise
 logical operators, `any`/`all`, `find`, general numeric linear indexing, and
 logical indexing/assignment. Ordered comparisons remain explicitly rejected
 for complex values; no comparison or logical path uses builtin binary64
-complex arithmetic.
+complex arithmetic. S04 adds native dense `diag`, `triu`/`tril`, `repmat`,
+row/column flips, `rot90`, `cat(1/2)`, and `zeros`/`ones`/`eye`/`NaN`/`Inf`
+`"like"` constructors. The dense two-dimensional contract and explicit
+rejection of packed triangular output remain in force.
 
 ## 0.3.1
 

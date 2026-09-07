@@ -79,7 +79,9 @@ in-bounds assignment, `chol`, full/economy and pivoted `qr`, `lu`, `norm`,
 and generalized `eig`, dense concatenation, element-wise power, integer
 matrix powers, native elementary functions, reductions, and extrema. S03 also
 provides native comparisons, logical conversion and operators, `any`/`all`,
-`find`, and logical indexing. Sparse and N-D APIs remain explicitly
+`find`, and logical indexing. S04 adds native dense matrix utilities
+(`diag`, `triu`/`tril`, `repmat`, flips, `rot90`, `cat(1/2)`) and explicit
+`"like"` constructors for `mp` templates. Sparse and N-D APIs remain explicitly
 unsupported; see the [complex API](docs/complex-api.md) and [compatibility
 limits](docs/complex-compatibility.md).
 
