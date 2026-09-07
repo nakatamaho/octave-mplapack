@@ -10,7 +10,7 @@ baseline: D02R1 v0.3.1 freeze, tag v0.3.1 preserved
 active package version: 0.4.0-dev
 S00: PASS; committed and pushed as c17b48c0a8bf7e39c3c9a111bcc8e3ae0c60e048
 S01: PASS; committed and pushed as 29f3539 (full SHA in git history)
-S02: PASS; implementation and report staged for milestone commit
+S02: PASS; committed and pushed as 07c047d08d64ecd8c0d623cd2e1e621882b6c8b9
 S03-S08: not started
 D03: not started
 ```
@@ -83,6 +83,8 @@ S01 PASS — ELEMENT-WISE POWER AND ELEMENTARY FUNCTIONS CLOSED
 ```
 
 ## S02 evidence
+
+Implementation/report commit: `07c047d08d64ecd8c0d623cd2e1e621882b6c8b9`.
 
 ```text
 sum/prod/sumsq: PASS — native MPFR/MPC reduction accumulators

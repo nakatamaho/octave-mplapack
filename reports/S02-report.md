@@ -6,6 +6,8 @@
 S02 PASS — REDUCTIONS AND EXTREMA CLOSED
 ```
 
+Implementation commit: `07c047d08d64ecd8c0d623cd2e1e621882b6c8b9`.
+
 ## Public API
 
 ```text
