@@ -1,18 +1,19 @@
 # N08 / D02R1 status
 
-Updated: 2026-09-07
+Updated: 2026-09-08
 
 ## Current state
 
-N08 implementation is complete on `topic/n08-mrdivide`.
+N08 implementation is complete on `topic/n08-mrdivide`; D02R1 release QA is
+complete on `topic/d02r1-0.3.1-release-freeze`.
 
 ```text
 N08 PASS — DENSE REAL+COMPLEX MRDIVIDE COMPLETE
 ```
 
-The current development version remains `0.3.1-dev`.  D02R1 release
-freezing has not yet changed the version, created `v0.3.1`, or modified the
-historical `v0.3.0` release.
+The release candidate version is `0.3.1`.  The historical `v0.3.0` release
+remains immutable.  The final release tag is deliberately created only after
+the final archive hash and tag-tree verification below are complete.
 
 ## N08 source identity
 
@@ -69,11 +70,21 @@ segfault after the preceding test wall.  The test now uses independent scalar
 complex formulas, while the MPLAPACK `mp` right-division operations remain the
 calls under test.
 
-## D02R1 next actions
+## D02R1 QA state
 
-1. Record this N08 status and report commit.
-2. Change only release metadata from `0.3.1-dev` to `0.3.1`.
-3. Run the complete D02R1 frozen-stack, provenance, lifecycle, sanitizer, and
-   archive reproducibility gates.
-4. Create and verify `v0.3.1` only after all D02R1 gates pass.
-5. Write the final D02R1 report and stop; do not begin D01.
+```text
+D02R1-G source/version freeze: PASS
+D02R1-S frozen three-archive rebuild: PASS
+D02R1-R source archive reproducibility: PASS
+D02R1-Q full regression, sanitizer, provenance, lifecycle: PASS
+D02R1-T release tag: pending final candidate archive verification
+```
+
+The final candidate stack was rebuilt from the exact gmpfrxx and MPLAPACK
+archives recorded in the D02R1 report.  The clean archive-only Octave build
+passed M00-M23, C00-C12, mandatory C11L, and N00-N08, including the 1024-bit /
+2^-700 and 2048-bit / 2^-1500 canaries.  The isolated package lifecycle and
+the installed MPLAPACK external consumers also passed.
+
+The next action is the release-engineering tag verification and final report.
+No D01, binary, Debian, PPA, Launchpad, or registry work is started here.

@@ -66,6 +66,8 @@ for source_root in $source_roots; do
   fi
 done
 
+# Repository-only release handoff manifests contain archive checksums and
+# therefore must not hash themselves into the source archive.
 find $source_roots -type f \
   ! -name '*.o' \
   ! -name '*.oct' \
@@ -119,6 +121,8 @@ find $source_roots -type f \
   ! -path '*/.build-m19/*' \
   ! -path '*/.build-m21/*' \
   ! -path 'docs/v0.1-release-manifest.md' \
+  ! -path 'docs/dependency-release-stack.md' \
+  ! -path 'docs/dependency-release-stack-r1.md' \
   ! -path 'tools/install-local-octave-mplapack.sh' \
   ! -path '*/.libs/*' \
   ! -path '*/.deps/*' \
