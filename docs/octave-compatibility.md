@@ -20,10 +20,14 @@ left eigenvectors), dense generalized `eig(A,B)` with `chol`/`qz` and
 Factorization and norm methods use the selected MPLAPACK MPFR/MPC backend and
 copy destructive inputs.
 
+S02 adds native reductions and extrema: `sum`, `prod`, `sumsq`, `cumsum`,
+`cumprod`, `min`, and `max`, including dimensions, `"all"` where applicable,
+NaN flags, cumulative direction, first-value indices, and supported complex
+comparison methods.
+
 Intentional differences are no sparse or N-D values, no matrix `char`,
 limited vector-linear indexing, no growth or deletion assignment, no
-comparisons/logical operators or reductions, no generalized balance options,
-or update
+comparisons/logical operators, no generalized balance options, or update
 APIs. Three-output sparse permutation forms and `qr(A,B)` are not provided.
 
 Unsupported matrix functions are expected to fail cleanly. M22's compatibility

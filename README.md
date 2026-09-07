@@ -77,8 +77,8 @@ construction, arithmetic, mixed real/complex `*`, `\`, and `/`, indexing and
 in-bounds assignment, `chol`, full/economy and pivoted `qr`, `lu`, `norm`,
 `det`, `inv`, `svd`, `rank`, `cond`, `rcond`, structured and general standard
 and generalized `eig`, dense concatenation, element-wise power, integer
-matrix powers, and native elementary functions. Sparse, N-D, reductions,
-and comparison/logical APIs remain explicitly unsupported; see the [complex API](docs/complex-api.md) and [compatibility
+matrix powers, native elementary functions, reductions, and extrema. Sparse,
+N-D, and comparison/logical APIs remain explicitly unsupported; see the [complex API](docs/complex-api.md) and [compatibility
 limits](docs/complex-compatibility.md).
 
 ### Hilbert inverse example

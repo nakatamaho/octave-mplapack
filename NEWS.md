@@ -7,7 +7,10 @@ arbitrary-precision `abs`, `arg`, `angle`, and `sign`, special-value
 predicates, exact `isequal`/`isequaln`, and the `isnumeric` class predicate.
 S01 adds native MPFR/MPC element-wise power, integer square-matrix powers, and
 the audited elementary-function family with exact real-domain promotion.
-The 0.3.1 source release remains immutable while the S-series is developed.
+S02 adds native MPFR/MPC `sum`, `prod`, `sumsq`, `cumsum`, and `cumprod`, plus
+`min`/`max` with dimensions, NaN controls, cumulative direction, indices, and
+supported complex comparison methods. The 0.3.1 source release remains
+immutable while the S-series is developed.
 
 ## 0.3.1
 

@@ -71,6 +71,11 @@ trigonometric and hyperbolic families, and `cbrt`). Real-domain crossings
 promote to MPC with Octave-compatible principal branches; no builtin
 binary64 numerical fallback is used.
 
+S02 adds native MPFR/MPC reductions and extrema. Complex reductions preserve
+MPC storage and precision; complex `sumsq` returns a real MPFR magnitude sum.
+The supported complex extrema path uses native magnitude/phase ordering and
+does not convert values through builtin binary64 arithmetic.
+
 ## Lifecycle
 
 The native module is locked while public values or registered native types are

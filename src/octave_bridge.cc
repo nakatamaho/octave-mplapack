@@ -54,6 +54,7 @@
 #include "mp_general_eig.h"
 #include "mp_generalized_eig.h"
 #include "mp_script_compat.h"
+#include "mp_script_reductions.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -6077,6 +6078,442 @@ script_elementary_operation (
   return octave_value ();
 }
 
+struct ParsedScriptOptions
+{
+  octave_mplapack::MpScriptReductionOptions reduction;
+  octave_mplapack::MpScriptComparisonMethod comparison
+    = octave_mplapack::MpScriptComparisonMethod::automatic;
+};
+
+std::pair<std::size_t, std::size_t>
+script_shape (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ()
+      || payload.type_id ()
+         == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return {1, 1};
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    {
+      const auto& source
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      return {source.rows (), source.columns ()};
+    }
+  const auto& source
+    = octave_mplapack_mpc_matrix_internal::checked_value (payload).storage ();
+  return {source.rows (), source.columns ()};
+}
+
+std::size_t
+script_default_dimension (const octave_value& value)
+{
+  const auto shape = script_shape (value);
+  return shape.first != 1 ? 1 : 2;
+}
+
+std::size_t
+script_dimension (const octave_value& value)
+{
+  if (! value.isnumeric () || value.islogical () || ! value.isreal ()
+      || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "reduction dimension must be 1 or 2");
+  const double dimension = value.double_value ();
+  if (! std::isfinite (dimension) || std::trunc (dimension) != dimension
+      || (dimension != 1.0 && dimension != 2.0))
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "reduction dimension must be 1 or 2");
+  return static_cast<std::size_t> (dimension);
+}
+
+ParsedScriptOptions
+parse_script_options (const octave_value_list& args, int first,
+                      std::size_t default_dimension, bool extremum,
+                      bool allow_direction)
+{
+  ParsedScriptOptions parsed;
+  parsed.reduction.dimension = default_dimension;
+  if (extremum)
+    parsed.reduction.omit_nan = true;
+
+  for (int index = first; index < args.length (); ++index)
+    {
+      const octave_value& option = args(index);
+      if (option.isnumeric () && option.isempty ())
+        continue;
+      if (option.isnumeric () && ! option.isempty ())
+        {
+          parsed.reduction.dimension = script_dimension (option);
+          continue;
+        }
+      if (! option.is_string ())
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "invalid reduction option");
+      const std::string text = option.string_value ();
+      if (text == "all")
+        {
+          parsed.reduction.all = true;
+          continue;
+        }
+      if (text == "omitnan")
+        {
+          parsed.reduction.omit_nan = true;
+          continue;
+        }
+      if (text == "includenan")
+        {
+          parsed.reduction.omit_nan = false;
+          continue;
+        }
+      if (text == "forward" || text == "reverse")
+        {
+          if (! allow_direction)
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "cumulative direction is not valid here");
+          parsed.reduction.reverse = text == "reverse";
+          continue;
+        }
+      if (text == "default" || text == "native")
+        continue;
+      if (text == "double")
+        {
+          parsed.reduction.output_double = true;
+          continue;
+        }
+      if (extremum && text == "ComparisonMethod")
+        {
+          if (index + 1 >= args.length () || ! args(index + 1).is_string ())
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "ComparisonMethod requires auto, real, or abs");
+          const std::string method = args(++index).string_value ();
+          if (method == "auto")
+            parsed.comparison
+              = octave_mplapack::MpScriptComparisonMethod::automatic;
+          else if (method == "real")
+            parsed.comparison = octave_mplapack::MpScriptComparisonMethod::real;
+          else if (method == "abs")
+            parsed.comparison
+              = octave_mplapack::MpScriptComparisonMethod::absolute;
+          else
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "ComparisonMethod must be auto, real, or abs");
+          continue;
+        }
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "unknown reduction option: %s", text.c_str ());
+    }
+  return parsed;
+}
+
+octave_value
+script_real_matrix_result (octave_mplapack::MpfrMatrixStorage storage,
+                           bool output_double)
+{
+  octave_value result = make_inspection_result (std::move (storage));
+  if (! output_double)
+    return result;
+  const octave_value payload = require_mp_payload (result);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    return octave_value (mpfr_get_d (
+      octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+        .storage ().native_value ().mpfr_data (), MPFR_RNDN));
+  return octave_value (matrix_to_double (result));
+}
+
+octave_value
+script_complex_matrix_result (
+  octave_mplapack::MpfrComplexMatrixStorage storage, bool output_double)
+{
+  octave_value result = make_complex_inspection_result (std::move (storage));
+  if (! output_double)
+    return result;
+  const octave_value payload = require_mp_payload (result);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto converted
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ().to_double ();
+      return octave_value (Complex (converted.real (), converted.imag ()));
+    }
+  return octave_value (complex_matrix_to_double (result));
+}
+
+octave_value
+script_indices_result (std::size_t rows, std::size_t columns,
+                       const std::vector<std::size_t>& indices)
+{
+  Matrix result (checked_octave_dimension_for_inspection (rows),
+                 checked_octave_dimension_for_inspection (columns));
+  for (std::size_t column = 0; column < columns; ++column)
+    for (std::size_t row = 0; row < rows; ++row)
+      result.xelem (static_cast<octave_idx_type> (row),
+                    static_cast<octave_idx_type> (column))
+        = static_cast<double> (indices.at (row + column * rows));
+  return octave_value (result);
+}
+
+octave_mplapack::MpfrMatrixStorage
+script_real_matrix_operand (const octave_value& value, mpfr_prec_t precision)
+{
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (is_complex_payload (value))
+        error_with_id ("mplapack:mp:ComplexUnsupported",
+                       "real reduction operand cannot be complex");
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          octave_mplapack::MpfrMatrixStorage result (1, 1, precision);
+          mpfr_set (result.at (0, 0).mpfr_data (),
+                    octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                      .storage ().native_value ().mpfr_data (), MPFR_RNDN);
+          return result;
+        }
+      const auto& source
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      octave_mplapack::MpfrMatrixStorage result (source.rows (), source.columns (), precision);
+      for (std::size_t index = 0; index < source.numel (); ++index)
+        mpfr_set (result.data ()[index].mpfr_data (),
+                  source.data ()[index].mpfr_data (), MPFR_RNDN);
+      return result;
+    }
+  if (! value.is_double_type () || ! value.isreal ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "reduction operands must be mp or real double values");
+  if (value.is_real_scalar ())
+    {
+      octave_mplapack::MpfrMatrixStorage result (1, 1, precision);
+      mpfr_set_d (result.at (0, 0).mpfr_data (), value.double_value (), MPFR_RNDN);
+      return result;
+    }
+  return make_double_matrix_storage (value, precision);
+}
+
+octave_mplapack::MpfrComplexMatrixStorage
+script_complex_matrix_operand (const octave_value& value,
+                               mpfr_prec_t precision)
+{
+  octave_mplapack::MpfrMpcPrecisionScope scope (precision);
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          octave_mplapack::MpfrComplexMatrixStorage result (1, 1, precision);
+          mpc_set (result.at (0, 0).mpc_data (),
+                   octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                     .storage ().native_value ().mpc_data (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          return result;
+        }
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        {
+          const auto& source
+            = octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ();
+          octave_mplapack::MpfrComplexMatrixStorage result (source.rows (), source.columns (),
+                                                            precision);
+          for (std::size_t index = 0; index < source.numel (); ++index)
+            mpc_set (result.data ()[index].mpc_data (),
+                     source.data ()[index].mpc_data (),
+                     MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          return result;
+        }
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& source
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          octave_mplapack::MpfrComplexMatrixStorage result (1, 1, precision);
+          mpc_set_fr (result.at (0, 0).mpc_data (),
+                      source.native_value ().mpfr_data (),
+                      MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          return result;
+        }
+      const auto& source
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      octave_mplapack::MpfrComplexMatrixStorage result (source.rows (), source.columns (), precision);
+      for (std::size_t index = 0; index < source.numel (); ++index)
+        mpc_set_fr (result.data ()[index].mpc_data (),
+                    source.data ()[index].mpfr_data (),
+                    MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return result;
+    }
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "reduction operands must be mp or double values");
+  if (value.is_real_scalar () || value.is_complex_scalar ())
+    {
+      const Complex scalar = value.complex_value ();
+      octave_mplapack::MpfrComplexMatrixStorage result (1, 1, precision);
+      mpc_set_d_d (result.at (0, 0).mpc_data (), scalar.real (), scalar.imag (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return result;
+    }
+  return make_complex_double_matrix_storage (value, precision);
+}
+
+octave_value
+script_reduce_operation (
+  const octave_value& value,
+  octave_mplapack::MpScriptReductionOperation operation,
+  const octave_value_list& args, int first_option)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "reduction functions require an mp value");
+
+  const ParsedScriptOptions parsed
+    = parse_script_options (args, first_option,
+                            script_default_dimension (value), false,
+                            operation == octave_mplapack::MpScriptReductionOperation::cumsum
+                            || operation == octave_mplapack::MpScriptReductionOperation::cumprod);
+  if (parsed.reduction.all
+      && (operation == octave_mplapack::MpScriptReductionOperation::cumsum
+          || operation == octave_mplapack::MpScriptReductionOperation::cumprod))
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "all is not valid for cumulative reductions");
+
+  try
+    {
+      const mpfr_prec_t precision = arithmetic_mp_precision (value);
+      if (is_complex_payload (value))
+        {
+          const auto source = script_complex_matrix_operand (value, precision);
+          if (operation == octave_mplapack::MpScriptReductionOperation::sumsq)
+            return script_real_matrix_result (
+              octave_mplapack::mpc_script_sumsq (source, parsed.reduction),
+              parsed.reduction.output_double);
+          return script_complex_matrix_result (
+            octave_mplapack::mpc_script_reduce (source, operation,
+                                                parsed.reduction),
+            parsed.reduction.output_double);
+        }
+
+      const auto source = script_real_matrix_operand (value, precision);
+      return script_real_matrix_result (
+        octave_mplapack::mpfr_script_reduce (source, operation,
+                                             parsed.reduction),
+        parsed.reduction.output_double);
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value_list
+script_extremum_operation (const octave_value& value,
+                           const octave_value_list& args, int mode)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "min/max functions require an mp value as the first operand");
+
+  const bool has_pair = args.length () > 4
+                        && ! args(4).isempty ()
+                        && (is_mp_value (args(4)) || args(4).isnumeric ());
+  const int first_option = has_pair ? 5 : 4;
+  const octave_value& rhs_value = has_pair ? args(4) : value;
+  const bool complex = is_complex_arithmetic_operand (value)
+                       || (has_pair && is_complex_arithmetic_operand (rhs_value));
+
+  ParsedScriptOptions parsed;
+  if (has_pair)
+    parsed = parse_script_options (args, first_option, 1, true, false);
+  else
+    parsed = parse_script_options (args, first_option,
+                                   script_default_dimension (value), true, false);
+  if (has_pair && parsed.reduction.all)
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "all is not valid for pairwise min/max");
+  if (has_pair && mode == 1)
+    error_with_id ("mplapack:mp:InvalidOutput",
+                   "pairwise min/max does not return indices");
+
+  try
+    {
+      mpfr_prec_t precision = arithmetic_mp_precision (value);
+      if (has_pair && is_mp_value (rhs_value))
+        precision = std::max (precision, arithmetic_mp_precision (rhs_value));
+
+      const auto extremum
+        = require_string (args(2), "extremum operation");
+      const auto operation
+        = extremum == "min"
+          ? octave_mplapack::MpScriptExtremumOperation::minimum
+          : octave_mplapack::MpScriptExtremumOperation::maximum;
+
+      if (complex)
+        {
+          const auto lhs = script_complex_matrix_operand (value, precision);
+          const auto rhs = script_complex_matrix_operand (rhs_value, precision);
+          octave_mplapack::MpScriptExtremumResultComplex result
+            = has_pair
+              ? octave_mplapack::mpc_script_extremum_pair (
+                  lhs, rhs, operation,
+                  octave_mplapack::MpScriptExtremumOptions {
+                    parsed.reduction, parsed.comparison })
+              : octave_mplapack::mpc_script_extremum (
+                  lhs, operation,
+                  octave_mplapack::MpScriptExtremumOptions {
+                    parsed.reduction, parsed.comparison });
+          const std::size_t result_rows = result.values.rows ();
+          const std::size_t result_columns = result.values.columns ();
+          const auto indices = result.indices;
+          const octave_value values
+            = script_complex_matrix_result (std::move (result.values),
+                                            parsed.reduction.output_double);
+          if (mode == 0)
+            return ovl (values);
+          return ovl (values, script_indices_result (
+            result_rows, result_columns, indices));
+        }
+
+      const auto lhs = script_real_matrix_operand (value, precision);
+      const auto rhs = script_real_matrix_operand (rhs_value, precision);
+      octave_mplapack::MpScriptExtremumResultReal result
+        = has_pair
+          ? octave_mplapack::mpfr_script_extremum_pair (
+              lhs, rhs, operation,
+              octave_mplapack::MpScriptExtremumOptions {
+                parsed.reduction, parsed.comparison })
+          : octave_mplapack::mpfr_script_extremum (
+              lhs, operation,
+              octave_mplapack::MpScriptExtremumOptions {
+                parsed.reduction, parsed.comparison });
+      const std::size_t result_rows = result.values.rows ();
+      const std::size_t result_columns = result.values.columns ();
+      const auto indices = result.indices;
+      const octave_value values
+        = script_real_matrix_result (std::move (result.values),
+                                     parsed.reduction.output_double);
+      if (mode == 0)
+        return ovl (values);
+      return ovl (values, script_indices_result (
+        result_rows, result_columns, indices));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+  return octave_value_list ();
+}
+
 octave_value
 script_predicate_operation (const octave_value& value,
                             octave_mplapack::MpScriptPredicate predicate)
@@ -6386,6 +6823,47 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         return octave_mplapack::MpScriptElementaryOperation::sqrt;
       } ();
       return ovl (script_elementary_operation (args(1), select_operation));
+    }
+
+  if (command == "script_reduce")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:InvalidArguments",
+                       "__mplapack_core__(\"script_reduce\") expects an mp value and operation");
+      const std::string operation = require_string (args(2), "reduction operation");
+      const auto select_operation = [&] ()
+      {
+        if (operation == "sum")
+          return octave_mplapack::MpScriptReductionOperation::sum;
+        if (operation == "prod")
+          return octave_mplapack::MpScriptReductionOperation::prod;
+        if (operation == "sumsq")
+          return octave_mplapack::MpScriptReductionOperation::sumsq;
+        if (operation == "cumsum")
+          return octave_mplapack::MpScriptReductionOperation::cumsum;
+        if (operation == "cumprod")
+          return octave_mplapack::MpScriptReductionOperation::cumprod;
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown reduction operation: %s", operation.c_str ());
+        return octave_mplapack::MpScriptReductionOperation::sum;
+      } ();
+      return ovl (script_reduce_operation (args(1), select_operation, args, 3));
+    }
+
+  if (command == "script_extremum")
+    {
+      if (args.length () < 4)
+        error_with_id ("mplapack:InvalidArguments",
+                       "__mplapack_core__(\"script_extremum\") expects an mp value, operation, and output mode");
+      const std::string operation = require_string (args(2), "extremum operation");
+      if (operation != "min" && operation != "max")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "extremum operation must be min or max");
+      const std::string mode = require_string (args(3), "extremum output mode");
+      if (mode != "value" && mode != "value_index")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "extremum output mode must be value or value_index");
+      return script_extremum_operation (args(1), args, mode == "value_index");
     }
 
   if (command == "script_predicate")

@@ -99,6 +99,13 @@ inst/@mp/asinh.m
 inst/@mp/acosh.m
 inst/@mp/atanh.m
 inst/@mp/cbrt.m
+inst/@mp/sum.m
+inst/@mp/prod.m
+inst/@mp/cumsum.m
+inst/@mp/cumprod.m
+inst/@mp/sumsq.m
+inst/@mp/min.m
+inst/@mp/max.m
 inst/@mp/transpose.m
 inst/@mp/ctranspose.m
 inst/@mp/reshape.m
@@ -136,6 +143,8 @@ src/mp_matrix_assignment.h
 src/octave_bridge.cc
 src/mp_script_compat.h
 src/mp_script_compat.cc
+src/mp_script_reductions.h
+src/mp_script_reductions.cc
 src/mp_norm.h
 src/mp_norm.cc
 src/mp_det_inv.h
@@ -153,6 +162,7 @@ src/mp_generalized_eig.cc
 test/run_tests.m
 test/script-compat/s00.tst
 test/script-compat/s01.tst
+test/script-compat/s02.tst
 test/mrdivide.tst
 test/build_probe.tst
 test/native_value.tst

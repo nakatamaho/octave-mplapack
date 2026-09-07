@@ -663,10 +663,10 @@ if [ "$package_name" != "mplapack-interop" ]; then
   exit 1
 fi
 case $package_version in
-  0.2.1|0.2.1-dev|0.3.0-dev|0.3.0|0.3.1-dev|0.3.1)
+  0.2.1|0.2.1-dev|0.3.0-dev|0.3.0|0.3.1-dev|0.3.1|0.4.0-dev)
     ;;
   *)
-    echo "FAIL: D01R1/N00-N08/D02R1 requires DESCRIPTION version 0.2.1, 0.2.1-dev, 0.3.0-dev, 0.3.0, 0.3.1-dev, or 0.3.1" >&2
+    echo "FAIL: release CI requires a recognized DESCRIPTION version (including 0.4.0-dev during S00-S08)" >&2
     exit 1
     ;;
 esac
@@ -749,6 +749,11 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/mplapack-interop-hilbert.md docs/binary-distribution.md \
   docs/mrdivide.md docs/milestones/N08-mrdivide.md \
   docs/binary-redistribution-licenses.md \
+  inst/@mp/sum.m inst/@mp/prod.m inst/@mp/cumsum.m inst/@mp/cumprod.m \
+  inst/@mp/sumsq.m inst/@mp/min.m inst/@mp/max.m \
+  src/mp_script_reductions.h src/mp_script_reductions.cc \
+  test/script-compat/s00.tst test/script-compat/s01.tst \
+  test/script-compat/s02.tst docs/octave-script-compatibility.md \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -838,6 +843,9 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "lu.tst")));
       assert (test (fullfile (root, "test", "release_closure.tst")));
       assert (test (fullfile (root, "test", "mrdivide.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s00.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s01.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s02.tst")));
       assert (test (fullfile (root, "test", "rank_condition.tst")));
       examples = dir (fullfile (root, "examples", "*.m"));
       for example = 1:numel (examples)

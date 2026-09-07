@@ -9,8 +9,9 @@ branch: topic/s00-s08-script-compat
 baseline: D02R1 v0.3.1 freeze, tag v0.3.1 preserved
 active package version: 0.4.0-dev
 S00: PASS; committed and pushed as c17b48c0a8bf7e39c3c9a111bcc8e3ae0c60e048
-S01: implementation complete; metadata/report commit pending
-S02-S08: not started
+S01: PASS; committed and pushed as 29f3539 (full SHA in git history)
+S02: PASS; implementation and report staged for milestone commit
+S03-S08: not started
 D03: not started
 ```
 
@@ -81,6 +82,39 @@ G-S01-REGRESSION: PASS
 S01 PASS — ELEMENT-WISE POWER AND ELEMENTARY FUNCTIONS CLOSED
 ```
 
+## S02 evidence
+
+```text
+sum/prod/sumsq: PASS — native MPFR/MPC reduction accumulators
+cumsum/cumprod: PASS — dimensions and forward/reverse direction
+dimension/default/all forms: PASS
+omitnan/includenan: PASS
+min/max values and first indices: PASS
+pairwise extrema and singleton expansion: PASS
+complex magnitude/phase ordering: PASS
+1024/2048 precision and ambient default isolation: PASS
+binary64 numerical fallback: NONE
+```
+
+```text
+G-S02-SUM: PASS
+G-S02-PROD: PASS
+G-S02-CUMSUM: PASS
+G-S02-CUMPROD: PASS
+G-S02-SUMSQ: PASS
+G-S02-DIM: PASS
+G-S02-NANFLAG: PASS
+G-S02-MINMAX: PASS
+G-S02-COMPLEX-ORDER: PASS
+G-S02-INDICES: PASS
+G-S02-PRECISION: PASS
+G-S02-REGRESSION: PASS
+```
+
+```text
+S02 PASS — REDUCTIONS AND EXTREMA CLOSED
+```
+
 ## Next milestone
 
-Proceed automatically to S01 — Element-wise Power and Elementary Functions.
+Proceed automatically to S03 — Comparisons, Logicals, and Logical Indexing.

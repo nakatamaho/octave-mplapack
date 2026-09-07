@@ -15,7 +15,7 @@ precision/value test have passed.
 | `isequal`, `isequaln` | SUPPORTED | S00 exact-value, shape, and NaN tests |
 | `isscalar`, `isvector`, `ismatrix`, `isempty`, `isnumeric` | SUPPORTED | S00 generic predicate audit on mp values |
 | `power`, elementary functions | SUPPORTED | S01 native MPFR/MPC power and elementary-function tests |
-| reductions and extrema | PLANNED-S02 | Not yet implemented in the S-series |
+| reductions and extrema | SUPPORTED | S02 native MPFR/MPC reductions, NaN flags, dimensions, and min/max |
 | comparisons, logicals, logical indexing, `find` | PLANNED-S03 | Not yet implemented in the S-series |
 | matrix utilities and constructors | PLANNED-S04 | Existing structural API is narrower than this target |
 | ranges, rounding, utility arithmetic | PLANNED-S05 | Not yet implemented in the S-series |
@@ -59,6 +59,22 @@ result is promoted to MPC at the stored operation precision. The positive
 real-axis asin/acos branch fixtures are adjusted to match Octave's signed-zero
 principal-branch convention. `expm1` and `log1p` use guarded MPC working
 precision and never call builtin binary64 arithmetic.
+
+## S02 semantics
+
+`sum`, `prod`, `sumsq`, `cumsum`, and `cumprod` retain native MPFR/MPC
+accumulators and default to the first non-singleton dimension. Explicit
+dimensions, `"all"` reductions, `omitnan`/`includenan`, `native`/`default`,
+and explicit `double` output are supported. Cumulative operations also accept
+`forward` and `reverse`; `"all"` is rejected for cumulative forms. Complex
+`sumsq` returns a real MPFR result formed from native MPC magnitudes.
+
+`min` and `max` support dimension/all reductions, first-value indices,
+pairwise scalar/matrix operands with two-dimensional singleton expansion, and
+the practical NaN flags. Complex ordering uses the native magnitude/phase
+comparison path by default; `ComparisonMethod` accepts `auto`, `real`, and
+`abs` for the supported dense forms. Pairwise extrema do not return a second
+index output.
 
 ## Known intentional stops
 
