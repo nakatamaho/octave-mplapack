@@ -23,13 +23,16 @@ copy destructive inputs.
 Intentional differences are no sparse or N-D values, no matrix `char`,
 limited vector-linear indexing, no growth or deletion assignment, no
 comparisons/logical operators or reductions, no generalized balance options,
-power, unimplemented transcendental, or update
+or update
 APIs. Three-output sparse permutation forms and `qr(A,B)` are not provided.
 
 Unsupported matrix functions are expected to fail cleanly. M22's compatibility
-firewall checks `sin`, `exp`, `sqrt`, power, and
-comparison calls for the absence of implicit
+firewall checks comparison calls for the absence of implicit
 binary64 fallback, crashes, and recursion.
+
+S01 closes dense element-wise power and the native MPFR/MPC elementary
+function family. Domain crossings are represented as complex `mp` values at
+the operation precision.
 
 The package does not promise identical error text to builtin Octave. It does
 promise matching error-versus-success behavior for audited forms and stable

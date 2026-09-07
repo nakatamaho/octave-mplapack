@@ -32,6 +32,7 @@
 #include "mp_matrix_inspection.h"
 #include "mp_matrix_arithmetic.h"
 #include "mp_complex_arithmetic.h"
+#include "mp_complex_precision.h"
 #include "mp_matrix_structure.h"
 #include "mp_complex_structure.h"
 #include "mp_matrix_concat.h"
@@ -2483,7 +2484,8 @@ enum class ComplexScalarBinaryOperation
   add,
   subtract,
   multiply,
-  divide
+  divide,
+  power
 };
 
 bool
@@ -2602,6 +2604,8 @@ complex_scalar_binary_operation (const octave_value& lhs_value,
         return octave_mplapack::MpcElementwiseBinaryOperation::multiply;
       case ComplexScalarBinaryOperation::divide:
         return octave_mplapack::MpcElementwiseBinaryOperation::divide;
+      case ComplexScalarBinaryOperation::power:
+        return octave_mplapack::MpcElementwiseBinaryOperation::power;
       }
     throw std::logic_error ("unknown complex element-wise operation");
   } ();
@@ -2642,8 +2646,37 @@ enum class ScalarBinaryOperation
   add,
   subtract,
   multiply,
-  divide
+  divide,
+  power
 };
+
+bool
+mpfr_elementwise_power_requires_complex (
+  const octave_mplapack::MpfrElementwiseOperand& lhs,
+  const octave_mplapack::MpfrElementwiseOperand& rhs)
+{
+  const std::size_t result_rows
+    = std::max (lhs.rows (), rhs.rows ());
+  const std::size_t result_columns
+    = std::max (lhs.columns (), rhs.columns ());
+  if ((lhs.rows () != rhs.rows () && lhs.rows () != 1 && rhs.rows () != 1)
+      || (lhs.columns () != rhs.columns () && lhs.columns () != 1
+          && rhs.columns () != 1))
+    throw std::invalid_argument ("nonconformant dimensions for power");
+
+  for (std::size_t column = 0; column < result_columns; ++column)
+    for (std::size_t row = 0; row < result_rows; ++row)
+      {
+        const auto& base = lhs.at (lhs.rows () == 1 ? 0 : row,
+                                   lhs.columns () == 1 ? 0 : column);
+        const auto& exponent = rhs.at (rhs.rows () == 1 ? 0 : row,
+                                       rhs.columns () == 1 ? 0 : column);
+        if (octave_mplapack::mpfr_script_power_requires_complex (
+              base.mpfr_data (), exponent.mpfr_data ()))
+          return true;
+      }
+  return false;
+}
 
 octave_mplapack::MpfrScalarStorage
 apply_binary_operation (ScalarBinaryOperation operation,
@@ -2660,6 +2693,8 @@ apply_binary_operation (ScalarBinaryOperation operation,
       return lhs.multiply (rhs);
     case ScalarBinaryOperation::divide:
       return lhs.divide (rhs);
+    case ScalarBinaryOperation::power:
+      return lhs.power (rhs);
     }
 
   throw std::logic_error ("unknown scalar binary operation");
@@ -2685,6 +2720,8 @@ scalar_binary_operation (const octave_value& lhs_value,
             return ComplexScalarBinaryOperation::multiply;
           case ScalarBinaryOperation::divide:
             return ComplexScalarBinaryOperation::divide;
+          case ScalarBinaryOperation::power:
+            return ComplexScalarBinaryOperation::power;
           }
         throw std::logic_error ("unknown complex element-wise operation");
       } ();
@@ -2717,6 +2754,8 @@ scalar_binary_operation (const octave_value& lhs_value,
               return octave_mplapack::MpfrElementwiseBinaryOperation::multiply;
             case ScalarBinaryOperation::divide:
               return octave_mplapack::MpfrElementwiseBinaryOperation::divide;
+            case ScalarBinaryOperation::power:
+              return octave_mplapack::MpfrElementwiseBinaryOperation::power;
             }
           throw std::logic_error ("unknown element-wise operation");
         } ();
@@ -2827,6 +2866,10 @@ scalar_binary_operation (const octave_value& lhs_value,
           };
           bind (lhs);
           bind (rhs);
+          if (operation == ScalarBinaryOperation::power
+              && mpfr_elementwise_power_requires_complex (lhs.view, rhs.view))
+            return complex_scalar_binary_operation (lhs_value, rhs_value,
+                                                    ComplexScalarBinaryOperation::power);
           auto result = octave_mplapack::mpfr_matrix_elementwise_binary (
             lhs.view, rhs.view, native_operation);
           if (result.rows () == 1 && result.columns () == 1)
@@ -2855,6 +2898,50 @@ scalar_binary_operation (const octave_value& lhs_value,
                          exception.what ());
         }
       return octave_value ();
+    }
+
+  if (operation == ScalarBinaryOperation::power)
+    {
+      if (lhs_is_mp && rhs_is_mp)
+        {
+          const auto& lhs
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                require_arithmetic_mp_payload (lhs_value)).storage ();
+          const auto& rhs
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                require_arithmetic_mp_payload (rhs_value)).storage ();
+          if (octave_mplapack::mpfr_script_power_requires_complex (
+                lhs.native_value ().mpfr_data (),
+                rhs.native_value ().mpfr_data ()))
+            return complex_scalar_binary_operation (
+              lhs_value, rhs_value, ComplexScalarBinaryOperation::power);
+        }
+      else if (lhs_is_mp)
+        {
+          const auto& lhs
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                require_arithmetic_mp_payload (lhs_value)).storage ();
+          const octave_mplapack::MpfrScalarStorage rhs (
+            require_arithmetic_double (rhs_value), lhs.precision_bits ());
+          if (octave_mplapack::mpfr_script_power_requires_complex (
+                lhs.native_value ().mpfr_data (),
+                rhs.native_value ().mpfr_data ()))
+            return complex_scalar_binary_operation (
+              lhs_value, rhs_value, ComplexScalarBinaryOperation::power);
+        }
+      else if (rhs_is_mp)
+        {
+          const auto& rhs
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                require_arithmetic_mp_payload (rhs_value)).storage ();
+          const octave_mplapack::MpfrScalarStorage lhs (
+            require_arithmetic_double (lhs_value), rhs.precision_bits ());
+          if (octave_mplapack::mpfr_script_power_requires_complex (
+                lhs.native_value ().mpfr_data (),
+                rhs.native_value ().mpfr_data ()))
+            return complex_scalar_binary_operation (
+              lhs_value, rhs_value, ComplexScalarBinaryOperation::power);
+        }
     }
 
   if (! lhs_is_mp && ! rhs_is_mp)
@@ -5447,6 +5534,143 @@ mp_mtimes_operation (const octave_value& lhs_value,
                                   ScalarBinaryOperation::multiply);
 }
 
+long
+require_integer_power_exponent (const octave_value& value)
+{
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const auto& complex
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage ().native_value ();
+          if (! mpfr_zero_p (mpc_imagref (complex.mpc_data ())))
+            error_with_id ("mplapack:mp:InvalidExponent",
+                           "matrix power exponent must be a real integer");
+          if (! mpfr_integer_p (mpc_realref (complex.mpc_data ()))
+              || ! mpfr_fits_slong_p (mpc_realref (complex.mpc_data ()),
+                                      MPFR_RNDN))
+            error_with_id ("mplapack:mp:InvalidExponent",
+                           "matrix power exponent must fit a native integer");
+          return mpfr_get_si (mpc_realref (complex.mpc_data ()), MPFR_RNDN);
+        }
+
+      const auto& real
+        = octave_mplapack_mpfr_scalar_internal::checked_value (
+            require_scalar_payload (payload)).storage ().native_value ();
+      if (! mpfr_integer_p (real.mpfr_data ())
+          || ! mpfr_fits_slong_p (real.mpfr_data (), MPFR_RNDN))
+        error_with_id ("mplapack:mp:InvalidExponent",
+                       "matrix power exponent must fit a native integer");
+      return mpfr_get_si (real.mpfr_data (), MPFR_RNDN);
+    }
+
+  if (! value.is_double_type () || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidExponent",
+                   "matrix power exponent must be a real integer scalar");
+  const double exponent = value.double_value ();
+  if (! std::isfinite (exponent) || std::trunc (exponent) != exponent
+      || static_cast<long double> (exponent)
+           < static_cast<long double> (std::numeric_limits<long>::min ())
+      || static_cast<long double> (exponent)
+           > static_cast<long double> (std::numeric_limits<long>::max ()))
+    error_with_id ("mplapack:mp:InvalidExponent",
+                   "matrix power exponent must fit a native integer");
+  return static_cast<long> (exponent);
+}
+
+octave_value
+mpower_identity (const octave_value& value, std::size_t dimension)
+{
+  if (is_complex_payload (value))
+    {
+      const mpfr_prec_t precision
+        = arithmetic_mp_precision (value);
+      octave_mplapack::MpfrMpcPrecisionScope scope (precision);
+      octave_mplapack::MpfrComplexMatrixStorage identity (
+        dimension, dimension, precision);
+      for (std::size_t index = 0; index < dimension; ++index)
+        mpc_set_ui (identity.at (index, index).mpc_data (), 1,
+                    MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return make_complex_inspection_result (std::move (identity));
+    }
+
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  octave_mplapack::MpfrMatrixStorage identity (dimension, dimension,
+                                                precision);
+  for (std::size_t index = 0; index < dimension; ++index)
+    mpfr_set_ui (identity.at (index, index).mpfr_data (), 1, MPFR_RNDN);
+  return make_inspection_result (std::move (identity));
+}
+
+octave_value
+mpower_operation (const octave_value& lhs_value,
+                  const octave_value& rhs_value)
+{
+  if (! is_mp_value (lhs_value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "matrix power requires an mp base");
+
+  const octave_value base_payload = require_mp_payload (lhs_value);
+  const bool base_is_matrix = is_matrix_payload (lhs_value);
+  if (! base_is_matrix)
+    return scalar_binary_operation (lhs_value, rhs_value,
+                                    ScalarBinaryOperation::power);
+
+  const std::size_t rows
+    = base_payload.type_id ()
+        == octave_mplapack_mpfr_matrix_internal::static_type_id ()
+        ? octave_mplapack_mpfr_matrix_internal::checked_value (base_payload)
+            .storage ().rows ()
+        : octave_mplapack_mpc_matrix_internal::checked_value (base_payload)
+            .storage ().rows ();
+  const std::size_t columns
+    = base_payload.type_id ()
+        == octave_mplapack_mpfr_matrix_internal::static_type_id ()
+        ? octave_mplapack_mpfr_matrix_internal::checked_value (base_payload)
+            .storage ().columns ()
+        : octave_mplapack_mpc_matrix_internal::checked_value (base_payload)
+            .storage ().columns ();
+  if (rows != columns)
+    error_with_id ("mplapack:mp:NonSquareMatrix",
+                   "matrix power requires a square matrix");
+
+  const long exponent = require_integer_power_exponent (rhs_value);
+  if (exponent == 0)
+    return mpower_identity (lhs_value, rows);
+
+  octave_value current = exponent < 0
+    ? mp_inverse_operation (lhs_value) : lhs_value;
+  unsigned long magnitude;
+  if (exponent < 0)
+    {
+      magnitude = 0UL - static_cast<unsigned long> (exponent);
+    }
+  else
+    magnitude = static_cast<unsigned long> (exponent);
+
+  octave_value result = mpower_identity (lhs_value, rows);
+  const auto multiply = [&] (const octave_value& lhs,
+                             const octave_value& rhs)
+  {
+    if (is_complex_arithmetic_operand (lhs)
+        || is_complex_arithmetic_operand (rhs))
+      return complex_mtimes_operation (lhs, rhs);
+    return mp_mtimes_operation (lhs, rhs);
+  };
+  while (magnitude != 0)
+    {
+      if ((magnitude & 1UL) != 0)
+        result = multiply (result, current);
+      magnitude >>= 1;
+      if (magnitude != 0)
+        current = multiply (current, current);
+    }
+  return result;
+}
+
 octave_value
 mp_mldivide_operation (const octave_value& lhs_value,
                        const octave_value& rhs_value,
@@ -5778,6 +6002,81 @@ script_unary_operation (const octave_value& value,
   return octave_value ();
 }
 
+bool
+real_elementary_requires_complex (const octave_value& payload,
+                                  octave_mplapack::MpScriptElementaryOperation operation)
+{
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    return octave_mplapack::mpfr_script_elementary_requires_complex (
+      octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+        .storage ().native_value ().mpfr_data (), operation);
+
+  const auto& source
+    = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+        .storage ();
+  for (std::size_t index = 0; index < source.numel (); ++index)
+    if (octave_mplapack::mpfr_script_elementary_requires_complex (
+          source.data ()[index].mpfr_data (), operation))
+      return true;
+  return false;
+}
+
+octave_value
+script_elementary_operation (
+  const octave_value& value,
+  octave_mplapack::MpScriptElementaryOperation operation)
+{
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            return make_internal_complex_scalar (
+              octave_mplapack::mpc_script_elementary (
+                octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                  .storage (), operation));
+          return make_complex_inspection_result (
+            octave_mplapack::mpc_script_elementary (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage (), operation));
+        }
+
+      if (real_elementary_requires_complex (payload, operation))
+        {
+          if (payload.type_id ()
+              == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+            return make_internal_complex_scalar (
+              octave_mplapack::mpc_script_elementary (
+                octave_mplapack::mpfr_script_promote (
+                  octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                    .storage ()), operation));
+          return make_complex_inspection_result (
+            octave_mplapack::mpc_script_elementary (
+              octave_mplapack::mpfr_script_promote (
+                octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                  .storage ()), operation));
+        }
+
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        return make_internal_scalar (octave_mplapack::mpfr_script_elementary (
+          octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage (), operation));
+      return make_inspection_result (octave_mplapack::mpfr_script_elementary (
+        octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+          .storage (), operation));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
 octave_value
 script_predicate_operation (const octave_value& value,
                             octave_mplapack::MpScriptPredicate predicate)
@@ -6054,6 +6353,39 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
           args(1), octave_mplapack::MpScriptUnaryOperation::sign));
       error_with_id ("mplapack:mp:InvalidOption",
                      "unknown script unary operation: %s", operation.c_str ());
+    }
+
+  if (command == "script_elementary")
+    {
+      require_argument_count (args, 3, command);
+      const std::string operation = require_string (args(2), "elementary operation");
+      const auto select_operation = [&] ()
+      {
+        if (operation == "sqrt") return octave_mplapack::MpScriptElementaryOperation::sqrt;
+        if (operation == "exp") return octave_mplapack::MpScriptElementaryOperation::exp;
+        if (operation == "expm1") return octave_mplapack::MpScriptElementaryOperation::expm1;
+        if (operation == "log") return octave_mplapack::MpScriptElementaryOperation::log;
+        if (operation == "log1p") return octave_mplapack::MpScriptElementaryOperation::log1p;
+        if (operation == "log10") return octave_mplapack::MpScriptElementaryOperation::log10;
+        if (operation == "log2") return octave_mplapack::MpScriptElementaryOperation::log2;
+        if (operation == "sin") return octave_mplapack::MpScriptElementaryOperation::sin;
+        if (operation == "cos") return octave_mplapack::MpScriptElementaryOperation::cos;
+        if (operation == "tan") return octave_mplapack::MpScriptElementaryOperation::tan;
+        if (operation == "asin") return octave_mplapack::MpScriptElementaryOperation::asin;
+        if (operation == "acos") return octave_mplapack::MpScriptElementaryOperation::acos;
+        if (operation == "atan") return octave_mplapack::MpScriptElementaryOperation::atan;
+        if (operation == "sinh") return octave_mplapack::MpScriptElementaryOperation::sinh;
+        if (operation == "cosh") return octave_mplapack::MpScriptElementaryOperation::cosh;
+        if (operation == "tanh") return octave_mplapack::MpScriptElementaryOperation::tanh;
+        if (operation == "asinh") return octave_mplapack::MpScriptElementaryOperation::asinh;
+        if (operation == "acosh") return octave_mplapack::MpScriptElementaryOperation::acosh;
+        if (operation == "atanh") return octave_mplapack::MpScriptElementaryOperation::atanh;
+        if (operation == "cbrt") return octave_mplapack::MpScriptElementaryOperation::cbrt;
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown elementary operation: %s", operation.c_str ());
+        return octave_mplapack::MpScriptElementaryOperation::sqrt;
+      } ();
+      return ovl (script_elementary_operation (args(1), select_operation));
     }
 
   if (command == "script_predicate")
@@ -6379,6 +6711,19 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
           || is_complex_arithmetic_operand (args(2)))
         return ovl (complex_mtimes_operation (args(1), args(2)));
       return ovl (mp_mtimes_operation (args(1), args(2)));
+    }
+
+  if (command == "power")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (scalar_binary_operation (
+        args(1), args(2), ScalarBinaryOperation::power));
+    }
+
+  if (command == "mpower")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (mpower_operation (args(1), args(2)));
     }
 
   if (command == "mldivide")

@@ -298,8 +298,12 @@
 %!test
 %! a = mp ("1");
 %! b = mp ("2");
-%! unsupported = {@() a ^ b, @() a .^ b, @() sin (a), ...
-%!                @() exp (a), @() sqrt (a), @() a == b, ...
+%! supported = {@() a ^ b, @() a .^ b, @() sin (a), ...
+%!             @() exp (a), @() sqrt (a)};
+%! for i = 1:numel (supported)
+%!   assert (isa (supported{i} (), "mp"));
+%! endfor
+%! unsupported = {@() a == b, ...
 %!                @() a ~= b, @() a < b};
 %! for i = 1:numel (unsupported)
 %!   m06_expect_error (unsupported{i}, "");

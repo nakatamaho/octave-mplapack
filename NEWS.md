@@ -5,6 +5,8 @@
 S00 begins the ordinary Octave script-compatibility series with native
 arbitrary-precision `abs`, `arg`, `angle`, and `sign`, special-value
 predicates, exact `isequal`/`isequaln`, and the `isnumeric` class predicate.
+S01 adds native MPFR/MPC element-wise power, integer square-matrix powers, and
+the audited elementary-function family with exact real-domain promotion.
 The 0.3.1 source release remains immutable while the S-series is developed.
 
 ## 0.3.1

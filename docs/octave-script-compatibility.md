@@ -14,7 +14,7 @@ precision/value test have passed.
 | `isnan`, `isinf`, `isfinite`, `isreal` | SUPPORTED | S00 real/complex special-value tests |
 | `isequal`, `isequaln` | SUPPORTED | S00 exact-value, shape, and NaN tests |
 | `isscalar`, `isvector`, `ismatrix`, `isempty`, `isnumeric` | SUPPORTED | S00 generic predicate audit on mp values |
-| `power`, elementary functions | PLANNED-S01 | Not yet implemented in the S-series |
+| `power`, elementary functions | SUPPORTED | S01 native MPFR/MPC power and elementary-function tests |
 | reductions and extrema | PLANNED-S02 | Not yet implemented in the S-series |
 | comparisons, logicals, logical indexing, `find` | PLANNED-S03 | Not yet implemented in the S-series |
 | matrix utilities and constructors | PLANNED-S04 | Existing structural API is narrower than this target |
@@ -43,6 +43,22 @@ Generic structural predicates were audited rather than duplicated where
 Octave already handles the `mp` class. `isnumeric` required the small public
 `@mp/isnumeric` wrapper because Octave otherwise reports a classdef `mp`
 object as nonnumeric.
+
+## S01 semantics
+
+Element-wise `.^` and `power` support real/complex `mp` operands, mixed
+builtin real/complex operands, and existing 2-D singleton expansion. Scalar
+`^` uses the same native principal-power path. Integer powers of square
+matrices use exponentiation by squaring; negative powers use the existing
+native inverse path before multiplication. Noninteger matrix powers remain
+outside the supported surface.
+
+The elementary wrappers use MPFR for real-domain values and MPC for complex
+values. When a real input crosses a complex domain boundary, the complete
+result is promoted to MPC at the stored operation precision. The positive
+real-axis asin/acos branch fixtures are adjusted to match Octave's signed-zero
+principal-branch convention. `expm1` and `log1p` use guarded MPC working
+precision and never call builtin binary64 arithmetic.
 
 ## Known intentional stops
 

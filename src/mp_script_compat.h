@@ -28,6 +28,30 @@ enum class MpScriptPredicate
   isfinite
 };
 
+enum class MpScriptElementaryOperation
+{
+  sqrt,
+  exp,
+  expm1,
+  log,
+  log1p,
+  log10,
+  log2,
+  sin,
+  cos,
+  tan,
+  asin,
+  acos,
+  atan,
+  sinh,
+  cosh,
+  tanh,
+  asinh,
+  acosh,
+  atanh,
+  cbrt
+};
+
 struct MpScriptPredicateResult
 {
   std::size_t rows = 0;
@@ -90,6 +114,34 @@ bool mpc_script_equal (const MpfrComplexScalarStorage& lhs,
 bool mpc_script_equal (const MpfrComplexMatrixStorage& lhs,
                        const MpfrComplexMatrixStorage& rhs,
                        bool nan_equal) noexcept;
+
+bool mpfr_script_power_requires_complex (mpfr_srcptr base,
+                                         mpfr_srcptr exponent) noexcept;
+
+bool mpfr_script_elementary_requires_complex (
+  mpfr_srcptr source, MpScriptElementaryOperation operation) noexcept;
+
+MpfrScalarStorage mpfr_script_elementary (
+  const MpfrScalarStorage& source,
+  MpScriptElementaryOperation operation);
+
+MpfrMatrixStorage mpfr_script_elementary (
+  const MpfrMatrixStorage& source,
+  MpScriptElementaryOperation operation);
+
+MpfrComplexScalarStorage mpfr_script_promote (
+  const MpfrScalarStorage& source);
+
+MpfrComplexMatrixStorage mpfr_script_promote (
+  const MpfrMatrixStorage& source);
+
+MpfrComplexScalarStorage mpc_script_elementary (
+  const MpfrComplexScalarStorage& source,
+  MpScriptElementaryOperation operation);
+
+MpfrComplexMatrixStorage mpc_script_elementary (
+  const MpfrComplexMatrixStorage& source,
+  MpScriptElementaryOperation operation);
 
 } // namespace octave_mplapack
 

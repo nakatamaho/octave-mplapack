@@ -92,3 +92,5 @@ assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));
 fprintf ("PASS: N08 dense real and complex right-division tests\n");
 assert (test (fullfile (test_dir, "script-compat", "s00.tst"), "quiet", stdout));
 fprintf ("PASS: S00 script compatibility tests\n");
+assert (test (fullfile (test_dir, "script-compat", "s01.tst"), "quiet", stdout));
+fprintf ("PASS: S01 script compatibility tests\n");

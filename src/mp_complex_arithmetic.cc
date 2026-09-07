@@ -50,6 +50,9 @@ apply_binary (mpc_ptr destination, mpc_srcptr lhs, mpc_srcptr rhs,
     case octave_mplapack::MpcElementwiseBinaryOperation::divide:
       mpc_div (destination, lhs, rhs, rounding);
       return;
+    case octave_mplapack::MpcElementwiseBinaryOperation::power:
+      mpc_pow (destination, lhs, rhs, rounding);
+      return;
     }
   throw std::logic_error ("unknown complex element-wise operation");
 }

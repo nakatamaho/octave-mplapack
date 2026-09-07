@@ -17,9 +17,7 @@ binary64 result, crash, or recursive dispatch:
 
 - sparse generalized eig and standalone QZ APIs (dense generalized `eig(A,B)`
   is supported by N06 through the definite/QZ MPLAPACK paths);
-- `sin`, `exp`, `sqrt`, and other unimplemented transcendentals;
-- power (`^` and `.^`), ordered comparisons, equality/logical operations,
-  and sparse conversion;
+- ordered comparisons, equality/logical operations, and sparse conversion;
 - sparse matrices, N-dimensional matrices, growth/deletion assignment, and
   unsupported cell/text matrix forms.
 
@@ -66,6 +64,12 @@ complex matrices. Real input uses MPFR `Rsyevd`; complex input uses MPC/MPFR
 real `mp`, and complex eigenvectors are complex `mp`. The public path performs
 an exact represented symmetry/Hermitian check and rejects general matrices
 until N05. Destructive LAPACK calls receive operation-owned copies.
+
+S01 adds native MPFR/MPC element-wise power and the audited elementary
+functions (`sqrt`, `exp`, `expm1`, `log`, `log1p`, `log10`, `log2`, the
+trigonometric and hyperbolic families, and `cbrt`). Real-domain crossings
+promote to MPC with Octave-compatible principal branches; no builtin
+binary64 numerical fallback is used.
 
 ## Lifecycle
 

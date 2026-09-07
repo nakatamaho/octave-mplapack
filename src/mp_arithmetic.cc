@@ -52,6 +52,17 @@ MpfrScalarStorage::divide (const MpfrScalarStorage& rhs) const
 }
 
 MpfrScalarStorage
+MpfrScalarStorage::power (const MpfrScalarStorage& rhs) const
+{
+  const mpfr_prec_t result_precision
+    = std::max (precision_bits (), rhs.precision_bits ());
+  MpfrScalarStorage result (result_precision, UninitializedTag {});
+  mpfr_pow (result.m_value.mpfr_data (), m_value.mpfr_data (),
+            rhs.m_value.mpfr_data (), MPFR_RNDN);
+  return result;
+}
+
+MpfrScalarStorage
 MpfrScalarStorage::negate () const
 {
   MpfrScalarStorage result (precision_bits (), UninitializedTag {});

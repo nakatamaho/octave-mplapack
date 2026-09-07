@@ -18,7 +18,8 @@ enum class MpcElementwiseBinaryOperation
   add,
   subtract,
   multiply,
-  divide
+  divide,
+  power
 };
 
 struct MpcElementwiseOperand

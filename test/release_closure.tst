@@ -62,10 +62,10 @@
 %! [Vg, Dg] = eig (A);
 %! assert (double (norm (A * Vg - Vg * Dg, "fro")) < 1e-12, ...
 %!         "N05 general eig real residual");
-%! assert_fails (@() sin (A), "sin must reject mp matrices");
-%! assert_fails (@() exp (A), "exp must reject mp matrices");
-%! assert_fails (@() sqrt (A), "sqrt must reject mp matrices");
-%! assert_fails (@() (A ^ 2), "power must reject mp matrices");
+%! assert (double (norm (sin (A) - sin (double (A)), "fro")) < 1e-12);
+%! assert (double (norm (exp (A) - exp (double (A)), "fro")) < 1e-12);
+%! assert (double (norm (sqrt (A) - sqrt (double (A)), "fro")) < 1e-12);
+%! assert (double (norm (A ^ 2 - double (A) ^ 2, "fro")) < 1e-12);
 %! assert_fails (@() (A == A), "comparison must reject mp matrices");
 %! assert (double (A / A), eye (2), 1e-12);
 %! assert (double (det (A)), -2, 1e-12);

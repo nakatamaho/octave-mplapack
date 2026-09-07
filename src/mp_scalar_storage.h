@@ -42,6 +42,7 @@ public:
   MpfrScalarStorage subtract (const MpfrScalarStorage& rhs) const;
   MpfrScalarStorage multiply (const MpfrScalarStorage& rhs) const;
   MpfrScalarStorage divide (const MpfrScalarStorage& rhs) const;
+  MpfrScalarStorage power (const MpfrScalarStorage& rhs) const;
   MpfrScalarStorage negate () const;
 
   const NativeScalar& native_value () const noexcept;

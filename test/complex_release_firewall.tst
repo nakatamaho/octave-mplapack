@@ -19,11 +19,11 @@
 %! assert (double (norm (ctranspose (Wg) * A - Dg * ctranspose (Wg), ...
 %!                        "fro")) < 1e-12, ...
 %!         "N05 general eig complex left residual");
-%! assert_rejected (@() sin (A), "complex sin fallback");
-%! assert_rejected (@() exp (A), "complex exp fallback");
-%! assert_rejected (@() sqrt (A), "complex sqrt fallback");
-%! assert_rejected (@() (A ^ 2), "complex power fallback");
-%! assert_rejected (@() (A .^ 2), "complex element power fallback");
+%! assert (double (norm (sin (A) - sin (double (A)), "fro")) < 1e-12);
+%! assert (double (norm (exp (A) - exp (double (A)), "fro")) < 1e-12);
+%! assert (double (norm (sqrt (A) - sqrt (double (A)), "fro")) < 1e-12);
+%! assert (double (norm (A ^ 2 - double (A) ^ 2, "fro")) < 1e-12);
+%! assert (double (norm (A .^ 2 - double (A) .^ 2, "fro")) < 1e-12);
 %! assert_rejected (@() (A < A), "complex ordered-comparison fallback");
 %! assert_rejected (@() (A > A), "complex ordered-comparison fallback");
 %! assert_rejected (@() (A == A), "complex comparison fallback");
