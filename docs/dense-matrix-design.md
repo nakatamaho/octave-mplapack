@@ -207,13 +207,15 @@ M14 keeps public matrix values immutable while adding limited in-bounds
 parenthesis assignment. `subsasgn` validates indices and RHS shape, determines
 `p_assign`, deep-copies the entire lhs into uniformly `p_assign` storage, and
 updates only the selected positions. An aliased lhs and an RHS derived from
-that lhs therefore remain safe. Matrix growth, deletion, logical assignment,
-and general vector linear assignment are rejected.
+that lhs therefore remain safe. Matrix growth and deletion remain rejected;
+logical assignment and general vector linear assignment are implemented by
+S03 through native index lists.
 
 ## Non-goals
 
-Logical indexing, general vector linear indexing, matrix `char`, comparisons,
-powers, reductions, and complex storage remain deferred. M08 adds
+Matrix `char` remains deferred. S03 adds logical indexing, general vector
+linear indexing, and comparisons/logicals. Powers, reductions, and complex
+storage remain deferred in this historical M14 section. M08 adds
 `mtimes`/`Rgemm`, M09 adds square `mldivide`/`Rgesv`, M10 adds read-only matrix
 inspection, M12 adds transpose and reshape, M13 adds horizontal/vertical
 concatenation, and M14 adds value-semantic indexed assignment.

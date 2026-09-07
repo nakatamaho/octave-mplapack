@@ -16,7 +16,7 @@ precision/value test have passed.
 | `isscalar`, `isvector`, `ismatrix`, `isempty`, `isnumeric` | SUPPORTED | S00 generic predicate audit on mp values |
 | `power`, elementary functions | SUPPORTED | S01 native MPFR/MPC power and elementary-function tests |
 | reductions and extrema | SUPPORTED | S02 native MPFR/MPC reductions, NaN flags, dimensions, and min/max |
-| comparisons, logicals, logical indexing, `find` | PLANNED-S03 | Not yet implemented in the S-series |
+| comparisons, logicals, logical indexing, `find` | SUPPORTED | S03 native MPFR/MPC comparison, truth, indexing, and find tests |
 | matrix utilities and constructors | PLANNED-S04 | Existing structural API is narrower than this target |
 | ranges, rounding, utility arithmetic | PLANNED-S05 | Not yet implemented in the S-series |
 | descriptive statistics | PLANNED-S06 | Not yet implemented in the S-series |
@@ -75,6 +75,21 @@ the practical NaN flags. Complex ordering uses the native magnitude/phase
 comparison path by default; `ComparisonMethod` accepts `auto`, `real`, and
 `abs` for the supported dense forms. Pairwise extrema do not return a second
 index output.
+
+## S03 semantics
+
+Real `==`, `~=`, `<`, `<=`, `>`, and `>=` use direct MPFR comparisons with
+Octave-compatible scalar and two-dimensional singleton expansion. Complex
+`==` and `~=` compare the native MPFR real and imaginary components; NaN is
+unequal. Complex ordered comparisons remain a deliberate firewall because no
+numeric ordering is defined for MPC values.
+
+`logical`, `&`, `|`, `xor`, and `~` classify native MPFR/MPC values directly;
+NaN is true and a complex value is true when either component is nonzero.
+`any` and `all` support the default or explicit dimension and `"all"`. `find`
+supports linear, row/column, and three-output forms, including a count and
+`"first"`/`"last"` direction. Dense numeric vector and logical-mask indexing
+and value-semantic assignment follow column-major order.
 
 ## Known intentional stops
 

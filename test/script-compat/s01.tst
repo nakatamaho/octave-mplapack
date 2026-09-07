@@ -1,5 +1,13 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
+%!function result = reference_square (value)
+%!  d = double (value);
+%!  result = [d(1, 1) * d(1, 1) + d(1, 2) * d(2, 1), ...
+%!            d(1, 1) * d(1, 2) + d(1, 2) * d(2, 2); ...
+%!            d(2, 1) * d(1, 1) + d(2, 2) * d(2, 1), ...
+%!            d(2, 1) * d(1, 2) + d(2, 2) * d(2, 2)];
+%!endfunction
+
 %!test
 %! saved = mpbits ();
 %! unwind_protect
@@ -26,7 +34,7 @@
 %!   assert (double (A ^ -1) * double (A), eye (2), 1e-12);
 %!   Z = mp ([1 + 1i, 2; 3, 4 - 1i]);
 %!   assert (double (Z ^ 0), eye (2));
-%!   assert (double (Z ^ 2), double (Z) ^ 2, 1e-12);
+%!   assert (double (Z ^ 2), reference_square (Z), 1e-12);
 %! unwind_protect_cleanup
 %!   mpbits (saved);
 %! end_unwind_protect

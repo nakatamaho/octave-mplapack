@@ -50,8 +50,9 @@
 %!  value (1, 1) = [];
 %!endfunction
 
-%!function assign_linear_vector (value)
+%!function result = assign_linear_vector (value)
 %!  value ([1, 2]) = mp ([5, 6]);
+%!  result = value;
 %!endfunction
 
 %!function assign_complex (value)
@@ -212,8 +213,8 @@
 %!                    "mplapack:mp:IndexOutOfBounds"));
 %! assert (raises_id (@() assign_delete (A), ...
 %!                    "mplapack:mp:DeletionUnsupported"));
-%! assert (raises_id (@() assign_linear_vector (A), ...
-%!                    "mplapack:mp:LinearAssignmentUnsupported"));
+%! assigned = assign_linear_vector (A);
+%! assert_matrix_text (assigned, {"5", "2"; "6", "4"});
 
 %!test
 %! A = mp ({"1", "2"; "3", "4"});

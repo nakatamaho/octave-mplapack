@@ -35,7 +35,8 @@ an existing value or override `p_op`.
 | inspection | `size`, `rows`, `columns`, `numel`, `ndims`, `isempty`, scalar `char`, `disp` | native metadata/text |
 | structure | `real`, `imag`, `conj`, transpose, ctranspose, 2-D `reshape` | MPC/native MPFR |
 | indexing | scalar, row/column, linear, two-dimensional dense indexing | operation-owned MPC |
-| assignment | in-bounds dense assignment from complex/real `mp` or double | value-semantic MPC promotion |
+| logical/indexing | `==`, `~=`, `logical`, `&`, `|`, `xor`, `~`, `any`, `all`, `find`, logical masks | native MPC truth/equality; builtin logical/index outputs |
+| assignment | in-bounds dense assignment from complex/real `mp` or double, including logical masks | value-semantic MPC promotion |
 | arithmetic | `+`, `-`, `.*`, `./`, unary signs | MPC element-wise path |
 | multiplication | `*` for scalar/matrix and mixed real/complex dense operands | MPLAPACK `Cgemm` |
 | square solve | `A \ B` | MPLAPACK `Cgesv` |

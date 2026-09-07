@@ -17,7 +17,9 @@ binary64 result, crash, or recursive dispatch:
 
 - sparse generalized eig and standalone QZ APIs (dense generalized `eig(A,B)`
   is supported by N06 through the definite/QZ MPLAPACK paths);
-- ordered comparisons, equality/logical operations, and sparse conversion;
+- ordered comparisons and sparse conversion; equality, logical conversion,
+  logical operators, `any`/`all`, `find`, and logical indexing are supported by
+  S03;
 - sparse matrices, N-dimensional matrices, growth/deletion assignment, and
   unsupported cell/text matrix forms.
 

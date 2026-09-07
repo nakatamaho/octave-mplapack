@@ -106,6 +106,20 @@ inst/@mp/cumprod.m
 inst/@mp/sumsq.m
 inst/@mp/min.m
 inst/@mp/max.m
+inst/@mp/eq.m
+inst/@mp/ne.m
+inst/@mp/lt.m
+inst/@mp/le.m
+inst/@mp/gt.m
+inst/@mp/ge.m
+inst/@mp/logical.m
+inst/@mp/and.m
+inst/@mp/or.m
+inst/@mp/xor.m
+inst/@mp/not.m
+inst/@mp/any.m
+inst/@mp/all.m
+inst/@mp/find.m
 inst/@mp/transpose.m
 inst/@mp/ctranspose.m
 inst/@mp/reshape.m
@@ -145,6 +159,8 @@ src/mp_script_compat.h
 src/mp_script_compat.cc
 src/mp_script_reductions.h
 src/mp_script_reductions.cc
+src/mp_script_logic.h
+src/mp_script_logic.cc
 src/mp_norm.h
 src/mp_norm.cc
 src/mp_det_inv.h
@@ -163,6 +179,7 @@ test/run_tests.m
 test/script-compat/s00.tst
 test/script-compat/s01.tst
 test/script-compat/s02.tst
+test/script-compat/s03.tst
 test/mrdivide.tst
 test/build_probe.tst
 test/native_value.tst

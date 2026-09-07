@@ -10,6 +10,14 @@
 %!  assert (rejected, label);
 %!endfunction
 
+%!function result = reference_square (value)
+%!  d = double (value);
+%!  result = [d(1, 1) * d(1, 1) + d(1, 2) * d(2, 1), ...
+%!            d(1, 1) * d(1, 2) + d(1, 2) * d(2, 2); ...
+%!            d(2, 1) * d(1, 1) + d(2, 2) * d(2, 1), ...
+%!            d(2, 1) * d(1, 2) + d(2, 2) * d(2, 2)];
+%!endfunction
+
 %!test
 %! saved = mpbits ();
 %! unwind_protect
@@ -25,8 +33,8 @@
 %!                    "N-dimensional reshape must remain unsupported");
 %!   C = mp ([1 + 1i, 2; 3, 4 - 1i]);
 %!   assert_rejected (@() (C < C), "ordered complex comparison must remain unsupported");
-%!   assert_rejected (@() (C == C), "complex equality must remain unsupported");
-%!   assert (double (norm (C ^ 2 - double (C) ^ 2, "fro")) < 1e-12);
+%!   assert (isequal (C == C, true (2)), "complex equality compatibility");
+%!   assert (double (norm (C ^ 2 - mp (reference_square (C)), "fro")) < 1e-12);
 %!   assert (double (C / C), eye (2), 1e-12);
 %! unwind_protect_cleanup
 %!   mpbits (saved);

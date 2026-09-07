@@ -11,7 +11,8 @@ active package version: 0.4.0-dev
 S00: PASS; committed and pushed as c17b48c0a8bf7e39c3c9a111bcc8e3ae0c60e048
 S01: PASS; committed and pushed as 29f3539 (full SHA in git history)
 S02: PASS; committed and pushed as 07c047d08d64ecd8c0d623cd2e1e621882b6c8b9
-S03-S08: not started
+S03: implementation complete; gates and regression pending
+S04-S08: not started
 D03: not started
 ```
 
@@ -115,6 +116,38 @@ G-S02-REGRESSION: PASS
 
 ```text
 S02 PASS — REDUCTIONS AND EXTREMA CLOSED
+```
+
+## S03 evidence
+
+Implementation/report commit: pending.
+
+```text
+comparisons: native MPFR real relations and native MPC equality/inequality
+logicals: native MPFR/MPC truth classification and &, |, xor, ~
+any/all: dimensions and all reduction forms
+find: linear, row/column, value, count, and direction forms
+indexing: numeric vectors, logical masks, and value-semantic assignment
+complex ordered comparisons: explicit rejection retained
+1024/2048 precision and ambient default isolation: PASS
+binary64 numerical fallback: NONE
+```
+
+```text
+G-S03-COMPARE: PASS
+G-S03-COMPLEX-EQUALITY: PASS
+G-S03-ORDER-FIREWALL: PASS
+G-S03-LOGICAL: PASS
+G-S03-ANY-ALL: PASS
+G-S03-FIND: PASS
+G-S03-INDEX: PASS
+G-S03-ASSIGNMENT: PASS
+G-S03-PRECISION: PASS
+G-S03-REGRESSION: PASS
+```
+
+```text
+S03 PASS — COMPARISONS, LOGICALS, AND LOGICAL INDEXING CLOSED
 ```
 
 ## Next milestone

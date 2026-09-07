@@ -11,6 +11,11 @@ S02 adds native MPFR/MPC `sum`, `prod`, `sumsq`, `cumsum`, and `cumprod`, plus
 `min`/`max` with dimensions, NaN controls, cumulative direction, indices, and
 supported complex comparison methods. The 0.3.1 source release remains
 immutable while the S-series is developed.
+S03 adds native MPFR/MPC comparisons, logical conversion and element-wise
+logical operators, `any`/`all`, `find`, general numeric linear indexing, and
+logical indexing/assignment. Ordered comparisons remain explicitly rejected
+for complex values; no comparison or logical path uses builtin binary64
+complex arithmetic.
 
 ## 0.3.1
 

@@ -55,6 +55,7 @@
 #include "mp_generalized_eig.h"
 #include "mp_script_compat.h"
 #include "mp_script_reductions.h"
+#include "mp_script_logic.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -704,6 +705,25 @@ parse_index_vector (const octave_value& value, std::size_t limit,
       std::vector<std::size_t> result (limit);
       for (std::size_t index = 0; index < limit; ++index)
         result[index] = index;
+      return result;
+    }
+
+  if (value.islogical ())
+    {
+      if (value.ndims () != 2
+          || (value.numel () != 1 && value.numel () != limit))
+        error_with_id ("mplapack:mp:InvalidIndex",
+                       "%s logical mask must have one element or match the indexed dimension",
+                       description);
+      const boolMatrix mask = value.bool_matrix_value ();
+      if (mask.numel () == 1)
+        return mask (0, 0) ? std::vector<std::size_t> {0}
+                           : std::vector<std::size_t> {};
+      std::vector<std::size_t> result;
+      result.reserve (static_cast<std::size_t> (mask.numel ()));
+      for (octave_idx_type index = 0; index < mask.numel (); ++index)
+        if (mask(index))
+          result.push_back (static_cast<std::size_t> (index));
       return result;
     }
 
@@ -1656,9 +1676,6 @@ matrix_linear_subscript_result (const octave_value& value,
 
   const auto indices = parse_index_vector (index_spec, source.numel (),
                                            "linear index");
-  if (indices.size () != 1)
-    error_with_id ("mplapack:mp:LinearIndexUnsupported",
-                   "general vector linear indexing is not implemented");
 
   try
     {
@@ -1717,9 +1734,6 @@ complex_matrix_linear_subscript_result (const octave_value& value,
 
   const auto indices = parse_index_vector (index_spec, source.numel (),
                                            "linear index");
-  if (indices.size () != 1)
-    error_with_id ("mplapack:mp:LinearIndexUnsupported",
-                   "general vector linear indexing is not implemented");
   try
     {
       return make_complex_inspection_result (
@@ -2063,9 +2077,6 @@ complex_matrix_linear_assignment_result (const octave_value& value,
     {
       indices = parse_index_vector (index_spec, source.numel (),
                                     "linear index");
-      if (indices.size () != 1)
-        error_with_id ("mplapack:mp:LinearAssignmentUnsupported",
-                       "general vector linear assignment is not implemented");
     }
   PreparedComplexAssignmentOperand rhs
     = prepare_complex_assignment_rhs (rhs_value);
@@ -2333,9 +2344,6 @@ matrix_linear_assignment_result (const octave_value& value,
     {
       indices = parse_index_vector (index_spec, lhs_storage.numel (),
                                     "linear index");
-      if (indices.size () != 1)
-        error_with_id ("mplapack:mp:LinearAssignmentUnsupported",
-                       "general vector linear assignment is not implemented");
     }
 
   PreparedAssignmentOperand rhs = prepare_assignment_rhs (rhs_value);
@@ -2638,6 +2646,291 @@ complex_scalar_binary_operation (const octave_value& lhs_value,
   catch (const std::exception& exception)
     {
       error_with_id ("mplapack:mp:ArithmeticError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+struct PreparedScriptLogicOperand
+{
+  std::optional<octave_mplapack::MpfrScalarStorage> real_scalar_owned;
+  std::optional<octave_mplapack::MpfrMatrixStorage> real_matrix_owned;
+  std::optional<octave_mplapack::MpfrComplexScalarStorage> complex_scalar_owned;
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> complex_matrix_owned;
+  octave_mplapack::MpfrElementwiseOperand real_view;
+  octave_mplapack::MpcElementwiseOperand complex_view;
+};
+
+octave_mplapack::MpfrMatrixStorage
+make_logic_real_matrix_storage (const octave_value& value,
+                                mpfr_prec_t precision)
+{
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "logical operands support only two-dimensional arrays");
+  const Matrix input = value.matrix_value ();
+  const std::size_t rows = checked_size_dimension (input.rows ());
+  const std::size_t columns = checked_size_dimension (input.columns ());
+  std::vector<double> values;
+  values.reserve (octave_mplapack::MpfrMatrixStorage::checked_element_count (
+    rows, columns));
+  for (octave_idx_type column = 0; column < input.columns (); ++column)
+    for (octave_idx_type row = 0; row < input.rows (); ++row)
+      values.push_back (input.xelem (row, column));
+  return octave_mplapack::MpfrMatrixStorage (rows, columns, precision, values);
+}
+
+octave_mplapack::MpfrComplexMatrixStorage
+make_logic_complex_matrix_storage (const octave_value& value,
+                                   mpfr_prec_t precision)
+{
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "logical operands support only two-dimensional arrays");
+  const ComplexMatrix input = value.complex_matrix_value ();
+  const std::size_t rows = checked_size_dimension (input.rows ());
+  const std::size_t columns = checked_size_dimension (input.columns ());
+  std::vector<std::complex<double>> values;
+  values.reserve (octave_mplapack::MpfrComplexMatrixStorage::
+                  checked_element_count (rows, columns));
+  for (octave_idx_type column = 0; column < input.columns (); ++column)
+    for (octave_idx_type row = 0; row < input.rows (); ++row)
+      values.emplace_back (input.xelem (row, column).real (),
+                           input.xelem (row, column).imag ());
+  return octave_mplapack::MpfrComplexMatrixStorage (
+    rows, columns, precision, values);
+}
+
+PreparedScriptLogicOperand
+prepare_script_logic_operand (const octave_value& value,
+                              mpfr_prec_t precision,
+                              bool complex_mode)
+{
+  PreparedScriptLogicOperand prepared;
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (complex_mode)
+        {
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            prepared.complex_view
+              = octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+                  octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ());
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            prepared.complex_view
+              = octave_mplapack::MpcElementwiseOperand::from_complex_matrix (
+                  octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                    .storage ());
+          else if (payload.type_id ()
+                   == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+            prepared.complex_view
+              = octave_mplapack::MpcElementwiseOperand::from_real_scalar (
+                  octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                    .storage ());
+          else
+            prepared.complex_view
+              = octave_mplapack::MpcElementwiseOperand::from_real_matrix (
+                  octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                    .storage ());
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        prepared.real_view = octave_mplapack::MpfrElementwiseOperand::from_scalar (
+          octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ());
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        prepared.real_view = octave_mplapack::MpfrElementwiseOperand::from_matrix (
+          octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ());
+      else
+        error_with_id ("mplapack:mp:UnsupportedOperand",
+                       "real logical operation cannot consume a complex mp value");
+      return prepared;
+    }
+
+  if ((! value.isnumeric () && ! value.islogical ()) || value.is_string ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "logical operations support mp and builtin numeric operands");
+
+  if (! complex_mode && value.isreal ())
+    {
+      if (value.is_real_scalar ())
+        {
+          prepared.real_scalar_owned.emplace (value.double_value (), precision);
+          prepared.real_view
+            = octave_mplapack::MpfrElementwiseOperand::from_scalar (
+                *prepared.real_scalar_owned);
+        }
+      else
+        {
+          prepared.real_matrix_owned.emplace (
+            make_logic_real_matrix_storage (value, precision));
+          prepared.real_view
+            = octave_mplapack::MpfrElementwiseOperand::from_matrix (
+                *prepared.real_matrix_owned);
+        }
+      return prepared;
+    }
+
+  if (value.is_real_scalar ())
+    {
+      prepared.real_scalar_owned.emplace (value.double_value (), precision);
+      prepared.complex_view
+        = octave_mplapack::MpcElementwiseOperand::from_real_scalar (
+            *prepared.real_scalar_owned);
+    }
+  else if (value.isreal ())
+    {
+      prepared.real_matrix_owned.emplace (
+        make_logic_real_matrix_storage (value, precision));
+      prepared.complex_view
+        = octave_mplapack::MpcElementwiseOperand::from_real_matrix (
+            *prepared.real_matrix_owned);
+    }
+  else if (value.is_complex_scalar ())
+    {
+      const Complex input = value.complex_value ();
+      prepared.complex_scalar_owned.emplace (
+        input.real (), input.imag (), precision);
+      prepared.complex_view
+        = octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+            *prepared.complex_scalar_owned);
+    }
+  else
+    {
+      prepared.complex_matrix_owned.emplace (
+        make_logic_complex_matrix_storage (value, precision));
+      prepared.complex_view
+        = octave_mplapack::MpcElementwiseOperand::from_complex_matrix (
+            *prepared.complex_matrix_owned);
+    }
+  return prepared;
+}
+
+octave_value
+script_logical_result (const octave_mplapack::MpScriptLogicalResult& result)
+{
+  if (result.rows == 1 && result.columns == 1)
+    return octave_value (result.values.at (0) != 0);
+
+  boolMatrix logicals (checked_octave_dimension_for_inspection (result.rows),
+                       checked_octave_dimension_for_inspection (result.columns));
+  for (std::size_t column = 0; column < result.columns; ++column)
+    for (std::size_t row = 0; row < result.rows; ++row)
+      logicals (static_cast<octave_idx_type> (row),
+               static_cast<octave_idx_type> (column))
+        = result.values.at (row + column * result.rows) != 0;
+  return octave_value (logicals);
+}
+
+mpfr_prec_t
+script_logic_precision (const octave_value& lhs, const octave_value& rhs)
+{
+  mpfr_prec_t precision = 0;
+  if (is_mp_value (lhs))
+    precision = arithmetic_mp_precision (lhs);
+  if (is_mp_value (rhs))
+    precision = std::max (precision, arithmetic_mp_precision (rhs));
+  return precision == 0 ? octave_mplapack::default_precision_bits () : precision;
+}
+
+octave_value
+script_compare_operation (
+  const octave_value& lhs_value, const octave_value& rhs_value,
+  octave_mplapack::MpScriptComparisonOperation operation)
+{
+  if (! is_mp_value (lhs_value) && ! is_mp_value (rhs_value))
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "comparison requires at least one mp operand");
+  const bool complex_mode = is_complex_arithmetic_operand (lhs_value)
+                            || is_complex_arithmetic_operand (rhs_value);
+  const mpfr_prec_t precision = script_logic_precision (lhs_value, rhs_value);
+  try
+    {
+      auto lhs = prepare_script_logic_operand (lhs_value, precision,
+                                               complex_mode);
+      auto rhs = prepare_script_logic_operand (rhs_value, precision,
+                                               complex_mode);
+      const auto result = complex_mode
+        ? octave_mplapack::mpc_script_compare (lhs.complex_view,
+                                                rhs.complex_view, operation)
+        : octave_mplapack::mpfr_script_compare (lhs.real_view,
+                                                 rhs.real_view, operation);
+      return script_logical_result (result);
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:ComparisonUnsupported", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:ComparisonError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+script_logical_operation (
+  const octave_value& lhs_value, const octave_value& rhs_value,
+  octave_mplapack::MpScriptLogicalOperation operation)
+{
+  if (! is_mp_value (lhs_value) && ! is_mp_value (rhs_value))
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "logical operation requires at least one mp operand");
+  const bool complex_mode = is_complex_arithmetic_operand (lhs_value)
+                            || is_complex_arithmetic_operand (rhs_value);
+  const mpfr_prec_t precision = script_logic_precision (lhs_value, rhs_value);
+  try
+    {
+      auto lhs = prepare_script_logic_operand (lhs_value, precision,
+                                               complex_mode);
+      auto rhs = prepare_script_logic_operand (rhs_value, precision,
+                                               complex_mode);
+      const auto result = complex_mode
+        ? octave_mplapack::mpc_script_logical_binary (
+            lhs.complex_view, rhs.complex_view, operation)
+        : octave_mplapack::mpfr_script_logical_binary (
+            lhs.real_view, rhs.real_view, operation);
+      return script_logical_result (result);
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:LogicalUnsupported", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:LogicalError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+script_logical_not_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "logical negation requires an mp operand");
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  try
+    {
+      auto operand = prepare_script_logic_operand (
+        value, precision, is_complex_payload (value));
+      const auto source = is_complex_payload (value)
+        ? octave_mplapack::mpc_script_logical (operand.complex_view)
+        : octave_mplapack::mpfr_script_logical (operand.real_view);
+      auto result = source;
+      for (auto& entry : result.values)
+        entry = entry == 0;
+      return script_logical_result (result);
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:LogicalError", "%s", exception.what ());
     }
   return octave_value ();
 }
@@ -6563,6 +6856,179 @@ script_predicate_operation (const octave_value& value,
   return octave_value (logicals);
 }
 
+octave_mplapack::MpScriptLogicalResult
+script_logical_values_for_mp (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "logical script operation requires an mp value");
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  auto operand = prepare_script_logic_operand (
+    value, precision, is_complex_payload (value));
+  return is_complex_payload (value)
+    ? octave_mplapack::mpc_script_logical (operand.complex_view)
+    : octave_mplapack::mpfr_script_logical (operand.real_view);
+}
+
+octave_value
+script_any_all_operation (const octave_value& value,
+                          const std::string& operation,
+                          const octave_value_list& args)
+{
+  if (operation != "any" && operation != "all")
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "logical reduction must be any or all");
+  const ParsedScriptOptions parsed
+    = parse_script_options (args, 3, script_default_dimension (value),
+                            false, false);
+  const auto source = script_logical_values_for_mp (value);
+  if (parsed.reduction.all)
+    {
+      bool result = operation == "all";
+      for (const unsigned char entry : source.values)
+        {
+          if (operation == "any")
+            result = result || entry != 0;
+          else
+            result = result && entry != 0;
+        }
+      return octave_value (result);
+    }
+
+  const std::size_t rows
+    = parsed.reduction.dimension == 1 ? 1 : source.rows;
+  const std::size_t columns
+    = parsed.reduction.dimension == 1 ? source.columns : 1;
+  boolMatrix result (checked_octave_dimension_for_inspection (rows),
+                     checked_octave_dimension_for_inspection (columns));
+  for (std::size_t column = 0; column < columns; ++column)
+    for (std::size_t row = 0; row < rows; ++row)
+      {
+        const std::size_t length
+          = parsed.reduction.dimension == 1 ? source.rows : source.columns;
+        bool accumulated = operation == "all";
+        for (std::size_t position = 0; position < length; ++position)
+          {
+            const std::size_t source_row
+              = parsed.reduction.dimension == 1 ? position : row;
+            const std::size_t source_column
+              = parsed.reduction.dimension == 1 ? column : position;
+            const bool entry
+              = source.values[source_row + source_column * source.rows] != 0;
+            if (operation == "any")
+              accumulated = accumulated || entry;
+            else
+              accumulated = accumulated && entry;
+          }
+        result (static_cast<octave_idx_type> (row),
+                static_cast<octave_idx_type> (column)) = accumulated;
+      }
+  return octave_value (result);
+}
+
+octave_value
+script_linear_selection_result (const octave_value& value,
+                                const std::vector<std::size_t>& indices)
+{
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  if (is_complex_payload (value))
+    {
+      const auto source = script_complex_matrix_operand (value, precision);
+      return make_complex_inspection_result (
+        octave_mplapack::select_complex_linear (source, indices));
+    }
+  const auto source = script_real_matrix_operand (value, precision);
+  return make_inspection_result (
+    octave_mplapack::select_linear (source, indices));
+}
+
+octave_value_list
+script_find_operation (const octave_value_list& args)
+{
+  if (args.length () < 3)
+    error_with_id ("mplapack:InvalidArguments",
+                   "script_find expects an mp value and output count");
+  const octave_value& value = args(1);
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "find expects an mp value");
+  if (! args(2).is_real_scalar ())
+    error_with_id ("mplapack:mp:OutputCount", "find output count is invalid");
+  const double supplied_outputs = args(2).double_value ();
+  if (! std::isfinite (supplied_outputs)
+      || std::trunc (supplied_outputs) != supplied_outputs
+      || supplied_outputs < 0.0 || supplied_outputs > 3.0)
+    error_with_id ("mplapack:mp:OutputCount", "find supports zero through three outputs");
+  const int output_count = std::max (1, static_cast<int> (supplied_outputs));
+
+  std::size_t limit = std::numeric_limits<std::size_t>::max ();
+  bool last = false;
+  for (int index = 3; index < args.length (); ++index)
+    {
+      const octave_value& option = args(index);
+      if (option.isnumeric () && option.isempty ())
+        continue;
+      if (option.isnumeric () && option.is_real_scalar ())
+        {
+          const double supplied = option.double_value ();
+          if (! std::isfinite (supplied) || std::trunc (supplied) != supplied
+              || supplied < 0.0
+              || supplied > static_cast<double> (
+                   std::numeric_limits<std::size_t>::max ()))
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "find count must be a nonnegative integer");
+          limit = static_cast<std::size_t> (supplied);
+          continue;
+        }
+      if (option.is_string ())
+        {
+          const std::string direction = option.string_value ();
+          if (direction == "first")
+            { last = false; continue; }
+          if (direction == "last")
+            { last = true; continue; }
+        }
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "find option must be a count, \"first\", or \"last\"");
+    }
+
+  const auto logical = script_logical_values_for_mp (value);
+  std::vector<std::size_t> indices;
+  indices.reserve (logical.values.size ());
+  for (std::size_t index = 0; index < logical.values.size (); ++index)
+    if (logical.values[index] != 0)
+      indices.push_back (index);
+  if (limit != std::numeric_limits<std::size_t>::max ()
+      && indices.size () > limit)
+    {
+      if (last)
+        indices.erase (indices.begin (), indices.end () - limit);
+      else
+        indices.resize (limit);
+    }
+
+  const std::size_t rows = logical.rows;
+  const std::size_t columns = logical.columns;
+  Matrix linear (checked_octave_dimension_for_inspection (indices.size ()), 1);
+  Matrix row_output (checked_octave_dimension_for_inspection (indices.size ()), 1);
+  Matrix column_output (checked_octave_dimension_for_inspection (indices.size ()), 1);
+  for (std::size_t output = 0; output < indices.size (); ++output)
+    {
+      const std::size_t linear_index = indices[output];
+      linear.xelem (static_cast<octave_idx_type> (output), 0)
+        = static_cast<double> (linear_index + 1);
+      row_output.xelem (static_cast<octave_idx_type> (output), 0)
+        = rows == 0 ? 1.0 : static_cast<double> (linear_index % rows + 1);
+      column_output.xelem (static_cast<octave_idx_type> (output), 0)
+        = rows == 0 ? 1.0 : static_cast<double> (linear_index / rows + 1);
+    }
+  if (output_count == 1)
+    return ovl (octave_value (linear));
+  if (output_count == 2)
+    return ovl (octave_value (row_output), octave_value (column_output));
+  return ovl (octave_value (row_output), octave_value (column_output),
+              script_linear_selection_result (value, indices));
+}
+
 bool
 script_equal_operation (const octave_value& lhs_value,
                         const octave_value& rhs_value,
@@ -6882,6 +7348,74 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       error_with_id ("mplapack:mp:InvalidOption",
                      "unknown script predicate: %s", predicate.c_str ());
     }
+
+  if (command == "script_compare")
+    {
+      require_argument_count (args, 4, command);
+      const std::string operation = require_string (args(3),
+                                                    "comparison operation");
+      const auto select_operation = [&] ()
+      {
+        if (operation == "eq")
+          return octave_mplapack::MpScriptComparisonOperation::equal;
+        if (operation == "ne")
+          return octave_mplapack::MpScriptComparisonOperation::not_equal;
+        if (operation == "lt")
+          return octave_mplapack::MpScriptComparisonOperation::less;
+        if (operation == "le")
+          return octave_mplapack::MpScriptComparisonOperation::less_equal;
+        if (operation == "gt")
+          return octave_mplapack::MpScriptComparisonOperation::greater;
+        if (operation == "ge")
+          return octave_mplapack::MpScriptComparisonOperation::greater_equal;
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown comparison operation: %s", operation.c_str ());
+        return octave_mplapack::MpScriptComparisonOperation::equal;
+      } ();
+      return ovl (script_compare_operation (args(1), args(2),
+                                            select_operation));
+    }
+
+  if (command == "script_logical")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:InvalidArguments",
+                       "script_logical expects one or two operands");
+      const std::string operation = require_string (args(2),
+                                                    "logical operation");
+      if (operation == "not")
+        {
+          require_argument_count (args, 3, command);
+          return ovl (script_logical_not_operation (args(1)));
+        }
+      require_argument_count (args, 4, command);
+      const auto select_operation = [&] ()
+      {
+        if (operation == "and")
+          return octave_mplapack::MpScriptLogicalOperation::and_op;
+        if (operation == "or")
+          return octave_mplapack::MpScriptLogicalOperation::or_op;
+        if (operation == "xor")
+          return octave_mplapack::MpScriptLogicalOperation::xor_op;
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown logical operation: %s", operation.c_str ());
+        return octave_mplapack::MpScriptLogicalOperation::and_op;
+      } ();
+      return ovl (script_logical_operation (args(1), args(3),
+                                            select_operation));
+    }
+
+  if (command == "script_any_all")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:InvalidArguments",
+                       "script_any_all expects an mp value and operation");
+      return ovl (script_any_all_operation (
+        args(1), require_string (args(2), "logical reduction operation"), args));
+    }
+
+  if (command == "script_find")
+    return script_find_operation (args);
 
   if (command == "value_equal")
     {
