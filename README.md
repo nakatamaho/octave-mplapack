@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: 0.2.1-dev `mplapack-interop` release line.** C00 through C12 pass,
+**Status: 0.2.1 `mplapack-interop` release line.** C00 through C12 pass,
 including mandatory complex `Cgetrf` LU, and the public complex API is closed.
 The 0.2.1 package identity is `mplapack-interop`; the public GNU Octave
 class/API remains `mp`, `mpbits`, and `mpdigits`.
@@ -51,7 +51,7 @@ Install a locally built release-candidate archive with Octave's package manager
 (the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-interop-0.2.1-dev.tar.gz
+octave:1> pkg install mplapack-interop-0.2.1.tar.gz
 octave:2> pkg load mplapack-interop
 ```
 

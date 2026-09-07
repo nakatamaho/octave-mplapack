@@ -10,7 +10,7 @@ identity and is not rewritten.
 |---|---:|---|---|---|---|---|
 | gmpfrxx_mkII | 1.4.1 | `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `v1.4.1` | `gmpfrxx_mkII.1.4.1.tar.xz` | `395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4` | unchanged from D00 |
 | MPLAPACK | 3.0.1 | `c21a9f56224308afda9e7424ca9928d4cf840f7a` | pending release-tag revalidation | `mplapack-3.0.1.tar.xz` | `f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1` | corrected candidate, 85807808 bytes; generated Makefile.in fix present; release QA maintained separately |
-| octave-mplapack | 0.2.1-dev | pending | pending | `mplapack-interop-0.2.1-dev.tar.gz` | pending | D01R1 worktree |
+| octave-mplapack | 0.2.1 | pending | pending | `mplapack-interop-0.2.1.tar.gz` | pending | D01R1 release candidate |
 
 The supplied MPLAPACK candidate includes the macOS `/bin/sh`, QD/DD
 load-check, Automake load-probe, and external-gmpfrxx pkg-config fixes. It
