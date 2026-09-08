@@ -190,3 +190,8 @@ release tag occur after this upstream freeze.
   packed one-output factors, permutation-aware two/three-output forms,
   1-based vector pivots, rectangular and singular support, and immutable
   operation-owned precision-safe buffers.
+## mplapack-interop 0.5.0-dev (2026-09-08)
+
+* T00 begins the arbitrary-precision Schur, Hessenberg, balancing, and
+  generalized Schur (QZ) interface.  The implementation uses the frozen
+  MPLAPACK MPFR/MPC drivers and preserves the operation precision scope.

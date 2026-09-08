@@ -16,6 +16,7 @@ SOURCE = octave_bridge.cc mp_value.cc mp_matrix_value.cc mp_blas.cc mp_lapack.cc
   mp_complex_lu.cc mp_complex_matrix_concat.cc mp_norm.cc mp_det_inv.cc \
   mp_svd.cc mp_rank_condition.cc mp_structured_eig.cc mp_general_eig.cc \
   mp_generalized_eig.cc mp_script_compat.cc mp_script_reductions.cc \
+  mp_schur_qz.cc \
   mp_script_logic.cc mp_script_structure.cc mp_script_ranges.cc \
   mp_script_statistics.cc mp_script_sequence.cc
 HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
@@ -30,6 +31,7 @@ HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
   mp_complex_lu.h mp_complex_matrix_concat.h mp_norm.h mp_det_inv.h mp_svd.h \
   mp_rank_condition.h mp_structured_eig.h mp_general_eig.h \
   mp_generalized_eig.h mp_script_compat.h mp_script_reductions.h \
+  mp_schur_qz.h \
   mp_script_logic.h mp_script_structure.h mp_script_ranges.h \
   mp_script_statistics.h mp_script_sequence.h
 STORAGE_TEST = .build-m02/mp_scalar_storage_test
@@ -78,7 +80,7 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
   check-complex-rank check-complex-cholesky check-complex-qr \
   check-complex-pivoted-qr check-complex-concat check-complex-lu check-norm \
   check-det-inv check-svd check-rank-condition check-structured-eig \
-  check-general-eig check-generalized-eig check-script-sequence clean
+  check-general-eig check-generalized-eig check-schur-qz check-script-sequence clean
 .DELETE_ON_ERROR:
 
 all: $(TARGET)

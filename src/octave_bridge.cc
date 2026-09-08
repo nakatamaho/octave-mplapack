@@ -53,6 +53,7 @@
 #include "mp_structured_eig.h"
 #include "mp_general_eig.h"
 #include "mp_generalized_eig.h"
+#include "mp_schur_qz.h"
 #include "mp_script_compat.h"
 #include "mp_script_reductions.h"
 #include "mp_script_logic.h"
@@ -7863,6 +7864,155 @@ version_info ()
   return ovl (info);
 }
 
+octave_value_list
+mp_hess_operation (const octave_value& value)
+{
+  const auto input = generalized_matrix_payload (value);
+  return std::visit ([] (const auto& matrix) -> octave_value_list
+  {
+    using Matrix = std::decay_t<decltype (matrix)>;
+    if constexpr (std::is_same_v<Matrix, octave_mplapack::MpfrMatrixStorage>)
+      {
+        const auto result = octave_mplapack::mplapack_mpfr_hess (matrix);
+        return ovl (make_inspection_result (result.p),
+                    make_inspection_result (result.h));
+      }
+    else
+      {
+        const auto result = octave_mplapack::mplapack_mpc_hess (matrix);
+        return ovl (make_complex_inspection_result (result.p),
+                    make_complex_inspection_result (result.h));
+      }
+  }, input);
+}
+
+octave_value_list
+mp_schur_operation (const octave_value& value, bool force_complex)
+{
+  auto input = generalized_matrix_payload (value);
+  if (force_complex && ! is_complex_payload (value))
+    input = generalized_matrix_at_precision (
+      input, generalized_matrix_precision (input), true);
+
+  return std::visit ([] (const auto& matrix) -> octave_value_list
+  {
+    using Matrix = std::decay_t<decltype (matrix)>;
+    if constexpr (std::is_same_v<Matrix, octave_mplapack::MpfrMatrixStorage>)
+      {
+        const auto result = octave_mplapack::mplapack_mpfr_schur (matrix);
+        return ovl (make_inspection_result (result.u),
+                    make_inspection_result (result.s));
+      }
+    else
+      {
+        const auto result = octave_mplapack::mplapack_mpc_schur (matrix);
+        return ovl (make_complex_inspection_result (result.u),
+                    make_complex_inspection_result (result.s));
+      }
+  }, input);
+}
+
+octave_value
+mp_balance_operation (const octave_value& value, const std::string& option)
+{
+  const auto input = generalized_matrix_payload (value);
+  const char *job = "B";
+  if (option == "noperm" || option == "S")
+    job = "S";
+  else if (option == "noscal" || option == "P")
+    job = "P";
+  else if (option != "" && option != "balance" && option != "B")
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "balance option must be \"noperm\", \"noscal\", or default");
+
+  return std::visit ([job] (const auto& matrix) -> octave_value
+  {
+    using Matrix = std::decay_t<decltype (matrix)>;
+    if (matrix.rows () != matrix.columns ())
+      error_with_id ("mplapack:mp:InvalidInput",
+                     "balance expects a square mp matrix");
+    if constexpr (std::is_same_v<Matrix, octave_mplapack::MpfrMatrixStorage>)
+      {
+        octave_mplapack::MpfrMatrixStorage result (matrix);
+        octave_mplapack::MpfrMatrixStorage scale (
+          matrix.rows (), 1, matrix.precision_bits ());
+        octave_mplapack::MpfrMatrixStorage::MplapackInteger ilo = 0;
+        octave_mplapack::MpfrMatrixStorage::MplapackInteger ihi = 0;
+        octave_mplapack::MpfrMatrixStorage::MplapackInteger info = 0;
+        {
+          MplapackMpfrPrecisionScope scope (matrix.precision_bits ());
+          Rgebal (job, static_cast<octave_mplapack::MpfrMatrixStorage::MplapackInteger> (
+                    matrix.rows ()), result.data (), result.leading_dimension (),
+                  ilo, ihi, scale.data (), info);
+        }
+        if (info != 0)
+          error_with_id ("mplapack:mp:BalanceError",
+                         "MPLAPACK Rgebal failed (info %d)", static_cast<int> (info));
+        return make_inspection_result (std::move (result));
+      }
+    else
+      {
+        octave_mplapack::MpfrComplexMatrixStorage result (matrix);
+        octave_mplapack::MpfrMatrixStorage scale (
+          matrix.rows (), 1, matrix.precision_bits ());
+        octave_mplapack::MpfrComplexMatrixStorage::MplapackInteger ilo = 0;
+        octave_mplapack::MpfrComplexMatrixStorage::MplapackInteger ihi = 0;
+        octave_mplapack::MpfrComplexMatrixStorage::MplapackInteger info = 0;
+        {
+          octave_mplapack::MpfrMpcPrecisionScope scope (
+            matrix.precision_bits ());
+          Cgebal (job, static_cast<octave_mplapack::MpfrComplexMatrixStorage::MplapackInteger> (
+                    matrix.rows ()), result.data (), result.leading_dimension (),
+                  ilo, ihi, scale.data (), info);
+        }
+        if (info != 0)
+          error_with_id ("mplapack:mp:BalanceError",
+                         "MPLAPACK Cgebal failed (info %d)", static_cast<int> (info));
+        return make_complex_inspection_result (std::move (result));
+      }
+  }, input);
+}
+
+octave_value_list
+mp_qz_operation (const octave_value& value_a, const octave_value& value_b,
+                 bool force_complex)
+{
+  auto a = generalized_matrix_payload (value_a);
+  auto b = generalized_matrix_payload (value_b);
+  if (generalized_matrix_precision (a) != generalized_matrix_precision (b))
+    error_with_id ("mplapack:mp:PrecisionMismatch",
+                   "qz matrix operands must have the same precision");
+
+  const bool complex_output = force_complex || is_complex_payload (value_a)
+                              || is_complex_payload (value_b);
+  if (complex_output)
+    {
+      a = generalized_matrix_at_precision (
+        a, generalized_matrix_precision (a), true);
+      b = generalized_matrix_at_precision (
+        b, generalized_matrix_precision (b), true);
+    }
+
+  if (! complex_output)
+    {
+      const auto& ar = std::get<octave_mplapack::MpfrMatrixStorage> (a);
+      const auto& br = std::get<octave_mplapack::MpfrMatrixStorage> (b);
+      const auto result = octave_mplapack::mplapack_mpfr_qz (ar, br);
+      return ovl (make_inspection_result (result.aa),
+                  make_inspection_result (result.bb),
+                  make_inspection_result (result.q),
+                  make_inspection_result (result.z));
+    }
+
+  const auto& ac = std::get<octave_mplapack::MpfrComplexMatrixStorage> (a);
+  const auto& bc = std::get<octave_mplapack::MpfrComplexMatrixStorage> (b);
+  const auto result = octave_mplapack::mplapack_mpc_qz (ac, bc);
+  return ovl (make_complex_inspection_result (result.aa),
+              make_complex_inspection_result (result.bb),
+              make_complex_inspection_result (result.q),
+              make_complex_inspection_result (result.z));
+}
+
 } // namespace
 
 DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
@@ -8739,6 +8889,39 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         return complex_qr_operation (args(1), option == "econ",
                                      outputs == "qr");
       return mp_qr_operation (args(1), option == "econ", outputs == "qr");
+    }
+
+  if (command == "hess")
+    {
+      require_argument_count (args, 2, command);
+      return mp_hess_operation (args(1));
+    }
+
+  if (command == "schur")
+    {
+      require_argument_count (args, 3, command);
+      const std::string option = require_string (args(2), "schur option");
+      if (option != "real" && option != "complex")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "schur option must be \"real\" or \"complex\"");
+      return mp_schur_operation (args(1), option == "complex");
+    }
+
+  if (command == "balance")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (mp_balance_operation (args(1),
+                                        require_string (args(2), "balance option")));
+    }
+
+  if (command == "qz")
+    {
+      require_argument_count (args, 4, command);
+      const std::string option = require_string (args(3), "qz option");
+      if (option != "real" && option != "complex")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "qz option must be \"real\" or \"complex\"");
+      return mp_qz_operation (args(1), args(2), option == "complex");
     }
 
   if (command == "qr_pivoted")

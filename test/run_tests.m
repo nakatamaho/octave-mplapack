@@ -86,6 +86,8 @@ assert (test (fullfile (test_dir, "eig_general.tst"), "quiet", stdout));
 fprintf ("PASS: N05 general eig and Grcar tests\n");
 assert (test (fullfile (test_dir, "eig_generalized.tst"), "quiet", stdout));
 fprintf ("PASS: N06 generalized eig and QZ/Cholesky tests\n");
+assert (test (fullfile (test_dir, "t00_schur_qz.tst"), "quiet", stdout));
+fprintf ("PASS: T00 Hessenberg, balance, Schur, and QZ tests\n");
 assert (test (fullfile (test_dir, "n07_closure.tst"), "quiet", stdout));
 fprintf ("PASS: N07 numerical API closure and compatibility firewall tests\n");
 assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));

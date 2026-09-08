@@ -23,11 +23,6 @@
 %! unwind_protect
 %!   mpbits (256);
 %!   A = mp ([1, 2; 3, 4]);
-%!   assert_rejected (@() schur (A), "standalone schur must remain unsupported");
-%!   assert_rejected (@() qz (A, A), "standalone qz must remain unsupported");
-%!   assert_rejected (@() hess (A), "hess must remain unsupported");
-%!   assert_rejected (@() expm (A), "expm must remain unsupported");
-%!   assert_rejected (@() logm (A), "logm must remain unsupported");
 %!   assert_rejected (@() sparse (A), "sparse conversion must remain unsupported");
 %!   assert_rejected (@() reshape (A, [1, 1, 4]), ...
 %!                    "N-dimensional reshape must remain unsupported");
