@@ -90,6 +90,8 @@ assert (test (fullfile (test_dir, "t00_schur_qz.tst"), "quiet", stdout));
 fprintf ("PASS: T00 Hessenberg, balance, Schur, and QZ tests\n");
 assert (test (fullfile (test_dir, "t01_dense_utilities.tst"), "quiet", stdout));
 fprintf ("PASS: T01 pinv, null, orth, rref, and kron tests\n");
+assert (test (fullfile (test_dir, "t02_matrix_functions.tst"), "quiet", stdout));
+fprintf ("PASS: T02 expm, logm, and sqrtm tests\n");
 assert (test (fullfile (test_dir, "n07_closure.tst"), "quiet", stdout));
 fprintf ("PASS: N07 numerical API closure and compatibility firewall tests\n");
 assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));
