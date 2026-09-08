@@ -65,6 +65,17 @@ Final dependency identities used by the controller:
 | gmpfrxx_mkII | `32a7fb797202cdf92312ed9d133f96fdbcda590a` / `v1.4.1` |
 | MPLAPACK | `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` / MPFR 3.0.1 interface |
 
+The T00–T14 development milestone history referenced gmpfrxx_mkII
+`32a7fb797202cdf92312ed9d133f96fdbcda590a` (`v1.4.1`) and the historical
+MPLAPACK development/interface commit
+`a59e5a0a429b05e8f07cf7a8feab1f48aef7431d`.
+
+Neither dependency repository was modified during T00–T14.
+
+For D04 release-candidate QA, the authoritative MPLAPACK dependency is
+instead the MPLAPACK 3.0.1 release candidate identified in the following
+section by commit, tarball, and SHA256.
+
 ## D04 release-candidate provenance
 
 `T00-T14: ACCEPT` and `D04-READY: YES` have been recorded. The authoritative
