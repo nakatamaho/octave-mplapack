@@ -15,7 +15,8 @@ S03: PASS; committed and pushed as a71c13f and 5714787
 S04: PASS; committed and pushed as 2247480a4835519f27cb53b6a39173d05f16bdc8
 S05: PASS; committed and pushed as b97ed2ea231cbb9bb1fd8b7334911d86cb2db7db
 S06: PASS; committed and pushed as 0f3e9c8dd4bb00067c117e2144d0e1f3c7179d0b
-S07-S08: not started
+S07: PASS; committed and pushed as 384987bb6dbddd0758915debcda064acd15caaee
+S08: not started
 D03: not started
 ```
 
@@ -276,4 +277,4 @@ S06 PASS — BASIC DESCRIPTIVE STATISTICS CLOSED
 
 ## Next milestone
 
-Proceed automatically to S07 — Graphics boundary bridge.
+Proceed automatically to S08 — Ordinary script compatibility closure.
