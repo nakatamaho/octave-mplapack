@@ -104,6 +104,8 @@ assert (test (fullfile (test_dir, "t07_serialization.tst"), "quiet", stdout));
 fprintf ("PASS: T07 exact serialization tests\n");
 assert (test (fullfile (test_dir, "t08_graphics_3d.tst"), "quiet", stdout));
 fprintf ("PASS: T08 3-D graphics boundary tests\n");
+assert (test (fullfile (test_dir, "t09_random.tst"), "quiet", stdout));
+fprintf ("PASS: T09 arbitrary-precision random-generation tests\n");
 assert (test (fullfile (test_dir, "n07_closure.tst"), "quiet", stdout));
 fprintf ("PASS: N07 numerical API closure and compatibility firewall tests\n");
 assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));

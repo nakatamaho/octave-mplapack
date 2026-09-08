@@ -62,6 +62,7 @@
 #include "mp_script_statistics.h"
 #include "mp_script_sequence.h"
 #include "mp_precision.h"
+#include "mp_random.h"
 
 #ifndef MPLAPACK_PKG_VERSION
 #error "MPLAPACK_PKG_VERSION must be provided by the build"
@@ -250,7 +251,61 @@ octave_value
 make_internal_matrix (octave_mplapack::MpfrMatrixStorage storage)
 {
   return octave_value (
-    new octave_mplapack_mpfr_matrix_internal (std::move (storage)));
+      new octave_mplapack_mpfr_matrix_internal (std::move (storage)));
+}
+
+octave_value require_mp_payload (const octave_value& value);
+
+std::uint64_t
+require_rng_word (const octave_value& value, const char *description)
+{
+  if (! value.is_uint64_type () || ! value.is_scalar_type ())
+    error_with_id ("mplapack:rng:InvalidState",
+                   "%s must be a uint64 scalar", description);
+  return value.uint64_scalar_value ().value ();
+}
+
+octave_mplapack::MpRandomState
+require_rng_state (const octave_value& first, const octave_value& second)
+{
+  octave_mplapack::MpRandomState state {
+    require_rng_word (first, "rng state first word"),
+    require_rng_word (second, "rng state second word")};
+  if (state.first == 0 && state.second == 0)
+    error_with_id ("mplapack:rng:InvalidState",
+                   "rng state must not contain two zero words");
+  return state;
+}
+
+octave_value
+make_random_value (octave_mplapack::MpfrMatrixStorage storage)
+{
+  if (storage.numel () == 1)
+    return make_internal_scalar (
+      octave_mplapack::MpfrScalarStorage (
+        std::move (storage.data ()[0])));
+  return make_internal_matrix (std::move (storage));
+}
+
+octave_value_list
+make_random_result (octave_mplapack::MpfrMatrixStorage storage,
+                    const octave_mplapack::MpRandomState& state)
+{
+  return ovl (make_random_value (std::move (storage)),
+              octave_uint64 (state.first), octave_uint64 (state.second));
+}
+
+octave_mplapack::MpfrScalarStorage
+require_real_mp_scalar_for_rng (const octave_value& value,
+                                const char *description)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      != octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    error_with_id ("mplapack:rng:InvalidBound",
+                   "%s must be a real scalar mp value", description);
+  return octave_mplapack::MpfrScalarStorage (
+    octave_mplapack_mpfr_scalar_internal::checked_value (payload).storage ());
 }
 
 octave_value
@@ -8422,6 +8477,71 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       catch (const std::exception& exception)
         {
           error_with_id ("mplapack:NativeError", "%s", exception.what ());
+        }
+    }
+
+  if (command == "rng_seed")
+    {
+      require_argument_count (args, 2, command);
+      const auto state = octave_mplapack::mp_random_seed (
+        require_rng_word (args(1), "rng seed"));
+      return ovl (octave_uint64 (state.first),
+                  octave_uint64 (state.second));
+    }
+
+  if (command == "rng_uniform" || command == "rng_normal")
+    {
+      require_argument_count (args, 5, command);
+      const std::size_t rows
+        = parse_reshape_dimension (args(1), "rng rows");
+      const std::size_t columns
+        = parse_reshape_dimension (args(2), "rng columns");
+      auto state = require_rng_state (args(3), args(4));
+      const mpfr_prec_t precision
+        = octave_mplapack::default_precision_bits ();
+      octave_mplapack::synchronize_current_thread_precision ();
+      try
+        {
+          if (command == "rng_uniform")
+            return make_random_result (
+              octave_mplapack::mp_random_uniform (
+                rows, columns, precision, state), state);
+          return make_random_result (
+            octave_mplapack::mp_random_normal (
+              rows, columns, precision, state), state);
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:rng:GenerationError", "%s",
+                         exception.what ());
+        }
+    }
+
+  if (command == "rng_integer")
+    {
+      require_argument_count (args, 7, command);
+      const auto lower
+        = require_real_mp_scalar_for_rng (args(1), "rng lower bound");
+      const auto upper
+        = require_real_mp_scalar_for_rng (args(2), "rng upper bound");
+      const std::size_t rows
+        = parse_reshape_dimension (args(3), "rng rows");
+      const std::size_t columns
+        = parse_reshape_dimension (args(4), "rng columns");
+      auto state = require_rng_state (args(5), args(6));
+      const mpfr_prec_t precision
+        = octave_mplapack::default_precision_bits ();
+      octave_mplapack::synchronize_current_thread_precision ();
+      try
+        {
+          return make_random_result (
+            octave_mplapack::mp_random_integer (
+              rows, columns, precision, lower, upper, state), state);
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:rng:GenerationError", "%s",
+                         exception.what ());
         }
     }
 

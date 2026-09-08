@@ -32,7 +32,7 @@ version and tag freeze.
 | T06 special-function audit | PASS | `reports/T06-report.md`, `docs/special-functions-backend-matrix.md` |
 | T07 serialization | PASS | `reports/T07-report.md`, `docs/serialization.md` |
 | T08 3-D graphics | PASS | `reports/T08-report.md`, `docs/graphics.md` |
-| T09 arbitrary-precision RNG | NOT-RUN | `reports/T09-report.md` |
+| T09 arbitrary-precision RNG | PASS | `reports/T09-report.md`, `docs/rng.md` |
 | T10 1-D interpolation | NOT-RUN | `reports/T10-report.md` |
 | T11 2-D interpolation | NOT-RUN | `reports/T11-report.md` |
 | T12 nonlinear equations | NOT-RUN | `reports/T12-report.md` |
