@@ -46,3 +46,33 @@ All numerical paths remain one-operation/one-precision MPFR/MPC paths.  The
 new T00 drivers use operation-owned copies for destructive LAPACK calls and
 establish the matching real and complex precision scopes at every backend
 boundary.  No builtin binary64 fallback is part of the T-series interface.
+
+## Controller closure
+
+Result: `T00-T14 CONTROLLER PASS`
+
+Last required PASS milestone: `T14`
+T05R1: `NOT NEEDED — T05 ALREADY CLOSED`
+
+Final controller HEAD:
+`246f9dafe3a1576172315c7b6667aeb44a3a1e4e`
+
+Final dependency identities used by the controller:
+
+| Dependency | Tested identity |
+|---|---|
+| gmpfrxx_mkII | `32a7fb797202cdf92312ed9d133f96fdbcda590a` / `v1.4.1` |
+| MPLAPACK | `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` / MPFR 3.0.1 interface |
+
+The final wall passed M00–M23, C00–C12 including C11L, N00–N08, S00–S08,
+T00–T14, Grcar/generalized eig, serialization, graphics, RNG,
+interpolation, fzero/fsolve, quadrature, optimization, the unsupported API
+firewall, and the installed-package lifecycle.  Native ASan, UBSan, and
+LSan completed successfully.  The only CI repair was allowing the existing
+`0.5.0-dev` development version in `tools/local-ci.sh`; no numerical behavior
+was changed by that repair.
+
+D04-READY: yes
+T15-T20-READY-FOR-PLANNING: yes
+
+D04 and T15–T20 were not started automatically.
