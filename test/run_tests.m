@@ -113,6 +113,8 @@ assert (test (fullfile (test_dir, "t11_interp2.tst"), "quiet", stdout));
 fprintf ("PASS: T11 two-dimensional interpolation tests\n");
 assert (test (fullfile (test_dir, "t12_solvers.tst"), "quiet", stdout));
 fprintf ("PASS: T12 nonlinear solver tests\n");
+assert (test (fullfile (test_dir, "t13_quadrature.tst"), "quiet", stdout));
+fprintf ("PASS: T13 arbitrary-precision quadrature tests\n");
 assert (test (fullfile (test_dir, "n07_closure.tst"), "quiet", stdout));
 fprintf ("PASS: N07 numerical API closure and compatibility firewall tests\n");
 assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));
