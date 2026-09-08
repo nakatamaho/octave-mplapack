@@ -26,7 +26,7 @@ version and tag freeze.
 | T00 Schur/QZ | PASS | `reports/T00-report.md` |
 | T01 advanced dense utilities | PASS | `reports/T01-report.md` |
 | T02 matrix functions | PASS | `reports/T02-report.md` |
-| T03 polynomial core | NOT-RUN | `reports/T03-report.md` |
+| T03 polynomial core | PASS | `reports/T03-report.md` |
 | T04 exact sets | NOT-RUN | `reports/T04-report.md` |
 | T05 gamma/erf | NOT-RUN | `reports/T05-report.md` |
 | T06 special-function audit | NOT-RUN | `reports/T06-report.md` |
