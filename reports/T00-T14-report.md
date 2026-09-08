@@ -4,6 +4,8 @@
 
 `T00-T14 CONTROLLER PASS`
 
+Acceptance: `T00-T14: ACCEPT`
+
 All required T00 through T14 milestones passed in order. T05R1 was executed
 as the required late checkpoint and was recorded as not needed because T05
 was already closed. The final tested controller commit is
@@ -15,6 +17,30 @@ The tested dependency heads were gmpfrxx_mkII
 `32a7fb797202cdf92312ed9d133f96fdbcda590a` (`v1.4.1`) and MPLAPACK
 `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` (MPFR 3.0.1 interface).
 Neither dependency was modified during T00–T14.
+
+## D04 release-candidate provenance
+
+`T00-T14: ACCEPT` and `D04-READY: YES` are the accepted handoff state. The
+authoritative MPLAPACK dependency for the current D04 candidate is MPLAPACK
+3.0.1 commit `c21a9f56224308afda9e7424ca9928d4cf840f7a`, represented by the
+local release-candidate archive `~/src/mplapack-3.0.1.tar.xz` and the archived
+QA copy `release/logs/20260907_143628/source/mplapack-3.0.1.tar.xz`. The
+expected SHA256 for both artifacts is
+`f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1`; the QA
+evidence directory is `release/logs/20260907_143628/`.
+
+The local candidate archive used by the installer was verified in the current
+environment to have this hash. D04 must verify that the archived QA copy has
+the same hash before the source freeze. Until its release process completes,
+MPLAPACK must be described as the `3.0.1 release candidate`, not as finally
+released MPLAPACK 3.0.1.
+
+Historical T-series identities such as `a59e5a0...` and earlier release-
+preparation commits such as `fa3ccb...` remain historical milestone
+provenance. They are not D04 release-QA provenance and require no
+reconciliation. D04 must preserve and verify the exact release-candidate
+identity above, or use an installed build demonstrably derived from it; no
+rebuild is required solely to reconcile those historical Git SHAs.
 
 ## D03 baseline
 

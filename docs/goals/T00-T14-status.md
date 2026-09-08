@@ -50,6 +50,7 @@ boundary.  No builtin binary64 fallback is part of the T-series interface.
 ## Controller closure
 
 Result: `T00-T14 CONTROLLER PASS`
+Acceptance: `T00-T14: ACCEPT`
 
 Last required PASS milestone: `T14`
 T05R1: `NOT NEEDED — T05 ALREADY CLOSED`
@@ -64,6 +65,28 @@ Final dependency identities used by the controller:
 | gmpfrxx_mkII | `32a7fb797202cdf92312ed9d133f96fdbcda590a` / `v1.4.1` |
 | MPLAPACK | `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` / MPFR 3.0.1 interface |
 
+## D04 release-candidate provenance
+
+`T00-T14: ACCEPT` and `D04-READY: YES` have been recorded. The authoritative
+MPLAPACK dependency for the current D04 candidate is MPLAPACK 3.0.1 commit
+`c21a9f56224308afda9e7424ca9928d4cf840f7a`, represented by the local release-
+candidate archive `~/src/mplapack-3.0.1.tar.xz` and the archived QA copy
+`release/logs/20260907_143628/source/mplapack-3.0.1.tar.xz`. The expected
+SHA256 for both artifacts is
+`f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1`; the
+release-QA evidence directory is `release/logs/20260907_143628/`.
+
+The local candidate archive hash was verified in the current environment. D04
+must verify the archived QA copy has the same hash before the source freeze.
+Until the release process completes, this dependency must be described as the
+`MPLAPACK 3.0.1 release candidate`, not as finally released MPLAPACK 3.0.1.
+
+Historical T-series identities such as `a59e5a0...` and earlier release-
+preparation commits such as `fa3ccb...` remain milestone provenance. They are
+not D04 release-QA provenance and require no reconciliation. D04 may consume
+the local archive directly or an installed build demonstrably derived from it;
+no rebuild is required solely to reconcile those historical Git SHAs.
+
 The final wall passed M00–M23, C00–C12 including C11L, N00–N08, S00–S08,
 T00–T14, Grcar/generalized eig, serialization, graphics, RNG,
 interpolation, fzero/fsolve, quadrature, optimization, the unsupported API
@@ -72,8 +95,8 @@ LSan completed successfully.  The only CI repair was allowing the existing
 `0.5.0-dev` development version in `tools/local-ci.sh`; no numerical behavior
 was changed by that repair. The final documentation audit added the complete
 advanced-numerics index, structured deferred TODO records, and common metadata
-to every individual milestone report. The final report/status handoff is the
-The report/status pointer is updated by the following documentation-only
+to every individual milestone report. The report/status pointer is updated by
+the following documentation-only
 commit; the tested controller source and evidence remain unchanged.
 
 D04-READY: yes
