@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Local installation helper for the D03 frozen stack.
+# Local installation helper for the current octave-mplapack development stack.
 # Hard-coded for the user's Linux/Docker layout.
 #
-# This script verifies the frozen candidate archives, builds the local
+# This script verifies the selected source archives, builds the local
 # gmpfrxx_mkII/MPLAPACK stack, and installs the mplapack-interop Octave
-# package into an isolated prefix.  With no arguments, the generated wrapper
+# package into an isolated prefix.  The default channel is the current
+# development package, 0.5.0-dev.  With no arguments, the generated wrapper
 # starts the configured Octave environment and loads the package:
 #
 #   /home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
@@ -16,19 +17,30 @@ set -euo pipefail
 #
 #   pkg load mplapack-interop
 #
-# The historical `pkg load mplapack` name is not provided by the renamed
-# D01R1 package.
+# The package is loaded with `pkg load mplapack-interop`; the historical
+# `pkg load mplapack` name is not provided by the renamed package.
 #
-# The final release archive is selected by default; use OCTAVE_CHANNEL=dev
-# only when testing the separate development archive.
+# The default development archive is expected at:
+#   /home/docker/src/mplapack-interop-0.5.0-dev.tar.gz
+# It is the reproducible archive generated from the T00-T14 development line.
+# The immutable D03 0.4.0 archive remains available via
+# OCTAVE_CHANNEL=release.
 #
 # Input archives:
 #   /home/docker/src/gmpfrxx_mkII.1.4.1.tar.xz
 #   /home/docker/src/mplapack-3.0.1.tar.xz
-#   /home/docker/src/mplapack-interop-0.4.0.tar.gz (default release channel)
-#   /home/docker/src/mplapack-interop-0.4.0-dev.tar.gz (test channel)
+#   /home/docker/src/mplapack-interop-0.5.0-dev.tar.gz (default channel)
+#   /home/docker/src/mplapack-interop-0.4.0.tar.gz (release channel)
 #
-# Use OCTAVE_CHANNEL=dev only for development-archive testing.
+# Normal use:
+#   /home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
+#   pkg load mplapack-interop
+#
+# Development-archive use:
+#   OCTAVE_CHANNEL=dev \
+#   OCTAVE_TAR=/home/docker/src/mplapack-interop-0.5.0-dev.tar.gz \
+#   OCTAVE_SHA256=fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f \
+#   bash ~/install-local-octave-mplapack.sh
 #
 # Install prefix:
 #   /home/docker/opt/octave-mplapack-stack
@@ -36,7 +48,7 @@ set -euo pipefail
 # Build directory:
 #   /home/docker/build/octave-mplapack-stack
 
-SRC=/home/docker/src
+SRC="${SRC:-/home/docker/src}"
 PREFIX=/home/docker/opt/octave-mplapack-stack
 BUILD=/home/docker/build/octave-mplapack-stack
 JOBS="${JOBS:-$(nproc)}"
@@ -48,21 +60,29 @@ GMPFRXX_SHA256=395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4
 MPLAPACK_SHA256=f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1
 MPLAPACK_SOURCE_COMMIT=c21a9f56224308afda9e7424ca9928d4cf840f7a
 OCTAVE_PACKAGE=mplapack-interop
-OCTAVE_CHANNEL="${OCTAVE_CHANNEL:-release}"
+OCTAVE_CHANNEL="${OCTAVE_CHANNEL:-dev}"
 
 say() { printf '\n==> %s\n' "$*"; }
 die() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
 
 case "$OCTAVE_CHANNEL" in
     dev)
-        [[ -n "${OCTAVE_TAR:-}" ]] || die "OCTAVE_CHANNEL=dev requires OCTAVE_TAR=/path/to/mplapack-interop-0.4.0-dev.tar.gz"
-        [[ -n "${OCTAVE_SHA256:-}" ]] || die "OCTAVE_CHANNEL=dev requires OCTAVE_SHA256=<sha256>"
-        OCTAVE_VERSION=0.4.0-dev
+        OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.0-dev}"
+        OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
+        if [[ "$OCTAVE_VERSION" == "0.5.0-dev" ]]; then
+            OCTAVE_SHA256="${OCTAVE_SHA256:-fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f}"
+        else
+            [[ -n "${OCTAVE_SHA256:-}" ]] || die "non-0.5.0-dev development archive requires OCTAVE_SHA256=<sha256>"
+        fi
         ;;
     release)
-        OCTAVE_VERSION=0.4.0
+        OCTAVE_VERSION="${OCTAVE_VERSION:-0.4.0}"
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.4.0.tar.gz}"
-        OCTAVE_SHA256="${OCTAVE_SHA256:-6bc87d42fbda49fa72830db34fbede7b8b9f46b7614b14dc53e7619c7781536c}"
+        if [[ "$OCTAVE_VERSION" == "0.4.0" ]]; then
+            OCTAVE_SHA256="${OCTAVE_SHA256:-6bc87d42fbda49fa72830db34fbede7b8b9f46b7614b14dc53e7619c7781536c}"
+        else
+            [[ -n "${OCTAVE_SHA256:-}" ]] || die "non-0.4.0 release requires OCTAVE_SHA256=<sha256>"
+        fi
         ;;
     *)
         die "OCTAVE_CHANNEL must be dev or release"
@@ -129,7 +149,7 @@ for f in "$GMPFRXX_TAR" "$MPLAPACK_TAR" "$OCTAVE_TAR"; do
     [[ -f "$f" ]] || die "archive not found: $f"
 done
 
-say "Checking D03 frozen-stack SHA256 values"
+say "Checking selected source archive SHA256 values"
 
 printf '%s  %s\n' "$GMPFRXX_SHA256" "$GMPFRXX_TAR" | sha256sum -c -
 printf '%s  %s\n' "$MPLAPACK_SHA256" "$MPLAPACK_TAR" | sha256sum -c -
@@ -353,7 +373,7 @@ EOF
 chmod +x "$PREFIX/bin/octave-mplapack"
 
 # ----------------------------------------------------------------------
-# 7. Install mplapack-interop 0.4.0 into an isolated local package DB
+# 7. Install the selected mplapack-interop version into an isolated local package DB
 # ----------------------------------------------------------------------
 
 say "Installing $OCTAVE_PACKAGE $OCTAVE_VERSION"
@@ -480,10 +500,12 @@ Optional environment switches:
   JOBS=N
       Override parallel build jobs.
 
-  OCTAVE_CHANNEL=dev
-      Use the placed 0.4.0-dev archive (the development test channel).
+  OCTAVE_CHANNEL=dev OCTAVE_TAR=/home/docker/src/mplapack-interop-0.5.0-dev.tar.gz \
+  OCTAVE_SHA256=fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f \
+  bash ~/install-local-octave-mplapack.sh
+      Use the reproducible 0.5.0-dev archive for development testing.
 
-  OCTAVE_CHANNEL=release OCTAVE_SHA256=<sha256>
-      Use the final 0.4.0 archive after D03 source freeze.
+  OCTAVE_CHANNEL=release
+      Use the immutable D03 0.4.0 archive.
 
 EOF
