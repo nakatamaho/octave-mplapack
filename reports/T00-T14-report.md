@@ -6,9 +6,10 @@
 
 All required T00 through T14 milestones passed in order. T05R1 was executed
 as the required late checkpoint and was recorded as not needed because T05
-was already closed. The final development controller HEAD is
-`2f21c6542dfcf2ad1eac14f682971e99b546259e` on
-`topic/t00-t14-continuation`, and it matches the pushed origin branch.
+was already closed. The final tested controller commit is
+`8ba6d849fa188765b372d9aa9f899d9de98a78cf` on
+`topic/t00-t14-continuation`. The current branch tip may be a later
+documentation-only report update.
 
 The tested dependency heads were gmpfrxx_mkII
 `32a7fb797202cdf92312ed9d133f96fdbcda590a` (`v1.4.1`) and MPLAPACK
@@ -37,7 +38,7 @@ Name: `mplapack-interop`
 
 Version: `0.5.0-dev`
 
-Final controller HEAD: `2f21c6542dfcf2ad1eac14f682971e99b546259e`
+Final tested controller HEAD: `8ba6d849fa188765b372d9aa9f899d9de98a78cf`
 
 ## T00 Schur/QZ
 
@@ -423,6 +424,7 @@ remain explicitly deferred or direct-backend-only.
 | T13 | `3f878016dea4d7de372c83d0f5554f6c64a48c93` |
 | T14 implementation | `ec3275a305dbc1c25cc8041d887a95d8e9f2e5e7` |
 | T14 report/CI closure | `11bb012a285884ecd90cd9dbe32f400d5d34d703`, `246f9dafe3a1576172315c7b6667aeb44a3a1e4e` |
+| T00-T14 documentation audit | `8ba6d849fa188765b372d9aa9f899d9de98a78cf` |
 
 ## Next
 

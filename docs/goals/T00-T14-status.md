@@ -54,8 +54,8 @@ Result: `T00-T14 CONTROLLER PASS`
 Last required PASS milestone: `T14`
 T05R1: `NOT NEEDED — T05 ALREADY CLOSED`
 
-Final controller HEAD:
-`246f9dafe3a1576172315c7b6667aeb44a3a1e4e`
+Final tested controller HEAD:
+`8ba6d849fa188765b372d9aa9f899d9de98a78cf`
 
 Final dependency identities used by the controller:
 
@@ -70,7 +70,11 @@ interpolation, fzero/fsolve, quadrature, optimization, the unsupported API
 firewall, and the installed-package lifecycle.  Native ASan, UBSan, and
 LSan completed successfully.  The only CI repair was allowing the existing
 `0.5.0-dev` development version in `tools/local-ci.sh`; no numerical behavior
-was changed by that repair.
+was changed by that repair. The final documentation audit added the complete
+advanced-numerics index, structured deferred TODO records, and common metadata
+to every individual milestone report. The final report/status handoff is the
+The report/status pointer is updated by the following documentation-only
+commit; the tested controller source and evidence remain unchanged.
 
 D04-READY: yes
 T15-T20-READY-FOR-PLANNING: yes
