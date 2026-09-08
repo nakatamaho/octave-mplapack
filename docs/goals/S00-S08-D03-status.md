@@ -16,7 +16,7 @@ S04: PASS; committed and pushed as 2247480a4835519f27cb53b6a39173d05f16bdc8
 S05: PASS; committed and pushed as b97ed2ea231cbb9bb1fd8b7334911d86cb2db7db
 S06: PASS; committed and pushed as 0f3e9c8dd4bb00067c117e2144d0e1f3c7179d0b
 S07: PASS; committed and pushed as 384987bb6dbddd0758915debcda064acd15caaee
-S08: not started
+S08: PASS; committed and pushed as 51a0b420b6a47df3d84eba99bb27ec4b1d96a622
 D03: not started
 ```
 
@@ -275,6 +275,52 @@ the frozen dependencies.
 S06 PASS — BASIC DESCRIPTIVE STATISTICS CLOSED
 ```
 
+## S08 evidence
+
+Implementation/report commit: `51a0b420b6a47df3d84eba99bb27ec4b1d96a622`.
+
+```text
+ordinary script corpus A-F: PASS
+sort real/complex dimensions, direction, indices, NaN order: PASS
+find implementation reverified: PASS
+diff real/complex order and dimension forms: PASS
+length/size/rows/columns/numel/ndims/isempty audit: PASS
+unsupported surface graphics firewall: PASS
+1024-bit 2^-700 and 2048-bit 2^-1500 precision tails: PASS
+ambient precision restoration: PASS
+native MPFR/MPC sequence test: PASS
+binary64 numerical fallback: NONE
+```
+
+```text
+G-S08-CORPUS: PASS
+G-S08-SORT: PASS
+G-S08-FIND: PASS
+G-S08-DIFF: PASS
+G-S08-STRUCTURAL: PASS
+G-S08-FIREWALL: PASS
+G-S08-DOCS: PASS
+G-S08-REAL: PASS
+G-S08-COMPLEX: PASS
+G-S08-PRECISION: PASS
+G-S08-ASAN: PASS
+G-S08-UBSAN: PASS
+G-S08-LSAN: PASS
+G-S08-FULL-REGRESSION: PASS
+```
+
+Dedicated `test/script-compat/s08.tst` passed 12/12 tests. The native
+sequence test passed with ASan/UBSan and leak detection. The post-milestone
+`tools/local-ci.sh` wall passed M00–M23, C00–C12 including mandatory C11L,
+N00–N08, S00–S08, clean rebuild #2, deterministic source-package generation,
+and isolated install/unload/uninstall/reinstall QA against the frozen
+dependencies. Known gnuplot and singular-matrix host warnings were harmless.
+
+```text
+S08 PASS — ORDINARY SCRIPT COMPATIBILITY CLOSED
+D03-READY
+```
+
 ## Next milestone
 
-Proceed automatically to S08 — Ordinary script compatibility closure.
+Proceed automatically to D03 — Final Source Re-freeze.
