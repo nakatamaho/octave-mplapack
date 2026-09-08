@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Local installation helper for the D01R1 candidate stack.
+# Local installation helper for the D03 frozen stack.
 # Hard-coded for the user's Linux/Docker layout.
 #
 # This script verifies the frozen candidate archives, builds the local
@@ -25,8 +25,8 @@ set -euo pipefail
 # Input archives:
 #   /home/docker/src/gmpfrxx_mkII.1.4.1.tar.xz
 #   /home/docker/src/mplapack-3.0.1.tar.xz
-#   /home/docker/src/mplapack-interop-0.3.1.tar.gz (default release channel)
-#   /home/docker/src/mplapack-interop-0.3.1-dev.tar.gz (test channel)
+#   /home/docker/src/mplapack-interop-0.4.0.tar.gz (default release channel)
+#   /home/docker/src/mplapack-interop-0.4.0-dev.tar.gz (test channel)
 #
 # Use OCTAVE_CHANNEL=dev only for development-archive testing.
 #
@@ -55,14 +55,14 @@ die() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
 
 case "$OCTAVE_CHANNEL" in
     dev)
-        [[ -n "${OCTAVE_TAR:-}" ]] || die "OCTAVE_CHANNEL=dev requires OCTAVE_TAR=/path/to/mplapack-interop-0.3.1-dev.tar.gz"
+        [[ -n "${OCTAVE_TAR:-}" ]] || die "OCTAVE_CHANNEL=dev requires OCTAVE_TAR=/path/to/mplapack-interop-0.4.0-dev.tar.gz"
         [[ -n "${OCTAVE_SHA256:-}" ]] || die "OCTAVE_CHANNEL=dev requires OCTAVE_SHA256=<sha256>"
-        OCTAVE_VERSION=0.3.1-dev
+        OCTAVE_VERSION=0.4.0-dev
         ;;
     release)
-        OCTAVE_VERSION=0.3.1
-        OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.3.1.tar.gz}"
-        OCTAVE_SHA256="${OCTAVE_SHA256:-21a7c6751a17e783196c0e28e45d521a9251a1e3f2c210f38ab733fc89e0624b}"
+        OCTAVE_VERSION=0.4.0
+        OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.4.0.tar.gz}"
+        OCTAVE_SHA256="${OCTAVE_SHA256:-<D03-archive-sha256>}"
         ;;
     *)
         die "OCTAVE_CHANNEL must be dev or release"
@@ -129,7 +129,7 @@ for f in "$GMPFRXX_TAR" "$MPLAPACK_TAR" "$OCTAVE_TAR"; do
     [[ -f "$f" ]] || die "archive not found: $f"
 done
 
-say "Checking D01R1 candidate SHA256 values"
+say "Checking D03 frozen-stack SHA256 values"
 
 printf '%s  %s\n' "$GMPFRXX_SHA256" "$GMPFRXX_TAR" | sha256sum -c -
 printf '%s  %s\n' "$MPLAPACK_SHA256" "$MPLAPACK_TAR" | sha256sum -c -
@@ -353,7 +353,7 @@ EOF
 chmod +x "$PREFIX/bin/octave-mplapack"
 
 # ----------------------------------------------------------------------
-# 7. Install mplapack-interop 0.3.1 into an isolated local package DB
+# 7. Install mplapack-interop 0.4.0 into an isolated local package DB
 # ----------------------------------------------------------------------
 
 say "Installing $OCTAVE_PACKAGE $OCTAVE_VERSION"
@@ -481,9 +481,9 @@ Optional environment switches:
       Override parallel build jobs.
 
   OCTAVE_CHANNEL=dev
-      Use the placed 0.3.1-dev archive (the default test channel).
+      Use the placed 0.4.0-dev archive (the development test channel).
 
   OCTAVE_CHANNEL=release OCTAVE_SHA256=<sha256>
-      Use the final 0.3.1 archive after D02R1 source freeze.
+      Use the final 0.4.0 archive after D03 source freeze.
 
 EOF

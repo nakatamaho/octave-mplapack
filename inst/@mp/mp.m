@@ -28,7 +28,7 @@ classdef mp
   ## real/complex `svd` through GESVD. C01-C12 add
   ## complex MPC values, mixed real/complex operations, the corresponding C*
   ## LAPACK paths, and N06 generalized eig through the definite/QZ drivers.
-  ## The active development release is `0.4.0-dev`; N00 adds arbitrary-precision
+  ## The 0.4.0 release adds ordinary script compatibility; N00 adds arbitrary-precision
   ## `norm`, N01 adds `det`/`inv`, N02 adds `svd`, and S00 adds native script
   ## compatibility predicates and elementary scalar operations. Unsupported
   ## functions are documented in `docs/octave-script-compatibility.md`.

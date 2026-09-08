@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: 0.4.0-dev development; 0.3.1 is frozen and 0.3.0/0.2.1 are historical.**
+**Status: 0.4.0 released; 0.3.1 is historical and 0.3.0/0.2.1 are historical.**
 C00 through C12 pass, including mandatory complex `Cgetrf` LU, and the public
 complex API is closed. N08 adds dense right division. The package identity is
 `mplapack-interop`; the public GNU Octave class/API remains `mp`, `mpbits`, and
@@ -64,7 +64,7 @@ Install a locally built source archive with Octave's package manager
 (the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-interop-0.3.1.tar.gz
+octave:1> pkg install mplapack-interop-0.4.0.tar.gz
 octave:2> pkg load mplapack-interop
 ```
 
@@ -81,9 +81,12 @@ matrix powers, native elementary functions, reductions, and extrema. S03 also
 provides native comparisons, logical conversion and operators, `any`/`all`,
 `find`, and logical indexing. S04 adds native dense matrix utilities
 (`diag`, `triu`/`tril`, `repmat`, flips, `rot90`, `cat(1/2)`) and explicit
-`"like"` constructors for `mp` templates. Sparse and N-D APIs remain explicitly
-unsupported; see the [complex API](docs/complex-api.md) and [compatibility
-limits](docs/complex-compatibility.md).
+`"like"` constructors for `mp` templates. S05 adds native sequences,
+rounding, spacing, and utility arithmetic; S06 adds descriptive statistics;
+S07 adds common line-graphics wrappers; and S08 closes the ordinary dense
+script corpus with native `sort`/`diff` and structural compatibility. Sparse,
+surface-graphics, and N-D APIs remain explicitly unsupported; see the
+[complex API](docs/complex-api.md) and [compatibility limits](docs/complex-compatibility.md).
 
 ### Hilbert inverse example
 

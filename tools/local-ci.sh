@@ -664,10 +664,10 @@ if [ "$package_name" != "mplapack-interop" ]; then
   exit 1
 fi
 case $package_version in
-  0.2.1|0.2.1-dev|0.3.0-dev|0.3.0|0.3.1-dev|0.3.1|0.4.0-dev)
+  0.2.1|0.2.1-dev|0.3.0-dev|0.3.0|0.3.1-dev|0.3.1|0.4.0-dev|0.4.0)
     ;;
   *)
-    echo "FAIL: release CI requires a recognized DESCRIPTION version (including 0.4.0-dev during S00-S08)" >&2
+    echo "FAIL: release CI requires a recognized DESCRIPTION version" >&2
     exit 1
     ;;
 esac

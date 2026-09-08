@@ -1,6 +1,6 @@
 # News
 
-## 0.4.0 (development)
+## 0.4.0
 
 S00 begins the ordinary Octave script-compatibility series with native
 arbitrary-precision `abs`, `arg`, `angle`, and `sign`, special-value
@@ -10,7 +10,13 @@ the audited elementary-function family with exact real-domain promotion.
 S02 adds native MPFR/MPC `sum`, `prod`, `sumsq`, `cumsum`, and `cumprod`, plus
 `min`/`max` with dimensions, NaN controls, cumulative direction, indices, and
 supported complex comparison methods. The 0.3.1 source release remains
-immutable while the S-series is developed.
+immutable. S05 adds native MPFR/MPC sequence generation, rounding, spacing,
+and utility arithmetic. S06 adds native descriptive statistics. S07 adds the
+common line-graphics boundary wrappers with conversion limited to the final
+graphics call. S08 closes the ordinary dense script corpus with native
+`sort`/`diff`, structural audits, precision canaries, and explicit firewall
+coverage for deferred surface graphics. No numerical path uses an implicit
+binary64 fallback.
 S03 adds native MPFR/MPC comparisons, logical conversion and element-wise
 logical operators, `any`/`all`, `find`, general numeric linear indexing, and
 logical indexing/assignment. Ordered comparisons remain explicitly rejected
