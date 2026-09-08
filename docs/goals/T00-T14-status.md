@@ -35,7 +35,7 @@ version and tag freeze.
 | T09 arbitrary-precision RNG | PASS | `reports/T09-report.md`, `docs/rng.md` |
 | T10 1-D interpolation | PASS | `reports/T10-report.md`, `docs/interpolation-1d.md` |
 | T11 2-D interpolation | PASS | `reports/T11-report.md`, `docs/interpolation-2d.md`, `docs/todo/T11-ND-interpolation.md` |
-| T12 nonlinear equations | NOT-RUN | `reports/T12-report.md` |
+| T12 nonlinear equations | PASS | `reports/T12-report.md`, `docs/nonlinear-solvers.md` |
 | T13 quadrature | NOT-RUN | `reports/T13-report.md` |
 | T14 optimization | NOT-RUN | `reports/T14-report.md` |
 | T05R1 late recheck | NOT-RUN | `reports/T05R1-report.md` |

@@ -3,6 +3,7 @@ repo_root = fileparts (test_dir);
 
 addpath (fullfile (repo_root, "inst"));
 addpath (fullfile (repo_root, "src"));
+addpath (test_dir);
 
 assert (test (fullfile (test_dir, "build_probe.tst"), "quiet", stdout));
 fprintf ("PASS: M01 build probe tests\n");
@@ -110,6 +111,8 @@ assert (test (fullfile (test_dir, "t10_interpolation.tst"), "quiet", stdout));
 fprintf ("PASS: T10 one-dimensional interpolation tests\n");
 assert (test (fullfile (test_dir, "t11_interp2.tst"), "quiet", stdout));
 fprintf ("PASS: T11 two-dimensional interpolation tests\n");
+assert (test (fullfile (test_dir, "t12_solvers.tst"), "quiet", stdout));
+fprintf ("PASS: T12 nonlinear solver tests\n");
 assert (test (fullfile (test_dir, "n07_closure.tst"), "quiet", stdout));
 fprintf ("PASS: N07 numerical API closure and compatibility firewall tests\n");
 assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));
