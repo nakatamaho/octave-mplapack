@@ -20,7 +20,7 @@ precision/value test have passed.
 | matrix utilities and constructors | SUPPORTED | S04 native MPFR/MPC `diag`, `triu`/`tril`, `repmat`, flips, `rot90`, `cat(1/2)`, and `like` constructors |
 | ranges, rounding, utility arithmetic | SUPPORTED | S05 native MPFR/MPC range, spacing, rounding, and utility tests |
 | descriptive statistics | SUPPORTED | S06 native MPFR/MPC mean, median, variance, standard deviation, range, and bounds |
-| graphics boundary wrappers | PLANNED-S07 | No automatic graphics conversion is present yet |
+| graphics boundary wrappers | SUPPORTED | S07 private final-boundary conversion for common line graphics |
 | ordinary script corpus closure | PLANNED-S08 | Corpus is added after S00-S07 |
 | sparse, symbolic, signal/image-specialized, ODE/PDE, optimization APIs | INTENTIONALLY-DEFERRED | Outside the dense ordinary-script target |
 | general N-D support | INTENTIONALLY-DEFERRED | Current public mp contract is two-dimensional |
@@ -164,6 +164,50 @@ statistics, multi-dimensional vector-dimension forms, and unrelated
 statistics families remain outside this milestone. No statistics path routes
 through builtin binary64 arithmetic or through a complex kernel for a
 real-only input.
+
+## S07 graphics semantics
+
+The `plot`, `semilogx`, `semilogy`, `loglog`, `scatter`, `stem`, and `stairs`
+class wrappers convert only `mp` data to builtin double immediately before
+calling the host graphics routine. The private graphics helper leaves axes
+handles, line-style strings, property/value pairs, and other non-`mp`
+arguments unchanged. It therefore supports single-series, multiple-series,
+axes-handle-first, and mixed builtin-double/`mp` calls. A complex `mp` vector
+is passed as a builtin complex vector at this boundary, matching Octave's
+single-complex-vector plotting behavior (real component on x, imaginary on y).
+
+This conversion is intentionally confined to visualization. It is not used by
+any numerical operation, and very small or very large arbitrary-precision
+values can become zero or infinity when represented as graphics doubles.
+Transform data in `mp` first when that range matters, for example:
+
+```octave
+plot (bits, double (log10 (residual_mp)))
+```
+
+The documented Grcar example is:
+
+```octave
+A = mp (gallery ("grcar", 32));
+e = eig (A);
+
+plot (real (e), imag (e), "o");
+axis equal;
+grid on;
+```
+
+Balance/nobalance overlays use the same final-boundary wrappers:
+
+```octave
+eb = eig (A, "balance");
+en = eig (A, "nobalance");
+plot (real (eb), imag (eb), "o");
+hold on;
+plot (real (en), imag (en), "x");
+```
+
+Surface and matrix graphics beyond this line-graphics bridge remain S08
+closure candidates. No S07 numerical path uses a binary64 fallback.
 
 ## Known intentional stops
 

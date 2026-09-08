@@ -152,6 +152,15 @@ inst/@mp/signbit.m
 inst/@mp/eps.m
 inst/@mp/private/mp_binary_utility.m
 inst/@mp/private/mp_statistic_result.m
+inst/@mp/private/mp_graphics_args.m
+inst/@mp/plot.m
+inst/@mp/semilogx.m
+inst/@mp/semilogy.m
+inst/@mp/loglog.m
+inst/@mp/scatter.m
+inst/@mp/stem.m
+inst/@mp/stairs.m
+docs/graphics-bridge.md
 inst/@mp/mean.m
 inst/@mp/median.m
 inst/@mp/var.m
@@ -227,6 +236,7 @@ test/script-compat/s03.tst
 test/script-compat/s04.tst
 test/script-compat/s05.tst
 test/script-compat/s06.tst
+test/script-compat/s07.tst
 test/mrdivide.tst
 test/build_probe.tst
 test/native_value.tst

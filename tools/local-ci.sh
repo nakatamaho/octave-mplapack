@@ -756,6 +756,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   test/script-compat/s02.tst test/script-compat/s03.tst \
   test/script-compat/s04.tst test/script-compat/s05.tst \
   test/script-compat/s06.tst \
+  test/script-compat/s07.tst \
   docs/octave-script-compatibility.md \
   src/mp_script_logic.h src/mp_script_logic.cc \
   inst/@mp/eq.m inst/@mp/ne.m inst/@mp/lt.m inst/@mp/le.m \
@@ -776,6 +777,10 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   inst/@mp/private/mp_statistic_result.m inst/@mp/mean.m \
   inst/@mp/median.m inst/@mp/var.m inst/@mp/std.m \
   inst/@mp/range.m inst/@mp/bounds.m \
+  inst/@mp/private/mp_graphics_args.m inst/@mp/plot.m \
+  inst/@mp/semilogx.m inst/@mp/semilogy.m inst/@mp/loglog.m \
+  inst/@mp/scatter.m inst/@mp/stem.m inst/@mp/stairs.m \
+  docs/graphics-bridge.md \
   src/mp_script_structure.h src/mp_script_structure.cc \
   src/mp_script_ranges.h src/mp_script_ranges.cc \
   src/mp_script_statistics.h src/mp_script_statistics.cc \
@@ -875,6 +880,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "script-compat", "s04.tst")));
       assert (test (fullfile (root, "test", "script-compat", "s05.tst")));
       assert (test (fullfile (root, "test", "script-compat", "s06.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s07.tst")));
       assert (test (fullfile (root, "test", "rank_condition.tst")));
       examples = dir (fullfile (root, "examples", "*.m"));
       for example = 1:numel (examples)
