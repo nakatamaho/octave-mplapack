@@ -61,6 +61,13 @@
 %!   expected_c = __mplapack_core__ ('serialize', C);
 %!   expected_e = __mplapack_core__ ('serialize', E);
 %!   expected_ce = __mplapack_core__ ('serialize', CE);
+%!   saved_object = saveobj (C);
+%!   mpbits (256);
+%!   hook_value = loadobj (saved_object);
+%!   assert_state_equal (expected_c, __mplapack_core__ ('serialize', hook_value), ...
+%!                       'direct saveobj/loadobj changed the MP state');
+%!   assert (mpbits () == uint64 (256), ...
+%!           'direct loadobj changed the ambient precision');
 %!   save ('-text', '/tmp/mplapack-t07-text-512.mat', 'C', 'E', 'CE');
 %!   clear C E CE;
 %!   load ('/tmp/mplapack-t07-text-512.mat');
