@@ -8212,6 +8212,10 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         if (operation == "asinh") return octave_mplapack::MpScriptElementaryOperation::asinh;
         if (operation == "acosh") return octave_mplapack::MpScriptElementaryOperation::acosh;
         if (operation == "atanh") return octave_mplapack::MpScriptElementaryOperation::atanh;
+        if (operation == "erf") return octave_mplapack::MpScriptElementaryOperation::erf;
+        if (operation == "erfc") return octave_mplapack::MpScriptElementaryOperation::erfc;
+        if (operation == "gamma") return octave_mplapack::MpScriptElementaryOperation::gamma;
+        if (operation == "gammaln" || operation == "lgamma") return octave_mplapack::MpScriptElementaryOperation::lngamma;
         if (operation == "cbrt") return octave_mplapack::MpScriptElementaryOperation::cbrt;
         error_with_id ("mplapack:mp:InvalidOption",
                        "unknown elementary operation: %s", operation.c_str ());

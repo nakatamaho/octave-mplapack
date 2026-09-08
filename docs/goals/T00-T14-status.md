@@ -28,7 +28,7 @@ version and tag freeze.
 | T02 matrix functions | PASS | `reports/T02-report.md` |
 | T03 polynomial core | PASS | `reports/T03-report.md` |
 | T04 exact sets | PASS | `reports/T04-report.md` |
-| T05 gamma/erf | NOT-RUN | `reports/T05-report.md` |
+| T05 gamma/erf | PASS | `reports/T05-report.md` |
 | T06 special-function audit | NOT-RUN | `reports/T06-report.md` |
 | T07 serialization | NOT-RUN | `reports/T07-report.md` |
 | T08 3-D graphics | NOT-RUN | `reports/T08-report.md` |

@@ -49,7 +49,11 @@ enum class MpScriptElementaryOperation
   asinh,
   acosh,
   atanh,
-  cbrt
+  cbrt,
+  erf,
+  erfc,
+  gamma,
+  lngamma
 };
 
 struct MpScriptPredicateResult

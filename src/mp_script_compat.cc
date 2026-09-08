@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "mp_complex_precision.h"
+#include <mplapack_mpfr_precision.h>
 
 namespace
 {
@@ -170,6 +171,74 @@ void
 apply_real_elementary (mpfr_ptr destination, mpfr_srcptr source,
                        MpScriptElementaryOperation operation)
 {
+  if (operation == MpScriptElementaryOperation::erf
+      || operation == MpScriptElementaryOperation::erfc
+      || operation == MpScriptElementaryOperation::gamma
+      || operation == MpScriptElementaryOperation::lngamma)
+    {
+      const mpfr_prec_t precision = mpfr_get_prec (source);
+      MplapackMpfrPrecisionScope scope (precision);
+      auto operand = mpfrxx::mpfr_class::with_precision (precision);
+      mpfr_set (operand.mpfr_data (), source, MPFR_RNDN);
+      mpfrxx::mpfr_class result = mpfrxx::mpfr_class::with_precision (precision);
+      try
+        {
+          switch (operation)
+            {
+            case MpScriptElementaryOperation::erf:
+              result = mpfrxx::erf (operand);
+              break;
+            case MpScriptElementaryOperation::erfc:
+              result = mpfrxx::erfc (operand);
+              break;
+            case MpScriptElementaryOperation::gamma:
+              result = mpfrxx::gamma (operand);
+              break;
+            case MpScriptElementaryOperation::lngamma:
+              result = mpfrxx::lngamma (operand);
+              break;
+            default:
+              break;
+            }
+        }
+      catch (const std::domain_error&)
+        {
+          // gmpfrxx_mkII deliberately reports Gamma poles as domain errors.
+          // Octave's mapper returns signed infinity for Gamma at zero and
+          // positive infinity at the other non-positive integer poles.
+          if (operation == MpScriptElementaryOperation::gamma
+              && mpfr_integer_p (source)
+              && mpfr_cmp_si (source, 0) <= 0)
+            {
+              const int sign = mpfr_zero_p (source) && mpfr_signbit (source)
+                                 ? -1 : 1;
+              mpfr_set_inf (result.mpfr_data (), sign);
+            }
+          else if (operation == MpScriptElementaryOperation::lngamma
+                   && mpfr_integer_p (source)
+                   && mpfr_cmp_si (source, 0) <= 0)
+            mpfr_set_inf (result.mpfr_data (), 1);
+          else
+            throw;
+        }
+      if ((operation == MpScriptElementaryOperation::gamma
+           || operation == MpScriptElementaryOperation::lngamma)
+          && mpfr_integer_p (source)
+          && mpfr_cmp_si (source, 0) <= 0
+          && mpfr_nan_p (result.mpfr_data ()))
+        {
+          if (operation == MpScriptElementaryOperation::gamma)
+            {
+              const int sign = mpfr_zero_p (source) && mpfr_signbit (source)
+                                 ? -1 : 1;
+              mpfr_set_inf (result.mpfr_data (), sign);
+            }
+          else
+            mpfr_set_inf (result.mpfr_data (), 1);
+        }
+      mpfr_set (destination, result.mpfr_data (), MPFR_RNDN);
+      return;
+    }
   switch (operation)
     {
     case MpScriptElementaryOperation::sqrt: mpfr_sqrt (destination, source, MPFR_RNDN); return;
@@ -192,6 +261,11 @@ apply_real_elementary (mpfr_ptr destination, mpfr_srcptr source,
     case MpScriptElementaryOperation::acosh: mpfr_acosh (destination, source, MPFR_RNDN); return;
     case MpScriptElementaryOperation::atanh: mpfr_atanh (destination, source, MPFR_RNDN); return;
     case MpScriptElementaryOperation::cbrt: mpfr_cbrt (destination, source, MPFR_RNDN); return;
+    case MpScriptElementaryOperation::erf:
+    case MpScriptElementaryOperation::erfc:
+    case MpScriptElementaryOperation::gamma:
+    case MpScriptElementaryOperation::lngamma:
+      break;
     }
   throw std::logic_error ("unknown real elementary operation");
 }
@@ -275,6 +349,11 @@ apply_complex_elementary (mpc_ptr destination, mpc_srcptr source,
         mpc_set (destination, intermediate.mpc_data (), rounding);
       }
       return;
+    case MpScriptElementaryOperation::erf:
+    case MpScriptElementaryOperation::erfc:
+    case MpScriptElementaryOperation::gamma:
+    case MpScriptElementaryOperation::lngamma:
+      throw std::invalid_argument ("gamma/erf family is implemented for real mp values only");
     }
   throw std::logic_error ("unknown complex elementary operation");
 }
