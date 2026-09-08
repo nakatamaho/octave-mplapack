@@ -222,16 +222,19 @@
 
 %!test
 %! saved = mpbits ();
+%! old_visible = get (0, "defaultfigurevisible");
 %! unwind_protect
 %!   mpbits (256);
+%!   graphics_toolkit ("gnuplot");
+%!   set (0, "defaultfigurevisible", "off");
 %!   A = mp ([1, 2; 3, 4]);
-%!   rejected = false;
-%!   try
-%!     mesh (A);
-%!   catch
-%!     rejected = true;
-%!   end_try_catch
-%!   assert (rejected);
+%!   fig = figure ("visible", "off");
+%!   ax = axes ("parent", fig);
+%!   h = mesh (ax, A);
+%!   assert (isgraphics (h));
+%!   close (fig);
 %! unwind_protect_cleanup
+%!   set (0, "defaultfigurevisible", old_visible);
+%!   close all;
 %!   mpbits (saved);
 %! end_unwind_protect
