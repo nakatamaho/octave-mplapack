@@ -21,7 +21,7 @@ precision/value test have passed.
 | ranges, rounding, utility arithmetic | SUPPORTED | S05 native MPFR/MPC range, spacing, rounding, and utility tests |
 | descriptive statistics | SUPPORTED | S06 native MPFR/MPC mean, median, variance, standard deviation, range, and bounds |
 | graphics boundary wrappers | SUPPORTED | S07 private final-boundary conversion for common line graphics |
-| ordinary script corpus closure | PLANNED-S08 | Corpus is added after S00-S07 |
+| ordinary script corpus closure | SUPPORTED | S08 six-script corpus, structural audit, and intentional-stop firewall |
 | sparse, symbolic, signal/image-specialized, ODE/PDE, optimization APIs | INTENTIONALLY-DEFERRED | Outside the dense ordinary-script target |
 | general N-D support | INTENTIONALLY-DEFERRED | Current public mp contract is two-dimensional |
 
@@ -209,9 +209,48 @@ plot (real (en), imag (en), "x");
 Surface and matrix graphics beyond this line-graphics bridge remain S08
 closure candidates. No S07 numerical path uses a binary64 fallback.
 
+## S08 ordinary script corpus
+
+S08 closes the ordinary dense-script corpus with six executable scripts. The
+scripts cover the following complete flows:
+
+* Script A: `linspace`, power, `sqrt`, `exp`/`log`, trigonometric functions,
+  reductions, and plotting.
+* Script B: comparisons, `isfinite`, logical indexing, extrema, `mean`, and
+  `std`.
+* Script C: `like` constructors, `diag`, triangular extraction, replication,
+  flips, and concatenation.
+* Script D: norm, right division, eigenvalues, SVD, rank, and condition.
+* Script E: the Grcar eigenvalue workflow, residual plotting, and
+  balance/no-balance comparison.
+* Script F: negative-domain promotion, complex elementary functions,
+  magnitude/phase operations, complex statistics, and complex plotting.
+
+The sequence methods used by the corpus are also native. `sort` supports
+dimensions one and two, ascending/descending order, stable ties, one-based
+indices within the sorted dimension, and MPFR comparison. Complex `sort`
+orders by native MPC magnitude and then phase; ascending NaNs are last and
+descending NaNs are first. `diff` supports order and dimension forms and
+performs repeated MPFR/MPC subtraction at the source precision. Order-zero
+`diff` returns a value-semantic copy, while the scalar default positive-order
+case produces the same empty result shape as Octave.
+
+The S08 structural audit covers `length`, `size`, `rows`, `columns`,
+`numel`, `ndims`, and `isempty`, including empty matrices. The 1024-bit
+`2^-700` and 2048-bit `2^-1500` tails verify that sequence results retain the
+operation precision and that changing the ambient default afterward does not
+rewrite stored values. Native sequence tests run under ASan and UBSan.
+
+Surface graphics such as `mesh` remain intentionally rejected. The common
+line-graphics bridge from S07 remains the supported visualization boundary.
+Unsupported calls are tested as explicit stops, and builtin non-`mp` calls
+remain available to Octave. No ordinary-script numerical path falls back to
+builtin binary64 complex arithmetic.
+
 ## Known intentional stops
 
 The compatibility firewall still rejects APIs that are outside the current
-surface. Graphics conversion is not enabled by S00; when S07 adds it, the
-conversion will be confined to the final plotting boundary and never reused
-by numerical functions.
+dense two-dimensional surface, including surface/matrix graphics such as
+`mesh`, sparse and symbolic workflows, and general N-D storage. The accepted
+line-graphics conversion remains confined to the final plotting boundary and
+is never reused by numerical functions.

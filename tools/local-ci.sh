@@ -45,6 +45,7 @@ make -C src check-rank-condition
 make -C src check-structured-eig
 make -C src check-general-eig
 make -C src check-generalized-eig
+make -C src check-script-sequence
 
 mplapack_include_dir=$(pkg-config --variable=includedir mplapack_mpfr)
 if [ ! -f "$mplapack_include_dir/mplapack_mpfr_precision.h" ]; then
@@ -87,7 +88,7 @@ make -C src check-rank-condition
 make -C src check-structured-eig
 make -C src check-general-eig
 make -C src check-generalized-eig
-echo "PASS: D00 ASan/UBSan/LSan real and complex storage, arithmetic, BLAS, LAPACK, rank, Cholesky, QR, pivoted QR, concatenation, assignment, LU, structured eig, general eig, and generalized eig QA"
+echo "PASS: D00 ASan/UBSan/LSan real and complex storage, arithmetic, BLAS, LAPACK, rank, Cholesky, QR, pivoted QR, concatenation, assignment, LU, structured eig, general eig, generalized eig, and script sequence QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -757,6 +758,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   test/script-compat/s04.tst test/script-compat/s05.tst \
   test/script-compat/s06.tst \
   test/script-compat/s07.tst \
+  test/script-compat/s08.tst \
   docs/octave-script-compatibility.md \
   src/mp_script_logic.h src/mp_script_logic.cc \
   inst/@mp/eq.m inst/@mp/ne.m inst/@mp/lt.m inst/@mp/le.m \
@@ -780,10 +782,13 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   inst/@mp/private/mp_graphics_args.m inst/@mp/plot.m \
   inst/@mp/semilogx.m inst/@mp/semilogy.m inst/@mp/loglog.m \
   inst/@mp/scatter.m inst/@mp/stem.m inst/@mp/stairs.m \
+  inst/@mp/sort.m inst/@mp/diff.m inst/@mp/length.m \
   docs/graphics-bridge.md \
   src/mp_script_structure.h src/mp_script_structure.cc \
   src/mp_script_ranges.h src/mp_script_ranges.cc \
   src/mp_script_statistics.h src/mp_script_statistics.cc \
+  src/mp_script_sequence.h src/mp_script_sequence.cc \
+  test/mp_script_sequence_test.cc \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
@@ -815,7 +820,7 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22|\.build-n00|\.build-n01|\.build-n02|\.build-n03|\.build-n04|\.build-n05|\.build-n06)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22|\.build-n00|\.build-n01|\.build-n02|\.build-n03|\.build-n04|\.build-n05|\.build-n06|\.build-s08)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
   exit 1
@@ -881,6 +886,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "script-compat", "s05.tst")));
       assert (test (fullfile (root, "test", "script-compat", "s06.tst")));
       assert (test (fullfile (root, "test", "script-compat", "s07.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s08.tst")));
       assert (test (fullfile (root, "test", "rank_condition.tst")));
       examples = dir (fullfile (root, "examples", "*.m"));
       for example = 1:numel (examples)

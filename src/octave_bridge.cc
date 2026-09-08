@@ -59,6 +59,7 @@
 #include "mp_script_structure.h"
 #include "mp_script_ranges.h"
 #include "mp_script_statistics.h"
+#include "mp_script_sequence.h"
 #include "mp_precision.h"
 
 #ifndef MPLAPACK_PKG_VERSION
@@ -7672,6 +7673,141 @@ script_find_operation (const octave_value_list& args)
               script_linear_selection_result (value, indices));
 }
 
+octave_value_list
+script_sort_operation (const octave_value& value,
+                       const octave_value_list& args)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "sort expects an mp value");
+
+  std::size_t dimension = script_default_dimension (value);
+  bool dimension_supplied = false;
+  bool descending = false;
+  bool direction_supplied = false;
+  for (int index = 2; index < args.length (); ++index)
+    {
+      const octave_value& option = args(index);
+      if (option.isnumeric () && ! option.islogical ()
+          && ! option.is_string () && option.isreal ()
+          && option.is_real_scalar ())
+        {
+          if (dimension_supplied)
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "sort dimension was supplied more than once");
+          const std::int64_t supplied
+            = require_signed_structure_integer (option, "sort dimension");
+          if (supplied != 1 && supplied != 2)
+            error_with_id ("mplapack:mp:InvalidDimension",
+                           "sort dimension must be 1 or 2");
+          dimension = static_cast<std::size_t> (supplied);
+          dimension_supplied = true;
+          continue;
+        }
+      if (option.is_string ())
+        {
+          if (direction_supplied)
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "sort direction was supplied more than once");
+          const std::string direction = option.string_value ();
+          if (direction == "ascend")
+            descending = false;
+          else if (direction == "descend")
+            descending = true;
+          else
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "sort direction must be \"ascend\" or \"descend\"");
+          direction_supplied = true;
+          continue;
+        }
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "sort expects a dimension or direction option");
+    }
+
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          auto result = octave_mplapack::mpc_script_sort (
+            script_complex_matrix_operand (value, arithmetic_mp_precision (value)),
+            dimension, descending);
+          const std::size_t rows = result.values.rows ();
+          const std::size_t columns = result.values.columns ();
+          return ovl (make_complex_inspection_result (std::move (result.values)),
+                      script_indices_result (rows, columns, result.indices));
+        }
+      auto result = octave_mplapack::mpfr_script_sort (
+        script_real_matrix_operand (value, arithmetic_mp_precision (value)),
+        dimension, descending);
+      const std::size_t rows = result.values.rows ();
+      const std::size_t columns = result.values.columns ();
+      return ovl (make_inspection_result (std::move (result.values)),
+                  script_indices_result (rows, columns, result.indices));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:SequenceError", "%s", exception.what ());
+    }
+  return octave_value_list ();
+}
+
+octave_value
+script_diff_operation (const octave_value& value,
+                       const octave_value_list& args)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "diff expects an mp value");
+  if (args.length () < 2 || args.length () > 4)
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "diff expects an mp value and optional order/dimension");
+
+  std::size_t order = 1;
+  std::size_t dimension = script_default_dimension (value);
+  bool dimension_supplied = false;
+  if (args.length () >= 3 && ! args(2).isnumeric ()
+      && ! args(2).islogical ())
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "diff order must be a nonnegative integer");
+  if (args.length () >= 3 && ! args(2).isempty ())
+    order = require_nonnegative_structure_dimension (args(2), "diff order");
+  if (args.length () == 4)
+    {
+      const std::int64_t supplied
+        = require_signed_structure_integer (args(3), "diff dimension");
+      if (supplied != 1 && supplied != 2)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "diff dimension must be 1 or 2");
+      dimension = static_cast<std::size_t> (supplied);
+      dimension_supplied = true;
+    }
+
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          const auto source = script_complex_matrix_operand (
+            value, arithmetic_mp_precision (value));
+          if (! dimension_supplied && source.numel () == 1 && order != 0)
+            return make_complex_inspection_result (
+              octave_mplapack::MpfrComplexMatrixStorage (
+                0, 0, source.precision_bits ()));
+          return make_complex_inspection_result (
+            octave_mplapack::mpc_script_diff (source, order, dimension));
+        }
+      const auto source = script_real_matrix_operand (
+        value, arithmetic_mp_precision (value));
+      if (! dimension_supplied && source.numel () == 1 && order != 0)
+        return make_inspection_result (octave_mplapack::MpfrMatrixStorage (
+          0, 0, source.precision_bits ()));
+      return make_inspection_result (
+        octave_mplapack::mpfr_script_diff (source, order, dimension));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:SequenceError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
 bool
 script_equal_operation (const octave_value& lhs_value,
                         const octave_value& rhs_value,
@@ -8059,6 +8195,12 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
 
   if (command == "script_find")
     return script_find_operation (args);
+
+  if (command == "script_sort")
+    return script_sort_operation (args(1), args);
+
+  if (command == "script_diff")
+    return ovl (script_diff_operation (args(1), args));
 
   if (command == "script_structure")
     {

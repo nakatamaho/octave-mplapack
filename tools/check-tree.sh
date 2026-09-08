@@ -161,6 +161,9 @@ inst/@mp/scatter.m
 inst/@mp/stem.m
 inst/@mp/stairs.m
 docs/graphics-bridge.md
+inst/@mp/sort.m
+inst/@mp/diff.m
+inst/@mp/length.m
 inst/@mp/mean.m
 inst/@mp/median.m
 inst/@mp/var.m
@@ -214,6 +217,8 @@ src/mp_script_ranges.h
 src/mp_script_ranges.cc
 src/mp_script_statistics.h
 src/mp_script_statistics.cc
+src/mp_script_sequence.h
+src/mp_script_sequence.cc
 src/mp_norm.h
 src/mp_norm.cc
 src/mp_det_inv.h
@@ -237,6 +242,8 @@ test/script-compat/s04.tst
 test/script-compat/s05.tst
 test/script-compat/s06.tst
 test/script-compat/s07.tst
+test/script-compat/s08.tst
+test/mp_script_sequence_test.cc
 test/mrdivide.tst
 test/build_probe.tst
 test/native_value.tst

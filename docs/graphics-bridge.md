@@ -47,6 +47,8 @@ hold on;
 plot (real (en), imag (en), "x");
 ```
 
-S07 intentionally does not add wrappers for surface or matrix graphics. Those
-forms remain S08 closure candidates until a clean argument architecture is
-available.
+S07/S08 intentionally do not add wrappers for surface or matrix graphics.
+Those forms remain outside the supported dense script surface; for example,
+`mesh (mp_matrix)` is an explicit compatibility-firewall stop. A future
+graphics extension must preserve the same final-boundary-only conversion
+rule.
