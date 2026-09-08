@@ -34,7 +34,7 @@ version and tag freeze.
 | T08 3-D graphics | PASS | `reports/T08-report.md`, `docs/graphics.md` |
 | T09 arbitrary-precision RNG | PASS | `reports/T09-report.md`, `docs/rng.md` |
 | T10 1-D interpolation | PASS | `reports/T10-report.md`, `docs/interpolation-1d.md` |
-| T11 2-D interpolation | NOT-RUN | `reports/T11-report.md` |
+| T11 2-D interpolation | PASS | `reports/T11-report.md`, `docs/interpolation-2d.md`, `docs/todo/T11-ND-interpolation.md` |
 | T12 nonlinear equations | NOT-RUN | `reports/T12-report.md` |
 | T13 quadrature | NOT-RUN | `reports/T13-report.md` |
 | T14 optimization | NOT-RUN | `reports/T14-report.md` |

@@ -108,6 +108,8 @@ assert (test (fullfile (test_dir, "t09_random.tst"), "quiet", stdout));
 fprintf ("PASS: T09 arbitrary-precision random-generation tests\n");
 assert (test (fullfile (test_dir, "t10_interpolation.tst"), "quiet", stdout));
 fprintf ("PASS: T10 one-dimensional interpolation tests\n");
+assert (test (fullfile (test_dir, "t11_interp2.tst"), "quiet", stdout));
+fprintf ("PASS: T11 two-dimensional interpolation tests\n");
 assert (test (fullfile (test_dir, "n07_closure.tst"), "quiet", stdout));
 fprintf ("PASS: N07 numerical API closure and compatibility firewall tests\n");
 assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));

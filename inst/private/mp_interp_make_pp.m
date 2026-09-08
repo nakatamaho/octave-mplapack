@@ -64,26 +64,44 @@ function pp = mp_interp_make_pp (x, y, method)
     else
       system = repmat (zero, n, n);
       rhs = repmat (zero, n, 1);
-      h1 = mp_interp_element (h, 1);
-      h2 = mp_interp_element (h, min (2, pieces));
-      system = mp_interp_put (system, 1, 1, -h2);
-      system = mp_interp_put (system, 1, 2, h1 + h2);
-      system = mp_interp_put (system, 1, 3, -h1);
-      for index = 2:(n - 1)
-        hp = mp_interp_element (h, index - 1);
-        hn = mp_interp_element (h, index);
-        system = mp_interp_put (system, index, index - 1, hp);
-        system = mp_interp_put (system, index, index, 2 * (hp + hn));
-        system = mp_interp_put (system, index, index + 1, hn);
-        rhs = mp_interp_put (rhs, index, 1, ...
-                             6 * (mp_interp_element (delta, index) ...
-                                  - mp_interp_element (delta, index - 1)));
-      endfor
-      hm = mp_interp_element (h, pieces);
-      hp = mp_interp_element (h, pieces - 1);
-      system = mp_interp_put (system, n, n - 2, -hm);
-      system = mp_interp_put (system, n, n - 1, hm + hp);
-      system = mp_interp_put (system, n, n, -hp);
+      if (n == 3)
+        ## With three knots the not-a-knot spline is the unique quadratic.
+        ## The two endpoint conditions reduce to the same equation, so use
+        ## zero third derivative on both intervals explicitly.
+        system = mp_interp_put (system, 1, 1, 1);
+        system = mp_interp_put (system, 1, 2, -1);
+        system = mp_interp_put (system, 2, 1, mp_interp_element (h, 1));
+        system = mp_interp_put (system, 2, 2, ...
+                                2 * (mp_interp_element (h, 1) ...
+                                     + mp_interp_element (h, 2)));
+        system = mp_interp_put (system, 2, 3, mp_interp_element (h, 2));
+        rhs = mp_interp_put (rhs, 2, 1, ...
+                             6 * (mp_interp_element (delta, 2) ...
+                                  - mp_interp_element (delta, 1)));
+        system = mp_interp_put (system, 3, 2, 1);
+        system = mp_interp_put (system, 3, 3, -1);
+      else
+        h1 = mp_interp_element (h, 1);
+        h2 = mp_interp_element (h, 2);
+        system = mp_interp_put (system, 1, 1, -h2);
+        system = mp_interp_put (system, 1, 2, h1 + h2);
+        system = mp_interp_put (system, 1, 3, -h1);
+        for index = 2:(n - 1)
+          hp = mp_interp_element (h, index - 1);
+          hn = mp_interp_element (h, index);
+          system = mp_interp_put (system, index, index - 1, hp);
+          system = mp_interp_put (system, index, index, 2 * (hp + hn));
+          system = mp_interp_put (system, index, index + 1, hn);
+          rhs = mp_interp_put (rhs, index, 1, ...
+                               6 * (mp_interp_element (delta, index) ...
+                                    - mp_interp_element (delta, index - 1)));
+        endfor
+        hm = mp_interp_element (h, pieces);
+        hp = mp_interp_element (h, pieces - 1);
+        system = mp_interp_put (system, n, n - 2, -hm);
+        system = mp_interp_put (system, n, n - 1, hm + hp);
+        system = mp_interp_put (system, n, n, -hp);
+      endif
       second = system \ rhs;
     endif
   endif
