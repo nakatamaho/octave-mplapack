@@ -37,8 +37,8 @@ version and tag freeze.
 | T11 2-D interpolation | PASS | `reports/T11-report.md`, `docs/interpolation-2d.md`, `docs/todo/T11-ND-interpolation.md` |
 | T12 nonlinear equations | PASS | `reports/T12-report.md`, `docs/nonlinear-solvers.md` |
 | T13 quadrature | PASS | `reports/T13-report.md`, `docs/quadrature.md` |
-| T14 optimization | NOT-RUN | `reports/T14-report.md` |
-| T05R1 late recheck | NOT-RUN | `reports/T05R1-report.md` |
+| T14 optimization | PASS | `reports/T14-report.md`, `docs/optimization.md` |
+| T05R1 late recheck | NOT-NEEDED | `reports/T05R1-report.md` |
 
 ## Precision contract
 

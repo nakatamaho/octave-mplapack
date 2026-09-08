@@ -115,6 +115,8 @@ assert (test (fullfile (test_dir, "t12_solvers.tst"), "quiet", stdout));
 fprintf ("PASS: T12 nonlinear solver tests\n");
 assert (test (fullfile (test_dir, "t13_quadrature.tst"), "quiet", stdout));
 fprintf ("PASS: T13 arbitrary-precision quadrature tests\n");
+assert (test (fullfile (test_dir, "t14_optimization.tst"), "quiet", stdout));
+fprintf ("PASS: T14 arbitrary-precision optimization tests\n");
 assert (test (fullfile (test_dir, "n07_closure.tst"), "quiet", stdout));
 fprintf ("PASS: N07 numerical API closure and compatibility firewall tests\n");
 assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));
