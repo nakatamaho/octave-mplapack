@@ -7,7 +7,7 @@ Updated: 2026-09-08
 ```text
 branch: topic/s00-s08-script-compat
 baseline: D02R1 v0.3.1 freeze, tag v0.3.1 preserved
-active package version: 0.4.0-dev
+active package version: 0.4.0
 S00: PASS; committed and pushed as c17b48c0a8bf7e39c3c9a111bcc8e3ae0c60e048
 S01: PASS; committed and pushed as 29f3539 (full SHA in git history)
 S02: PASS; committed and pushed as 07c047d08d64ecd8c0d623cd2e1e621882b6c8b9
@@ -17,7 +17,7 @@ S05: PASS; committed and pushed as b97ed2ea231cbb9bb1fd8b7334911d86cb2db7db
 S06: PASS; committed and pushed as 0f3e9c8dd4bb00067c117e2144d0e1f3c7179d0b
 S07: PASS; committed and pushed as 384987bb6dbddd0758915debcda064acd15caaee
 S08: PASS; committed and pushed as 51a0b420b6a47df3d84eba99bb27ec4b1d96a622
-D03: not started
+D03: PASS; frozen and tagged as v0.4.0 at 34993eb569bfaa0d7665ae913a3a1f5a97ac2e31
 ```
 
 S00 adds native MPFR/MPC `abs`, `arg`, `angle`, and `sign`; logical
@@ -321,6 +321,54 @@ S08 PASS — ORDINARY SCRIPT COMPATIBILITY CLOSED
 D03-READY
 ```
 
+## D03 evidence
+
+```text
+source freeze commit: 34993eb569bfaa0d7665ae913a3a1f5a97ac2e31
+source tag: v0.4.0
+tag target: 34993eb569bfaa0d7665ae913a3a1f5a97ac2e31
+remote tag target: 34993eb569bfaa0d7665ae913a3a1f5a97ac2e31
+version: 0.4.0
+archive: mplapack-interop-0.4.0.tar.gz
+archive size: 361088 bytes
+archive SHA256 A: 6bc87d42fbda49fa72830db34fbede7b8b9f46b7614b14dc53e7619c7781536c
+archive SHA256 B: 6bc87d42fbda49fa72830db34fbede7b8b9f46b7614b14dc53e7619c7781536c
+archive placement: /home/docker/src/mplapack-interop-0.4.0.tar.gz
+```
+
+The final tagged archive was independently reproducible with identical file
+lists and SHA256. The final `tools/local-ci.sh` wall passed the D00
+prerequisites, M00-M23, C00-C12 including mandatory C11L, N00-N08, S00-S08,
+native ASan/UBSan/LSan, clean rebuild #2, archive checks, isolated install,
+help/examples, real and complex smoke tests, unload, uninstall, reinstall,
+and second smoke. The runtime audit resolved `libmplapack_mpfr.so.3` from
+the frozen MPLAPACK prefix and MPC/MPFR/GMP from the recorded host
+prerequisites without source-worktree or stale-prefix leakage.
+
+The exact final master report is [`reports/D03-report.md`](../../reports/D03-report.md).
+
+```text
+G-D03-SOURCE-FREEZE: PASS
+G-D03-VERSION: PASS
+G-D03-REPRODUCIBLE: PASS
+G-D03-FULL-REGRESSION: PASS
+G-D03-SCRIPT-CORPUS: PASS
+G-D03-PACKAGE-LIFECYCLE: PASS
+G-D03-GRAPHICS: PASS
+G-D03-RUNTIME-CLOSURE: PASS
+G-D03-DOCS: PASS
+G-D03-TAG: PASS
+G-D03-BINARY-HANDOFF: PASS
+```
+
+```text
+D03 PASS — MPLAPACK-INTEROP SCRIPT-COMPAT SOURCE FROZEN
+B01-READY
+```
+
 ## Next milestone
 
-Proceed automatically to D03 — Final Source Re-freeze.
+B01 — Linux x86_64 binary package is the next separate goal. It was not
+started automatically. No numerical source, dependency tag, Debian package,
+PPA, Launchpad upload, or Octave Packages registry entry was created during
+D03.
