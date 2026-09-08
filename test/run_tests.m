@@ -100,6 +100,8 @@ assert (test (fullfile (test_dir, "t05_gamma_erf.tst"), "quiet", stdout));
 fprintf ("PASS: T05 gamma and erf-family tests\n");
 assert (test (fullfile (test_dir, "t06_special_function_firewall.tst"), "quiet", stdout));
 fprintf ("PASS: T06 special-function backend audit and firewall tests\n");
+assert (test (fullfile (test_dir, "t07_serialization.tst"), "quiet", stdout));
+fprintf ("PASS: T07 exact serialization tests\n");
 assert (test (fullfile (test_dir, "n07_closure.tst"), "quiet", stdout));
 fprintf ("PASS: N07 numerical API closure and compatibility firewall tests\n");
 assert (test (fullfile (test_dir, "mrdivide.tst"), "quiet", stdout));

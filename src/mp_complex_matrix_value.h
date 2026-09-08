@@ -28,6 +28,11 @@ public:
   bool is_complex_matrix () const override;
   bool isreal () const override;
   bool is_matrix_type () const override;
+  bool save_ascii (std::ostream& os) override;
+  bool load_ascii (std::istream& is) override;
+  bool save_binary (std::ostream& os, bool save_as_floats) override;
+  bool load_binary (std::istream& is, bool swap,
+                    octave::mach_info::float_format fmt) override;
   void print (std::ostream& os, bool pr_as_read_syntax = false) override;
   void print_raw (std::ostream& os, bool pr_as_read_syntax = false) const override;
 

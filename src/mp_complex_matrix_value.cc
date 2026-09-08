@@ -2,6 +2,8 @@
 
 #include "mp_complex_matrix_value.h"
 
+#include "mp_native_serialization.h"
+
 #include <limits>
 #include <ostream>
 #include <utility>
@@ -47,10 +49,35 @@ dim_vector octave_mplapack_mpc_matrix_internal::dims () const
                      checked_dimension (m_storage.columns ())); }
 
 bool octave_mplapack_mpc_matrix_internal::is_defined () const { return true; }
-bool octave_mplapack_mpc_matrix_internal::is_storable () const { return false; }
+bool octave_mplapack_mpc_matrix_internal::is_storable () const { return true; }
 bool octave_mplapack_mpc_matrix_internal::is_complex_matrix () const { return true; }
 bool octave_mplapack_mpc_matrix_internal::isreal () const { return false; }
 bool octave_mplapack_mpc_matrix_internal::is_matrix_type () const { return true; }
+
+bool
+octave_mplapack_mpc_matrix_internal::save_ascii (std::ostream& os)
+{
+  return octave_mplapack::save_native_mpc_matrix (os, m_storage);
+}
+
+bool
+octave_mplapack_mpc_matrix_internal::load_ascii (std::istream& is)
+{
+  return octave_mplapack::load_native_mpc_matrix (is, m_storage);
+}
+
+bool
+octave_mplapack_mpc_matrix_internal::save_binary (std::ostream& os, bool)
+{
+  return octave_mplapack::save_native_mpc_matrix (os, m_storage);
+}
+
+bool
+octave_mplapack_mpc_matrix_internal::load_binary (
+  std::istream& is, bool, octave::mach_info::float_format)
+{
+  return octave_mplapack::load_native_mpc_matrix (is, m_storage);
+}
 
 void octave_mplapack_mpc_matrix_internal::print (std::ostream& os, bool)
 { print_raw (os); }

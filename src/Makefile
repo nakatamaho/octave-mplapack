@@ -18,7 +18,7 @@ SOURCE = octave_bridge.cc mp_value.cc mp_matrix_value.cc mp_blas.cc mp_lapack.cc
   mp_generalized_eig.cc mp_script_compat.cc mp_script_reductions.cc \
   mp_schur_qz.cc \
   mp_script_logic.cc mp_script_structure.cc mp_script_ranges.cc \
-  mp_script_statistics.cc mp_script_sequence.cc
+  mp_script_statistics.cc mp_script_sequence.cc mp_native_serialization.cc
 HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
   mp_matrix_storage.h mp_matrix_inspection.h mp_matrix_arithmetic.h \
   mp_matrix_structure.h mp_matrix_concat.h \
@@ -33,7 +33,7 @@ HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
   mp_generalized_eig.h mp_script_compat.h mp_script_reductions.h \
   mp_schur_qz.h \
   mp_script_logic.h mp_script_structure.h mp_script_ranges.h \
-  mp_script_statistics.h mp_script_sequence.h
+  mp_script_statistics.h mp_script_sequence.h mp_native_serialization.h
 STORAGE_TEST = .build-m02/mp_scalar_storage_test
 ARITHMETIC_TEST = .build-m06/mp_scalar_arithmetic_test
 MATRIX_TEST = .build-m07/mp_matrix_storage_test

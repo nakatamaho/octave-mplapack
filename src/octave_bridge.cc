@@ -303,7 +303,263 @@ make_internal_complex_matrix (
   octave_mplapack::MpfrComplexMatrixStorage storage)
 {
   return octave_value (
-    new octave_mplapack_mpc_matrix_internal (std::move (storage)));
+      new octave_mplapack_mpc_matrix_internal (std::move (storage)));
+}
+
+octave_idx_type
+checked_octave_dimension_for_inspection (std::size_t value);
+std::size_t checked_size_dimension (octave_idx_type value);
+octave_value require_mp_payload (const octave_value& value);
+
+constexpr const char *mp_serialization_schema = "octave-mplapack-mp";
+constexpr std::uint64_t mp_serialization_version = 1;
+
+Cell
+serialize_real_elements (const octave_mplapack::MpfrMatrixStorage& storage)
+{
+  const octave_idx_type count
+    = checked_octave_dimension_for_inspection (storage.numel ());
+  Cell elements (dim_vector (count, 1));
+  std::size_t index = 0;
+  for (std::size_t column = 0; column < storage.columns (); ++column)
+    for (std::size_t row = 0; row < storage.rows (); ++row)
+      elements.xelem (static_cast<octave_idx_type> (index++))
+        = octave_mplapack::MpfrScalarStorage (
+            storage.at (row, column)).to_canonical_string ();
+  return elements;
+}
+
+Cell
+serialize_complex_elements (
+  const octave_mplapack::MpfrComplexMatrixStorage& storage)
+{
+  const octave_idx_type count
+    = checked_octave_dimension_for_inspection (storage.numel ());
+  Cell elements (dim_vector (count, 1));
+  std::size_t index = 0;
+  for (std::size_t column = 0; column < storage.columns (); ++column)
+    for (std::size_t row = 0; row < storage.rows (); ++row)
+      elements.xelem (static_cast<octave_idx_type> (index++))
+        = octave_mplapack::MpfrComplexScalarStorage (
+            storage.at (row, column)).to_canonical_string ();
+  return elements;
+}
+
+octave_scalar_map
+serialize_mp_value (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  octave_scalar_map state;
+  state.assign ("schema", mp_serialization_schema);
+  state.assign ("version", octave_uint64 (mp_serialization_version));
+
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
+      state.assign ("kind", "real-scalar");
+      state.assign ("rows", octave_uint64 (1));
+      state.assign ("columns", octave_uint64 (1));
+      state.assign ("precision_bits",
+                    octave_uint64 (scalar.storage ().precision_bits ()));
+      Cell elements (dim_vector (1, 1));
+      elements.xelem (0) = scalar.storage ().to_canonical_string ();
+      state.assign ("elements", elements);
+      return state;
+    }
+
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+      state.assign ("kind", "complex-scalar");
+      state.assign ("rows", octave_uint64 (1));
+      state.assign ("columns", octave_uint64 (1));
+      state.assign ("precision_bits",
+                    octave_uint64 (scalar.storage ().precision_bits ()));
+      Cell elements (dim_vector (1, 1));
+      elements.xelem (0) = scalar.storage ().to_canonical_string ();
+      state.assign ("elements", elements);
+      return state;
+    }
+
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    {
+      const auto& storage
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      state.assign ("kind", "real-matrix");
+      state.assign ("rows", octave_uint64 (storage.rows ()));
+      state.assign ("columns", octave_uint64 (storage.columns ()));
+      state.assign ("precision_bits",
+                    octave_uint64 (storage.precision_bits ()));
+      state.assign ("elements", serialize_real_elements (storage));
+      return state;
+    }
+
+  const auto& storage
+    = octave_mplapack_mpc_matrix_internal::checked_value (payload).storage ();
+  state.assign ("kind", "complex-matrix");
+  state.assign ("rows", octave_uint64 (storage.rows ()));
+  state.assign ("columns", octave_uint64 (storage.columns ()));
+  state.assign ("precision_bits",
+                octave_uint64 (storage.precision_bits ()));
+  state.assign ("elements", serialize_complex_elements (storage));
+  return state;
+}
+
+std::uint64_t
+serialized_uint64_field (const octave_scalar_map& state, const char *name)
+{
+  if (! state.contains (name))
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp state is missing field '%s'", name);
+  const octave_value field = state.contents (name);
+  if (! field.is_uint64_type () || ! field.is_scalar_type ())
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp field '%s' must be a uint64 scalar", name);
+  return field.uint64_scalar_value ().value ();
+}
+
+std::string
+serialized_string_field (const octave_scalar_map& state, const char *name)
+{
+  if (! state.contains (name))
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp state is missing field '%s'", name);
+  const octave_value field = state.contents (name);
+  if (! field.is_string () || field.rows () != 1 || field.columns () == 0)
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp field '%s' must be nonempty text", name);
+  return field.string_value ();
+}
+
+std::size_t
+serialized_dimension_field (const octave_scalar_map& state, const char *name)
+{
+  const std::uint64_t supplied = serialized_uint64_field (state, name);
+  if (supplied > static_cast<std::uint64_t> (
+        std::numeric_limits<std::size_t>::max ())
+      || supplied > static_cast<std::uint64_t> (
+        std::numeric_limits<octave_idx_type>::max ()))
+    error_with_id ("mplapack:mp:DimensionOverflow",
+                   "serialized mp dimension '%s' is too large", name);
+  return checked_size_dimension (static_cast<octave_idx_type> (supplied));
+}
+
+mpfr_prec_t
+serialized_precision_field (const octave_scalar_map& state)
+{
+  const std::uint64_t supplied
+    = serialized_uint64_field (state, "precision_bits");
+  const mpfr_prec_t precision = static_cast<mpfr_prec_t> (supplied);
+  if (static_cast<std::uint64_t> (precision) != supplied
+      || precision < MPFR_PREC_MIN || precision > MPFR_PREC_MAX)
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp precision is outside the MPFR range");
+  return precision;
+}
+
+std::vector<std::string>
+serialized_elements_field (const octave_scalar_map& state,
+                           std::size_t expected_count)
+{
+  if (! state.contains ("elements"))
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp state is missing field 'elements'");
+  const octave_value field = state.contents ("elements");
+  if (! field.iscell () || field.numel ()
+      != static_cast<octave_idx_type> (expected_count))
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp element count does not match its shape");
+
+  const Cell elements = field.cell_value ();
+  std::vector<std::string> result;
+  result.reserve (expected_count);
+  for (octave_idx_type index = 0; index < elements.numel (); ++index)
+    {
+      const octave_value element = elements.xelem (index);
+      if (! element.is_string () || element.rows () != 1
+          || element.columns () == 0)
+        error_with_id ("mplapack:SerializationError",
+                       "serialized mp elements must be nonempty text");
+      result.push_back (element.string_value ());
+    }
+  return result;
+}
+
+octave_value
+deserialize_mp_value (const octave_value& value)
+{
+  if (! value.isstruct () || value.numel () != 1)
+    error_with_id ("mplapack:SerializationError",
+                   "loadobj expects one serialized mp struct");
+
+  const octave_scalar_map state = value.scalar_map_value ();
+  if (serialized_string_field (state, "schema") != mp_serialization_schema
+      || serialized_uint64_field (state, "version")
+           != mp_serialization_version)
+    error_with_id ("mplapack:SerializationError",
+                   "unsupported serialized mp schema or version");
+
+  const std::string kind = serialized_string_field (state, "kind");
+  const std::size_t rows = serialized_dimension_field (state, "rows");
+  const std::size_t columns
+    = serialized_dimension_field (state, "columns");
+  const mpfr_prec_t precision = serialized_precision_field (state);
+  const std::size_t count
+    = octave_mplapack::MpfrMatrixStorage::checked_element_count (
+        rows, columns);
+  const std::vector<std::string> elements
+    = serialized_elements_field (state, kind == "real-scalar"
+                                         || kind == "complex-scalar"
+                                       ? 1
+                                       : count);
+
+  try
+    {
+      if (kind == "real-scalar")
+        {
+          if (rows != 1 || columns != 1)
+            throw std::invalid_argument ("serialized scalar shape mismatch");
+          return make_internal_scalar (elements.at (0), precision);
+        }
+      if (kind == "complex-scalar")
+        {
+          if (rows != 1 || columns != 1)
+            throw std::invalid_argument ("serialized scalar shape mismatch");
+          return make_internal_complex_scalar (elements.at (0), precision);
+        }
+      if (kind == "real-matrix")
+        return make_internal_matrix (
+          octave_mplapack::MpfrMatrixStorage (rows, columns, precision,
+                                               elements));
+      if (kind == "complex-matrix")
+        return make_internal_complex_matrix (
+          octave_mplapack::MpfrComplexMatrixStorage (rows, columns,
+                                                      precision, elements));
+      error_with_id ("mplapack:SerializationError",
+                     "unknown serialized mp kind '%s'", kind.c_str ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:SerializationError", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:SerializationError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
 }
 
 double
@@ -332,24 +588,41 @@ require_mp_payload (const octave_value& value)
       == octave_mplapack_mpc_matrix_internal::static_type_id ())
     return value;
 
-  if (! value.is_classdef_object () || value.class_name () != "mp")
+  if ((! value.is_classdef_object () && ! value.isobject ())
+      || value.class_name () != "mp")
     error_with_id ("mplapack:InvalidNativeValue",
                    "expected an internal MPLAPACK MPFR value or public mp value");
 
-  octave_classdef *object = value.classdef_object_value (true);
-  if (! object || ! object->is_instance_of ("mp"))
-    error_with_id ("mplapack:InvalidNativeValue",
-                   "invalid public mp representation");
-
   octave_value payload;
-  try
+  if (value.is_classdef_object ())
     {
-      payload = object->get_property (0, "payload_");
+      octave_classdef *object = value.classdef_object_value (true);
+      if (! object || ! object->is_instance_of ("mp"))
+        error_with_id ("mplapack:InvalidNativeValue",
+                       "invalid public mp representation");
+      try
+        {
+          payload = object->get_property (0, "payload_");
+        }
+      catch (const std::exception&)
+        {
+          error_with_id ("mplapack:InvalidNativeValue",
+                         "public mp value has no valid native payload");
+        }
     }
-  catch (const std::exception&)
+  else
     {
-      error_with_id ("mplapack:InvalidNativeValue",
-                     "public mp value has no valid native payload");
+      const octave_map object = value.map_value ();
+      if (! object.isfield ("payload_") || object.numel () != 1)
+        error_with_id ("mplapack:InvalidNativeValue",
+                       "public mp value has no valid payload field");
+      const Cell payload_field = object.contents ("payload_");
+      if (payload_field.numel () != 1)
+        error_with_id ("mplapack:InvalidNativeValue",
+                       "public mp payload field is not scalar");
+      payload = payload_field.xelem (0);
+      if (payload.isstruct ())
+        return deserialize_mp_value (payload);
     }
 
   if (payload.type_id ()
@@ -377,7 +650,8 @@ require_scalar_payload (const octave_value& value)
       != octave_mplapack_mpfr_scalar_internal::static_type_id ()
       && value.type_id ()
          != octave_mplapack_mpfr_matrix_internal::static_type_id ()
-      && (! value.is_classdef_object () || value.class_name () != "mp"))
+      && (! (value.is_classdef_object () || value.isobject ())
+          || value.class_name () != "mp"))
     error_with_id ("mplapack:InvalidNativeValue",
                    "expected an internal MPLAPACK MPFR scalar");
 
@@ -433,7 +707,8 @@ is_mp_value (const octave_value& value)
              == octave_mplapack_mpc_scalar_internal::static_type_id ())
          || (value.type_id ()
              == octave_mplapack_mpc_matrix_internal::static_type_id ())
-         || (value.is_classdef_object () && value.class_name () == "mp");
+         || ((value.is_classdef_object () || value.isobject ())
+             && value.class_name () == "mp");
 }
 
 bool
@@ -656,6 +931,57 @@ make_matrix_from_text_cell (const octave_value& value)
     {
       error_with_id ("mplapack:InvalidScalarText",
                      "invalid text in mp matrix constructor");
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:NativeError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+make_complex_matrix_from_text_cell (const octave_value& value)
+{
+  if (! value.iscell ())
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "complex text matrix input must be a cell array");
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional mp matrices are supported");
+
+  const Cell input = value.cell_value ();
+  const std::size_t rows = checked_size_dimension (input.rows ());
+  const std::size_t columns = checked_size_dimension (input.columns ());
+  std::vector<std::string> values;
+  try
+    {
+      values.reserve (
+        octave_mplapack::MpfrComplexMatrixStorage::checked_element_count (
+          rows, columns));
+      for (octave_idx_type column = 0; column < input.columns (); ++column)
+        for (octave_idx_type row = 0; row < input.rows (); ++row)
+          {
+            const octave_value element = input.xelem (row, column);
+            if (! element.is_string () || element.rows () != 1
+                || element.columns () == 0)
+              error_with_id (
+                "mplapack:mp:InvalidInput",
+                "each complex matrix cell must contain nonempty text");
+            values.push_back (element.string_value ());
+          }
+      return make_internal_complex_matrix (
+        octave_mplapack::MpfrComplexMatrixStorage (
+          rows, columns, octave_mplapack::default_precision_bits (), values));
+    }
+  catch (const std::invalid_argument&)
+    {
+      error_with_id ("mplapack:InvalidComplexScalarText",
+                     "invalid text in complex mp matrix constructor");
     }
   catch (const std::overflow_error& exception)
     {
@@ -8109,6 +8435,32 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 2, command);
       return ovl (make_matrix_from_text_cell (args(1)));
+    }
+
+  if (command == "matrix_create_complex_text_cell")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (make_complex_matrix_from_text_cell (args(1)));
+    }
+
+  if (command == "serialize")
+    {
+      require_argument_count (args, 2, command);
+      try
+        {
+          return ovl (serialize_mp_value (args(1)));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:SerializationError", "%s",
+                         exception.what ());
+        }
+    }
+
+  if (command == "deserialize")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (deserialize_mp_value (args(1)));
     }
 
   if (command == "value_shape_info")
