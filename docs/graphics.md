@@ -11,4 +11,6 @@ Numerical construction and transformation must happen before this boundary.
 Values outside the binary64 range can become zero or infinity when displayed;
 users should scale or transform them in `mp` first.  T08 does not add general
 N-dimensional storage or volume graphics such as `slice`, `isosurface`, or
-volume rendering.
+volume rendering.  An MP-aware `meshgrid` wrapper is also deferred; see
+[`todo/T08-meshgrid.md`](todo/T08-meshgrid.md) and
+[`todo/T08-volume-graphics-after-ND.md`](todo/T08-volume-graphics-after-ND.md).

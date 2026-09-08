@@ -58,3 +58,17 @@ Cross-platform sequence execution was not available in this Linux container;
 the sequence is specified only in fixed-width unsigned integer operations and
 is suitable for independent macOS/Windows confirmation.  No cross-platform
 result is claimed here beyond the tested Linux implementation.
+
+## Controller metadata
+
+| Field | Value |
+|---|---|
+| Repository / branch | `octave-mplapack` / `topic/t00-t14-continuation` |
+| Starting commit / implementation tip | `89a25a7a8362ccc9d49ffa0dc2ad92e8b677f981` / `1697666a537d67662653d8fd25aec706dc2a315c` |
+| D03 baseline | `34993eb569bfaa0d7665ae913a3a1f5a97ac2e31` / `v0.4.0` |
+| Dependencies / Octave | gmpfrxx `32a7fb797202cdf92312ed9d133f96fdbcda590a` / `v1.4.1`; MPLAPACK `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d`; GNU Octave 11.1.0 |
+| API / backend | `mprand`, `mprandn`, `mprandi`, `mprng`; xorshift128plus-v1, SplitMix64, MPFR bits, Box–Muller, rejection |
+| Precision / behavior | p-bit direct MPFR generation and native scope; real outputs; no double sampling or fallback |
+| Octave QA / 1024-2048 | shapes/options, deterministic state, reset/restore, distributions; 1024/2048-bit canaries PASS |
+| Sanitizers / previous regression | ASan/UBSan/LSan PASS; T00–T08 and D03 walls retained |
+| Status / TODO | PASS; no T09-specific deferred API |

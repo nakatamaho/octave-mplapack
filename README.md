@@ -1,6 +1,7 @@
 # octave-mplapack
 
-**Status: 0.4.0 released; 0.3.1 is historical and 0.3.0/0.2.1 are historical.**
+**Status: 0.5.0-dev; 0.4.0 is the immutable D03 release and 0.3.1 is
+historical.**
 C00 through C12 pass, including mandatory complex `Cgetrf` LU, and the public
 complex API is closed. N08 adds dense right division. The package identity is
 `mplapack-interop`; the public GNU Octave class/API remains `mp`, `mpbits`, and
@@ -51,6 +52,14 @@ PPA packaging. See the [v0.1 API inventory](docs/v0.1-api.md),
 [release checklist](docs/release-checklist.md) and the repository-only release
 manifest.
 
+The T00–T14 development line closes the next advanced numerical surface:
+Schur/QZ, dense utilities, matrix functions, polynomial helpers, exact sets,
+the T05 gamma/error family, exact serialization, three-dimensional graphics
+boundaries, arbitrary-precision random generation, 1-D/2-D interpolation,
+`fzero`/`fsolve`, scalar quadrature, and `fminbnd`/`fminsearch`. The complete
+compatibility boundary and deferred re-entry records are in
+[`docs/advanced-numerics-compatibility.md`](docs/advanced-numerics-compatibility.md).
+
 ## Goal
 
 `mplapack-interop` provides GNU Octave access to MPLAPACK multiple-precision
@@ -86,7 +95,8 @@ rounding, spacing, and utility arithmetic; S06 adds descriptive statistics;
 S07 adds common line-graphics wrappers; and S08 closes the ordinary dense
 script corpus with native `sort`/`diff` and structural compatibility. Sparse,
 surface-graphics, and N-D APIs remain explicitly unsupported; see the
-[complex API](docs/complex-api.md) and [compatibility limits](docs/complex-compatibility.md).
+[advanced numerical compatibility](docs/advanced-numerics-compatibility.md),
+[complex API](docs/complex-api.md), and [compatibility limits](docs/complex-compatibility.md).
 
 ### Hilbert inverse example
 
@@ -215,6 +225,7 @@ stored-precision `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri` paths.
 | `lu` | yes | yes | `Rgetrf` | supported |
 | structured `eig` | yes | yes | `Rsyevd`/`Cheevd` | supported |
 | complex | yes | yes | `Cgemm`/`Cgesv`/`Cgelsy`/`Cpotrf`/`Cgeqrf`/`Cgeqp3`/`Cgetrf` | supported |
+| T00–T14 advanced numerics | yes | yes | MPFR/MPC native bridges | supported/deferred by API |
 | sparse | no | no | future | deferred |
 
 ## Release provenance
@@ -303,7 +314,8 @@ D01R1  Rename package identity to mplapack-interop and freeze binary architectur
 PPA1-PPA4  Debian/Ubuntu/PPA packaging and final release
 ```
 
-M00 through M23 and C00 through C12 are complete (M20 is design-only and the
-real-only M23 candidate remains historical). No PPA upload exists. Consult
+M00 through M23, C00 through C12, S00 through S08, and T00 through T14 are
+complete (M20 is design-only and the real-only M23 candidate remains
+historical). No PPA upload exists. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

@@ -22,7 +22,15 @@ precision/value test have passed.
 | descriptive statistics | SUPPORTED | S06 native MPFR/MPC mean, median, variance, standard deviation, range, and bounds |
 | graphics boundary wrappers | SUPPORTED | S07 private final-boundary conversion for common line graphics |
 | ordinary script corpus closure | SUPPORTED | S08 six-script corpus, structural audit, and intentional-stop firewall |
-| sparse, symbolic, signal/image-specialized, ODE/PDE, optimization APIs | INTENTIONALLY-DEFERRED | Outside the dense ordinary-script target |
+| T00–T14 advanced dense numerics | SUPPORTED | T00–T14 focused walls and final controller wall; see `docs/advanced-numerics-compatibility.md` |
+| `fminbnd`, `fminsearch` | SUPPORTED | T14 MPFR bounded/simplex optimization tests |
+| `fminunc` | INTENTIONALLY-DEFERRED | `docs/todo/T14-fminunc.md` |
+| scalar `integral`, `quadgk` | SUPPORTED | T13 MPFR/MPC adaptive quadrature tests |
+| `ArrayValued` quadrature | INTENTIONALLY-DEFERRED | `docs/todo/T13-array-valued-quadrature.md` |
+| 1-D/2-D interpolation | SUPPORTED | T10/T11 native MPFR/MPC interpolation tests |
+| N-D interpolation | INTENTIONALLY-DEFERRED | `docs/todo/T11-ND-interpolation.md` |
+| `meshgrid` with MP arguments and volume graphics | INTENTIONALLY-DEFERRED | `docs/todo/T08-meshgrid.md`, `docs/todo/T08-volume-graphics-after-ND.md` |
+| sparse, symbolic, signal/image-specialized, ODE/PDE APIs | INTENTIONALLY-DEFERRED | Outside the dense ordinary-script and advanced-numerics targets |
 | general N-D support | INTENTIONALLY-DEFERRED | Current public mp contract is two-dimensional |
 
 ## S00 semantics

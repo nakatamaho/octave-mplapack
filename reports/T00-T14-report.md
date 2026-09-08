@@ -7,7 +7,7 @@
 All required T00 through T14 milestones passed in order. T05R1 was executed
 as the required late checkpoint and was recorded as not needed because T05
 was already closed. The final development controller HEAD is
-`246f9dafe3a1576172315c7b6667aeb44a3a1e4e` on
+`2f21c6542dfcf2ad1eac14f682971e99b546259e` on
 `topic/t00-t14-continuation`, and it matches the pushed origin branch.
 
 The tested dependency heads were gmpfrxx_mkII
@@ -37,7 +37,7 @@ Name: `mplapack-interop`
 
 Version: `0.5.0-dev`
 
-Final controller HEAD: `246f9dafe3a1576172315c7b6667aeb44a3a1e4e`
+Final controller HEAD: `2f21c6542dfcf2ad1eac14f682971e99b546259e`
 
 ## T00 Schur/QZ
 
@@ -346,14 +346,35 @@ development-version allow-list repair in commit
 
 ## Deferred inventory
 
-T05: no T05 deferral; remaining special functions are classified by T06.
+The complete public-surface and handoff index is
+`docs/advanced-numerics-compatibility.md`.
 
-T06: incomplete gamma/beta, inverse/scaled error functions, Bessel, Airy,
-polygamma, and other incomplete API families; see the backend matrix.
+T00: optional Schur/QZ ordering helpers; see
+`docs/todo/T00-schur-optional-ordering.md`.
 
-T08: volume/N-D graphics such as `slice` and `isosurface`.
+T02: `funm`; see `docs/todo/T02-funm.md`.
 
-T11: `interp3`, `interpn`, and general N-D interpolation.
+T03: `polyfit` and `polyeig`; see `docs/todo/T03-polyfit-polyeig.md`.
+
+T04: `ismembertol`; see `docs/todo/T04-ismembertol.md`.
+
+T05/T06: remaining special functions are classified by the backend matrix and
+fully indexed in `docs/todo/T06-special-functions.md`.
+
+T08: `meshgrid` with MP arguments and volume/N-D graphics such as `slice` and
+`isosurface`; see `docs/todo/T08-meshgrid.md` and
+`docs/todo/T08-volume-graphics-after-ND.md`.
+
+T10: matrix-valued PP output; see `docs/todo/T10-matrix-valued-pp.md`.
+
+T11: `interp3`, `interpn`, and general N-D interpolation; see
+`docs/todo/T11-ND-interpolation.md`.
+
+T12: complex nonlinear callbacks; see
+`docs/todo/T12-complex-nonlinear-solvers.md`.
+
+T13: `ArrayValued` quadrature; see
+`docs/todo/T13-array-valued-quadrature.md`.
 
 T14: `fminunc`; see `docs/todo/T14-fminunc.md`.
 

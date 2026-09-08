@@ -7,6 +7,27 @@
 T03 adds arbitrary-precision polynomial methods for `polyval`, `polyvalm`,
 `roots`, `poly`, `conv`, `deconv`, `polyder`, `polyint`, and `compan`.
 
+## Controller metadata
+
+| Field | Value |
+|---|---|
+| Repository | `octave-mplapack` |
+| Branch | `topic/t00-t14-continuation` |
+| Starting commit | `be8733167bfc7d78c28c60bd2af213b02769417a` |
+| Implementation commit / tip | `f5bcf792c07f8e1171546937cdf022c89c04c88a` |
+| D03 baseline | `34993eb569bfaa0d7665ae913a3a1f5a97ac2e31`, tag `v0.4.0` |
+| Dependencies | gmpfrxx_mkII `32a7fb797202cdf92312ed9d133f96fdbcda590a` / `v1.4.1`; MPLAPACK `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` |
+| Octave | GNU Octave 11.1.0 |
+| API scope | Polynomial evaluation, roots/characteristic polynomial, calculus, convolution, companion |
+| Backend / algorithm | MPFR/MPC Horner, convolution/division, companion eigensolver, and native coefficient arithmetic |
+| Precision policy | Coefficients, pivots, residuals, and stopping decisions stay at operation precision |
+| Real/complex behavior | Real-only inputs use real paths; complex coefficients use MPC; no binary64 fallback |
+| Octave differential QA | Vector/matrix forms, conjugate roots, coefficient layouts, and derivative/integral forms |
+| 1024/2048 QA | High-precision polynomial canaries PASS in the controller wall |
+| Sanitizers | Native ASan, UBSan, and LSan walls PASS in final controller run |
+| Previous regression | T00–T02 and D03 M00–M23/C00–C12/S00–S08 walls passed |
+| Status / TODO | PASS; `polyfit`/`polyeig`: `docs/todo/T03-polyfit-polyeig.md` |
+
 ## Contract and compatibility
 
 * `polyval` uses element-wise Horner evaluation for scalar, vector, and matrix

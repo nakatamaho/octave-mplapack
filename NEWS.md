@@ -1,5 +1,21 @@
 # News
 
+## mplapack-interop 0.5.0-dev (2026-09-08)
+
+The T00–T14 development line closes the advanced arbitrary-precision surface
+for Schur/QZ, dense utilities, matrix functions, polynomial helpers, exact
+sets, serialization, three-dimensional graphics boundaries, random
+generation, 1-D/2-D interpolation, nonlinear equations, scalar quadrature,
+and bounded/simplex optimization. All numerical paths retain the
+one-operation/one-precision MPFR/MPC contract and reject unsupported calls
+instead of falling through to builtin binary64 implementations.
+
+The final T-series wall passed M00–M23, C00–C12 including mandatory C11L,
+N00–N08, S00–S08, and T00–T14, with 1024/2048-bit canaries, package
+lifecycle, and native ASan/UBSan/LSan coverage. The current development
+surface and deferred re-entry records are in
+`docs/advanced-numerics-compatibility.md` and `docs/todo/`.
+
 ## 0.4.0
 
 S00 begins the ordinary Octave script-compatibility series with native
@@ -190,8 +206,3 @@ release tag occur after this upstream freeze.
   packed one-output factors, permutation-aware two/three-output forms,
   1-based vector pivots, rectangular and singular support, and immutable
   operation-owned precision-safe buffers.
-## mplapack-interop 0.5.0-dev (2026-09-08)
-
-* T00 begins the arbitrary-precision Schur, Hessenberg, balancing, and
-  generalized Schur (QZ) interface.  The implementation uses the frozen
-  MPLAPACK MPFR/MPC drivers and preserves the operation precision scope.

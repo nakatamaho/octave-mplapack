@@ -11,22 +11,22 @@ also be specified and tested before a wrapper is added.
 |---|---|---|---|---|
 | Gamma | `gamma`, `gammaln`, `lgamma` | `gamma`, `lngamma`, `lgamma` | DIRECT-BACKEND | Implemented in T05 through the native precision-scoped bridge. |
 | Error function | `erf`, `erfc` | `erf`, `erfc` | DIRECT-BACKEND | Implemented in T05; complex inputs remain explicitly rejected. |
-| Digamma | `psi` | `digamma` | DIRECT-BACKEND | Primitive is available, but Octave's `psi` signature and floating-point input contract require a separate public mapping. TODO-T06-PSI. |
-| Polygamma | `polygamma` (where available) | No MPFR/gmpfrxx primitive | DEFERRED-BACKEND | No package wrapper and no binary64 fallback. TODO-T06-POLYGAMMA: select and validate an arbitrary-precision algorithm. |
-| Beta | `beta` | `beta` wrapping `mpfr_beta` | DIRECT-BACKEND | Primitive is available; public domain and pole semantics are not yet frozen. TODO-T06-BETA. |
-| Log beta | `betaln` | No direct wrapper; can be formed from log-gamma | IMPLEMENTABLE-IN-PACKAGE | Feasible using precision-matched log-gamma identities, but requires a dedicated cancellation/domain test. TODO-T06-BETALN. |
-| Incomplete gamma | `gammainc` | `gamma_inc` wrapping `mpfr_gamma_inc` | DIRECT-BACKEND | The primitive is not an automatic implementation: Octave's normalized lower/upper definitions and `tail` behavior must be matched exactly. TODO-T06-GAMMAINC. |
-| Incomplete beta | `betainc` | No MPFR/gmpfrxx primitive | DEFERRED-BACKEND | Do not substitute complete beta or a double implementation. TODO-T06-BETAINC. |
-| Inverse error family | `erfinv`, `erfcinv` | No direct MPFR/gmpfrxx wrapper | IMPLEMENTABLE-IN-PACKAGE | A published arbitrary-precision inverse-error algorithm could be added, with endpoint and signed-domain tests. Not implemented in T06. TODO-T06-INV-ERF. |
-| Scaled error family | `erfcx` and related scaled variants | No direct MPFR/gmpfrxx wrapper | DEFERRED-BACKEND | Requires a region-partitioned arbitrary-precision algorithm; no fallback is permitted. TODO-T06-ERFCX. |
-| Exponential integral | `expint` | `eint` | DIRECT-BACKEND | MPFR's `eint` primitive is present, but Octave's `expint` argument and branch/domain semantics need a separate mapping. TODO-T06-EXPINT. |
-| Zeta | no standard Octave `@mp` mapping in this package | `zeta`, plus `zeta_ui` | DIRECT-BACKEND | Backend capability recorded; no public wrapper is added until an Octave API and domain contract exists. TODO-T06-ZETA. |
-| Bessel J | `besselj` | `j0`, `j1` only | DIRECT-BACKEND (partial) | Only orders 0 and 1 exist in the backend surface; general order mapping is deferred. TODO-T06-BESSEL-J. |
-| Bessel Y | `bessely` | `y0`, `y1` only | DIRECT-BACKEND (partial) | Only orders 0 and 1 exist in the backend surface; general order mapping is deferred. TODO-T06-BESSEL-Y. |
-| Bessel I | `besseli` | No direct wrapper | DEFERRED-BACKEND | No arbitrary-precision backend primitive is available in the frozen dependency. TODO-T06-BESSEL-I. |
-| Bessel K | `besselk` | No direct wrapper | DEFERRED-BACKEND | No arbitrary-precision backend primitive is available in the frozen dependency. TODO-T06-BESSEL-K. |
-| Hankel | `besselh` | No direct wrapper | DEFERRED-BACKEND | Requires both a general J/Y implementation and a complex branch-cut contract. TODO-T06-HANKEL. |
-| Airy | `airy` | `ai` only | DIRECT-BACKEND (partial) | The backend exposes Ai only, while Octave's API includes multiple outputs and Bi. No partial public wrapper is added. TODO-T06-AIRY. |
+| Digamma | `psi` | `digamma` | DIRECT-BACKEND | Primitive is available, but Octave's `psi` signature and floating-point input contract require a separate public mapping. See [`TODO-T06-PSI`](todo/T06-special-functions.md#psi--todo-t06-psi). |
+| Polygamma | `polygamma` (where available) | No MPFR/gmpfrxx primitive | DEFERRED-BACKEND | No package wrapper and no binary64 fallback. See [`TODO-T06-POLYGAMMA`](todo/T06-special-functions.md#polygamma--todo-t06-polygamma). |
+| Beta | `beta` | `beta` wrapping `mpfr_beta` | DIRECT-BACKEND | Primitive is available; public domain and pole semantics are not yet frozen. See [`TODO-T06-BETA`](todo/T06-special-functions.md#beta--todo-t06-beta). |
+| Log beta | `betaln` | No direct wrapper; can be formed from log-gamma | IMPLEMENTABLE-IN-PACKAGE | Feasible using precision-matched log-gamma identities, but requires a dedicated cancellation/domain test. See [`TODO-T06-BETALN`](todo/T06-special-functions.md#betaln--todo-t06-betaln). |
+| Incomplete gamma | `gammainc` | `gamma_inc` wrapping `mpfr_gamma_inc` | DIRECT-BACKEND | The primitive is not an automatic implementation: Octave's normalized lower/upper definitions and `tail` behavior must be matched exactly. See [`TODO-T06-GAMMAINC`](todo/T06-special-functions.md#gammainc--todo-t06-gammainc). |
+| Incomplete beta | `betainc` | No MPFR/gmpfrxx primitive | DEFERRED-BACKEND | Do not substitute complete beta or a double implementation. See [`TODO-T06-BETAINC`](todo/T06-special-functions.md#betainc--todo-t06-betainc). |
+| Inverse error family | `erfinv`, `erfcinv` | No direct MPFR/gmpfrxx wrapper | IMPLEMENTABLE-IN-PACKAGE | A published arbitrary-precision inverse-error algorithm could be added, with endpoint and signed-domain tests. See [`TODO-T06-INV-ERF`](todo/T06-special-functions.md#erfinverfcinv--todo-t06-inv-erf). |
+| Scaled error family | `erfcx` and related scaled variants | No direct MPFR/gmpfrxx wrapper | DEFERRED-BACKEND | Requires a region-partitioned arbitrary-precision algorithm; no fallback is permitted. See [`TODO-T06-ERFCX`](todo/T06-special-functions.md#erfcx--todo-t06-erfcx). |
+| Exponential integral | `expint` | `eint` | DIRECT-BACKEND | MPFR's `eint` primitive is present, but Octave's `expint` argument and branch/domain semantics need a separate mapping. See [`TODO-T06-EXPINT`](todo/T06-special-functions.md#expint--todo-t06-expint). |
+| Zeta | no standard Octave `@mp` mapping in this package | `zeta`, plus `zeta_ui` | DIRECT-BACKEND | Backend capability recorded; no public wrapper is added until an Octave API and domain contract exists. See [`TODO-T06-ZETA`](todo/T06-special-functions.md#zeta--todo-t06-zeta). |
+| Bessel J | `besselj` | `j0`, `j1` only | DIRECT-BACKEND (partial) | Only orders 0 and 1 exist in the backend surface; general order mapping is deferred. See [`TODO-T06-BESSEL-J`](todo/T06-special-functions.md#bessel-jy--todo-t06-bessel-j-todo-t06-bessel-y). |
+| Bessel Y | `bessely` | `y0`, `y1` only | DIRECT-BACKEND (partial) | Only orders 0 and 1 exist in the backend surface; general order mapping is deferred. See [`TODO-T06-BESSEL-Y`](todo/T06-special-functions.md#bessel-jy--todo-t06-bessel-j-todo-t06-bessel-y). |
+| Bessel I | `besseli` | No direct wrapper | DEFERRED-BACKEND | No arbitrary-precision backend primitive is available in the frozen dependency. See [`TODO-T06-BESSEL-I`](todo/T06-special-functions.md#bessel-ik--todo-t06-bessel-i-todo-t06-bessel-k). |
+| Bessel K | `besselk` | No direct wrapper | DEFERRED-BACKEND | No arbitrary-precision backend primitive is available in the frozen dependency. See [`TODO-T06-BESSEL-K`](todo/T06-special-functions.md#bessel-ik--todo-t06-bessel-i-todo-t06-bessel-k). |
+| Hankel | `besselh` | No direct wrapper | DEFERRED-BACKEND | Requires both a general J/Y implementation and a complex branch-cut contract. See [`TODO-T06-HANKEL`](todo/T06-special-functions.md#hankel--todo-t06-hankel). |
+| Airy | `airy` | `ai` only | DIRECT-BACKEND (partial) | The backend exposes Ai only, while Octave's API includes multiple outputs and Bi. No partial public wrapper is added. See [`TODO-T06-AIRY`](todo/T06-special-functions.md#airy--todo-t06-airy). |
 
 ## Closed boundary
 

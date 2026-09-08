@@ -49,3 +49,17 @@ The complete `test/run_tests.m` wall passed after T10, covering M00–M23,
 C00–C12 including C11L, N00–N08, S00–S08, and T00–T10.  Expected warnings
 from headless gnuplot and the existing singular-machine-precision fixture
 remained non-fatal.
+
+## Controller metadata
+
+| Field | Value |
+|---|---|
+| Repository / branch | `octave-mplapack` / `topic/t00-t14-continuation` |
+| Starting commit / implementation tip | `1697666a537d67662653d8fd25aec706dc2a315c` / `ecb497b93b586427d135f38c51244c6ccdea5fab` |
+| D03 baseline | `34993eb569bfaa0d7665ae913a3a1f5a97ac2e31` / `v0.4.0` |
+| Dependencies / Octave | gmpfrxx `32a7fb797202cdf92312ed9d133f96fdbcda590a` / `v1.4.1`; MPLAPACK `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d`; GNU Octave 11.1.0 |
+| API / backend | `interp1`, `pchip`, `spline`, `ppval`, `mkpp`, `unmkpp`, `ppder`, `ppint`; native MPFR/MPC PP engine |
+| Precision / behavior | grids, queries, coefficients, tolerances, and outputs use operation precision; real/complex native paths |
+| Octave QA / 1024-2048 | methods, extrapolation, descending/repeated grids, PP forms; high-precision canaries PASS |
+| Sanitizers / previous regression | ASan/UBSan/LSan PASS; T00–T09 and D03 walls retained |
+| Status / TODO | PASS; `docs/todo/T10-matrix-valued-pp.md` |

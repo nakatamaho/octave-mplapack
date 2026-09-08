@@ -40,3 +40,17 @@ The complete `test/run_tests.m` wall passed after T12, covering M00–M23,
 C00–C12 including C11L, N00–N08, S00–S08, and T00–T12.  Expected warnings
 from headless gnuplot and the existing singular-machine-precision fixture
 remained non-fatal.
+
+## Controller metadata
+
+| Field | Value |
+|---|---|
+| Repository / branch | `octave-mplapack` / `topic/t00-t14-continuation` |
+| Starting commit / implementation tip | `216f78305a2df0e3c2da0bc0cf55500fd0498d96` / `dced45c3f977252d74ed3da7cb3389c8395ead8a` |
+| D03 baseline | `34993eb569bfaa0d7665ae913a3a1f5a97ac2e31` / `v0.4.0` |
+| Dependencies / Octave | gmpfrxx `32a7fb797202cdf92312ed9d133f96fdbcda590a` / `v1.4.1`; MPLAPACK `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d`; GNU Octave 11.1.0 |
+| API / backend | Real MP `fzero` and `fsolve`; safeguarded secant/bisection, MP Newton, finite differences, user Jacobian, backtracking |
+| Precision / behavior | callbacks, steps, residuals, Jacobians, and tolerances use one MPFR precision; complex callbacks rejected |
+| Octave QA / 1024-2048 | bracket/options/Jacobian/output metadata and failure cases; high-precision canaries PASS |
+| Sanitizers / previous regression | ASan/UBSan/LSan PASS; T00–T11 and D03 walls retained |
+| Status / TODO | PASS; `docs/todo/T12-complex-nonlinear-solvers.md` |

@@ -20,6 +20,8 @@ two-sided infinite intervals are supported.  Finite `Waypoints`, `AbsTol`,
 and `RelTol` are supported in a scalar options struct or name/value form.
 
 `ArrayValued` is explicitly unsupported until an MP shape-preserving reduction
-contract is defined.  The public `quadgk` name is retained for compatibility,
-while its backend is the more endpoint-robust double-exponential rule rather
-than a binary64 Gauss–Kronrod table.
+contract is defined; the re-entry record is
+[`todo/T13-array-valued-quadrature.md`](todo/T13-array-valued-quadrature.md).
+The public `quadgk` name is retained for compatibility, while its backend is
+the more endpoint-robust double-exponential rule rather than a binary64
+Gauss–Kronrod table.

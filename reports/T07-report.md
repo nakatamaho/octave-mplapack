@@ -69,3 +69,18 @@ The schema is text-based and independent of host endianness, word size, MPFR
 limb layout, and C++ ABI.  No raw `mpfr_t` memory, pointer identity, builtin
 binary64 arithmetic, real/complex demotion, or existing real-only routing was
 introduced.
+
+## Controller metadata
+
+| Field | Value |
+|---|---|
+| Repository / branch | `octave-mplapack` / `topic/t00-t14-continuation` |
+| Starting commit | `e6a4daba2f47bdfc85eae08473db418d6348b729` |
+| Implementation / tip | `26041b49f599fa47c0c69d134b653d62b3468c05` / evidence tip `9c2aead6cca454a654a288786fb1b0a3f10fcabb` |
+| D03 baseline | `34993eb569bfaa0d7665ae913a3a1f5a97ac2e31` / `v0.4.0` |
+| Dependencies / Octave | gmpfrxx `32a7fb797202cdf92312ed9d133f96fdbcda590a` / `v1.4.1`; MPLAPACK `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d`; GNU Octave 11.1.0 |
+| API / backend | exact real/complex `mp` save/load hooks; canonical MPFR/MPC text schema |
+| Precision / behavior | stored precision and operation scope; independent real/imaginary components; no binary64 fallback |
+| Octave QA / 1024-2048 | binary/text/direct-hook/malformed-schema/cross-process QA; 2048-bit save/load PASS |
+| Sanitizers / previous regression | ASan/UBSan/LSan PASS; T00–T06 and D03 walls retained |
+| Status / TODO | PASS; no T07-specific deferred API |

@@ -9,6 +9,27 @@ T01 adds arbitrary-precision implementations of `pinv`, `null`, `orth`,
 implementation stays on the existing MPFR/MPC SVD and matrix-operation paths;
 it does not route real-only operations through a binary64 complex fallback.
 
+## Controller metadata
+
+| Field | Value |
+|---|---|
+| Repository | `octave-mplapack` |
+| Branch | `topic/t00-t14-continuation` |
+| Starting commit | `f0a5103143914b813f4c94fe1a567886d8222c2b` |
+| Implementation commit / tip | `7dc79f2d4c4fb7aa91a45822566bd0abc5ae533c` |
+| D03 baseline | `34993eb569bfaa0d7665ae913a3a1f5a97ac2e31`, tag `v0.4.0` |
+| Dependencies | gmpfrxx_mkII `32a7fb797202cdf92312ed9d133f96fdbcda590a` / `v1.4.1`; MPLAPACK `a59e5a0a429b05e8f07cf7a8feab1f48aef7431d` |
+| Octave | GNU Octave 11.1.0 |
+| API scope | `pinv`, `null`, `orth`, `rref`, `kron` for dense 2-D real/complex `mp` |
+| Backend / algorithm | Existing native MPFR/MPC SVD, pivoting, and matrix construction |
+| Precision policy | Stored/source precision and p-aware tolerances; one-operation/one-precision scopes |
+| Real/complex behavior | Real paths remain real; complex values use native MPC; no binary64 fallback |
+| Octave differential QA | Moore–Penrose, null/range projector, RREF pivot, and shape/index forms |
+| 1024/2048 QA | High-precision canaries included in the controller precision wall |
+| Sanitizers | Native ASan, UBSan, and LSan walls PASS in final controller run |
+| Previous regression | T00 and the D03 M/C/S regression walls passed |
+| Status / TODO | PASS; no T01-specific deferred public surface |
+
 ## Numerical contract
 
 * `pinv` uses the existing arbitrary-precision SVD and gates the four
