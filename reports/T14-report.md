@@ -4,8 +4,8 @@
 
 `T14 PASS — OPTIMIZATION CORE CLOSED`
 
-`fminbnd PASS`  
-`fminsearch PASS`  
+`fminbnd PASS`
+`fminsearch PASS`
 `fminunc DEFERRED`
 
 ## Implementation
