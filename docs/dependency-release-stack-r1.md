@@ -5,6 +5,22 @@ This repository-only manifest is the canonical handoff for the frozen
 the public source archive because it records that archive's checksum; putting
 it into the archive would make the release metadata self-referential.
 
+## Current D04 MPLAPACK release-candidate update
+
+The frozen D02R1 table below records the dependency identity used by that
+historical `mplapack-interop` 0.3.1 release. For the subsequent D04 release
+candidate, MPLAPACK 3.0.1 has been superseded by the following source
+identity:
+
+| Layer | Version | Commit | Archive | SHA256 | Size |
+|---|---:|---|---|---|---:|
+| MPLAPACK | 3.0.1 RC | `c7e56f15dd4dc6413a1dc80b9d1c4109b77d5078` | `mplapack-3.0.1.tar.xz` | `77008a2d6cc7b2d310a4d606e013003923872a6840f1098dda8b6f337f137afa` | 85562992 |
+
+This update does not change the historical D02R1 QA claims below. The local
+archive at `/home/docker/src/mplapack-3.0.1.tar.xz` matches the new SHA256 and
+has the recorded size above. D04 must validate this replacement archive or an
+installed build derived from it before freezing the next stack.
+
 ## Frozen stack
 
 | Layer | Repository | Version | Freeze commit | Tag | Archive | SHA256 | Size | License | Depends on |

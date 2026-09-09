@@ -78,8 +78,8 @@ section by commit, tarball, and SHA256.
 
 ## D04 release-candidate provenance
 
-`T00-T14: ACCEPT` and `D04-READY: YES` have been recorded. The authoritative
-MPLAPACK dependency for the current D04 candidate is MPLAPACK 3.0.1 commit
+`T00-T14: ACCEPT` and `D04-READY: YES` have been recorded. The first
+documented D04 candidate was MPLAPACK 3.0.1 commit
 `c21a9f56224308afda9e7424ca9928d4cf840f7a`, represented by the local release-
 candidate archive `~/src/mplapack-3.0.1.tar.xz` and the archived QA copy
 `release/logs/20260907_143628/source/mplapack-3.0.1.tar.xz`. The expected
@@ -87,10 +87,31 @@ SHA256 for both artifacts is
 `f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1`; the
 release-QA evidence directory is `release/logs/20260907_143628/`.
 
-The local candidate archive hash was verified in the current environment. D04
+The local candidate archive hash was verified in the previous candidate
+environment. D04
 must verify the archived QA copy has the same hash before the source freeze.
 Until the release process completes, this dependency must be described as the
 `MPLAPACK 3.0.1 release candidate`, not as finally released MPLAPACK 3.0.1.
+
+### Current D04 RC update — 2026-09-09
+
+The current MPLAPACK 3.0.1 release candidate supersedes the previous
+candidate identity:
+
+```text
+commit:  c7e56f15dd4dc6413a1dc80b9d1c4109b77d5078
+archive: mplapack-3.0.1.tar.xz
+SHA256:  77008a2d6cc7b2d310a4d606e013003923872a6840f1098dda8b6f337f137afa
+```
+
+The D04 source-freeze and regression evidence must use this exact commit or
+an installed MPLAPACK build demonstrably derived from an archive with this
+SHA256. The local archive `/home/docker/src/mplapack-3.0.1.tar.xz` now
+verifies against this SHA256 and has size `85562992` bytes. The archived QA
+copy from the previous candidate evidence directory is not present in this
+worktree and must be checked separately if it is used for D04 provenance. The
+dependency must continue to be described as the `MPLAPACK 3.0.1 release
+candidate` until the release process completes.
 
 Historical T-series identities such as `a59e5a0...` and earlier release-
 preparation commits such as `fa3ccb...` remain milestone provenance. They are

@@ -40,6 +40,29 @@ gmpfrxx identity:
   tag v1.4.1
 ```
 
+## D04 RC provenance update
+
+The baseline DOC00 evidence above used the earlier D04 MPLAPACK candidate
+(`c21a9f56224308afda9e7424ca9928d4cf840f7a` / SHA256
+`f969c5039a3147f9ea412b051993c62e83854ceebf8515947ac9887bd8852ad1`). It is
+retained as historical evidence and is not silently reattributed to the
+replacement source.
+
+The current D04 release candidate, supplied on 2026-09-09, is:
+
+```text
+MPLAPACK version: 3.0.1 release candidate
+Git commit:       c7e56f15dd4dc6413a1dc80b9d1c4109b77d5078
+Tarball:          mplapack-3.0.1.tar.xz
+SHA256:           77008a2d6cc7b2d310a4d606e013003923872a6840f1098dda8b6f337f137afa
+```
+
+D04 must run its final validation against this exact source identity, or an
+installed build demonstrably derived from it. The local archive
+`/home/docker/src/mplapack-3.0.1.tar.xz` was verified against the SHA256 above
+and measured at `85562992` bytes. The archived QA copy from the previous
+candidate evidence directory is not present in this worktree.
+
 ## Public API inventory
 
 ```text
