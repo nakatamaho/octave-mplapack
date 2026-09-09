@@ -1,0 +1,604 @@
+\input texinfo
+@setfilename mplapack-interop.info
+@settitle mplapack-interop User Manual
+@documentencoding UTF-8
+@dircategory Scientific software
+@direntry
+* mplapack-interop: (mplapack-interop). Multiple-precision Octave values.
+@end direntry
+
+@copying
+Copyright @copyright{} 2026 MPLAPACK contributors.
+This manual is distributed under the BSD 2-Clause license. See the
+@file{LICENSE} file in the source distribution.
+@end copying
+
+@titlepage
+@title mplapack-interop User Manual
+@subtitle Dense arbitrary-precision real and complex values for GNU Octave
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@node Top
+@top mplapack-interop
+
+This manual documents the @code{mplapack-interop} Octave package. It provides
+a dense, two-dimensional @code{mp} value with MPFR real storage and MPC
+complex storage. MPLAPACK is used for the supported dense linear-algebra
+drivers; other operations use package-owned MPFR/MPC algorithms.
+
+The current development line is @code{0.5.0-dev}. T00--T14 is accepted.
+MPLAPACK 3.0.1 is documented as a release candidate until its upstream
+release process is complete.
+
+@menu
+* Introduction::
+* Installation and package loading::
+* Creating mp values::
+* Precision model::
+* Real and complex values::
+* Arithmetic and comparisons::
+* Dense matrices and indexing::
+* Matrix factorizations and linear solves::
+* Eigenvalues SVD Schur QZ::
+* Matrix functions::
+* Elementary and special functions::
+* Polynomial operations::
+* Set operations::
+* Serialization and save/load::
+* Graphics::
+* Arbitrary-precision random numbers::
+* Interpolation::
+* Nonlinear equations::
+* Numerical integration::
+* Optimization::
+* Performance notes::
+* Octave compatibility::
+* Deferred and unsupported functionality::
+* Troubleshooting::
+* API quick reference::
+@end menu
+
+@node Introduction
+@chapter Introduction
+
+@code{mp} is a user-facing Octave class. An object owns its represented
+MPFR/MPC value, shape, and stored precision. Public values are immutable at
+the native boundary; destructive MPLAPACK calls receive operation-owned
+copies. The package does not silently route supported numerical work through
+builtin binary64 arithmetic.
+
+Use this package when the input data, intermediate values, or requested
+tolerances require more precision than binary64 provides. Use ordinary
+Octave values when binary64 is sufficient or when a deferred API is needed.
+
+@node Installation and package loading
+@chapter Installation and package loading
+
+Install the source package with Octave's package manager:
+
+@verbatim
+pkg install mplapack-interop-0.5.0-dev.tar.gz
+pkg load mplapack-interop
+@end verbatim
+
+For a local dependency installation, the repository helper starts a configured
+session at @file{/home/docker/opt/octave-mplapack-stack/bin/octave-mplapack}.
+After starting Octave, load the package with:
+
+@verbatim
+pkg load mplapack-interop
+@end verbatim
+
+The package requires GNU Octave 11.1 or newer and an installed MPLAPACK MPFR
+interface discoverable through @code{pkg-config}. The package does not vendor
+MPLAPACK or search a developer-specific source path. Check the active stack
+with @code{mplapack_version ()}.
+
+@node Creating mp values
+@chapter Creating @code{mp} values
+
+Decimal text is parsed directly at the current default precision:
+
+@verbatim
+mpbits (256);
+x = mp ("0.1");
+A = mp ({"1.0", "2.0"; "3.0", "4.0"});
+@end verbatim
+
+A builtin double has already been rounded before @code{mp} receives it:
+
+@verbatim
+binary64_value = mp (0.1);
+decimal_value = mp ("0.1");
+@end verbatim
+
+These values intentionally preserve different source information. A complex
+scalar can be made directly from two decimal strings:
+
+@verbatim
+z = mp ("1.25", "-0.5");
+@end verbatim
+
+Dense matrices are two-dimensional and have one uniform stored precision.
+Use @code{char}, @code{disp}, and explicit @code{double} when inspecting or
+converting values. Only the last of these is an intentional binary64
+conversion.
+
+@node Precision model
+@chapter Precision model
+
+@code{mpbits ()} reports the project default; @code{mpbits (p)} changes it
+for subsequently constructed values. @code{mpdigits (d)} requests
+@code{ceil(d*log2(10))} bits. A fresh process starts at 512 bits.
+
+Changing the default does not recreate information already lost:
+
+@verbatim
+mpbits (128);
+low = mp ("0.1");
+mpbits (1024);
+high = mp ("0.1");
+% low remains a 128-bit value; high is newly constructed at 1024 bits.
+@end verbatim
+
+Existing operands determine the operation precision. For two @code{mp}
+operands it is the maximum stored precision; a builtin double is converted
+at the @code{mp} operand precision. The ambient default does not retroactively
+change operands or select an arithmetic result precision.
+
+Linear-algebra and other native calls enter one operation-owned precision
+scope, normalize temporaries to that precision, and restore the caller's
+thread-local backend context. Real-to-complex promotion happens once at the
+selected precision. Guard precision is used only where the function-specific
+documentation says so; it is not a hidden binary64 fallback.
+
+@node Real and complex values
+@chapter Real and complex values
+
+Real and complex values share the public @code{mp} class but have different
+native payload kinds. @code{real}, @code{imag}, @code{conj}, @code{isreal},
+@code{abs}, @code{arg}, and @code{angle} inspect or transform those payloads
+using MPFR/MPC operations.
+
+A real input is kept on a real path when the operation permits it. A result is
+promoted to complex @code{mp} when the mathematical branch requires a complex
+value, for example a negative real square root or a general real matrix with
+complex eigenvalues. A builtin complex double may be an input, but it is
+converted into the operation precision. A raw builtin-double-only operation
+remains an Octave operation outside this package's contract.
+
+@node Arithmetic and comparisons
+@chapter Arithmetic and comparisons
+
+The element-wise arithmetic functions and operators are @code{plus},
+@code{minus}, @code{times}, @code{rdivide}, @code{uplus}, @code{uminus},
+@code{power}, and @code{mpower}. Dense multiplication uses @code{mtimes} and
+MPLAPACK @code{Rgemm} or @code{Cgemm}. Mixed real/complex inputs promote to
+MPC at one operation precision.
+
+Comparisons use native MPFR/MPC equality and the documented complex
+magnitude/phase ordering for supported extrema and sorting operations.
+Ordered comparisons on complex values remain rejected.
+
+@verbatim
+mpbits (512);
+a = mp ("0.1");
+b = mp ("0.2");
+c = a + b;
+d = a .* b;
+e = c ^ 2;
+@end verbatim
+
+@node Dense matrices and indexing
+@chapter Dense matrices and indexing
+
+The dense public type is two-dimensional, column-major, and contiguous at the
+native boundary. @code{size}, @code{rows}, @code{columns}, @code{numel},
+@code{ndims}, @code{length}, and @code{isempty} inspect shape without changing
+stored precision.
+
+@code{subsref}, @code{subsasgn}, and @code{end} provide normal dense indexing
+and value-semantic in-bounds assignment. @code{reshape}, @code{transpose},
+@code{ctranspose}, @code{horzcat}, @code{vertcat}, and @code{cat} preserve
+native values. @code{diag}, @code{triu}, @code{tril}, @code{repmat},
+@code{flip}, @code{fliplr}, @code{flipud}, and @code{rot90} are supported for
+the dense two-dimensional forms. @code{zeros}, @code{ones}, @code{eye},
+@code{NaN}, and @code{Inf} support @code{"like"} construction with an
+@code{mp} template.
+
+Sparse, N-dimensional, deletion, growth assignment, and packed triangular
+forms are not part of the public dense contract.
+
+@node Matrix factorizations and linear solves
+@chapter Matrix factorizations and linear solves
+
+Use @code{A \ b} or @code{A / B} instead of explicitly forming an inverse for
+a solve. Square left division uses @code{Rgesv} or @code{Cgesv}; rectangular
+and rank-revealing forms use @code{Rgelss} or @code{Cgelsy}. Right division
+uses the conjugate-transpose solve identity and preserves complex
+conjugation.
+
+@code{chol} uses @code{Rpotrf}/@code{Cpotrf}; @code{qr} uses
+@code{Rgeqrf}/@code{Rorgqr} or @code{Cgeqrf}/@code{Cungqr}; pivoted QR uses
+@code{Rgeqp3}/@code{Cgeqp3}; and @code{lu} uses @code{Rgetrf}/@code{Cgetrf}.
+Every destructive call receives an operation-owned copy.
+
+@verbatim
+A = mp ({"4", "2"; "2", "10"});
+b = mp ({"1"; "2"});
+x = A \ b;
+[Q, R] = qr (A);
+[L, U, P] = lu (A);
+@end verbatim
+
+Result tolerances should be based on the stored operation precision and the
+conditioning of the problem, not on a fixed binary64 epsilon.
+
+@node Eigenvalues SVD Schur QZ
+@chapter Eigenvalues, SVD, Schur and QZ
+
+@code{eig} has structured, general, and generalized forms. Structured real
+symmetric and complex Hermitian inputs use @code{Rsyevd}/@code{Cheevd}.
+General problems use @code{Rgeevx}/@code{Cgeevx}. Generalized definite and QZ
+forms use @code{Rsygvd}/@code{Chegvd} and @code{Rggev}/@code{Cggev}.
+
+Eigenvalue order is not canonical. Eigenvector scale and complex phase are
+not canonical either, so validate residuals rather than elementwise vectors.
+For a standard problem use @code{A*V = V*D}; for a generalized problem use
+@code{A*V = B*V*D}. Three-output forms return left vectors and should be
+checked with the corresponding conjugate-transpose identity.
+
+The required Grcar example is:
+
+@verbatim
+mpbits (1024);
+A = mp (gallery ("grcar", 32));
+[V, D] = eig (A);
+r = norm (A*V - V*D, "fro") / norm (A, "fro");
+disp (r);
+@end verbatim
+
+@code{schur}, @code{hess}, and @code{qz} have non-unique factors. QZ
+generalized eigenvalues may be represented by an @code{alpha}/@code{beta}
+pair; @code{beta == 0} represents an infinite eigenvalue. Reconstruction
+orientation is part of the API contract and is documented in
+@file{docs/eig.md} and @file{docs/generalized-eig.md}.
+
+@code{svd}, @code{pinv}, @code{null}, @code{orth}, and @code{rref} are
+sensitive to singular-value tolerances. Singular-vector signs/phases are
+non-unique; use reconstruction, orthogonality, and projector residuals.
+
+@verbatim
+n = 8;
+H = mp (zeros (n, n));
+for i = 1:n
+  for j = 1:n
+    H(i,j) = mp (1) / mp (i + j - 1);
+  endfor
+endfor
+[U, S, V] = svd (H);
+sv = diag (S);
+svd_residual = norm (H - U*S*V', "fro") / norm (H, "fro");
+disp (sv);
+disp (svd_residual);
+@end verbatim
+
+@node Matrix functions
+@chapter Matrix functions
+
+@code{expm}, @code{logm}, and @code{sqrtm} use package-owned arbitrary-
+precision matrix algorithms with MPFR/MPC working values. Principal branches
+and branch cuts can promote a real input to complex. Validate matrix
+identities and inspect conditioning near a branch cut.
+
+@code{mpower} for integer square matrices uses exponentiation by squaring;
+noninteger matrix powers are deferred. @code{polyvalm} evaluates a polynomial
+at a dense matrix.
+
+@node Elementary and special functions
+@chapter Elementary and special functions
+
+The supported scalar/element-wise elementary family includes
+@code{sqrt}, @code{cbrt}, @code{exp}, @code{expm1}, @code{log},
+@code{log1p}, @code{log10}, @code{log2}, @code{sin}, @code{cos},
+@code{tan}, @code{asin}, @code{acos}, @code{atan}, @code{sinh},
+@code{cosh}, @code{tanh}, @code{asinh}, @code{acosh}, @code{atanh},
+@code{hypot}, and @code{atan2}. Real domain crossings use the documented
+MPC promotion rules.
+
+The supported MPFR-backed special family is @code{gamma}, @code{gammaln},
+@code{lgamma}, @code{erf}, and @code{erfc}. Poles, signed zeros, infinities,
+NaNs, and domain branches are tested explicitly. Other special-function
+families are deferred and rejected cleanly.
+
+@node Polynomial operations
+@chapter Polynomial operations
+
+@code{poly}, @code{polyval}, @code{polyvalm}, @code{roots}, @code{conv},
+@code{deconv}, @code{polyder}, @code{polyint}, and @code{compan} operate on
+arbitrary-precision coefficient or root data. Polynomial roots are
+conditioning-sensitive; clustered roots can move materially when precision
+changes. Use residuals such as @code{polyval (p, roots (p))} and not only
+elementwise root matching.
+
+@verbatim
+p = mp ({"1", "-3", "2"});
+r = roots (p);
+residual = norm (polyval (p, r));
+disp (residual);
+@end verbatim
+
+@code{polyfit} and @code{polyeig} remain deferred.
+
+@node Set operations
+@chapter Set operations
+
+@code{unique}, @code{union}, @code{intersect}, @code{setdiff},
+@code{setxor}, and @code{ismember} support the documented dense real/complex
+forms, including stable and row options where implemented. Equality and
+ordering use native values; NaN membership follows the documented Octave
+compatibility rule. @code{ismembertol} is deferred.
+
+@node Serialization and save/load
+@chapter Serialization and save/load
+
+The @code{saveobj} and @code{loadobj} hooks use schema
+@code{octave-mplapack-mp}, version 1. The schema records kind, shape, stored
+precision, and canonical text elements in column-major order. It preserves
+finite values, signed zero, infinity, NaN classification, and complex
+components without raw pointers or MPFR limb dumps.
+
+@verbatim
+mpbits (1024);
+A = mp ({"1.234567890123456789", "-0"; "Inf", "NaN"});
+save ("/tmp/mp-example.mat", "A");
+clear A;
+load ("/tmp/mp-example.mat");
+disp (A);
+@end verbatim
+
+The package must be loaded before loading an @code{mp} object. Malformed or
+newer schemas are rejected rather than guessed.
+
+@node Graphics
+@chapter Graphics
+
+@code{plot}, @code{plot3}, @code{loglog}, @code{semilogx}, @code{semilogy},
+@code{scatter}, @code{scatter3}, @code{stem}, @code{stairs}, @code{mesh},
+@code{surf}, @code{contour3}, @code{meshc}, @code{surfc}, and @code{waterfall}
+are boundary wrappers. They explicitly convert only final visualization data
+to builtin @code{double}; all numerical calculation before plotting remains
+MPFR/MPC. This is the documented exception to the no-binary64-fallback rule.
+
+@verbatim
+t = linspace (mp ("0"), mp ("6.283185307179586476925286766559"), 32);
+y = sin (t);
+plot (double (t), double (y));
+@end verbatim
+
+For a package @code{mp} graphics call, the wrapper performs the conversion.
+For values outside the binary64 range, transform or scale in @code{mp} before
+the graphics boundary. N-D and volume graphics, and @code{meshgrid} for
+@code{mp}, are deferred.
+
+@node Arbitrary-precision random numbers
+@chapter Arbitrary-precision random numbers
+
+@code{mprand}, @code{mprandn}, and @code{mprandi} use the package's
+@code{xorshift128plus-v1} engine and generate p-bit values directly. They are
+not cryptographic. @code{mprng} controls the seed and serializable state.
+Fixed seed/state is required for reproducibility.
+
+@verbatim
+mprng ("seed", uint64 (7));
+u1 = mprand (2, 1);
+mprng ("seed", uint64 (7));
+u2 = mprand (2, 1);
+assert (isequal (u1, u2));
+@end verbatim
+
+@node Interpolation
+@chapter Interpolation
+
+@code{interp1} and @code{interp2} use MPFR/MPC grids, query points, and
+piecewise-polynomial values. @code{pchip}, @code{spline}, @code{mkpp},
+@code{unmkpp}, @code{ppval}, @code{ppder}, and @code{ppint} operate on the
+supported scalar/vector piecewise-polynomial contract. Query-grid precision
+matters: a query that collapses to a double grid point may remain distinct at
+MPFR precision. Extrapolation is explicit. @code{interp3}, @code{interpn},
+and matrix-valued PP output are deferred.
+
+@node Nonlinear equations
+@chapter Nonlinear equations
+
+@code{fzero} accepts a scalar start or sign-changing bracket; @code{fsolve}
+accepts real scalar/vector starts. Callbacks receive @code{mp} values and must
+return @code{mp} values. @code{TolX}, @code{TolFun}, finite-difference steps,
+and stopping checks are precision-aware. Complex nonlinear callbacks are
+deferred.
+
+@verbatim
+mpbits (512);
+target = mp ("1.25");
+[root, fval, info] = fzero (@(x) x*x - target*target, mp ({"0", "2"}));
+assert (info == 1);
+assert (abs (root - target) < mp ("1e-40"));
+@end verbatim
+
+@node Numerical integration
+@chapter Numerical integration
+
+@code{integral} and @code{quadgk} use MP nodes, weights, transforms, and
+error estimates. Scalar callbacks may return real or complex @code{mp};
+builtin double and array-valued callback results are rejected. Finite and
+infinite intervals, waypoints, and precision-aware absolute/relative
+tolerances are supported. @code{ArrayValued} remains deferred.
+
+@verbatim
+options = struct ("AbsTol", mp ("1e-40"), "RelTol", mp ("1e-40"));
+[value, err] = integral (@(x) x*x, mp ("0"), mp ("1"), options);
+assert (abs (value - mp ("1")/mp ("3")) < mp ("1e-35"));
+@end verbatim
+
+@node Optimization
+@chapter Optimization
+
+@code{fminbnd} uses an MPFR safeguarded golden-section search and
+@code{fminsearch} uses an MPFR Nelder--Mead simplex. Objective callbacks must
+return finite real @code{mp} scalars. @code{TolX}, @code{TolFun}, iteration
+limits, and evaluation limits are precision-aware. @code{fminunc} remains
+deferred.
+
+@node Performance notes
+@chapter Performance notes
+
+Higher precision increases scalar arithmetic cost and can increase workspace
+and serialization size. Dense algorithm dimension scaling remains that of the
+selected algorithm. MPLAPACK-backed calls and package-owned MPFR/MPC
+algorithms have different constant factors. RNG generation cost grows with
+requested precision. Graphics deliberately loses arbitrary precision at the
+final display boundary.
+
+@node Octave compatibility
+@chapter Octave compatibility
+
+The supported surface follows ordinary Octave syntax where the dense
+two-dimensional @code{mp} contract permits it. The authoritative compatibility
+boundaries are @file{docs/octave-script-compatibility.md} and
+@file{docs/advanced-numerics-compatibility.md}. Unsupported calls involving
+@code{mp} fail through package-owned diagnostics rather than silently
+delegating to builtin binary64 implementations.
+
+For exact supported forms, consult @file{docs/public-api-inventory.md}. The
+public package name is @code{mplapack-interop}; the public numeric class is
+@code{mp}. Native @code{__mplapack_core__} operations are implementation
+details and are not user API.
+
+@node Deferred and unsupported functionality
+@chapter Deferred and unsupported functionality
+
+The following are intentionally deferred: optional Schur/QZ ordering helpers,
+@code{funm}, @code{polyfit}, @code{polyeig}, @code{ismembertol}, remaining
+special-function families, @code{meshgrid} for @code{mp}, volume/N-D graphics,
+matrix-valued PP output, @code{interp3}, @code{interpn}, complex nonlinear
+callbacks, @code{ArrayValued} quadrature, and @code{fminunc}. Sparse,
+symbolic, N-D, and unrelated ODE/PDE surfaces are also outside the current
+contract.
+
+Each deferred item has a re-entry record under @file{docs/todo/}; a missing
+form must not be implemented by a builtin-double fallback. These limitations
+are part of the release documentation, not hidden omissions.
+
+@node Troubleshooting
+@chapter Troubleshooting
+
+@table @asis
+@item @code{pkg load} fails
+Confirm the package is installed, the package name is
+@code{mplapack-interop}, and Octave's package directory is on its path.
+
+@item MPLAPACK runtime is not found
+Check @code{pkg-config --modversion mplapack_mpfr}, the installed library
+search path, and the runtime environment used to start Octave. Do not add a
+developer source directory as a workaround.
+
+@item Precision unexpectedly looks low
+Construct from decimal text, set @code{mpbits} before construction, and
+remember that changing the default cannot restore information lost by a
+previous binary64 constructor.
+
+@item Version or dependency mismatch
+Use @code{mplapack_version ()} and @code{pkg-config}. D04 currently records
+MPLAPACK 3.0.1 as a release candidate, not a completed release.
+
+@item Graphics overflow or underflow
+Perform scaling or logarithms in @code{mp}, then explicitly convert the final
+display data.
+
+@item Callback or serialization error
+Return @code{mp} from nonlinear/integration/optimization callbacks and load
+the package before restoring an @code{mp} object. Check schema version and
+stored precision.
+@end table
+
+@node API quick reference
+@chapter API quick reference
+
+The following entries make every public name searchable. Related functions
+share a short example in the preceding task chapter and have individual help
+text in the corresponding Octave method/function file. The inventory is the
+machine-auditable coverage matrix.
+
+@subheading Construction and inspection
+@code{mp}, @code{mpbits}, @code{mpdigits}, @code{mplapack_version},
+@code{properties}, @code{char}, @code{disp}, @code{double}, @code{real},
+@code{imag}, @code{conj}, @code{isreal}, @code{isnumeric}, @code{isnan},
+@code{isinf}, @code{isfinite}, @code{isequal}, @code{isequaln}.
+
+@subheading Arithmetic
+@code{plus}, @code{minus}, @code{times}, @code{rdivide}, @code{uplus},
+@code{uminus}, @code{mtimes}, @code{mldivide}, @code{mrdivide}, @code{power},
+@code{mpower}, @code{abs}, @code{arg}, @code{angle}, @code{sign}.
+
+@subheading Dense structure and indexing
+@code{size}, @code{rows}, @code{columns}, @code{numel}, @code{ndims},
+@code{length}, @code{isempty}, @code{subsref}, @code{subsasgn}, @code{end},
+@code{reshape}, @code{transpose}, @code{ctranspose}, @code{horzcat},
+@code{vertcat}, @code{cat}, @code{diag}, @code{triu}, @code{tril},
+@code{repmat}, @code{flip}, @code{fliplr}, @code{flipud}, @code{rot90},
+@code{zeros}, @code{ones}, @code{eye}, @code{nan}, @code{NaN}, @code{inf},
+@code{Inf}.
+
+@subheading Logical operations and reductions
+@code{eq}, @code{ne}, @code{lt}, @code{le}, @code{gt}, @code{ge},
+@code{logical}, @code{and}, @code{or}, @code{xor}, @code{not}, @code{any},
+@code{all}, @code{find}, @code{sum}, @code{prod}, @code{cumsum},
+@code{cumprod}, @code{sumsq}, @code{min}, @code{max}, @code{mean},
+@code{median}, @code{var}, @code{std}, @code{range}, @code{bounds},
+@code{sort}, @code{diff}, @code{signbit}, @code{floor}, @code{ceil},
+@code{fix}, @code{round}, @code{rem}, @code{mod}, @code{hypot}, @code{atan2},
+@code{eps}, @code{colon}, @code{linspace}, @code{logspace}.
+
+@subheading Factorizations and conditioning
+@code{chol}, @code{qr}, @code{lu}, @code{norm}, @code{det}, @code{inv},
+@code{rank}, @code{cond}, @code{rcond}, @code{svd}, @code{pinv},
+@code{null}, @code{orth}, @code{rref}.
+
+@subheading Eigenproblems and matrix functions
+@code{eig}, @code{hess}, @code{balance}, @code{schur}, @code{qz},
+@code{kron}, @code{expm}, @code{logm}, @code{sqrtm}.
+
+@subheading Elementary and special functions
+@code{sqrt}, @code{cbrt}, @code{exp}, @code{expm1}, @code{log}, @code{log1p},
+@code{log10}, @code{log2}, @code{sin}, @code{cos}, @code{tan}, @code{asin},
+@code{acos}, @code{atan}, @code{sinh}, @code{cosh}, @code{tanh},
+@code{asinh}, @code{acosh}, @code{atanh}, @code{gamma}, @code{gammaln},
+@code{lgamma}, @code{erf}, @code{erfc}.
+
+@subheading Polynomials and sets
+@code{poly}, @code{polyval}, @code{polyvalm}, @code{roots}, @code{conv},
+@code{deconv}, @code{polyder}, @code{polyint}, @code{compan}, @code{unique},
+@code{union}, @code{intersect}, @code{setdiff}, @code{setxor}, @code{ismember}.
+
+@subheading Serialization, random numbers, interpolation, solvers, and optimization
+@code{saveobj}, @code{loadobj}, @code{mprand}, @code{mprandn}, @code{mprandi},
+@code{mprng}, @code{interp1}, @code{interp2}, @code{pchip}, @code{spline},
+@code{ppval}, @code{mkpp}, @code{unmkpp}, @code{ppder}, @code{ppint},
+@code{fzero}, @code{fsolve}, @code{integral}, @code{quadgk}, @code{fminbnd},
+@code{fminsearch}.
+
+@subheading Graphics boundary
+@code{plot}, @code{plot3}, @code{loglog}, @code{semilogx}, @code{semilogy},
+@code{scatter}, @code{scatter3}, @code{stem}, @code{stairs}, @code{mesh},
+@code{surf}, @code{contour3}, @code{meshc}, @code{surfc}, @code{waterfall}.
+
+@subheading See also
+@file{docs/public-api-inventory.md},
+@file{docs/advanced-numerics-compatibility.md},
+@file{docs/precision-semantics.md}, and the per-topic documents in
+@file{docs/}.

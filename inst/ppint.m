@@ -1,4 +1,12 @@
 ## SPDX-License-Identifier: BSD-2-Clause
+## -*- texinfo -*-
+## @deftypefn {} {@var{result} =} ppint (@dots{})
+## Differentiate or integrate a supported arbitrary-precision piecewise-polynomial form.
+## The operation follows the stored-precision and @code{mpbits} contract;
+## it does not silently fall back to builtin binary64 arithmetic. See the
+## user manual for supported forms, real/complex behavior, and limitations.
+## @seealso{mp, mpbits, mpdigits}
+## @end deftypefn
 
 function result = ppint (pp, varargin)
   if (! isstruct (pp) || ! isscalar (pp) || ! isfield (pp, "form")

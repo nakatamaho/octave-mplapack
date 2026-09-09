@@ -1,5 +1,12 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
+## -*- texinfo -*-
+## @deftypefn {} {@var{result} =} kron (@var{A}, @var{B})
+## Compute a two-dimensional arbitrary-precision Kronecker product. Inputs
+## are promoted to one native @code{mp} precision without binary64 fallback.
+## @seealso{mp, mtimes, mpbits}
+## @end deftypefn
+
 function result = kron (a, b)
   ## Compute a two-dimensional arbitrary-precision Kronecker product.
   if (nargin != 2 || ! isa (a, "mp"))

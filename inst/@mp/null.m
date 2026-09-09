@@ -1,5 +1,12 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
+## -*- texinfo -*-
+## @deftypefn {} {@var{Z} =} null (@var{A}, @var{tol})
+## Return an arbitrary-precision right-null-space basis selected from native
+## singular values. The tolerance is precision-sensitive.
+## @seealso{svd, rank, orth}
+## @end deftypefn
+
 function result = null (value, varargin)
   ## Compute a right null-space basis from the arbitrary-precision SVD.
   if (nargin < 1 || nargin > 2 || ! isa (value, "mp"))

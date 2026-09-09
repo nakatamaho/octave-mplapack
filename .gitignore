@@ -45,3 +45,4 @@ dist/
 *~
 *.swp
 .DS_Store
+docs/.build/

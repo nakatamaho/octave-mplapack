@@ -1,5 +1,12 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
+## -*- texinfo -*-
+## @deftypefn {} {@var{state} =} saveobj (@var{value})
+## Convert an @code{mp} value to the versioned exact save/load schema without
+## binary64 conversion or native-pointer serialization.
+## @seealso{loadobj, mp}
+## @end deftypefn
+
 function state = saveobj (value)
   ## Serialize @mp values as an explicit, portable schema.  The native bridge
   ## emits canonical MPFR/MPC text and never converts through binary64.

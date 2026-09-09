@@ -26,7 +26,7 @@ component sign behavior are preserved by the supported MPFR/MPC encoding.
 The normal user workflow is:
 
 ```octave
-pkg load mplapack
+pkg load mplapack-interop
 mpbits (1024);
 A = mp ({'1.234567890123456789', '-0'; 'Inf', 'NaN'});
 save ('result.mat', 'A');

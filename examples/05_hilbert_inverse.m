@@ -1,9 +1,11 @@
 % High-precision Hilbert matrix inverse using the public mp API.
 %
 % The inverse is intentionally computed as H \ I.  The public package does
-% not provide inv(mp), and solving for all identity columns uses the same
+% not use inv(H) here; solving for all identity columns uses the same
 % MPLAPACK-backed left-division path without converting through binary64.
-pkg load mplapack-interop
+if (exist ("mpbits", "file") != 2)
+  pkg load mplapack-interop
+endif
 
 previous_bits = mpbits ();
 unwind_protect

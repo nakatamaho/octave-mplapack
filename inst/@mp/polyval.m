@@ -1,5 +1,12 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
+## -*- texinfo -*-
+## @deftypefn {} {@var{y} =} polyval (@var{p}, @var{x})
+## Evaluate an arbitrary-precision polynomial by native Horner arithmetic.
+## Coefficients and arguments retain the documented operation precision.
+## @seealso{poly, roots, polyvalm}
+## @end deftypefn
+
 function result = polyval (coefficients, x, varargin)
   ## Horner evaluation of an arbitrary-precision coefficient vector.
   if (nargin < 2 || ! isa (coefficients, "mp")), error ("mplapack:mp:InvalidInput", "polyval requires an mp coefficient vector"); endif

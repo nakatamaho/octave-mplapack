@@ -67,13 +67,27 @@ linear algebra through an Octave-native multiprecision numeric type named
 `mp`. MPLAPACK is the numerical backend rather than the user-facing
 programming model.
 
+## Documentation
+
+The task-oriented [user manual](doc/mplapack-interop.texi) covers installation,
+precision, real/complex behavior, dense linear algebra, advanced numerics,
+serialization, graphics, random generation, interpolation, solvers,
+quadrature, optimization, and troubleshooting. The [public API inventory]
+(docs/public-api-inventory.md) is the complete machine-auditable coverage
+matrix. The [advanced compatibility matrix]
+(docs/advanced-numerics-compatibility.md) records supported and deferred
+forms, while the [backend map](docs/backend-map.md) connects public calls to
+native algorithms. Runnable examples are under
+[examples/](examples/01_scalar_precision.m). Developer documentation is
+generated from [docs/doxygen/Doxyfile](docs/doxygen/Doxyfile).
+
 ## Quick start
 
 Install a locally built source archive with Octave's package manager
 (the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-interop-0.4.0.tar.gz
+octave:1> pkg install mplapack-interop-0.5.0-dev.tar.gz
 octave:2> pkg load mplapack-interop
 ```
 

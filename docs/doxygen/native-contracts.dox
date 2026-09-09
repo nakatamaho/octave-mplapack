@@ -1,0 +1,9 @@
+/**
+ * \file native-contracts.dox
+ * \brief Cross-cutting native implementation contracts.
+ *
+ * The core headers are included in the generated reference with their
+ * classes and functions.  This page records invariants that span several
+ * files: explicit precision, RAII lifetime, operation-owned destructive-call
+ * buffers, MPLAPACK scope restoration, and the real/complex boundary.
+ */

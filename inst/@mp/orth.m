@@ -1,5 +1,12 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
+## -*- texinfo -*-
+## @deftypefn {} {@var{Q} =} orth (@var{A}, @var{tol})
+## Return an arbitrary-precision orthonormal basis for the range of @var{A},
+## using native SVD values and a precision-sensitive tolerance.
+## @seealso{svd, rank, null}
+## @end deftypefn
+
 function result = orth (value, varargin)
   ## Return an arbitrary-precision orthonormal basis for the range of A.
   if (nargin < 1 || nargin > 2 || ! isa (value, "mp"))

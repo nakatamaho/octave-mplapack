@@ -1,0 +1,53 @@
+/**
+ * \mainpage mplapack-interop developer reference
+ *
+ * \section architecture Architecture
+ *
+ * The public GNU Octave layer is in inst/ and the mp method directory.  It implements the
+ * normal Octave syntax and owns compatibility boundaries.  The native bridge
+ * is in src/octave_bridge.cc and dispatches to storage, precision, arithmetic,
+ * MPLAPACK, serialization, RNG, interpolation, solver, quadrature,
+ * optimization, and graphics helpers.
+ *
+ * \section storage Storage and value semantics
+ *
+ * An mp value contains one native RAII payload: MPFR for real data or MPC for
+ * complex data, together with shape and stored precision.  Public values are
+ * immutable.  Dense matrices are contiguous column-major storage and are not
+ * arrays of scalar wrapper objects.  Native code must copy a public value
+ * before a destructive LAPACK call.
+ *
+ * \section precision Precision policy
+ *
+ * There is one project-owned process-local default used for newly constructed
+ * values.  Existing values retain their stored precision when mpbits changes.
+ * An operation selects one p_op from its operands, enters the corresponding
+ * MPFR/MPC execution scope, normalizes temporaries to p_op, and restores the
+ * caller's backend context on all exits.  A new worker thread does not inherit
+ * a parent thread's precision automatically; worker entry must establish its
+ * own scope.
+ *
+ * \section backends MPLAPACK and MPFR/MPC
+ *
+ * Dense BLAS/LAPACK operations dispatch to the reference MPLAPACK MPFR/MPC
+ * backend through pkg-config.  Real-only operations remain on real R* paths.
+ * Complex operations promote once to MPC at p_op.  No supported numerical
+ * path is allowed to use an implicit builtin binary64 fallback.  The only
+ * ordinary double boundary is final data conversion for graphics.
+ *
+ * \section ownership Ownership and errors
+ *
+ * Helpers return operation-owned values or copies.  Octave callbacks are
+ * checked at their boundary; nonlinear, quadrature, and optimization
+ * callbacks must return mp values.  Serialization records a versioned text
+ * schema rather than native addresses or MPFR limb bytes.
+ *
+ * \section tests Tests
+ *
+ * Focused tests live under test/ and are grouped by M, C, N, S, and T
+ * milestones.  The documentation example runner executes the files under
+ * examples/;
+ * test/t00_schur_qz.tst contains the Grcar and QZ reconstruction contract.
+ * See docs/backend-map.md and docs/public-api-inventory.md for the public
+ * entry-to-backend map.
+ */

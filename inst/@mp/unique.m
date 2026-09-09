@@ -1,5 +1,12 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
+## -*- texinfo -*-
+## @deftypefn {} {[@var{u}, @var{ia}, @var{ic}] =} unique (@var{A})
+## Return exact unique arbitrary-precision values with documented sorted,
+## stable, row, NaN, and index behavior.
+## @seealso{union, intersect, ismember}
+## @end deftypefn
+
 function varargout = unique (value, varargin)
   ## Exact unique values for current two-dimensional mp semantics.
   if (nargin < 1 || ! isa (value, "mp"))

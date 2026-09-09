@@ -54,6 +54,7 @@ CONTRIBUTING.md
 inst
 src
 test
+doc
 docs
 tools
 examples
@@ -120,6 +121,7 @@ find $source_roots -type f \
   ! -path '*/.build-m18/*' \
   ! -path '*/.build-m19/*' \
   ! -path '*/.build-m21/*' \
+  ! -path 'docs/.build/*' \
   ! -path 'docs/v0.1-release-manifest.md' \
   ! -path 'docs/dependency-release-stack.md' \
   ! -path 'docs/dependency-release-stack-r1.md' \

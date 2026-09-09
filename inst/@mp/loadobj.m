@@ -1,5 +1,12 @@
 ## SPDX-License-Identifier: BSD-2-Clause
 
+## -*- texinfo -*-
+## @deftypefn {} {@var{value} =} loadobj (@var{state})
+## Restore an @code{mp} value from the versioned exact serialization schema,
+## including its stored precision and real/complex payload kind.
+## @seealso{saveobj, mp, mpbits}
+## @end deftypefn
+
 function value = loadobj (state)
   ## Reconstruct a saved @mp value at its recorded precision.  The ambient
   ## default is restored even when native reconstruction raises an error.

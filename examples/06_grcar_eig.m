@@ -3,7 +3,9 @@
 % gallery("grcar", 32) is intentionally used as the documented Octave matrix
 % fixture.  The resulting binary64 entries are transferred once into native
 % MPFR storage; all eig and residual arithmetic after that is multiprecision.
-pkg load mplapack-interop
+if (exist ("mpbits", "file") != 2)
+  pkg load mplapack-interop
+endif
 
 previous_bits = mpbits ();
 unwind_protect

@@ -16,6 +16,13 @@ lifecycle, and native ASan/UBSan/LSan coverage. The current development
 surface and deferred re-entry records are in
 `docs/advanced-numerics-compatibility.md` and `docs/todo/`.
 
+DOC00 closes the user/developer documentation surface with a task-oriented
+manual, complete public API inventory, native backend map, runnable examples,
+Octave help text, and reproducible manual/Doxygen build checks. The D04
+dependency is currently the MPLAPACK 3.0.1 release candidate; it must not be
+described as finally released MPLAPACK 3.0.1 until its upstream release
+process is complete.
+
 ## 0.4.0
 
 S00 begins the ordinary Octave script-compatibility series with native
