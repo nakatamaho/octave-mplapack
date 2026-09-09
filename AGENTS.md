@@ -66,6 +66,54 @@ These rules apply throughout this repository.
 35. Keep compatibility code localized.
 36. Update documentation whenever public behavior changes.
 
+## Documentation is part of Definition of Done
+
+Documentation and runnable examples are part of feature completion, not a
+post-release task. For every new public function, method, option, algorithm,
+data type, or user-visible behavior, the same milestone or PR must update the
+following surfaces as applicable:
+
+1. User manual, including syntax, inputs/outputs, intended use, real/complex
+   behavior, supported/unsupported forms, and cross-references.
+2. Octave help text with concise syntax, purpose, important multiple-precision
+   behavior, and cross-references.
+3. A runnable/simple user example; substantial features also need a runnable
+   script under `examples/`.
+4. Multiple-precision-specific notes covering operation/result precision,
+   `mpbits()` semantics, source-precision preservation, real-to-complex
+   promotion, MPFR/MPC/MPLAPACK or package-owned backend behavior, guard
+   precision, p-aware tolerances, conditioning, and any explicit `double`
+   conversion.
+5. Doxygen/developer documentation for native or algorithmic changes,
+   including entry point, backend/algorithm, precision, ownership/lifetime,
+   mutation, workspace, and destructive-copy rules where applicable.
+6. The public API and compatibility inventories, including
+   `docs/public-api-inventory.md`, `docs/octave-script-compatibility.md`,
+   `docs/advanced-numerics-compatibility.md`, and `docs/backend-map.md` where
+   applicable.
+7. Documentation/example CI coverage. New examples must be included in the
+   runnable documentation test path and must use supported public APIs.
+
+The milestone/PR acceptance checklist for a new public feature is:
+
+```text
+[ ] implementation complete
+[ ] focused numerical/API tests pass
+[ ] user manual updated
+[ ] Octave help updated
+[ ] simple example added or updated
+[ ] multiple-precision-specific notes added
+[ ] Doxygen/developer docs updated where applicable
+[ ] public API / compatibility inventory updated
+[ ] backend map updated where applicable
+[ ] documentation/example checks pass
+[ ] deferred forms documented explicitly
+```
+
+Do not mark a public feature PASS while any required documentation or example
+is knowingly missing. Deferred or unsupported forms must be documented
+explicitly and must not be implemented through a builtin binary64 fallback.
+
 ## Native value invariants
 
 37. Native Octave payloads are immutable.
