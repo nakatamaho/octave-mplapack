@@ -1,11 +1,11 @@
 function result = mldivide (lhs, rhs)
   ## -*- texinfo -*-
   ## @deftypefn {} {@var{result} =} mldivide (@var{lhs}, @var{rhs})
-  ## Solve dense real @code{mp} systems with MPLAPACK MPFR.  Square systems
-  ## use @code{Rgesv}; rectangular systems use the rank-revealing
-  ## @code{Rgelss} driver and return minimum-norm least-squares solutions.
-  ## Scalar left division uses native MPFR arithmetic.  Complex and sparse
-  ## systems are not implemented.
+  ## Solve dense @code{mp} systems with MPLAPACK.  Real square systems use
+  ## @code{Rgesv}; complex square systems use @code{Cgesv}; rectangular real
+  ## systems use the rank-revealing @code{Rgelss} driver.  Scalar left
+  ## division uses native MPFR or MPC arithmetic.  Sparse systems are not
+  ## implemented.
   ## @end deftypefn
   if (nargin != 2)
     error ("mplapack:mp:InvalidOperands", ...

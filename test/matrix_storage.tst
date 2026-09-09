@@ -166,7 +166,10 @@
 %!   mpbits (saved);
 %! end_unwind_protect
 
-%!error <complex mp matrices are not supported> mp ([1 + 2i, 3])
+%!test
+%! z = mp ([1 + 2i, 3]);
+%! assert (! isreal (z));
+%! assert (double (z), [1 + 2i, 3]);
 %!error <only two-dimensional mp matrices> mp (ones (2, 2, 2))
 %!error <only two-dimensional mp matrices> mp (reshape (cellstr (["1"; "2"; "3"; "4"; "5"; "6"; "7"; "8"]), 2, 2, 2))
 %!error <each matrix cell must contain one nonempty text row> mp ({"1", 2})

@@ -1,5 +1,11 @@
 # Packaging architecture
 
+The GNU Octave package identity for the forward release is
+`mplapack-interop`; `octave-mplapack` remains the repository name. The
+historical D00 package name `mplapack` is retained only in historical release
+records. The binary architecture and B01–B05 handoff are specified in
+[`binary-distribution.md`](binary-distribution.md).
+
 The intended dependency and delivery flow is:
 
 ```text
@@ -9,10 +15,10 @@ MPLAPACK packages
 installed development interface
        |
        v
-octave-mplapack source package
+mplapack-interop source package
        |
        v
-octave-mplapack binary package
+mplapack-interop binary package
        |
        v
 GNU Octave users
@@ -33,13 +39,8 @@ is intentionally absent during M00.
 
 M20 audited the installed MPFR complex symbols and found them in the same
 `libmplapack_mpfr.so.3` dependency already used by the real backend. The
-runtime closure includes system MPC, MPFR, and GMP libraries, so the existing
-`octave-mplapack` package can gain complex support in a later update without a
-package rename. License and dependency metadata for those system libraries
-remain P01/PPA work. The explicit M20 release decision is
-`REAL-PPA-GO`; complex implementation is not required for the real-only PPA.
-M22/M23 record the concrete handoff in [`ppa-plan.md`](ppa-plan.md) and the
-repository-only frozen `v0.1-release-manifest.md`: Ubuntu
-26.04/Octave 11.1 amd64 is the initial validated target, with an MPLAPACK MPFR
-Debian package boundary and an `octave-mplapack` package update. No PPA upload
-occurs before the PPA packaging milestones.
+forward binary architecture treats the package-local runtime closure and its
+license notices as explicit B01–B05 deliverables; no global private-library
+install is allowed. The old real-only PPA notes are historical and do not
+authorize PPA work in D01R1. No PPA upload occurs before the PPA packaging
+milestones.

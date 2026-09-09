@@ -3,11 +3,13 @@
 function result = mtimes (lhs, rhs)
   ## -*- texinfo -*-
   ## @deftypefn {} {@var{result} =} mtimes (@var{lhs}, @var{rhs})
-  ## Multiply supported real @code{mp} scalars and dense matrices.  Dense
-  ## matrix multiplication uses the native MPFR MPLAPACK reference @code{Rgemm}
-  ## path; scalar scaling remains native MPFR arithmetic.  A real double
-  ## scalar or matrix may be mixed with an @code{mp} operand and is converted
-  ## directly from its binary64 value at the operation precision.
+  ## Multiply supported @code{mp} scalars and dense matrices.  Real-only
+  ## matrix multiplication uses the native MPFR MPLAPACK reference
+  ## @code{Rgemm} path.  A complex participant uses the native MPC MPLAPACK
+  ## @code{Cgemm} path, with scalar scaling remaining native MPC arithmetic.
+  ## Real or complex double operands may be mixed with an @code{mp} operand
+  ## and are converted directly from their binary64 components at the
+  ## operation precision.
   ## @end deftypefn
   if (nargin != 2)
     error ("mplapack:mp:InvalidOperands", ...

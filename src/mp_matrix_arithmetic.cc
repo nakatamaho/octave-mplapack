@@ -48,6 +48,9 @@ apply_binary (mpfr_ptr destination, mpfr_srcptr lhs, mpfr_srcptr rhs,
     case octave_mplapack::MpfrElementwiseBinaryOperation::divide:
       mpfr_div (destination, lhs, rhs, MPFR_RNDN);
       return;
+    case octave_mplapack::MpfrElementwiseBinaryOperation::power:
+      mpfr_pow (destination, lhs, rhs, MPFR_RNDN);
+      return;
     }
   throw std::logic_error ("unknown element-wise operation");
 }

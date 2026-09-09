@@ -4,16 +4,6 @@
 %!  bits = typecast (value, "uint64");
 %!endfunction
 
-%!function m05_expect_unsupported (operation)
-%!  try
-%!    operation ();
-%!    error ("M05 unsupported operation unexpectedly succeeded");
-%!  catch exception
-%!    assert (! strcmp (exception.message, ...
-%!                      "M05 unsupported operation unexpectedly succeeded"));
-%!  end_try_catch
-%!endfunction
-
 %!test
 %! saved = mpbits ();
 %! unwind_protect
@@ -179,12 +169,10 @@
 
 %!test
 %! a = mp ("1");
-%! b = mp ("2");
-%! operations = {@() sin (a), ...
-%!               @() exp (a), @() sqrt (a), @() ["value=", a]};
-%! for i = 1:numel (operations)
-%!   m05_expect_unsupported (operations{i});
-%! endfor
+%! assert (isa (sin (a), "mp"));
+%! assert (isa (exp (a), "mp"));
+%! assert (isa (sqrt (a), "mp"));
+%! assert (strcmp (char (a), "1e+0"));
 
 %!test
 %! saved = mpbits ();

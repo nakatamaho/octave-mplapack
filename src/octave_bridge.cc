@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <exception>
+#include <functional>
 #include <limits>
 #include <mutex>
 #include <optional>
@@ -12,6 +13,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <octave/oct.h>
@@ -25,14 +27,42 @@
 
 #include "mp_value.h"
 #include "mp_matrix_value.h"
+#include "mp_complex_value.h"
+#include "mp_complex_matrix_value.h"
 #include "mp_matrix_inspection.h"
 #include "mp_matrix_arithmetic.h"
+#include "mp_complex_arithmetic.h"
+#include "mp_complex_precision.h"
 #include "mp_matrix_structure.h"
+#include "mp_complex_structure.h"
 #include "mp_matrix_concat.h"
+#include "mp_complex_matrix_concat.h"
 #include "mp_matrix_assignment.h"
 #include "mp_blas.h"
+#include "mp_complex_blas.h"
+#include "mp_complex_lapack.h"
+#include "mp_complex_rank.h"
+#include "mp_complex_cholesky.h"
+#include "mp_complex_qr.h"
+#include "mp_complex_lu.h"
 #include "mp_lapack.h"
+#include "mp_det_inv.h"
+#include "mp_norm.h"
+#include "mp_svd.h"
+#include "mp_rank_condition.h"
+#include "mp_structured_eig.h"
+#include "mp_general_eig.h"
+#include "mp_generalized_eig.h"
+#include "mp_schur_qz.h"
+#include "mp_script_compat.h"
+#include "mp_script_reductions.h"
+#include "mp_script_logic.h"
+#include "mp_script_structure.h"
+#include "mp_script_ranges.h"
+#include "mp_script_statistics.h"
+#include "mp_script_sequence.h"
 #include "mp_precision.h"
+#include "mp_random.h"
 
 #ifndef MPLAPACK_PKG_VERSION
 #error "MPLAPACK_PKG_VERSION must be provided by the build"
@@ -62,6 +92,8 @@ initialize_internal_type (octave::interpreter& interp)
   {
     octave_mplapack_mpfr_scalar_internal::register_type ();
     octave_mplapack_mpfr_matrix_internal::register_type ();
+    octave_mplapack_mpc_scalar_internal::register_type ();
+    octave_mplapack_mpc_matrix_internal::register_type ();
   });
 
   if (! function->islocked ())
@@ -219,7 +251,370 @@ octave_value
 make_internal_matrix (octave_mplapack::MpfrMatrixStorage storage)
 {
   return octave_value (
-    new octave_mplapack_mpfr_matrix_internal (std::move (storage)));
+      new octave_mplapack_mpfr_matrix_internal (std::move (storage)));
+}
+
+octave_value require_mp_payload (const octave_value& value);
+
+std::uint64_t
+require_rng_word (const octave_value& value, const char *description)
+{
+  if (! value.is_uint64_type () || ! value.is_scalar_type ())
+    error_with_id ("mplapack:rng:InvalidState",
+                   "%s must be a uint64 scalar", description);
+  return value.uint64_scalar_value ().value ();
+}
+
+octave_mplapack::MpRandomState
+require_rng_state (const octave_value& first, const octave_value& second)
+{
+  octave_mplapack::MpRandomState state {
+    require_rng_word (first, "rng state first word"),
+    require_rng_word (second, "rng state second word")};
+  if (state.first == 0 && state.second == 0)
+    error_with_id ("mplapack:rng:InvalidState",
+                   "rng state must not contain two zero words");
+  return state;
+}
+
+octave_value
+make_random_value (octave_mplapack::MpfrMatrixStorage storage)
+{
+  if (storage.numel () == 1)
+    return make_internal_scalar (
+      octave_mplapack::MpfrScalarStorage (
+        std::move (storage.data ()[0])));
+  return make_internal_matrix (std::move (storage));
+}
+
+octave_value_list
+make_random_result (octave_mplapack::MpfrMatrixStorage storage,
+                    const octave_mplapack::MpRandomState& state)
+{
+  return ovl (make_random_value (std::move (storage)),
+              octave_uint64 (state.first), octave_uint64 (state.second));
+}
+
+octave_mplapack::MpfrScalarStorage
+require_real_mp_scalar_for_rng (const octave_value& value,
+                                const char *description)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      != octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    error_with_id ("mplapack:rng:InvalidBound",
+                   "%s must be a real scalar mp value", description);
+  return octave_mplapack::MpfrScalarStorage (
+    octave_mplapack_mpfr_scalar_internal::checked_value (payload).storage ());
+}
+
+octave_value
+make_internal_complex_scalar (const std::string& text,
+                              mpfr_prec_t precision_bits)
+{
+  try
+    {
+      return octave_value (
+        new octave_mplapack_mpc_scalar_internal (text, precision_bits));
+    }
+  catch (const std::invalid_argument&)
+    {
+      error_with_id ("mplapack:InvalidComplexScalarText",
+                     "invalid complex scalar text");
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:NativeError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+make_internal_complex_scalar (const Complex& value,
+                              mpfr_prec_t precision_bits)
+{
+  try
+    {
+      return octave_value (new octave_mplapack_mpc_scalar_internal (
+        value.real (), value.imag (), precision_bits));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:NativeError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+make_internal_complex_scalar (
+  octave_mplapack::MpfrComplexScalarStorage storage)
+{
+  return octave_value (
+    new octave_mplapack_mpc_scalar_internal (std::move (storage)));
+}
+
+octave_value
+make_internal_complex_matrix (
+  octave_mplapack::MpfrComplexMatrixStorage storage)
+{
+  return octave_value (
+      new octave_mplapack_mpc_matrix_internal (std::move (storage)));
+}
+
+octave_idx_type
+checked_octave_dimension_for_inspection (std::size_t value);
+std::size_t checked_size_dimension (octave_idx_type value);
+octave_value require_mp_payload (const octave_value& value);
+
+constexpr const char *mp_serialization_schema = "octave-mplapack-mp";
+constexpr std::uint64_t mp_serialization_version = 1;
+
+Cell
+serialize_real_elements (const octave_mplapack::MpfrMatrixStorage& storage)
+{
+  const octave_idx_type count
+    = checked_octave_dimension_for_inspection (storage.numel ());
+  Cell elements (dim_vector (count, 1));
+  std::size_t index = 0;
+  for (std::size_t column = 0; column < storage.columns (); ++column)
+    for (std::size_t row = 0; row < storage.rows (); ++row)
+      elements.xelem (static_cast<octave_idx_type> (index++))
+        = octave_mplapack::MpfrScalarStorage (
+            storage.at (row, column)).to_canonical_string ();
+  return elements;
+}
+
+Cell
+serialize_complex_elements (
+  const octave_mplapack::MpfrComplexMatrixStorage& storage)
+{
+  const octave_idx_type count
+    = checked_octave_dimension_for_inspection (storage.numel ());
+  Cell elements (dim_vector (count, 1));
+  std::size_t index = 0;
+  for (std::size_t column = 0; column < storage.columns (); ++column)
+    for (std::size_t row = 0; row < storage.rows (); ++row)
+      elements.xelem (static_cast<octave_idx_type> (index++))
+        = octave_mplapack::MpfrComplexScalarStorage (
+            storage.at (row, column)).to_canonical_string ();
+  return elements;
+}
+
+octave_scalar_map
+serialize_mp_value (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  octave_scalar_map state;
+  state.assign ("schema", mp_serialization_schema);
+  state.assign ("version", octave_uint64 (mp_serialization_version));
+
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
+      state.assign ("kind", "real-scalar");
+      state.assign ("rows", octave_uint64 (1));
+      state.assign ("columns", octave_uint64 (1));
+      state.assign ("precision_bits",
+                    octave_uint64 (scalar.storage ().precision_bits ()));
+      Cell elements (dim_vector (1, 1));
+      elements.xelem (0) = scalar.storage ().to_canonical_string ();
+      state.assign ("elements", elements);
+      return state;
+    }
+
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+      state.assign ("kind", "complex-scalar");
+      state.assign ("rows", octave_uint64 (1));
+      state.assign ("columns", octave_uint64 (1));
+      state.assign ("precision_bits",
+                    octave_uint64 (scalar.storage ().precision_bits ()));
+      Cell elements (dim_vector (1, 1));
+      elements.xelem (0) = scalar.storage ().to_canonical_string ();
+      state.assign ("elements", elements);
+      return state;
+    }
+
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    {
+      const auto& storage
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      state.assign ("kind", "real-matrix");
+      state.assign ("rows", octave_uint64 (storage.rows ()));
+      state.assign ("columns", octave_uint64 (storage.columns ()));
+      state.assign ("precision_bits",
+                    octave_uint64 (storage.precision_bits ()));
+      state.assign ("elements", serialize_real_elements (storage));
+      return state;
+    }
+
+  const auto& storage
+    = octave_mplapack_mpc_matrix_internal::checked_value (payload).storage ();
+  state.assign ("kind", "complex-matrix");
+  state.assign ("rows", octave_uint64 (storage.rows ()));
+  state.assign ("columns", octave_uint64 (storage.columns ()));
+  state.assign ("precision_bits",
+                octave_uint64 (storage.precision_bits ()));
+  state.assign ("elements", serialize_complex_elements (storage));
+  return state;
+}
+
+std::uint64_t
+serialized_uint64_field (const octave_scalar_map& state, const char *name)
+{
+  if (! state.contains (name))
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp state is missing field '%s'", name);
+  const octave_value field = state.contents (name);
+  if (! field.is_uint64_type () || ! field.is_scalar_type ())
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp field '%s' must be a uint64 scalar", name);
+  return field.uint64_scalar_value ().value ();
+}
+
+std::string
+serialized_string_field (const octave_scalar_map& state, const char *name)
+{
+  if (! state.contains (name))
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp state is missing field '%s'", name);
+  const octave_value field = state.contents (name);
+  if (! field.is_string () || field.rows () != 1 || field.columns () == 0)
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp field '%s' must be nonempty text", name);
+  return field.string_value ();
+}
+
+std::size_t
+serialized_dimension_field (const octave_scalar_map& state, const char *name)
+{
+  const std::uint64_t supplied = serialized_uint64_field (state, name);
+  if (supplied > static_cast<std::uint64_t> (
+        std::numeric_limits<std::size_t>::max ())
+      || supplied > static_cast<std::uint64_t> (
+        std::numeric_limits<octave_idx_type>::max ()))
+    error_with_id ("mplapack:mp:DimensionOverflow",
+                   "serialized mp dimension '%s' is too large", name);
+  return checked_size_dimension (static_cast<octave_idx_type> (supplied));
+}
+
+mpfr_prec_t
+serialized_precision_field (const octave_scalar_map& state)
+{
+  const std::uint64_t supplied
+    = serialized_uint64_field (state, "precision_bits");
+  const mpfr_prec_t precision = static_cast<mpfr_prec_t> (supplied);
+  if (static_cast<std::uint64_t> (precision) != supplied
+      || precision < MPFR_PREC_MIN || precision > MPFR_PREC_MAX)
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp precision is outside the MPFR range");
+  return precision;
+}
+
+std::vector<std::string>
+serialized_elements_field (const octave_scalar_map& state,
+                           std::size_t expected_count)
+{
+  if (! state.contains ("elements"))
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp state is missing field 'elements'");
+  const octave_value field = state.contents ("elements");
+  if (! field.iscell () || field.numel ()
+      != static_cast<octave_idx_type> (expected_count))
+    error_with_id ("mplapack:SerializationError",
+                   "serialized mp element count does not match its shape");
+
+  const Cell elements = field.cell_value ();
+  std::vector<std::string> result;
+  result.reserve (expected_count);
+  for (octave_idx_type index = 0; index < elements.numel (); ++index)
+    {
+      const octave_value element = elements.xelem (index);
+      if (! element.is_string () || element.rows () != 1
+          || element.columns () == 0)
+        error_with_id ("mplapack:SerializationError",
+                       "serialized mp elements must be nonempty text");
+      result.push_back (element.string_value ());
+    }
+  return result;
+}
+
+octave_value
+deserialize_mp_value (const octave_value& value)
+{
+  if (! value.isstruct () || value.numel () != 1)
+    error_with_id ("mplapack:SerializationError",
+                   "loadobj expects one serialized mp struct");
+
+  const octave_scalar_map state = value.scalar_map_value ();
+  if (serialized_string_field (state, "schema") != mp_serialization_schema
+      || serialized_uint64_field (state, "version")
+           != mp_serialization_version)
+    error_with_id ("mplapack:SerializationError",
+                   "unsupported serialized mp schema or version");
+
+  const std::string kind = serialized_string_field (state, "kind");
+  const std::size_t rows = serialized_dimension_field (state, "rows");
+  const std::size_t columns
+    = serialized_dimension_field (state, "columns");
+  const mpfr_prec_t precision = serialized_precision_field (state);
+  const std::size_t count
+    = octave_mplapack::MpfrMatrixStorage::checked_element_count (
+        rows, columns);
+  const std::vector<std::string> elements
+    = serialized_elements_field (state, kind == "real-scalar"
+                                         || kind == "complex-scalar"
+                                       ? 1
+                                       : count);
+
+  try
+    {
+      if (kind == "real-scalar")
+        {
+          if (rows != 1 || columns != 1)
+            throw std::invalid_argument ("serialized scalar shape mismatch");
+          return make_internal_scalar (elements.at (0), precision);
+        }
+      if (kind == "complex-scalar")
+        {
+          if (rows != 1 || columns != 1)
+            throw std::invalid_argument ("serialized scalar shape mismatch");
+          return make_internal_complex_scalar (elements.at (0), precision);
+        }
+      if (kind == "real-matrix")
+        return make_internal_matrix (
+          octave_mplapack::MpfrMatrixStorage (rows, columns, precision,
+                                               elements));
+      if (kind == "complex-matrix")
+        return make_internal_complex_matrix (
+          octave_mplapack::MpfrComplexMatrixStorage (rows, columns,
+                                                      precision, elements));
+      error_with_id ("mplapack:SerializationError",
+                     "unknown serialized mp kind '%s'", kind.c_str ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:SerializationError", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:SerializationError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
 }
 
 double
@@ -241,25 +636,48 @@ require_mp_payload (const octave_value& value)
   if (value.type_id ()
       == octave_mplapack_mpfr_matrix_internal::static_type_id ())
     return value;
+  if (value.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return value;
+  if (value.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    return value;
 
-  if (! value.is_classdef_object () || value.class_name () != "mp")
+  if ((! value.is_classdef_object () && ! value.isobject ())
+      || value.class_name () != "mp")
     error_with_id ("mplapack:InvalidNativeValue",
                    "expected an internal MPLAPACK MPFR value or public mp value");
 
-  octave_classdef *object = value.classdef_object_value (true);
-  if (! object || ! object->is_instance_of ("mp"))
-    error_with_id ("mplapack:InvalidNativeValue",
-                   "invalid public mp representation");
-
   octave_value payload;
-  try
+  if (value.is_classdef_object ())
     {
-      payload = object->get_property (0, "payload_");
+      octave_classdef *object = value.classdef_object_value (true);
+      if (! object || ! object->is_instance_of ("mp"))
+        error_with_id ("mplapack:InvalidNativeValue",
+                       "invalid public mp representation");
+      try
+        {
+          payload = object->get_property (0, "payload_");
+        }
+      catch (const std::exception&)
+        {
+          error_with_id ("mplapack:InvalidNativeValue",
+                         "public mp value has no valid native payload");
+        }
     }
-  catch (const std::exception&)
+  else
     {
-      error_with_id ("mplapack:InvalidNativeValue",
-                     "public mp value has no valid native payload");
+      const octave_map object = value.map_value ();
+      if (! object.isfield ("payload_") || object.numel () != 1)
+        error_with_id ("mplapack:InvalidNativeValue",
+                       "public mp value has no valid payload field");
+      const Cell payload_field = object.contents ("payload_");
+      if (payload_field.numel () != 1)
+        error_with_id ("mplapack:InvalidNativeValue",
+                       "public mp payload field is not scalar");
+      payload = payload_field.xelem (0);
+      if (payload.isstruct ())
+        return deserialize_mp_value (payload);
     }
 
   if (payload.type_id ()
@@ -268,6 +686,12 @@ require_mp_payload (const octave_value& value)
   else if (payload.type_id ()
            == octave_mplapack_mpfr_matrix_internal::static_type_id ())
     octave_mplapack_mpfr_matrix_internal::checked_value (payload);
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    octave_mplapack_mpc_scalar_internal::checked_value (payload);
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    octave_mplapack_mpc_matrix_internal::checked_value (payload);
   else
     error_with_id ("mplapack:InvalidNativeValue",
                    "public mp value has an unknown native payload");
@@ -281,7 +705,8 @@ require_scalar_payload (const octave_value& value)
       != octave_mplapack_mpfr_scalar_internal::static_type_id ()
       && value.type_id ()
          != octave_mplapack_mpfr_matrix_internal::static_type_id ()
-      && (! value.is_classdef_object () || value.class_name () != "mp"))
+      && (! (value.is_classdef_object () || value.isobject ())
+          || value.class_name () != "mp"))
     error_with_id ("mplapack:InvalidNativeValue",
                    "expected an internal MPLAPACK MPFR scalar");
 
@@ -298,15 +723,32 @@ octave_value
 require_matrix_payload (const octave_value& value)
 {
   const octave_value payload = require_mp_payload (value);
-  octave_mplapack_mpfr_matrix_internal::checked_value (payload);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    octave_mplapack_mpfr_matrix_internal::checked_value (payload);
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    octave_mplapack_mpc_matrix_internal::checked_value (payload);
+  else
+    error_with_id ("mplapack:InvalidNativeValue",
+                   "expected an internal MPLAPACK matrix");
   return payload;
 }
 
 bool
 is_matrix_payload (const octave_value& value)
 {
-  return require_mp_payload (value).type_id ()
-         == octave_mplapack_mpfr_matrix_internal::static_type_id ();
+  const int type = require_mp_payload (value).type_id ();
+  return type == octave_mplapack_mpfr_matrix_internal::static_type_id ()
+         || type == octave_mplapack_mpc_matrix_internal::static_type_id ();
+}
+
+bool
+is_complex_payload (const octave_value& value)
+{
+  const int type = require_mp_payload (value).type_id ();
+  return type == octave_mplapack_mpc_scalar_internal::static_type_id ()
+         || type == octave_mplapack_mpc_matrix_internal::static_type_id ();
 }
 
 bool
@@ -316,7 +758,12 @@ is_mp_value (const octave_value& value)
           == octave_mplapack_mpfr_scalar_internal::static_type_id ())
          || (value.type_id ()
              == octave_mplapack_mpfr_matrix_internal::static_type_id ())
-         || (value.is_classdef_object () && value.class_name () == "mp");
+         || (value.type_id ()
+             == octave_mplapack_mpc_scalar_internal::static_type_id ())
+         || (value.type_id ()
+             == octave_mplapack_mpc_matrix_internal::static_type_id ())
+         || ((value.is_classdef_object () || value.isobject ())
+             && value.class_name () == "mp");
 }
 
 bool
@@ -461,6 +908,41 @@ make_double_matrix_storage (const octave_value& value,
                                               values);
 }
 
+octave_mplapack::MpfrComplexMatrixStorage
+make_complex_double_matrix_storage (const octave_value& value,
+                                     mpfr_prec_t precision_bits)
+{
+  if (! value.is_double_type () || value.is_real_scalar ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "expected a non-scalar double matrix");
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional matrix operands are supported");
+
+  const std::size_t rows = checked_size_dimension (value.rows ());
+  const std::size_t columns = checked_size_dimension (value.columns ());
+  std::vector<std::complex<double>> values;
+  values.reserve (octave_mplapack::MpfrComplexMatrixStorage::
+                  checked_element_count (rows, columns));
+  if (value.isreal ())
+    {
+      const Matrix input = value.matrix_value ();
+      for (octave_idx_type column = 0; column < input.columns (); ++column)
+        for (octave_idx_type row = 0; row < input.rows (); ++row)
+          values.emplace_back (input.xelem (row, column), 0.0);
+    }
+  else
+    {
+      const ComplexMatrix input = value.complex_matrix_value ();
+      for (octave_idx_type column = 0; column < input.columns (); ++column)
+        for (octave_idx_type row = 0; row < input.rows (); ++row)
+          values.emplace_back (input.xelem (row, column).real (),
+                               input.xelem (row, column).imag ());
+    }
+  return octave_mplapack::MpfrComplexMatrixStorage (
+    rows, columns, precision_bits, values);
+}
+
 octave_value
 make_matrix_from_text_cell (const octave_value& value)
 {
@@ -517,6 +999,57 @@ make_matrix_from_text_cell (const octave_value& value)
   return octave_value ();
 }
 
+octave_value
+make_complex_matrix_from_text_cell (const octave_value& value)
+{
+  if (! value.iscell ())
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "complex text matrix input must be a cell array");
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional mp matrices are supported");
+
+  const Cell input = value.cell_value ();
+  const std::size_t rows = checked_size_dimension (input.rows ());
+  const std::size_t columns = checked_size_dimension (input.columns ());
+  std::vector<std::string> values;
+  try
+    {
+      values.reserve (
+        octave_mplapack::MpfrComplexMatrixStorage::checked_element_count (
+          rows, columns));
+      for (octave_idx_type column = 0; column < input.columns (); ++column)
+        for (octave_idx_type row = 0; row < input.rows (); ++row)
+          {
+            const octave_value element = input.xelem (row, column);
+            if (! element.is_string () || element.rows () != 1
+                || element.columns () == 0)
+              error_with_id (
+                "mplapack:mp:InvalidInput",
+                "each complex matrix cell must contain nonempty text");
+            values.push_back (element.string_value ());
+          }
+      return make_internal_complex_matrix (
+        octave_mplapack::MpfrComplexMatrixStorage (
+          rows, columns, octave_mplapack::default_precision_bits (), values));
+    }
+  catch (const std::invalid_argument&)
+    {
+      error_with_id ("mplapack:InvalidComplexScalarText",
+                     "invalid text in complex mp matrix constructor");
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:NativeError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
 std::size_t
 require_matrix_index (const octave_value& value)
 {
@@ -558,6 +1091,25 @@ parse_index_vector (const octave_value& value, std::size_t limit,
       std::vector<std::size_t> result (limit);
       for (std::size_t index = 0; index < limit; ++index)
         result[index] = index;
+      return result;
+    }
+
+  if (value.islogical ())
+    {
+      if (value.ndims () != 2
+          || (value.numel () != 1 && value.numel () != limit))
+        error_with_id ("mplapack:mp:InvalidIndex",
+                       "%s logical mask must have one element or match the indexed dimension",
+                       description);
+      const boolMatrix mask = value.bool_matrix_value ();
+      if (mask.numel () == 1)
+        return mask (0, 0) ? std::vector<std::size_t> {0}
+                           : std::vector<std::size_t> {};
+      std::vector<std::size_t> result;
+      result.reserve (static_cast<std::size_t> (mask.numel ()));
+      for (octave_idx_type index = 0; index < mask.numel (); ++index)
+        if (mask(index))
+          result.push_back (static_cast<std::size_t> (index));
       return result;
     }
 
@@ -622,10 +1174,268 @@ make_inspection_result (octave_mplapack::MpfrMatrixStorage storage)
   return make_internal_matrix (std::move (storage));
 }
 
+octave_value
+make_complex_inspection_result (
+  octave_mplapack::MpfrComplexMatrixStorage storage)
+{
+  if (storage.rows () == 1 && storage.columns () == 1)
+    return make_internal_complex_scalar (
+      octave_mplapack::MpfrComplexScalarStorage (
+        octave_mplapack::MpfrComplexScalarStorage::NativeScalar (
+          storage.at (0, 0))));
+  return make_internal_complex_matrix (std::move (storage));
+}
+
 struct PreparedConcatOperand
 {
   octave_mplapack::MpfrConcatOperand descriptor;
 };
+
+struct PreparedComplexConcatOperand
+{
+  octave_mplapack::MpcConcatOperand descriptor;
+};
+
+octave_mplapack::MpcConcatOperand
+prepare_complex_concat_operand (const octave_value& value)
+{
+  octave_mplapack::MpcConcatOperand operand;
+
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& scalar
+            = octave_mplapack_mpc_scalar_internal::checked_value (
+                kept_payload).storage ();
+          operand.rows = operand.columns = 1;
+          operand.precision_bits = scalar.precision_bits ();
+          operand.has_mp_precision = true;
+          operand.copy_element
+            = [kept_payload] (mpfrxx::mpc_class& destination,
+                              std::size_t, std::size_t)
+            {
+              const auto& source
+                = octave_mplapack_mpc_scalar_internal::checked_value (
+                    kept_payload).storage ();
+              mpc_set (destination.mpc_data (), source.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+            };
+          return operand;
+        }
+
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& matrix
+            = octave_mplapack_mpc_matrix_internal::checked_value (
+                kept_payload).storage ();
+          operand.rows = matrix.rows ();
+          operand.columns = matrix.columns ();
+          operand.precision_bits = matrix.precision_bits ();
+          operand.has_mp_precision = true;
+          operand.copy_element
+            = [kept_payload] (mpfrxx::mpc_class& destination,
+                              std::size_t row, std::size_t column)
+            {
+              const auto& source
+                = octave_mplapack_mpc_matrix_internal::checked_value (
+                    kept_payload).storage ();
+              mpc_set (destination.mpc_data (), source.at (row, column).mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+            };
+          return operand;
+        }
+
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                kept_payload).storage ();
+          operand.rows = operand.columns = 1;
+          operand.precision_bits = scalar.precision_bits ();
+          operand.has_mp_precision = true;
+          operand.copy_element
+            = [kept_payload] (mpfrxx::mpc_class& destination,
+                              std::size_t, std::size_t)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_scalar_internal::checked_value (
+                    kept_payload).storage ();
+              mpc_set_fr (destination.mpc_data (), source.native_value ().mpfr_data (),
+                          MPC_RND (MPFR_RNDN, MPFR_RNDN));
+            };
+          return operand;
+        }
+
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& matrix
+            = octave_mplapack_mpfr_matrix_internal::checked_value (
+                kept_payload).storage ();
+          operand.rows = matrix.rows ();
+          operand.columns = matrix.columns ();
+          operand.precision_bits = matrix.precision_bits ();
+          operand.has_mp_precision = true;
+          operand.copy_element
+            = [kept_payload] (mpfrxx::mpc_class& destination,
+                              std::size_t row, std::size_t column)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_matrix_internal::checked_value (
+                    kept_payload).storage ();
+              mpc_set_fr (destination.mpc_data (),
+                          source.at (row, column).mpfr_data (),
+                          MPC_RND (MPFR_RNDN, MPFR_RNDN));
+            };
+          return operand;
+        }
+
+      error_with_id ("mplapack:mp:InvalidNativeValue",
+                     "public mp value has an unknown native payload");
+    }
+
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "complex concatenation supports mp and double operands");
+  if (value.issparse ())
+    error_with_id ("mplapack:mp:SparseUnsupported",
+                   "sparse concatenation is not supported");
+  if (value.is_real_scalar () || value.is_complex_scalar ())
+    {
+      const Complex scalar = value.complex_value ();
+      operand.rows = operand.columns = 1;
+      operand.copy_element
+        = [scalar] (mpfrxx::mpc_class& destination, std::size_t, std::size_t)
+        {
+          mpc_set_d_d (destination.mpc_data (), scalar.real (), scalar.imag (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+        };
+      return operand;
+    }
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional concatenation operands are supported");
+
+  const std::size_t rows = checked_size_dimension (value.rows ());
+  const std::size_t columns = checked_size_dimension (value.columns ());
+  operand.rows = rows;
+  operand.columns = columns;
+  if (value.isreal ())
+    {
+      const Matrix input = value.matrix_value ();
+      operand.copy_element
+        = [input] (mpfrxx::mpc_class& destination, std::size_t row,
+                   std::size_t column)
+        {
+          mpc_set_d_d (destination.mpc_data (),
+                       input.xelem (static_cast<octave_idx_type> (row),
+                                    static_cast<octave_idx_type> (column)),
+                       0.0, MPC_RND (MPFR_RNDN, MPFR_RNDN));
+        };
+    }
+  else
+    {
+      const ComplexMatrix input = value.complex_matrix_value ();
+      operand.copy_element
+        = [input] (mpfrxx::mpc_class& destination, std::size_t row,
+                   std::size_t column)
+        {
+          const Complex value
+            = input.xelem (static_cast<octave_idx_type> (row),
+                           static_cast<octave_idx_type> (column));
+          mpc_set_d_d (destination.mpc_data (), value.real (), value.imag (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+        };
+    }
+  return operand;
+}
+
+octave_value
+complex_matrix_concatenate_result (const octave_value_list& args, int dimension)
+{
+  std::vector<PreparedComplexConcatOperand> prepared;
+  prepared.reserve (static_cast<std::size_t> (args.length () - 1));
+  bool has_mp_precision = false;
+  mpfr_prec_t result_precision = MPFR_PREC_MIN;
+  dim_vector result_shape;
+  bool shape_initialized = false;
+
+  for (int index = 1; index < args.length (); ++index)
+    {
+      PreparedComplexConcatOperand current;
+      current.descriptor = prepare_complex_concat_operand (args(index));
+      if (current.descriptor.has_mp_precision)
+        {
+          has_mp_precision = true;
+          result_precision = std::max (result_precision,
+                                       current.descriptor.precision_bits);
+        }
+
+      const octave_idx_type rows
+        = checked_octave_dimension_for_inspection (
+            current.descriptor.rows);
+      const octave_idx_type columns
+        = checked_octave_dimension_for_inspection (
+            current.descriptor.columns);
+      const dim_vector current_shape (rows, columns);
+      if (! shape_initialized)
+        {
+          result_shape = current_shape;
+          shape_initialized = true;
+        }
+      else if (! result_shape.hvcat (current_shape, dimension))
+        error_with_id ("mplapack:mp:DimensionMismatch",
+                       "%s concatenation dimensions mismatch",
+                       dimension == 1 ? "horizontal" : "vertical");
+      prepared.push_back (std::move (current));
+    }
+
+  if (! has_mp_precision)
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "complex concatenation requires at least one mp operand");
+
+  const std::size_t result_rows
+    = checked_size_dimension (result_shape.xelem (0));
+  const std::size_t result_columns
+    = checked_size_dimension (result_shape.xelem (1));
+  std::vector<octave_mplapack::MpcConcatOperand> operands;
+  operands.reserve (prepared.size ());
+  for (PreparedComplexConcatOperand& current : prepared)
+    operands.push_back (std::move (current.descriptor));
+
+  try
+    {
+      return make_complex_inspection_result (
+        octave_mplapack::mpc_matrix_concatenate (
+          operands, dimension, result_rows, result_columns,
+          result_precision));
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
 
 octave_mplapack::MpfrConcatOperand
 prepare_concat_operand (const octave_value& value)
@@ -738,6 +1548,11 @@ matrix_concatenate_result (const octave_value_list& args, int dimension)
   if (args.length () < 2)
     error_with_id ("mplapack:InvalidArguments",
                    "concatenation expects at least one operand");
+
+  for (int index = 1; index < args.length (); ++index)
+    if ((is_mp_value (args(index)) && is_complex_payload (args(index)))
+        || (args(index).is_double_type () && ! args(index).isreal ()))
+      return complex_matrix_concatenate_result (args, dimension);
 
   std::vector<PreparedConcatOperand> prepared;
   prepared.reserve (static_cast<std::size_t> (args.length () - 1));
@@ -907,9 +1722,13 @@ resolve_reshape_dimensions (const octave_value& value,
   const octave_value payload = require_mp_payload (value);
   const std::size_t source_numel
     = payload.type_id () == octave_mplapack_mpfr_scalar_internal::static_type_id ()
+        || payload.type_id () == octave_mplapack_mpc_scalar_internal::static_type_id ()
         ? 1
-        : octave_mplapack_mpfr_matrix_internal::checked_value (payload)
-            .storage ().numel ();
+        : payload.type_id () == octave_mplapack_mpfr_matrix_internal::static_type_id ()
+          ? octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ().numel ()
+          : octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage ().numel ();
 
   std::array<ReshapeDimension, 2> dimensions;
   if (second)
@@ -969,9 +1788,100 @@ resolve_reshape_dimensions (const octave_value& value,
 }
 
 octave_value
+complex_real_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_scalar (octave_mplapack::mpfr_complex_scalar_real (
+      octave_mplapack_mpc_scalar_internal::checked_value (payload).storage ()));
+
+  try
+    {
+      return make_inspection_result (octave_mplapack::mpfr_complex_matrix_real (
+        octave_mplapack_mpc_matrix_internal::checked_value (payload)
+          .storage ()));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+complex_imag_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_scalar (octave_mplapack::mpfr_complex_scalar_imag (
+      octave_mplapack_mpc_scalar_internal::checked_value (payload).storage ()));
+
+  try
+    {
+      return make_inspection_result (octave_mplapack::mpfr_complex_matrix_imag (
+        octave_mplapack_mpc_matrix_internal::checked_value (payload)
+          .storage ()));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+complex_conj_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_complex_scalar (
+      octave_mplapack::mpfr_complex_scalar_conj (
+        octave_mplapack_mpc_scalar_internal::checked_value (payload)
+          .storage ()));
+
+  try
+    {
+      return make_complex_inspection_result (
+        octave_mplapack::mpfr_complex_matrix_conj (
+          octave_mplapack_mpc_matrix_internal::checked_value (payload)
+            .storage ()));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
 matrix_transpose_result (const octave_value& value)
 {
   const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_complex_scalar (
+      octave_mplapack::mpfr_complex_scalar_transpose (
+        octave_mplapack_mpc_scalar_internal::checked_value (payload)
+          .storage ()));
+  if (payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    {
+      try
+        {
+          return make_complex_inspection_result (
+            octave_mplapack::mpfr_complex_matrix_transpose (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ()));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:StructureError", "%s",
+                         exception.what ());
+        }
+    }
   if (payload.type_id ()
       == octave_mplapack_mpfr_scalar_internal::static_type_id ())
     {
@@ -997,12 +1907,79 @@ matrix_transpose_result (const octave_value& value)
 }
 
 octave_value
+matrix_ctranspose_result (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return make_internal_complex_scalar (
+      octave_mplapack::mpfr_complex_scalar_ctranspose (
+        octave_mplapack_mpc_scalar_internal::checked_value (payload)
+          .storage ()));
+  if (payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    {
+      try
+        {
+          return make_complex_inspection_result (
+            octave_mplapack::mpfr_complex_matrix_ctranspose (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ()));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:StructureError", "%s",
+                         exception.what ());
+        }
+    }
+  return matrix_transpose_result (value);
+}
+
+octave_value
 matrix_reshape_result (const octave_value& value,
                        const octave_value& first,
                        const octave_value *second)
 {
   const octave_value payload = require_mp_payload (value);
   const auto dimensions = resolve_reshape_dimensions (value, first, second);
+
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      if (dimensions.first != 1 || dimensions.second != 1)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "a complex scalar mp value can only be reshaped to 1x1");
+      const auto& source
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      return make_internal_complex_scalar (
+        octave_mplapack::mpfr_complex_scalar_transpose (source));
+    }
+
+  if (payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    try
+      {
+        return make_complex_inspection_result (
+          octave_mplapack::mpfr_complex_matrix_reshape (
+            octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage (), dimensions.first, dimensions.second));
+      }
+    catch (const std::overflow_error& exception)
+      {
+        error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                       exception.what ());
+      }
+    catch (const std::invalid_argument& exception)
+      {
+        error_with_id ("mplapack:mp:InvalidDimension", "%s",
+                       exception.what ());
+      }
+    catch (const std::exception& exception)
+      {
+        error_with_id ("mplapack:mp:StructureError", "%s",
+                       exception.what ());
+      }
 
   if (payload.type_id ()
       == octave_mplapack_mpfr_scalar_internal::static_type_id ())
@@ -1085,9 +2062,6 @@ matrix_linear_subscript_result (const octave_value& value,
 
   const auto indices = parse_index_vector (index_spec, source.numel (),
                                            "linear index");
-  if (indices.size () != 1)
-    error_with_id ("mplapack:mp:LinearIndexUnsupported",
-                   "general vector linear indexing is not implemented");
 
   try
     {
@@ -1100,6 +2074,424 @@ matrix_linear_subscript_result (const octave_value& value,
                      exception.what ());
     }
   return octave_value ();
+}
+
+octave_value
+complex_matrix_subscript_result (const octave_value& value,
+                                 const octave_value& row_spec,
+                                 const octave_value& column_spec)
+{
+  const auto& source
+    = octave_mplapack_mpc_matrix_internal::checked_value (
+        require_matrix_payload (value)).storage ();
+  const auto row_indices
+    = parse_index_vector (row_spec, source.rows (), "row index");
+  const auto column_indices
+    = parse_index_vector (column_spec, source.columns (), "column index");
+  try
+    {
+      return make_complex_inspection_result (
+        octave_mplapack::select_complex_matrix (source, row_indices,
+                                                column_indices));
+    }
+  catch (const std::out_of_range& exception)
+    {
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+complex_matrix_linear_subscript_result (const octave_value& value,
+                                        const octave_value& index_spec)
+{
+  const auto& source
+    = octave_mplapack_mpc_matrix_internal::checked_value (
+        require_matrix_payload (value)).storage ();
+  if (is_colon_index (index_spec))
+    {
+      std::vector<std::size_t> all (source.numel ());
+      for (std::size_t index = 0; index < source.numel (); ++index)
+        all[index] = index;
+      return make_complex_inspection_result (
+        octave_mplapack::select_complex_linear (source, all));
+    }
+
+  const auto indices = parse_index_vector (index_spec, source.numel (),
+                                           "linear index");
+  try
+    {
+      return make_complex_inspection_result (
+        octave_mplapack::select_complex_linear (source, indices));
+    }
+  catch (const std::out_of_range& exception)
+    {
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+struct PreparedComplexAssignmentOperand
+{
+  std::size_t rows = 0;
+  std::size_t columns = 0;
+  mpfr_prec_t precision_bits = MPFR_PREC_MIN;
+  bool has_mp_precision = false;
+  std::function<void (mpfrxx::mpc_class&, std::size_t, std::size_t)>
+    copy_element;
+};
+
+bool
+complex_assignment_scalar (const PreparedComplexAssignmentOperand& rhs)
+{
+  return rhs.rows == 1 && rhs.columns == 1;
+}
+
+std::size_t
+checked_complex_assignment_product (std::size_t lhs, std::size_t rhs)
+{
+  if (lhs != 0 && rhs > std::numeric_limits<std::size_t>::max () / lhs)
+    throw std::overflow_error ("complex assignment selection size overflow");
+  return lhs * rhs;
+}
+
+PreparedComplexAssignmentOperand
+prepare_complex_assignment_rhs (const octave_value& value)
+{
+  PreparedComplexAssignmentOperand prepared;
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& scalar
+            = octave_mplapack_mpc_scalar_internal::checked_value (
+                kept_payload).storage ();
+          prepared.rows = prepared.columns = 1;
+          prepared.precision_bits = scalar.precision_bits ();
+          prepared.has_mp_precision = true;
+          prepared.copy_element
+            = [kept_payload] (mpfrxx::mpc_class& destination,
+                              std::size_t, std::size_t)
+            {
+              const auto& source
+                = octave_mplapack_mpc_scalar_internal::checked_value (
+                    kept_payload).storage ();
+              mpc_set (destination.mpc_data (), source.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+            };
+          return prepared;
+        }
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& matrix
+            = octave_mplapack_mpc_matrix_internal::checked_value (
+                kept_payload).storage ();
+          if (matrix.numel () == 0)
+            error_with_id ("mplapack:mp:DeletionUnsupported",
+                           "empty RHS deletion is not supported");
+          prepared.rows = matrix.rows ();
+          prepared.columns = matrix.columns ();
+          prepared.precision_bits = matrix.precision_bits ();
+          prepared.has_mp_precision = true;
+          prepared.copy_element
+            = [kept_payload] (mpfrxx::mpc_class& destination,
+                              std::size_t row, std::size_t column)
+            {
+              const auto& source
+                = octave_mplapack_mpc_matrix_internal::checked_value (
+                    kept_payload).storage ();
+              mpc_set (destination.mpc_data (), source.at (row, column).mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+            };
+          return prepared;
+        }
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                kept_payload).storage ();
+          prepared.rows = prepared.columns = 1;
+          prepared.precision_bits = scalar.precision_bits ();
+          prepared.has_mp_precision = true;
+          prepared.copy_element
+            = [kept_payload] (mpfrxx::mpc_class& destination,
+                              std::size_t, std::size_t)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_scalar_internal::checked_value (
+                    kept_payload).storage ();
+              mpc_set_fr (destination.mpc_data (), source.native_value ().mpfr_data (),
+                          MPC_RND (MPFR_RNDN, MPFR_RNDN));
+            };
+          return prepared;
+        }
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        {
+          const octave_value kept_payload = payload;
+          const auto& matrix
+            = octave_mplapack_mpfr_matrix_internal::checked_value (
+                kept_payload).storage ();
+          if (matrix.numel () == 0)
+            error_with_id ("mplapack:mp:DeletionUnsupported",
+                           "empty RHS deletion is not supported");
+          prepared.rows = matrix.rows ();
+          prepared.columns = matrix.columns ();
+          prepared.precision_bits = matrix.precision_bits ();
+          prepared.has_mp_precision = true;
+          prepared.copy_element
+            = [kept_payload] (mpfrxx::mpc_class& destination,
+                              std::size_t row, std::size_t column)
+            {
+              const auto& source
+                = octave_mplapack_mpfr_matrix_internal::checked_value (
+                    kept_payload).storage ();
+              mpc_set_fr (destination.mpc_data (),
+                          source.at (row, column).mpfr_data (),
+                          MPC_RND (MPFR_RNDN, MPFR_RNDN));
+            };
+          return prepared;
+        }
+      error_with_id ("mplapack:mp:InvalidNativeValue",
+                     "public mp value has an unknown native payload");
+    }
+
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "complex assignment RHS supports mp and double values");
+  if (value.issparse ())
+    error_with_id ("mplapack:mp:SparseUnsupported",
+                   "sparse assignment is not supported");
+  if (value.is_real_scalar () || value.is_complex_scalar ())
+    {
+      const Complex scalar = value.complex_value ();
+      prepared.rows = prepared.columns = 1;
+      prepared.copy_element
+        = [scalar] (mpfrxx::mpc_class& destination, std::size_t, std::size_t)
+        { mpc_set_d_d (destination.mpc_data (), scalar.real (), scalar.imag (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN)); };
+      return prepared;
+    }
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional assignment RHS values are supported");
+  if (value.numel () == 0)
+    error_with_id ("mplapack:mp:DeletionUnsupported",
+                   "empty RHS deletion is not supported");
+  const ComplexMatrix input = value.complex_matrix_value ();
+  prepared.rows = checked_size_dimension (input.rows ());
+  prepared.columns = checked_size_dimension (input.columns ());
+  prepared.copy_element
+    = [input] (mpfrxx::mpc_class& destination, std::size_t row,
+               std::size_t column)
+    {
+      const Complex value = input.xelem (static_cast<octave_idx_type> (row),
+                                         static_cast<octave_idx_type> (column));
+      mpc_set_d_d (destination.mpc_data (), value.real (), value.imag (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+    };
+  return prepared;
+}
+
+struct PreparedComplexAssignmentLhs
+{
+  octave_value payload;
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> owned;
+
+  const octave_mplapack::MpfrComplexMatrixStorage& matrix_storage () const
+  {
+    if (owned)
+      return *owned;
+    return octave_mplapack_mpc_matrix_internal::checked_value (
+      payload).storage ();
+  }
+};
+
+PreparedComplexAssignmentLhs
+prepare_complex_assignment_lhs (const octave_value& value)
+{
+  PreparedComplexAssignmentLhs prepared;
+  prepared.payload = require_mp_payload (value);
+  if (prepared.payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    return prepared;
+
+  if (prepared.payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (
+            prepared.payload).storage ();
+      prepared.owned.emplace (1, 1, scalar.precision_bits ());
+      mpc_set (prepared.owned->at (0, 0).mpc_data (),
+               scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return prepared;
+    }
+
+  if (prepared.payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    {
+      const auto& matrix
+        = octave_mplapack_mpfr_matrix_internal::checked_value (
+            prepared.payload).storage ();
+      prepared.owned.emplace (matrix.rows (), matrix.columns (),
+                              matrix.precision_bits ());
+      for (std::size_t index = 0; index < matrix.numel (); ++index)
+        mpc_set_fr (prepared.owned->data ()[index].mpc_data (),
+                    matrix.data ()[index].mpfr_data (),
+                    MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return prepared;
+    }
+
+  if (prepared.payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (
+            prepared.payload).storage ();
+      prepared.owned.emplace (1, 1, scalar.precision_bits ());
+      mpc_set_fr (prepared.owned->at (0, 0).mpc_data (),
+                  scalar.native_value ().mpfr_data (),
+                  MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return prepared;
+    }
+
+  error_with_id ("mplapack:mp:AssignmentUnsupported",
+                 "assignment requires a dense real or complex mp lhs");
+  return prepared;
+}
+
+octave_value
+complex_matrix_assignment_result (const octave_value& value,
+                                  const octave_value& row_spec,
+                                  const octave_value& column_spec,
+                                  const octave_value& rhs_value)
+{
+  PreparedComplexAssignmentLhs lhs = prepare_complex_assignment_lhs (value);
+  const auto& source = lhs.matrix_storage ();
+  const auto row_indices
+    = parse_index_vector (row_spec, source.rows (), "row index");
+  const auto column_indices
+    = parse_index_vector (column_spec, source.columns (), "column index");
+  PreparedComplexAssignmentOperand rhs
+    = prepare_complex_assignment_rhs (rhs_value);
+  const std::size_t selected_count
+    = checked_complex_assignment_product (row_indices.size (),
+                                          column_indices.size ());
+  if (selected_count == 0)
+    {
+      if (! complex_assignment_scalar (rhs)
+          && checked_complex_assignment_product (rhs.rows, rhs.columns) != 0)
+        error_with_id ("mplapack:mp:DimensionMismatch",
+                       "non-scalar RHS is not conformant with an empty selection");
+    }
+  const bool scalar_rhs = complex_assignment_scalar (rhs);
+  const bool exact_shape = rhs.rows == row_indices.size ()
+                           && rhs.columns == column_indices.size ();
+  const bool vector_shape
+    = ! exact_shape && ! scalar_rhs
+      && (row_indices.size () == 1 || column_indices.size () == 1)
+      && (rhs.rows == 1 || rhs.columns == 1)
+      && checked_complex_assignment_product (rhs.rows, rhs.columns)
+           == selected_count;
+  if (selected_count != 0 && ! scalar_rhs && ! exact_shape && ! vector_shape)
+    error_with_id ("mplapack:mp:DimensionMismatch",
+                   "assignment RHS dimensions are not conformant with the selection");
+  for (std::size_t row : row_indices)
+    if (row >= source.rows ())
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "assignment index is out of bounds");
+  for (std::size_t column : column_indices)
+    if (column >= source.columns ())
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "assignment index is out of bounds");
+
+  const mpfr_prec_t result_precision
+    = rhs.has_mp_precision
+      ? std::max (source.precision_bits (), rhs.precision_bits)
+      : source.precision_bits ();
+  octave_mplapack::MpfrComplexMatrixStorage result (
+    source.rows (), source.columns (), result_precision);
+  for (std::size_t index = 0; index < source.numel (); ++index)
+    mpc_set (result.data ()[index].mpc_data (), source.data ()[index].mpc_data (),
+             MPC_RND (MPFR_RNDN, MPFR_RNDN));
+  for (std::size_t column = 0; column < column_indices.size (); ++column)
+    for (std::size_t row = 0; row < row_indices.size (); ++row)
+      {
+        std::size_t rhs_row = 0;
+        std::size_t rhs_column = 0;
+        if (! scalar_rhs)
+          {
+            if (exact_shape)
+              { rhs_row = row; rhs_column = column; }
+            else
+              {
+                const std::size_t linear = row + column * row_indices.size ();
+                rhs_row = linear % rhs.rows;
+                rhs_column = linear / rhs.rows;
+              }
+          }
+        rhs.copy_element (result.at (row_indices[row], column_indices[column]),
+                          rhs_row, rhs_column);
+      }
+  return make_complex_inspection_result (std::move (result));
+}
+
+octave_value
+complex_matrix_linear_assignment_result (const octave_value& value,
+                                         const octave_value& index_spec,
+                                         const octave_value& rhs_value)
+{
+  PreparedComplexAssignmentLhs lhs = prepare_complex_assignment_lhs (value);
+  const auto& source = lhs.matrix_storage ();
+  std::vector<std::size_t> indices;
+  if (is_colon_index (index_spec))
+    {
+      indices.resize (source.numel ());
+      for (std::size_t index = 0; index < indices.size (); ++index)
+        indices[index] = index;
+    }
+  else
+    {
+      indices = parse_index_vector (index_spec, source.numel (),
+                                    "linear index");
+    }
+  PreparedComplexAssignmentOperand rhs
+    = prepare_complex_assignment_rhs (rhs_value);
+  const bool scalar_rhs = complex_assignment_scalar (rhs);
+  const std::size_t rhs_count
+    = checked_complex_assignment_product (rhs.rows, rhs.columns);
+  if (! scalar_rhs && rhs_count != indices.size ())
+    error_with_id ("mplapack:mp:DimensionMismatch",
+                   "assignment RHS element count does not match linear selection");
+  for (std::size_t index : indices)
+    if (index >= source.numel ())
+      error_with_id ("mplapack:mp:IndexOutOfBounds", "assignment index is out of bounds");
+
+  const mpfr_prec_t result_precision
+    = rhs.has_mp_precision
+      ? std::max (source.precision_bits (), rhs.precision_bits)
+      : source.precision_bits ();
+  octave_mplapack::MpfrComplexMatrixStorage result (
+    source.rows (), source.columns (), result_precision);
+  for (std::size_t index = 0; index < source.numel (); ++index)
+    mpc_set (result.data ()[index].mpc_data (), source.data ()[index].mpc_data (),
+             MPC_RND (MPFR_RNDN, MPFR_RNDN));
+  for (std::size_t index = 0; index < indices.size (); ++index)
+    {
+      const std::size_t rhs_row = scalar_rhs ? 0 : index % rhs.rows;
+      const std::size_t rhs_column = scalar_rhs ? 0 : index / rhs.rows;
+      rhs.copy_element (result.data ()[indices[index]], rhs_row, rhs_column);
+    }
+  return make_complex_inspection_result (std::move (result));
 }
 
 struct PreparedAssignmentOperand
@@ -1338,9 +2730,6 @@ matrix_linear_assignment_result (const octave_value& value,
     {
       indices = parse_index_vector (index_spec, lhs_storage.numel (),
                                     "linear index");
-      if (indices.size () != 1)
-        error_with_id ("mplapack:mp:LinearAssignmentUnsupported",
-                       "general vector linear assignment is not implemented");
     }
 
   PreparedAssignmentOperand rhs = prepare_assignment_rhs (rhs_value);
@@ -1390,6 +2779,24 @@ matrix_to_double (const octave_value& value)
   return result;
 }
 
+ComplexMatrix
+complex_matrix_to_double (const octave_value& value)
+{
+  const auto& source
+    = octave_mplapack_mpc_matrix_internal::checked_value (
+        require_matrix_payload (value)).storage ();
+  ComplexMatrix result (
+    checked_octave_dimension_for_inspection (source.rows ()),
+    checked_octave_dimension_for_inspection (source.columns ()));
+  for (std::size_t column = 0; column < source.columns (); ++column)
+    for (std::size_t row = 0; row < source.rows (); ++row)
+      result.xelem (static_cast<octave_idx_type> (row),
+                    static_cast<octave_idx_type> (column))
+        = Complex (source.at (row, column).real_to_double (),
+                   source.at (row, column).imag_to_double ());
+  return result;
+}
+
 std::string
 matrix_display_text (const octave_value& value)
 {
@@ -1403,6 +2810,39 @@ octave_scalar_map
 value_shape_info (const octave_value& value)
 {
   const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+      octave_scalar_map info;
+      info.assign ("rows", octave_uint64 (1));
+      info.assign ("columns", octave_uint64 (1));
+      info.assign ("numel", octave_uint64 (1));
+      info.assign ("precision_bits",
+                   octave_uint64 (scalar.storage ().precision_bits ()));
+      info.assign ("is_matrix", false);
+      info.assign ("is_empty", false);
+      info.assign ("is_complex", true);
+      return info;
+    }
+  if (payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    {
+      const auto& matrix
+        = octave_mplapack_mpc_matrix_internal::checked_value (payload);
+      const auto& storage = matrix.storage ();
+      octave_scalar_map info;
+      info.assign ("rows", octave_uint64 (storage.rows ()));
+      info.assign ("columns", octave_uint64 (storage.columns ()));
+      info.assign ("numel", octave_uint64 (storage.numel ()));
+      info.assign ("precision_bits",
+                   octave_uint64 (storage.precision_bits ()));
+      info.assign ("is_matrix", true);
+      info.assign ("is_empty", storage.numel () == 0);
+      info.assign ("is_complex", true);
+      return info;
+    }
   octave_scalar_map info;
   if (payload.type_id ()
       == octave_mplapack_mpfr_scalar_internal::static_type_id ())
@@ -1416,6 +2856,7 @@ value_shape_info (const octave_value& value)
                    octave_uint64 (scalar.storage ().precision_bits ()));
       info.assign ("is_matrix", false);
       info.assign ("is_empty", false);
+      info.assign ("is_complex", false);
       return info;
     }
 
@@ -1429,7 +2870,455 @@ value_shape_info (const octave_value& value)
                octave_uint64 (storage.precision_bits ()));
   info.assign ("is_matrix", true);
   info.assign ("is_empty", storage.numel () == 0);
+  info.assign ("is_complex", false);
   return info;
+}
+
+enum class ComplexScalarBinaryOperation
+{
+  add,
+  subtract,
+  multiply,
+  divide,
+  power
+};
+
+bool
+is_complex_arithmetic_operand (const octave_value& value)
+{
+  if (is_mp_value (value))
+    return is_complex_payload (value);
+  return value.is_double_type () && ! value.isreal ();
+}
+
+mpfr_prec_t
+arithmetic_mp_precision (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    return octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+      .storage ().precision_bits ();
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    return octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+      .storage ().precision_bits ();
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return octave_mplapack_mpc_scalar_internal::checked_value (payload)
+      .storage ().precision_bits ();
+  return octave_mplapack_mpc_matrix_internal::checked_value (payload)
+    .storage ().precision_bits ();
+}
+
+struct PreparedComplexArithmeticOperand
+{
+  octave_value payload;
+  std::optional<octave_mplapack::MpfrComplexScalarStorage> scalar_owned;
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> matrix_owned;
+  octave_mplapack::MpcElementwiseOperand view;
+};
+
+PreparedComplexArithmeticOperand
+prepare_complex_arithmetic_operand (const octave_value& value,
+                                    mpfr_prec_t operation_precision)
+{
+  PreparedComplexArithmeticOperand prepared;
+  if (is_mp_value (value))
+    {
+      prepared.payload = require_mp_payload (value);
+      if (prepared.payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        prepared.view = octave_mplapack::MpcElementwiseOperand::from_real_scalar (
+          octave_mplapack_mpfr_scalar_internal::checked_value (
+            prepared.payload).storage ());
+      else if (prepared.payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        prepared.view = octave_mplapack::MpcElementwiseOperand::from_real_matrix (
+          octave_mplapack_mpfr_matrix_internal::checked_value (
+            prepared.payload).storage ());
+      else if (prepared.payload.type_id ()
+               == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        prepared.view = octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+          octave_mplapack_mpc_scalar_internal::checked_value (
+            prepared.payload).storage ());
+      else
+        prepared.view = octave_mplapack::MpcElementwiseOperand::from_complex_matrix (
+          octave_mplapack_mpc_matrix_internal::checked_value (
+            prepared.payload).storage ());
+      return prepared;
+    }
+
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "complex element-wise arithmetic supports mp and double operands");
+  if (value.is_real_scalar () || value.is_complex_scalar ())
+    {
+      const Complex scalar = value.complex_value ();
+      prepared.scalar_owned.emplace (scalar.real (), scalar.imag (),
+                                     operation_precision);
+      prepared.view
+        = octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+          *prepared.scalar_owned);
+      return prepared;
+    }
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "only two-dimensional matrix operands are supported");
+  prepared.matrix_owned.emplace (
+    make_complex_double_matrix_storage (value, operation_precision));
+  prepared.view
+    = octave_mplapack::MpcElementwiseOperand::from_complex_matrix (
+      *prepared.matrix_owned);
+  return prepared;
+}
+
+octave_value
+complex_scalar_binary_operation (const octave_value& lhs_value,
+                                 const octave_value& rhs_value,
+                                 ComplexScalarBinaryOperation operation)
+{
+  mpfr_prec_t operation_precision = 0;
+  if (is_mp_value (lhs_value))
+    operation_precision = arithmetic_mp_precision (lhs_value);
+  if (is_mp_value (rhs_value))
+    operation_precision = std::max (operation_precision,
+                                   arithmetic_mp_precision (rhs_value));
+  if (operation_precision == 0)
+    operation_precision = octave_mplapack::default_precision_bits ();
+
+  const auto native_operation = [&] ()
+  {
+    switch (operation)
+      {
+      case ComplexScalarBinaryOperation::add:
+        return octave_mplapack::MpcElementwiseBinaryOperation::add;
+      case ComplexScalarBinaryOperation::subtract:
+        return octave_mplapack::MpcElementwiseBinaryOperation::subtract;
+      case ComplexScalarBinaryOperation::multiply:
+        return octave_mplapack::MpcElementwiseBinaryOperation::multiply;
+      case ComplexScalarBinaryOperation::divide:
+        return octave_mplapack::MpcElementwiseBinaryOperation::divide;
+      case ComplexScalarBinaryOperation::power:
+        return octave_mplapack::MpcElementwiseBinaryOperation::power;
+      }
+    throw std::logic_error ("unknown complex element-wise operation");
+  } ();
+
+  try
+    {
+      auto lhs = prepare_complex_arithmetic_operand (lhs_value,
+                                                     operation_precision);
+      auto rhs = prepare_complex_arithmetic_operand (rhs_value,
+                                                     operation_precision);
+      return make_complex_inspection_result (
+        octave_mplapack::mpc_matrix_elementwise_binary (
+          lhs.view, rhs.view, native_operation));
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      const std::string message = exception.what ();
+      if (message.find ("nonconformant") != std::string::npos)
+        error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:UnsupportedOperand", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:ArithmeticError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+struct PreparedScriptLogicOperand
+{
+  std::optional<octave_mplapack::MpfrScalarStorage> real_scalar_owned;
+  std::optional<octave_mplapack::MpfrMatrixStorage> real_matrix_owned;
+  std::optional<octave_mplapack::MpfrComplexScalarStorage> complex_scalar_owned;
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> complex_matrix_owned;
+  octave_mplapack::MpfrElementwiseOperand real_view;
+  octave_mplapack::MpcElementwiseOperand complex_view;
+};
+
+octave_mplapack::MpfrMatrixStorage
+make_logic_real_matrix_storage (const octave_value& value,
+                                mpfr_prec_t precision)
+{
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "logical operands support only two-dimensional arrays");
+  const Matrix input = value.matrix_value ();
+  const std::size_t rows = checked_size_dimension (input.rows ());
+  const std::size_t columns = checked_size_dimension (input.columns ());
+  std::vector<double> values;
+  values.reserve (octave_mplapack::MpfrMatrixStorage::checked_element_count (
+    rows, columns));
+  for (octave_idx_type column = 0; column < input.columns (); ++column)
+    for (octave_idx_type row = 0; row < input.rows (); ++row)
+      values.push_back (input.xelem (row, column));
+  return octave_mplapack::MpfrMatrixStorage (rows, columns, precision, values);
+}
+
+octave_mplapack::MpfrComplexMatrixStorage
+make_logic_complex_matrix_storage (const octave_value& value,
+                                   mpfr_prec_t precision)
+{
+  if (value.ndims () != 2)
+    error_with_id ("mplapack:mp:MatrixUnsupported",
+                   "logical operands support only two-dimensional arrays");
+  const ComplexMatrix input = value.complex_matrix_value ();
+  const std::size_t rows = checked_size_dimension (input.rows ());
+  const std::size_t columns = checked_size_dimension (input.columns ());
+  std::vector<std::complex<double>> values;
+  values.reserve (octave_mplapack::MpfrComplexMatrixStorage::
+                  checked_element_count (rows, columns));
+  for (octave_idx_type column = 0; column < input.columns (); ++column)
+    for (octave_idx_type row = 0; row < input.rows (); ++row)
+      values.emplace_back (input.xelem (row, column).real (),
+                           input.xelem (row, column).imag ());
+  return octave_mplapack::MpfrComplexMatrixStorage (
+    rows, columns, precision, values);
+}
+
+PreparedScriptLogicOperand
+prepare_script_logic_operand (const octave_value& value,
+                              mpfr_prec_t precision,
+                              bool complex_mode)
+{
+  PreparedScriptLogicOperand prepared;
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (complex_mode)
+        {
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            prepared.complex_view
+              = octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+                  octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ());
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            prepared.complex_view
+              = octave_mplapack::MpcElementwiseOperand::from_complex_matrix (
+                  octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                    .storage ());
+          else if (payload.type_id ()
+                   == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+            prepared.complex_view
+              = octave_mplapack::MpcElementwiseOperand::from_real_scalar (
+                  octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                    .storage ());
+          else
+            prepared.complex_view
+              = octave_mplapack::MpcElementwiseOperand::from_real_matrix (
+                  octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                    .storage ());
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        prepared.real_view = octave_mplapack::MpfrElementwiseOperand::from_scalar (
+          octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ());
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        prepared.real_view = octave_mplapack::MpfrElementwiseOperand::from_matrix (
+          octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ());
+      else
+        error_with_id ("mplapack:mp:UnsupportedOperand",
+                       "real logical operation cannot consume a complex mp value");
+      return prepared;
+    }
+
+  if ((! value.isnumeric () && ! value.islogical ()) || value.is_string ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "logical operations support mp and builtin numeric operands");
+
+  if (! complex_mode && value.isreal ())
+    {
+      if (value.is_real_scalar ())
+        {
+          prepared.real_scalar_owned.emplace (value.double_value (), precision);
+          prepared.real_view
+            = octave_mplapack::MpfrElementwiseOperand::from_scalar (
+                *prepared.real_scalar_owned);
+        }
+      else
+        {
+          prepared.real_matrix_owned.emplace (
+            make_logic_real_matrix_storage (value, precision));
+          prepared.real_view
+            = octave_mplapack::MpfrElementwiseOperand::from_matrix (
+                *prepared.real_matrix_owned);
+        }
+      return prepared;
+    }
+
+  if (value.is_real_scalar ())
+    {
+      prepared.real_scalar_owned.emplace (value.double_value (), precision);
+      prepared.complex_view
+        = octave_mplapack::MpcElementwiseOperand::from_real_scalar (
+            *prepared.real_scalar_owned);
+    }
+  else if (value.isreal ())
+    {
+      prepared.real_matrix_owned.emplace (
+        make_logic_real_matrix_storage (value, precision));
+      prepared.complex_view
+        = octave_mplapack::MpcElementwiseOperand::from_real_matrix (
+            *prepared.real_matrix_owned);
+    }
+  else if (value.is_complex_scalar ())
+    {
+      const Complex input = value.complex_value ();
+      prepared.complex_scalar_owned.emplace (
+        input.real (), input.imag (), precision);
+      prepared.complex_view
+        = octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+            *prepared.complex_scalar_owned);
+    }
+  else
+    {
+      prepared.complex_matrix_owned.emplace (
+        make_logic_complex_matrix_storage (value, precision));
+      prepared.complex_view
+        = octave_mplapack::MpcElementwiseOperand::from_complex_matrix (
+            *prepared.complex_matrix_owned);
+    }
+  return prepared;
+}
+
+octave_value
+script_logical_result (const octave_mplapack::MpScriptLogicalResult& result)
+{
+  if (result.rows == 1 && result.columns == 1)
+    return octave_value (result.values.at (0) != 0);
+
+  boolMatrix logicals (checked_octave_dimension_for_inspection (result.rows),
+                       checked_octave_dimension_for_inspection (result.columns));
+  for (std::size_t column = 0; column < result.columns; ++column)
+    for (std::size_t row = 0; row < result.rows; ++row)
+      logicals (static_cast<octave_idx_type> (row),
+               static_cast<octave_idx_type> (column))
+        = result.values.at (row + column * result.rows) != 0;
+  return octave_value (logicals);
+}
+
+mpfr_prec_t
+script_logic_precision (const octave_value& lhs, const octave_value& rhs)
+{
+  mpfr_prec_t precision = 0;
+  if (is_mp_value (lhs))
+    precision = arithmetic_mp_precision (lhs);
+  if (is_mp_value (rhs))
+    precision = std::max (precision, arithmetic_mp_precision (rhs));
+  return precision == 0 ? octave_mplapack::default_precision_bits () : precision;
+}
+
+octave_value
+script_compare_operation (
+  const octave_value& lhs_value, const octave_value& rhs_value,
+  octave_mplapack::MpScriptComparisonOperation operation)
+{
+  if (! is_mp_value (lhs_value) && ! is_mp_value (rhs_value))
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "comparison requires at least one mp operand");
+  const bool complex_mode = is_complex_arithmetic_operand (lhs_value)
+                            || is_complex_arithmetic_operand (rhs_value);
+  const mpfr_prec_t precision = script_logic_precision (lhs_value, rhs_value);
+  try
+    {
+      auto lhs = prepare_script_logic_operand (lhs_value, precision,
+                                               complex_mode);
+      auto rhs = prepare_script_logic_operand (rhs_value, precision,
+                                               complex_mode);
+      const auto result = complex_mode
+        ? octave_mplapack::mpc_script_compare (lhs.complex_view,
+                                                rhs.complex_view, operation)
+        : octave_mplapack::mpfr_script_compare (lhs.real_view,
+                                                 rhs.real_view, operation);
+      return script_logical_result (result);
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:ComparisonUnsupported", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:ComparisonError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+script_logical_operation (
+  const octave_value& lhs_value, const octave_value& rhs_value,
+  octave_mplapack::MpScriptLogicalOperation operation)
+{
+  if (! is_mp_value (lhs_value) && ! is_mp_value (rhs_value))
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "logical operation requires at least one mp operand");
+  const bool complex_mode = is_complex_arithmetic_operand (lhs_value)
+                            || is_complex_arithmetic_operand (rhs_value);
+  const mpfr_prec_t precision = script_logic_precision (lhs_value, rhs_value);
+  try
+    {
+      auto lhs = prepare_script_logic_operand (lhs_value, precision,
+                                               complex_mode);
+      auto rhs = prepare_script_logic_operand (rhs_value, precision,
+                                               complex_mode);
+      const auto result = complex_mode
+        ? octave_mplapack::mpc_script_logical_binary (
+            lhs.complex_view, rhs.complex_view, operation)
+        : octave_mplapack::mpfr_script_logical_binary (
+            lhs.real_view, rhs.real_view, operation);
+      return script_logical_result (result);
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:LogicalUnsupported", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:LogicalError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+script_logical_not_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "logical negation requires an mp operand");
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  try
+    {
+      auto operand = prepare_script_logic_operand (
+        value, precision, is_complex_payload (value));
+      const auto source = is_complex_payload (value)
+        ? octave_mplapack::mpc_script_logical (operand.complex_view)
+        : octave_mplapack::mpfr_script_logical (operand.real_view);
+      auto result = source;
+      for (auto& entry : result.values)
+        entry = entry == 0;
+      return script_logical_result (result);
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:LogicalError", "%s", exception.what ());
+    }
+  return octave_value ();
 }
 
 enum class ScalarBinaryOperation
@@ -1437,8 +3326,37 @@ enum class ScalarBinaryOperation
   add,
   subtract,
   multiply,
-  divide
+  divide,
+  power
 };
+
+bool
+mpfr_elementwise_power_requires_complex (
+  const octave_mplapack::MpfrElementwiseOperand& lhs,
+  const octave_mplapack::MpfrElementwiseOperand& rhs)
+{
+  const std::size_t result_rows
+    = std::max (lhs.rows (), rhs.rows ());
+  const std::size_t result_columns
+    = std::max (lhs.columns (), rhs.columns ());
+  if ((lhs.rows () != rhs.rows () && lhs.rows () != 1 && rhs.rows () != 1)
+      || (lhs.columns () != rhs.columns () && lhs.columns () != 1
+          && rhs.columns () != 1))
+    throw std::invalid_argument ("nonconformant dimensions for power");
+
+  for (std::size_t column = 0; column < result_columns; ++column)
+    for (std::size_t row = 0; row < result_rows; ++row)
+      {
+        const auto& base = lhs.at (lhs.rows () == 1 ? 0 : row,
+                                   lhs.columns () == 1 ? 0 : column);
+        const auto& exponent = rhs.at (rhs.rows () == 1 ? 0 : row,
+                                       rhs.columns () == 1 ? 0 : column);
+        if (octave_mplapack::mpfr_script_power_requires_complex (
+              base.mpfr_data (), exponent.mpfr_data ()))
+          return true;
+      }
+  return false;
+}
 
 octave_mplapack::MpfrScalarStorage
 apply_binary_operation (ScalarBinaryOperation operation,
@@ -1455,6 +3373,8 @@ apply_binary_operation (ScalarBinaryOperation operation,
       return lhs.multiply (rhs);
     case ScalarBinaryOperation::divide:
       return lhs.divide (rhs);
+    case ScalarBinaryOperation::power:
+      return lhs.power (rhs);
     }
 
   throw std::logic_error ("unknown scalar binary operation");
@@ -1465,6 +3385,30 @@ scalar_binary_operation (const octave_value& lhs_value,
                          const octave_value& rhs_value,
                          ScalarBinaryOperation operation)
 {
+  if (is_complex_arithmetic_operand (lhs_value)
+      || is_complex_arithmetic_operand (rhs_value))
+    {
+      const auto complex_operation = [&] ()
+      {
+        switch (operation)
+          {
+          case ScalarBinaryOperation::add:
+            return ComplexScalarBinaryOperation::add;
+          case ScalarBinaryOperation::subtract:
+            return ComplexScalarBinaryOperation::subtract;
+          case ScalarBinaryOperation::multiply:
+            return ComplexScalarBinaryOperation::multiply;
+          case ScalarBinaryOperation::divide:
+            return ComplexScalarBinaryOperation::divide;
+          case ScalarBinaryOperation::power:
+            return ComplexScalarBinaryOperation::power;
+          }
+        throw std::logic_error ("unknown complex element-wise operation");
+      } ();
+      return complex_scalar_binary_operation (lhs_value, rhs_value,
+                                              complex_operation);
+    }
+
   const bool lhs_is_mp = is_mp_value (lhs_value);
   const bool rhs_is_mp = is_mp_value (rhs_value);
 
@@ -1490,6 +3434,8 @@ scalar_binary_operation (const octave_value& lhs_value,
               return octave_mplapack::MpfrElementwiseBinaryOperation::multiply;
             case ScalarBinaryOperation::divide:
               return octave_mplapack::MpfrElementwiseBinaryOperation::divide;
+            case ScalarBinaryOperation::power:
+              return octave_mplapack::MpfrElementwiseBinaryOperation::power;
             }
           throw std::logic_error ("unknown element-wise operation");
         } ();
@@ -1600,6 +3546,10 @@ scalar_binary_operation (const octave_value& lhs_value,
           };
           bind (lhs);
           bind (rhs);
+          if (operation == ScalarBinaryOperation::power
+              && mpfr_elementwise_power_requires_complex (lhs.view, rhs.view))
+            return complex_scalar_binary_operation (lhs_value, rhs_value,
+                                                    ComplexScalarBinaryOperation::power);
           auto result = octave_mplapack::mpfr_matrix_elementwise_binary (
             lhs.view, rhs.view, native_operation);
           if (result.rows () == 1 && result.columns () == 1)
@@ -1628,6 +3578,50 @@ scalar_binary_operation (const octave_value& lhs_value,
                          exception.what ());
         }
       return octave_value ();
+    }
+
+  if (operation == ScalarBinaryOperation::power)
+    {
+      if (lhs_is_mp && rhs_is_mp)
+        {
+          const auto& lhs
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                require_arithmetic_mp_payload (lhs_value)).storage ();
+          const auto& rhs
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                require_arithmetic_mp_payload (rhs_value)).storage ();
+          if (octave_mplapack::mpfr_script_power_requires_complex (
+                lhs.native_value ().mpfr_data (),
+                rhs.native_value ().mpfr_data ()))
+            return complex_scalar_binary_operation (
+              lhs_value, rhs_value, ComplexScalarBinaryOperation::power);
+        }
+      else if (lhs_is_mp)
+        {
+          const auto& lhs
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                require_arithmetic_mp_payload (lhs_value)).storage ();
+          const octave_mplapack::MpfrScalarStorage rhs (
+            require_arithmetic_double (rhs_value), lhs.precision_bits ());
+          if (octave_mplapack::mpfr_script_power_requires_complex (
+                lhs.native_value ().mpfr_data (),
+                rhs.native_value ().mpfr_data ()))
+            return complex_scalar_binary_operation (
+              lhs_value, rhs_value, ComplexScalarBinaryOperation::power);
+        }
+      else if (rhs_is_mp)
+        {
+          const auto& rhs
+            = octave_mplapack_mpfr_scalar_internal::checked_value (
+                require_arithmetic_mp_payload (rhs_value)).storage ();
+          const octave_mplapack::MpfrScalarStorage lhs (
+            require_arithmetic_double (lhs_value), rhs.precision_bits ());
+          if (octave_mplapack::mpfr_script_power_requires_complex (
+                lhs.native_value ().mpfr_data (),
+                rhs.native_value ().mpfr_data ()))
+            return complex_scalar_binary_operation (
+              lhs_value, rhs_value, ComplexScalarBinaryOperation::power);
+        }
     }
 
   if (! lhs_is_mp && ! rhs_is_mp)
@@ -1702,6 +3696,880 @@ scalar_binary_operation (const octave_value& lhs_value,
 }
 
 octave_value
+complex_mtimes_operation (const octave_value& lhs_value,
+                          const octave_value& rhs_value)
+{
+  mpfr_prec_t operation_precision = 0;
+  if (is_mp_value (lhs_value))
+    operation_precision = arithmetic_mp_precision (lhs_value);
+  if (is_mp_value (rhs_value))
+    operation_precision = std::max (operation_precision,
+                                   arithmetic_mp_precision (rhs_value));
+  if (operation_precision == 0)
+    operation_precision = octave_mplapack::default_precision_bits ();
+
+  struct PreparedOperand
+  {
+    std::optional<octave_mplapack::MpfrComplexScalarStorage> scalar;
+    std::optional<octave_mplapack::MpfrComplexMatrixStorage> matrix;
+  };
+
+  const auto prepare = [operation_precision] (const octave_value& value)
+  {
+    PreparedOperand prepared;
+    if (is_mp_value (value))
+      {
+        const octave_value payload = require_mp_payload (value);
+        if (payload.type_id ()
+            == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+          prepared.scalar.emplace (
+            octave_mplapack::mplapack_mpc_scalar_from_real (
+              octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage (), operation_precision));
+        else if (payload.type_id ()
+                 == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+          prepared.matrix.emplace (
+            octave_mplapack::mplapack_mpc_matrix_from_real (
+              octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                .storage (), operation_precision));
+        else if (payload.type_id ()
+                 == octave_mplapack_mpc_scalar_internal::static_type_id ())
+          prepared.scalar.emplace (
+            octave_mplapack::mplapack_mpc_scalar_copy_at_precision (
+              octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage (), operation_precision));
+        else
+          prepared.matrix.emplace (
+            octave_mplapack::mplapack_mpc_matrix_copy_at_precision (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage (), operation_precision));
+        return prepared;
+      }
+
+    if (! value.is_double_type ())
+      error_with_id ("mplapack:mp:UnsupportedOperand",
+                     "complex matrix multiplication supports mp and double operands");
+    if (value.is_real_scalar () || value.is_complex_scalar ())
+      {
+        const Complex scalar = value.complex_value ();
+        prepared.scalar.emplace (scalar.real (), scalar.imag (),
+                                 operation_precision);
+      }
+    else
+      prepared.matrix.emplace (make_complex_double_matrix_storage (
+        value, operation_precision));
+    return prepared;
+  };
+
+  try
+    {
+      const PreparedOperand lhs = prepare (lhs_value);
+      const PreparedOperand rhs = prepare (rhs_value);
+      if (lhs.matrix && rhs.matrix)
+        return make_complex_inspection_result (
+          octave_mplapack::mplapack_mpc_matrix_multiply (*lhs.matrix,
+                                                         *rhs.matrix));
+      if (lhs.matrix && rhs.scalar)
+        return make_complex_inspection_result (
+          octave_mplapack::mplapack_mpc_matrix_scale (*lhs.matrix,
+                                                      *rhs.scalar));
+      if (lhs.scalar && rhs.matrix)
+        return make_complex_inspection_result (
+          octave_mplapack::mplapack_mpc_matrix_scale (*rhs.matrix,
+                                                      *lhs.scalar));
+      return make_internal_complex_scalar (
+        octave_mplapack::mplapack_mpc_scalar_multiply (*lhs.scalar,
+                                                       *rhs.scalar));
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      const std::string message = exception.what ();
+      if (message.find ("dimension mismatch") != std::string::npos)
+        error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:UnsupportedOperand", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:MtimesError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+complex_mldivide_operation (const octave_value& lhs_value,
+                            const octave_value& rhs_value,
+                            bool force_rank_revealing = false)
+{
+  mpfr_prec_t operation_precision = 0;
+  if (is_mp_value (lhs_value))
+    operation_precision = arithmetic_mp_precision (lhs_value);
+  if (is_mp_value (rhs_value))
+    operation_precision = std::max (operation_precision,
+                                   arithmetic_mp_precision (rhs_value));
+  if (operation_precision == 0)
+    operation_precision = octave_mplapack::default_precision_bits ();
+
+  struct PreparedOperand
+  {
+    std::optional<octave_mplapack::MpfrComplexScalarStorage> scalar;
+    std::optional<octave_mplapack::MpfrComplexMatrixStorage> matrix;
+  };
+
+  const auto prepare = [operation_precision] (const octave_value& value)
+  {
+    PreparedOperand prepared;
+    if (is_mp_value (value))
+      {
+        const octave_value payload = require_mp_payload (value);
+        if (payload.type_id ()
+            == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+          prepared.scalar.emplace (
+            octave_mplapack::mplapack_mpc_scalar_from_real (
+              octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage (), operation_precision));
+        else if (payload.type_id ()
+                 == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+          prepared.matrix.emplace (
+            octave_mplapack::mplapack_mpc_matrix_from_real (
+              octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                .storage (), operation_precision));
+        else if (payload.type_id ()
+                 == octave_mplapack_mpc_scalar_internal::static_type_id ())
+          prepared.scalar.emplace (
+            octave_mplapack::mplapack_mpc_scalar_copy_at_precision (
+              octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage (), operation_precision));
+        else
+          prepared.matrix.emplace (
+            octave_mplapack::mplapack_mpc_matrix_copy_at_precision (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage (), operation_precision));
+        return prepared;
+      }
+
+    if (! value.is_double_type ())
+      error_with_id ("mplapack:mp:UnsupportedOperand",
+                     "complex left division supports mp and double operands");
+    if (value.is_real_scalar () || value.is_complex_scalar ())
+      {
+        const Complex scalar = value.complex_value ();
+        prepared.scalar.emplace (scalar.real (), scalar.imag (),
+                                 operation_precision);
+      }
+    else
+      prepared.matrix.emplace (make_complex_double_matrix_storage (
+        value, operation_precision));
+    return prepared;
+  };
+
+  try
+    {
+      const PreparedOperand lhs = prepare (lhs_value);
+      const PreparedOperand rhs = prepare (rhs_value);
+
+      if (lhs.scalar)
+        {
+          if (rhs.matrix)
+            return make_complex_inspection_result (
+              octave_mplapack::mpc_matrix_elementwise_binary (
+                octave_mplapack::MpcElementwiseOperand::from_complex_matrix (
+                  *rhs.matrix),
+                octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+                  *lhs.scalar),
+                octave_mplapack::MpcElementwiseBinaryOperation::divide));
+
+          return make_complex_inspection_result (
+            octave_mplapack::mpc_matrix_elementwise_binary (
+              octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+                *rhs.scalar),
+              octave_mplapack::MpcElementwiseOperand::from_complex_scalar (
+                *lhs.scalar),
+              octave_mplapack::MpcElementwiseBinaryOperation::divide));
+        }
+
+      std::optional<octave_mplapack::MpfrComplexMatrixStorage> rhs_matrix;
+      if (rhs.matrix)
+        rhs_matrix.emplace (*rhs.matrix);
+      else
+        {
+          if (lhs.matrix->rows () != 1)
+            throw std::invalid_argument (
+              "matrix left division requires a dense right-hand matrix");
+          rhs_matrix.emplace (1, 1, operation_precision);
+          mpc_set (rhs_matrix->at (0, 0).mpc_data (),
+                   rhs.scalar->native_value ().mpc_data (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+        }
+
+      if (lhs.matrix->rows () == lhs.matrix->columns ()
+          && ! force_rank_revealing)
+        return make_complex_inspection_result (
+          octave_mplapack::mplapack_mpc_matrix_solve (*lhs.matrix,
+                                                      *rhs_matrix));
+      return make_complex_inspection_result (
+        octave_mplapack::mplapack_mpc_matrix_rank_solve (
+          *lhs.matrix, *rhs_matrix).solution);
+    }
+  catch (const octave_mplapack::MpcCgelsyError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcCgelsyError::Kind::convergence)
+        error_with_id ("mplapack:mp:ConvergenceFailure",
+                       "MPLAPACK Cgelsy failed to converge (info %d)",
+                       static_cast<int> (exception.info ()));
+      if (exception.kind ()
+          == octave_mplapack::MpcCgelsyError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:RankRevealingError",
+                       "MPLAPACK Cgelsy rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:RankRevealingInternalError", "%s",
+                     exception.what ());
+    }
+  catch (const octave_mplapack::MpcCgesvError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcCgesvError::Kind::singular)
+        error_with_id ("mplapack:mp:SingularMatrix",
+                       "mp left division: complex coefficient matrix is singular");
+      error_with_id ("mplapack:mp:CgesvError",
+                     "MPLAPACK Cgesv rejected argument %d",
+                     -static_cast<int> (exception.info ()));
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      const std::string message = exception.what ();
+      if (message.find ("square") != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      if (message.find ("dimensions") != std::string::npos)
+        error_with_id ("mplapack:mp:DimensionMismatch", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:UnsupportedOperand", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CgesvError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_mplapack::MpfrNormRequest
+parse_norm_request (const octave_value& value)
+{
+  octave_mplapack::MpfrNormRequest request;
+  if (value.is_string ())
+    {
+      const std::string option = require_string (value, "norm option");
+      if (option != "fro")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "norm string option must be \"fro\"");
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::frobenius;
+      return request;
+    }
+
+  if (! value.is_real_scalar () || value.islogical ())
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "norm p must be a real scalar or \"fro\"");
+
+  const double exponent = value.double_value ();
+  request.exponent = exponent;
+  if (std::isnan (exponent))
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "norm p must not be NaN");
+  if (std::isinf (exponent))
+    {
+      request.kind = exponent > 0
+                       ? octave_mplapack::MpfrNormRequest::Kind::infinity
+                       : octave_mplapack::MpfrNormRequest::Kind::negative_infinity;
+      return request;
+    }
+  if (exponent == 0.0)
+    {
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::zero;
+      return request;
+    }
+  if (exponent == 1.0)
+    {
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::one;
+      return request;
+    }
+  if (exponent == 2.0)
+    {
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::two;
+      return request;
+    }
+  if (exponent > 0.0)
+    {
+      request.kind = octave_mplapack::MpfrNormRequest::Kind::finite;
+      return request;
+    }
+  error_with_id ("mplapack:mp:InvalidOption",
+                 "norm p must be nonnegative, Inf, or -Inf");
+  return request;
+}
+
+octave_value
+mp_norm_operation (const octave_value& value, const octave_value& p)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "norm expects one mp value");
+
+  const auto request = parse_norm_request (p);
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+          const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            {
+              const auto& scalar
+                = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ();
+              scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+              mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                       scalar.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+              input = &*scalar_matrix;
+            }
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                       .storage ();
+          else
+            throw std::invalid_argument ("norm expects a valid complex mp value");
+
+          return make_internal_scalar (
+            octave_mplapack::mplapack_mpc_norm (*input, request));
+        }
+
+      std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                    scalar.native_value ().mpfr_data (), MPFR_RNDN);
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                   .storage ();
+      else
+        throw std::invalid_argument ("norm expects a valid real mp value");
+
+      return make_internal_scalar (
+        octave_mplapack::mplapack_mpfr_norm (*input, request));
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidOption", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:NormError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+mp_det_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "det expects one mp value");
+
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          std::optional<octave_mplapack::MpfrComplexMatrixStorage>
+            scalar_matrix;
+          const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            {
+              const auto& scalar
+                = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ();
+              scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+              mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                       scalar.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+              input = &*scalar_matrix;
+            }
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                       .storage ();
+          else
+            throw std::invalid_argument ("det expects a valid complex mp value");
+          return make_internal_complex_scalar (
+            octave_mplapack::mplapack_mpc_matrix_det (*input));
+        }
+
+      std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                    scalar.native_value ().mpfr_data (), MPFR_RNDN);
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                   .storage ();
+      else
+        throw std::invalid_argument ("det expects a valid real mp value");
+      return make_internal_scalar (
+        octave_mplapack::mplapack_mpfr_matrix_det (*input));
+    }
+  catch (const octave_mplapack::MpfrDetInvError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrDetInvError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:DetError",
+                       "MPLAPACK Rgetrf rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:DetError", "%s", exception.what ());
+    }
+  catch (const octave_mplapack::MpcDetInvError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcDetInvError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:DetError",
+                       "MPLAPACK Cgetrf rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:DetError", "%s", exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      if (std::string (exception.what ()).find ("square")
+          != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:DetError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+mp_rank_operation (const octave_value& value,
+                   const octave_value *tolerance_value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "rank expects one real or complex mp matrix");
+
+  std::optional<octave_mplapack::MpfrScalarStorage> tolerance;
+  if (tolerance_value)
+    {
+      const octave_value& supplied = *tolerance_value;
+      if (is_mp_value (supplied))
+        {
+          const octave_value payload = require_mp_payload (supplied);
+          if (payload.type_id ()
+              != octave_mplapack_mpfr_scalar_internal::static_type_id ())
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "rank tolerance must be a real scalar");
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          tolerance.emplace (scalar.native_value ());
+        }
+      else if (supplied.isnumeric () && ! supplied.islogical ()
+               && supplied.isreal () && supplied.is_real_scalar ())
+        tolerance.emplace (supplied.double_value (),
+                           octave_mplapack::default_precision_bits ());
+      else
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "rank tolerance must be a real scalar");
+    }
+
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          std::optional<octave_mplapack::MpfrComplexMatrixStorage>
+            scalar_matrix;
+          const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            {
+              const auto& scalar
+                = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ();
+              scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+              mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                       scalar.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+              input = &*scalar_matrix;
+            }
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                       .storage ();
+          else
+            throw std::invalid_argument ("rank expects a valid complex mp value");
+          const auto result = octave_mplapack::mplapack_mpc_matrix_rank (
+            *input, tolerance ? &*tolerance : nullptr);
+          return octave_value (static_cast<double> (result));
+        }
+
+      std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                    scalar.native_value ().mpfr_data (), MPFR_RNDN);
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                   .storage ();
+      else
+        throw std::invalid_argument ("rank expects a valid real mp value");
+      const auto result = octave_mplapack::mplapack_mpfr_matrix_rank (
+        *input, tolerance ? &*tolerance : nullptr);
+      return octave_value (static_cast<double> (result));
+    }
+  catch (const octave_mplapack::MpfrRankConditionError& exception)
+    {
+      error_with_id ("mplapack:mp:RankError", "%s", exception.what ());
+    }
+  catch (const octave_mplapack::MpcRankConditionError& exception)
+    {
+      error_with_id ("mplapack:mp:RankError", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:RankError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_mplapack::MpfrConditionKind
+require_condition_kind (const std::string& text)
+{
+  if (text == "one")
+    return octave_mplapack::MpfrConditionKind::one;
+  if (text == "two")
+    return octave_mplapack::MpfrConditionKind::two;
+  if (text == "infinity")
+    return octave_mplapack::MpfrConditionKind::infinity;
+  if (text == "frobenius")
+    return octave_mplapack::MpfrConditionKind::frobenius;
+  error_with_id ("mplapack:mp:InvalidOption", "unsupported condition norm");
+  return octave_mplapack::MpfrConditionKind::two;
+}
+
+octave_value
+mp_condition_operation (const octave_value& value,
+                        octave_mplapack::MpfrConditionKind kind)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "cond expects one real or complex mp matrix");
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          std::optional<octave_mplapack::MpfrComplexMatrixStorage>
+            scalar_matrix;
+          const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            {
+              const auto& scalar
+                = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ();
+              scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+              mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                       scalar.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+              input = &*scalar_matrix;
+            }
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                       .storage ();
+          else
+            throw std::invalid_argument ("cond expects a valid complex mp value");
+          return make_internal_scalar (
+            octave_mplapack::mplapack_mpc_matrix_condition (*input, kind));
+        }
+
+      std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                    scalar.native_value ().mpfr_data (), MPFR_RNDN);
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                   .storage ();
+      else
+        throw std::invalid_argument ("cond expects a valid real mp value");
+      return make_internal_scalar (
+        octave_mplapack::mplapack_mpfr_matrix_condition (*input, kind));
+    }
+  catch (const octave_mplapack::MpfrRankConditionError& exception)
+    {
+      error_with_id ("mplapack:mp:ConditionError", "%s", exception.what ());
+    }
+  catch (const octave_mplapack::MpcRankConditionError& exception)
+    {
+      error_with_id ("mplapack:mp:ConditionError", "%s", exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      if (std::string (exception.what ()).find ("square")
+          != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:ConditionError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
+mp_rcond_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "rcond expects one real or complex mp matrix");
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          std::optional<octave_mplapack::MpfrComplexMatrixStorage>
+            scalar_matrix;
+          const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            {
+              const auto& scalar
+                = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ();
+              scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+              mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                       scalar.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+              input = &*scalar_matrix;
+            }
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                       .storage ();
+          else
+            throw std::invalid_argument ("rcond expects a valid complex mp value");
+          return make_internal_scalar (
+            octave_mplapack::mplapack_mpc_matrix_rcond (*input));
+        }
+
+      std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                    scalar.native_value ().mpfr_data (), MPFR_RNDN);
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                   .storage ();
+      else
+        throw std::invalid_argument ("rcond expects a valid real mp value");
+      return make_internal_scalar (
+        octave_mplapack::mplapack_mpfr_matrix_rcond (*input));
+    }
+  catch (const octave_mplapack::MpfrRankConditionError& exception)
+    {
+      error_with_id ("mplapack:mp:RcondError", "%s", exception.what ());
+    }
+  catch (const octave_mplapack::MpcRankConditionError& exception)
+    {
+      error_with_id ("mplapack:mp:RcondError", "%s", exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      if (std::string (exception.what ()).find ("square")
+          != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:RcondError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value_list
+mp_det_rcond_operation (const octave_value& value)
+{
+  return ovl (mp_det_operation (value), mp_rcond_operation (value));
+}
+
+octave_value
+mp_inverse_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "inv expects one mp value");
+
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          std::optional<octave_mplapack::MpfrComplexMatrixStorage>
+            scalar_matrix;
+          const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            {
+              const auto& scalar
+                = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                    .storage ();
+              scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+              mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                       scalar.native_value ().mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+              input = &*scalar_matrix;
+            }
+          else if (payload.type_id ()
+                   == octave_mplapack_mpc_matrix_internal::static_type_id ())
+            input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                       .storage ();
+          else
+            throw std::invalid_argument ("inv expects a valid complex mp value");
+          return make_complex_inspection_result (
+            octave_mplapack::mplapack_mpc_matrix_inverse (*input));
+        }
+
+      std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                    scalar.native_value ().mpfr_data (), MPFR_RNDN);
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                   .storage ();
+      else
+        throw std::invalid_argument ("inv expects a valid real mp value");
+      return make_inspection_result (
+        octave_mplapack::mplapack_mpfr_matrix_inverse (*input));
+    }
+  catch (const octave_mplapack::MpfrDetInvError& exception)
+    {
+      if (exception.kind () == octave_mplapack::MpfrDetInvError::Kind::singular)
+        error_with_id ("mplapack:mp:SingularMatrix",
+                       "inv: input matrix is singular");
+      if (exception.kind ()
+          == octave_mplapack::MpfrDetInvError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:InvError",
+                       "MPLAPACK Rgetri rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:InvError", "%s", exception.what ());
+    }
+  catch (const octave_mplapack::MpcDetInvError& exception)
+    {
+      if (exception.kind () == octave_mplapack::MpcDetInvError::Kind::singular)
+        error_with_id ("mplapack:mp:SingularMatrix",
+                       "inv: input matrix is singular");
+      if (exception.kind ()
+          == octave_mplapack::MpcDetInvError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:InvError",
+                       "MPLAPACK Cgetri rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:InvError", "%s", exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      if (std::string (exception.what ()).find ("square")
+          != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:InvError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value
 make_mtimes_result (octave_mplapack::MpfrMatrixStorage storage)
 {
   if (storage.rows () == 1 && storage.columns () == 1)
@@ -1720,11 +4588,77 @@ make_mldivide_result (octave_mplapack::MpfrMatrixStorage storage)
 }
 
 octave_value_list
+complex_cholesky_operation (const octave_value& value, bool lower)
+{
+  const octave_value payload = require_mp_payload (value);
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+               scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "chol expects one complex mp value");
+
+  try
+    {
+      const auto factor
+        = octave_mplapack::mplapack_mpc_matrix_cholesky (*input, lower);
+      return ovl (make_complex_inspection_result (factor.factor),
+                  octave_value (static_cast<double> (factor.info)));
+    }
+  catch (const octave_mplapack::MpcCpotrfError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcCpotrfError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:CpotrfError",
+                       "MPLAPACK Cpotrf rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:CpotrfInternalError", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      if (std::string (exception.what ()).find ("square")
+          != std::string::npos)
+        error_with_id ("mplapack:mp:NonSquareMatrix", "%s",
+                       exception.what ());
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CpotrfError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
 mp_cholesky_operation (const octave_value& value, bool lower)
 {
   if (! is_mp_value (value))
     error_with_id ("mplapack:mp:InvalidInput",
                    "chol expects one real mp value");
+
+  if (is_complex_payload (value))
+    return complex_cholesky_operation (value, lower);
 
   std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
   const octave_value payload = require_mp_payload (value);
@@ -1786,6 +4720,67 @@ mp_cholesky_operation (const octave_value& value, bool lower)
 }
 
 octave_value_list
+complex_qr_operation (const octave_value& value, bool economy, bool want_q)
+{
+  const octave_value payload = require_mp_payload (value);
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+               scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "qr expects one complex mp value");
+
+  try
+    {
+      const auto factors
+        = octave_mplapack::mplapack_mpc_matrix_qr (*input, economy, want_q);
+      const octave_value r = make_complex_inspection_result (factors.r);
+      if (! want_q)
+        return ovl (r);
+      return ovl (make_complex_inspection_result (factors.q), r);
+    }
+  catch (const octave_mplapack::MpcQrError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcQrError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:QrError",
+                       "MPLAPACK complex QR rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:QrInternalError", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:QrError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
 mp_qr_operation (const octave_value& value, bool economy, bool want_q)
 {
   if (! is_mp_value (value))
@@ -1823,6 +4818,846 @@ mp_qr_operation (const octave_value& value, bool economy, bool want_q)
       if (! want_q)
         return ovl (r);
       return ovl (make_mtimes_result (factors.q), r);
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:QrError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
+mp_svd_operation (const octave_value& value, bool economy, bool want_factors)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "svd expects one real or complex mp value");
+
+  const octave_value payload = require_mp_payload (value);
+  const bool complex = is_complex_payload (value);
+
+  if (complex)
+    {
+      std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                   scalar.native_value ().mpc_data (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                  .storage ();
+      else
+        error_with_id ("mplapack:mp:InvalidInput",
+                       "svd expects one complex mp value");
+
+      try
+        {
+          if (! want_factors)
+            return ovl (make_inspection_result (
+              octave_mplapack::mplapack_mpc_singular_values (*input)));
+
+          const auto factors
+            = octave_mplapack::mplapack_mpc_matrix_svd (*input, economy);
+          return ovl (make_complex_inspection_result (factors.u),
+                      make_inspection_result (factors.s),
+                      make_complex_inspection_result (factors.v));
+        }
+      catch (const octave_mplapack::MpcSvdError& exception)
+        {
+          if (exception.kind ()
+              == octave_mplapack::MpcSvdError::Kind::convergence)
+            error_with_id ("mplapack:mp:ConvergenceFailure",
+                           "MPLAPACK Cgesvd failed to converge (info %d)",
+                           static_cast<int> (exception.info ()));
+          if (exception.kind ()
+              == octave_mplapack::MpcSvdError::Kind::invalid_argument)
+            error_with_id ("mplapack:mp:SvdError",
+                           "MPLAPACK Cgesvd rejected argument %d",
+                           -static_cast<int> (exception.info ()));
+          error_with_id ("mplapack:mp:SvdError", "%s", exception.what ());
+        }
+      catch (const std::overflow_error& exception)
+        {
+          error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                         exception.what ());
+        }
+      catch (const std::invalid_argument& exception)
+        {
+          error_with_id ("mplapack:mp:InvalidInput", "%s",
+                         exception.what ());
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:SvdError", "%s", exception.what ());
+        }
+      return ovl ();
+    }
+
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                scalar.native_value ().mpfr_data (), MPFR_RNDN);
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "svd expects one real mp value");
+
+  try
+    {
+      if (! want_factors)
+        return ovl (make_inspection_result (
+          octave_mplapack::mplapack_mpfr_singular_values (*input)));
+
+      const auto factors
+        = octave_mplapack::mplapack_mpfr_matrix_svd (*input, economy);
+      return ovl (make_inspection_result (factors.u),
+                  make_inspection_result (factors.s),
+                  make_inspection_result (factors.v));
+    }
+  catch (const octave_mplapack::MpfrSvdError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpfrSvdError::Kind::convergence)
+        error_with_id ("mplapack:mp:ConvergenceFailure",
+                       "MPLAPACK Rgesvd failed to converge (info %d)",
+                       static_cast<int> (exception.info ()));
+      if (exception.kind ()
+          == octave_mplapack::MpfrSvdError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:SvdError",
+                       "MPLAPACK Rgesvd rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:SvdError", "%s", exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:SvdError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
+mp_structured_eig_operation (const octave_value& value,
+                             const std::string& output_mode)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "eig expects one real or complex mp value");
+  if (output_mode != "values" && output_mode != "matrix"
+      && output_mode != "vector" && output_mode != "diagonal"
+      && output_mode != "left" && output_mode != "left-vector")
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "eig output mode is invalid");
+
+  const octave_value payload = require_mp_payload (value);
+  if (is_complex_payload (value))
+    {
+      std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                   scalar.native_value ().mpc_data (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                  .storage ();
+      else
+        error_with_id ("mplapack:mp:InvalidInput",
+                       "eig expects one complex mp value");
+
+      try
+        {
+          const auto result
+            = octave_mplapack::mplapack_mpc_matrix_structured_eig (*input);
+          if (output_mode == "values")
+            return ovl (make_inspection_result (result.eigenvalues));
+          if (output_mode == "diagonal")
+            return ovl (make_inspection_result (result.diagonal));
+          const octave_value vectors
+            = make_complex_inspection_result (result.vectors);
+          const octave_value second
+            = output_mode == "vector" || output_mode == "left-vector"
+                ? make_inspection_result (result.eigenvalues)
+                : make_inspection_result (result.diagonal);
+          if (output_mode == "left" || output_mode == "left-vector")
+            return ovl (vectors, second, vectors);
+          return ovl (vectors, second);
+        }
+      catch (const octave_mplapack::MpcStructuredEigError& exception)
+        {
+          if (exception.info () < 0)
+            error_with_id ("mplapack:mp:EigError",
+                           "MPLAPACK Cheevd rejected argument %d",
+                           -exception.info ());
+          error_with_id ("mplapack:mp:ConvergenceFailure",
+                         "MPLAPACK Cheevd failed to converge (info %d)",
+                         exception.info ());
+        }
+      catch (const std::overflow_error& exception)
+        {
+          error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                         exception.what ());
+        }
+      catch (const std::invalid_argument& exception)
+        {
+          error_with_id ("mplapack:mp:InvalidInput", "%s",
+                         exception.what ());
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:EigError", "%s", exception.what ());
+        }
+      return ovl ();
+    }
+
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                scalar.native_value ().mpfr_data (), MPFR_RNDN);
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "eig expects one real mp value");
+
+  try
+    {
+      const auto result
+        = octave_mplapack::mplapack_mpfr_matrix_structured_eig (*input);
+      if (output_mode == "values")
+        return ovl (make_inspection_result (result.eigenvalues));
+      if (output_mode == "diagonal")
+        return ovl (make_inspection_result (result.diagonal));
+      const octave_value vectors = make_inspection_result (result.vectors);
+      const octave_value second
+        = output_mode == "vector" || output_mode == "left-vector"
+            ? make_inspection_result (result.eigenvalues)
+            : make_inspection_result (result.diagonal);
+      if (output_mode == "left" || output_mode == "left-vector")
+        return ovl (vectors, second, vectors);
+      return ovl (vectors, second);
+    }
+  catch (const octave_mplapack::MpfrStructuredEigError& exception)
+    {
+      if (exception.info () < 0)
+        error_with_id ("mplapack:mp:EigError",
+                       "MPLAPACK Rsyevd rejected argument %d",
+                       -exception.info ());
+      error_with_id ("mplapack:mp:ConvergenceFailure",
+                     "MPLAPACK Rsyevd failed to converge (info %d)",
+                     exception.info ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:EigError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+bool
+mp_value_has_structured_eig_shape (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (is_complex_payload (value))
+    {
+      std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                   scalar.native_value ().mpc_data (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                  .storage ();
+      else
+        return false;
+      return input->rows () == input->columns ()
+             && octave_mplapack::mplapack_mpc_matrix_is_exactly_hermitian (
+               *input);
+    }
+
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                scalar.native_value ().mpfr_data (), MPFR_RNDN);
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    return false;
+  return input->rows () == input->columns ()
+         && octave_mplapack::mplapack_mpfr_matrix_is_exactly_symmetric (*input);
+}
+
+octave_value_list
+mp_general_eig_operation (const octave_value& value,
+                          const std::string& output_mode, bool balance)
+{
+  if (output_mode != "values" && output_mode != "matrix"
+      && output_mode != "vector" && output_mode != "diagonal"
+      && output_mode != "left" && output_mode != "left-vector")
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "eig output mode is invalid");
+
+  const octave_value payload = require_mp_payload (value);
+  if (is_complex_payload (value))
+    {
+      std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+      const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const auto& scalar
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage ();
+          scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+          mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+                   scalar.native_value ().mpc_data (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          input = &*scalar_matrix;
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                  .storage ();
+      else
+        error_with_id ("mplapack:mp:InvalidInput",
+                       "eig expects one complex mp value");
+
+      try
+        {
+          const auto result
+            = octave_mplapack::mplapack_mpc_matrix_general_eig (*input,
+                                                                balance);
+          if (output_mode == "values")
+            return ovl (make_complex_inspection_result (result.eigenvalues));
+          if (output_mode == "diagonal")
+            return ovl (make_complex_inspection_result (result.diagonal));
+          const octave_value vectors
+            = make_complex_inspection_result (result.right_vectors);
+          const octave_value diagonal
+            = make_complex_inspection_result (result.diagonal);
+          if (output_mode == "vector")
+            return ovl (vectors,
+                        make_complex_inspection_result (result.eigenvalues));
+          if (output_mode == "left" || output_mode == "left-vector")
+            {
+              if (output_mode == "left-vector")
+                return ovl (vectors,
+                            make_complex_inspection_result (result.eigenvalues),
+                            make_complex_inspection_result (result.left_vectors));
+            return ovl (vectors, diagonal,
+                        make_complex_inspection_result (result.left_vectors));
+            }
+          return ovl (vectors, diagonal);
+        }
+      catch (const octave_mplapack::MpcGeneralEigError& exception)
+        {
+          if (exception.info () < 0)
+            error_with_id ("mplapack:mp:EigError",
+                           "MPLAPACK Cgeevx rejected argument %d",
+                           -exception.info ());
+          error_with_id ("mplapack:mp:ConvergenceFailure",
+                         "MPLAPACK Cgeevx failed to converge (info %d)",
+                         exception.info ());
+        }
+      catch (const std::overflow_error& exception)
+        {
+          error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                         exception.what ());
+        }
+      catch (const std::invalid_argument& exception)
+        {
+          error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:mp:EigError", "%s", exception.what ());
+        }
+      return ovl ();
+    }
+
+  std::optional<octave_mplapack::MpfrMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpfr_set (scalar_matrix->at (0, 0).mpfr_data (),
+                scalar.native_value ().mpfr_data (), MPFR_RNDN);
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput", "eig expects one real mp value");
+
+  try
+    {
+      const auto result
+        = octave_mplapack::mplapack_mpfr_matrix_general_eig (*input, balance);
+      if (output_mode == "values")
+        return ovl (make_complex_inspection_result (result.eigenvalues));
+      if (output_mode == "diagonal")
+        return ovl (make_complex_inspection_result (result.diagonal));
+      const octave_value vectors
+        = make_complex_inspection_result (result.right_vectors);
+      const octave_value diagonal
+        = make_complex_inspection_result (result.diagonal);
+      if (output_mode == "vector")
+        return ovl (vectors,
+                    make_complex_inspection_result (result.eigenvalues));
+      if (output_mode == "left" || output_mode == "left-vector")
+        {
+          if (output_mode == "left-vector")
+            return ovl (vectors,
+                        make_complex_inspection_result (result.eigenvalues),
+                        make_complex_inspection_result (result.left_vectors));
+          return ovl (vectors, diagonal,
+                      make_complex_inspection_result (result.left_vectors));
+        }
+      return ovl (vectors, diagonal);
+    }
+  catch (const octave_mplapack::MpfrGeneralEigError& exception)
+    {
+      if (exception.info () < 0)
+        error_with_id ("mplapack:mp:EigError",
+                       "MPLAPACK Rgeevx rejected argument %d",
+                       -exception.info ());
+      error_with_id ("mplapack:mp:ConvergenceFailure",
+                     "MPLAPACK Rgeevx failed to converge (info %d)",
+                     exception.info ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:EigError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
+generalized_eig_result_to_octave (
+  const octave_mplapack::MpGeneralizedEigResult& result,
+  const std::string& output_mode)
+{
+  using RealResult = octave_mplapack::MpGeneralizedRealDefiniteEigResult;
+  using ComplexResult = octave_mplapack::MpGeneralizedComplexDefiniteEigResult;
+  using QzResult = octave_mplapack::MpGeneralizedQzEigResult;
+
+  if (output_mode == "values")
+    return std::visit ([] (const auto& value) -> octave_value_list
+    {
+      using Result = std::decay_t<decltype (value)>;
+      if constexpr (std::is_same_v<Result, QzResult>)
+        return ovl (make_complex_inspection_result (value.eigenvalues));
+      else
+        return ovl (make_inspection_result (value.eigenvalues));
+    }, result);
+
+  if (output_mode == "diagonal")
+    return std::visit ([] (const auto& value) -> octave_value_list
+    {
+      using Result = std::decay_t<decltype (value)>;
+      if constexpr (std::is_same_v<Result, QzResult>)
+        return ovl (make_complex_inspection_result (value.diagonal));
+      else
+        return ovl (make_inspection_result (value.diagonal));
+    }, result);
+
+  return std::visit ([&] (const auto& value) -> octave_value_list
+  {
+    using Result = std::decay_t<decltype (value)>;
+    const bool vector_output = output_mode == "vector"
+                               || output_mode == "left-vector";
+    if constexpr (std::is_same_v<Result, RealResult>)
+      {
+        const octave_value vectors = make_inspection_result (value.right_vectors);
+        const octave_value second = vector_output
+          ? make_inspection_result (value.eigenvalues)
+          : make_inspection_result (value.diagonal);
+        if (output_mode == "left" || output_mode == "left-vector")
+          return ovl (vectors, second, make_inspection_result (value.left_vectors));
+        return ovl (vectors, second);
+      }
+    else if constexpr (std::is_same_v<Result, ComplexResult>)
+      {
+        const octave_value vectors
+          = make_complex_inspection_result (value.right_vectors);
+        const octave_value second = vector_output
+          ? make_inspection_result (value.eigenvalues)
+          : make_inspection_result (value.diagonal);
+        if (output_mode == "left" || output_mode == "left-vector")
+          return ovl (vectors, second,
+                      make_complex_inspection_result (value.left_vectors));
+        return ovl (vectors, second);
+      }
+    else
+      {
+        const octave_value vectors
+          = make_complex_inspection_result (value.right_vectors);
+        const octave_value second = vector_output
+          ? make_complex_inspection_result (value.eigenvalues)
+          : make_complex_inspection_result (value.diagonal);
+        if (output_mode == "left" || output_mode == "left-vector")
+          return ovl (vectors, second,
+                      make_complex_inspection_result (value.left_vectors));
+        return ovl (vectors, second);
+      }
+  }, result);
+}
+
+using GeneralizedMatrix = std::variant<
+  octave_mplapack::MpfrMatrixStorage,
+  octave_mplapack::MpfrComplexMatrixStorage>;
+
+GeneralizedMatrix
+generalized_matrix_payload (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ();
+      octave_mplapack::MpfrMatrixStorage matrix (1, 1, scalar.precision_bits ());
+      mpfr_set (matrix.at (0, 0).mpfr_data (), scalar.native_value ().mpfr_data (),
+                MPFR_RNDN);
+      return matrix;
+    }
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    return octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+      .storage ();
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      octave_mplapack::MpfrComplexMatrixStorage matrix (
+        1, 1, scalar.precision_bits ());
+      mpc_set (matrix.at (0, 0).mpc_data (), scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return matrix;
+    }
+  if (payload.type_id ()
+      == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    return octave_mplapack_mpc_matrix_internal::checked_value (payload)
+      .storage ();
+  error_with_id ("mplapack:mp:InvalidInput",
+                 "generalized eig expects mp matrix operands");
+  return octave_mplapack::MpfrMatrixStorage (0, 0,
+                                               octave_mplapack::default_precision_bits ());
+}
+
+mpfr_prec_t
+generalized_matrix_precision (const GeneralizedMatrix& matrix)
+{
+  return std::visit ([] (const auto& value) { return value.precision_bits (); },
+                     matrix);
+}
+
+GeneralizedMatrix
+generalized_matrix_at_precision (const GeneralizedMatrix& matrix,
+                                 mpfr_prec_t precision_bits,
+                                 bool complex_output)
+{
+  return std::visit ([&] (const auto& value) -> GeneralizedMatrix
+  {
+    if constexpr (std::is_same_v<std::decay_t<decltype (value)>,
+                                 octave_mplapack::MpfrMatrixStorage>)
+      {
+        if (! complex_output)
+          return octave_mplapack::MpfrMatrixStorage (
+            value.rows (), value.columns (), precision_bits, value);
+        octave_mplapack::MpfrComplexMatrixStorage converted (
+          value.rows (), value.columns (), precision_bits);
+        for (std::size_t column = 0; column < value.columns (); ++column)
+          for (std::size_t row = 0; row < value.rows (); ++row)
+            {
+              mpfr_set (mpc_realref (converted.at (row, column).mpc_data ()),
+                        value.at (row, column).mpfr_data (), MPFR_RNDN);
+              mpfr_set_zero (mpc_imagref (converted.at (row, column).mpc_data ()),
+                             1);
+            }
+        return converted;
+      }
+    else
+      {
+        if (complex_output && value.precision_bits () == precision_bits)
+          return value;
+        octave_mplapack::MpfrComplexMatrixStorage converted (
+          value.rows (), value.columns (), precision_bits);
+        for (std::size_t column = 0; column < value.columns (); ++column)
+          for (std::size_t row = 0; row < value.rows (); ++row)
+            mpc_set (converted.at (row, column).mpc_data (),
+                     value.at (row, column).mpc_data (),
+                     MPC_RND (MPFR_RNDN, MPFR_RNDN));
+        return converted;
+      }
+  }, matrix);
+}
+
+octave_value_list
+mp_generalized_eig_operation (const octave_value& value_a,
+                              const octave_value& value_b,
+                              const std::string& output_mode,
+                              const std::string& algorithm_name)
+{
+  if (output_mode != "values" && output_mode != "matrix"
+      && output_mode != "vector" && output_mode != "diagonal"
+      && output_mode != "left" && output_mode != "left-vector")
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "generalized eig output mode is invalid");
+  if (! is_mp_value (value_a) || ! is_mp_value (value_b))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "generalized eig expects two mp values");
+
+  octave_mplapack::GeneralizedEigAlgorithm algorithm;
+  if (algorithm_name == "auto")
+    algorithm = octave_mplapack::GeneralizedEigAlgorithm::auto_select;
+  else if (algorithm_name == "chol")
+    algorithm = octave_mplapack::GeneralizedEigAlgorithm::chol;
+  else if (algorithm_name == "qz")
+    algorithm = octave_mplapack::GeneralizedEigAlgorithm::qz;
+  else
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "generalized eig algorithm must be \"chol\" or \"qz\"");
+
+  try
+    {
+      auto a = generalized_matrix_payload (value_a);
+      auto b = generalized_matrix_payload (value_b);
+      const bool complex_output
+        = std::holds_alternative<octave_mplapack::MpfrComplexMatrixStorage> (a)
+          || std::holds_alternative<octave_mplapack::MpfrComplexMatrixStorage> (b);
+      const mpfr_prec_t precision = std::max (
+        generalized_matrix_precision (a), generalized_matrix_precision (b));
+      a = generalized_matrix_at_precision (a, precision, complex_output);
+      b = generalized_matrix_at_precision (b, precision, complex_output);
+
+      if (complex_output)
+        return generalized_eig_result_to_octave (
+          octave_mplapack::mplapack_mpc_matrix_generalized_eig (
+            std::get<octave_mplapack::MpfrComplexMatrixStorage> (a),
+            std::get<octave_mplapack::MpfrComplexMatrixStorage> (b), algorithm),
+          output_mode);
+      else
+        return generalized_eig_result_to_octave (
+          octave_mplapack::mplapack_mpfr_matrix_generalized_eig (
+            std::get<octave_mplapack::MpfrMatrixStorage> (a),
+            std::get<octave_mplapack::MpfrMatrixStorage> (b), algorithm),
+          output_mode);
+    }
+  catch (const octave_mplapack::MpGeneralizedEigError& exception)
+    {
+      if (exception.info () < 0)
+        error_with_id ("mplapack:mp:EigError",
+                       "MPLAPACK generalized eig rejected argument %d",
+                       -exception.info ());
+      error_with_id ("mplapack:mp:ConvergenceFailure",
+                     "MPLAPACK generalized eig failed (info %d)",
+                     exception.info ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s", exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:EigError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
+mp_eig_operation (const octave_value& value, const std::string& output_mode,
+                  const std::string& balance_mode)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "eig expects one real or complex mp value");
+  if (balance_mode != "auto" && balance_mode != "balance"
+      && balance_mode != "nobalance")
+    error_with_id ("mplapack:mp:InvalidOption", "eig balance mode is invalid");
+
+  if (mp_value_has_structured_eig_shape (value))
+    return mp_structured_eig_operation (value, output_mode);
+  return mp_general_eig_operation (value, output_mode,
+                                   balance_mode != "nobalance");
+}
+
+octave_value_list
+complex_pivoted_qr_operation (const octave_value& value, bool economy,
+                              bool vector_output)
+{
+  const octave_value payload = require_mp_payload (value);
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+               scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "qr expects one complex mp value");
+
+  try
+    {
+      const auto factors
+        = octave_mplapack::mplapack_mpc_matrix_pivoted_qr (
+            *input, economy, true);
+      const octave_value q = make_complex_inspection_result (factors.q);
+      const octave_value r = make_complex_inspection_result (factors.r);
+      const std::size_t n = factors.permutation.size ();
+      if (vector_output)
+        {
+          Matrix p (1, checked_octave_dimension_for_inspection (n));
+          for (std::size_t column = 0; column < n; ++column)
+            p.xelem (0, static_cast<octave_idx_type> (column))
+              = static_cast<double> (factors.permutation[column]);
+          return ovl (q, r, octave_value (p));
+        }
+
+      const octave_idx_type dimension
+        = checked_octave_dimension_for_inspection (n);
+      Matrix p (dimension, dimension);
+      for (std::size_t column = 0; column < n; ++column)
+        {
+          const auto source = factors.permutation[column] - 1;
+          p.xelem (static_cast<octave_idx_type> (source),
+                   static_cast<octave_idx_type> (column))
+            = 1.0;
+        }
+      return ovl (q, r, octave_value (p));
+    }
+  catch (const octave_mplapack::MpcQrError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcQrError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:QrError",
+                       "MPLAPACK complex pivoted QR rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:QrInternalError", "%s",
+                     exception.what ());
     }
   catch (const std::overflow_error& exception)
     {
@@ -1917,11 +5752,147 @@ mp_pivoted_qr_operation (const octave_value& value, bool economy,
 }
 
 octave_value_list
+complex_lu_operation (const octave_value& value,
+                      const std::string& output_mode)
+{
+  const octave_value payload = require_mp_payload (value);
+  std::optional<octave_mplapack::MpfrComplexMatrixStorage> scalar_matrix;
+  const octave_mplapack::MpfrComplexMatrixStorage *input = nullptr;
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto& scalar
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ();
+      scalar_matrix.emplace (1, 1, scalar.precision_bits ());
+      mpc_set (scalar_matrix->at (0, 0).mpc_data (),
+               scalar.native_value ().mpc_data (),
+               MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      input = &*scalar_matrix;
+    }
+  else if (payload.type_id ()
+           == octave_mplapack_mpc_matrix_internal::static_type_id ())
+    input = &octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage ();
+  else
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "lu expects one complex mp value");
+
+  try
+    {
+      auto factors = octave_mplapack::mplapack_mpc_matrix_lu (*input);
+      if (output_mode == "packed")
+        return ovl (make_complex_inspection_result (
+          std::move (factors.packed)));
+
+      const std::size_t permutation_size = factors.permutation.size ();
+      const auto p_dimension
+        = checked_octave_dimension_for_inspection (permutation_size);
+
+      if (output_mode == "two")
+        {
+          const std::size_t m = factors.lower.rows ();
+          const std::size_t k = factors.lower.columns ();
+          octave_mplapack::MpfrComplexMatrixStorage lower_unpermuted (
+            m, k, factors.lower.precision_bits ());
+          std::vector<std::size_t> inverse (permutation_size);
+          for (std::size_t destination = 0; destination < permutation_size;
+               ++destination)
+            {
+              const auto source = factors.permutation[destination];
+              if (source < 1 || source > permutation_size)
+                error_with_id (
+                  "mplapack:mp:LuError",
+                  "MPLAPACK Cgetrf returned an invalid permutation");
+              inverse[static_cast<std::size_t> (source - 1)] = destination;
+            }
+          for (std::size_t column = 0; column < k; ++column)
+            for (std::size_t row = 0; row < m; ++row)
+              mpc_set (lower_unpermuted.at (row, column).mpc_data (),
+                       factors.lower.at (inverse[row], column).mpc_data (),
+                       MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          return ovl (make_complex_inspection_result (
+                        std::move (lower_unpermuted)),
+                      make_complex_inspection_result (std::move (factors.upper)));
+        }
+
+      if (output_mode == "matrix" || output_mode == "vector")
+        {
+          if (output_mode == "vector")
+            {
+              Matrix permutation_vector = permutation_size == 0
+                                             ? Matrix (0, 0)
+                                             : Matrix (p_dimension, 1);
+              for (std::size_t row = 0; row < permutation_size; ++row)
+                permutation_vector.xelem (static_cast<octave_idx_type> (row),
+                                         0)
+                  = static_cast<double> (factors.permutation[row]);
+              return ovl (make_complex_inspection_result (
+                            std::move (factors.lower)),
+                          make_complex_inspection_result (
+                            std::move (factors.upper)),
+                          octave_value (permutation_vector));
+            }
+
+          octave_mplapack::MpfrComplexMatrixStorage::checked_element_count (
+            permutation_size, permutation_size);
+          Matrix permutation_matrix (p_dimension, p_dimension);
+          for (std::size_t destination = 0; destination < permutation_size;
+               ++destination)
+            {
+              const auto source = factors.permutation[destination];
+              if (source < 1 || source > permutation_size)
+                error_with_id (
+                  "mplapack:mp:LuError",
+                  "MPLAPACK Cgetrf returned an invalid permutation");
+              permutation_matrix.xelem (
+                static_cast<octave_idx_type> (destination),
+                static_cast<octave_idx_type> (source - 1)) = 1.0;
+            }
+          return ovl (make_complex_inspection_result (
+                        std::move (factors.lower)),
+                      make_complex_inspection_result (std::move (factors.upper)),
+                      octave_value (permutation_matrix));
+        }
+
+      error_with_id ("mplapack:mp:InvalidArguments",
+                     "invalid LU output mode");
+    }
+  catch (const octave_mplapack::MpcCgetrfError& exception)
+    {
+      if (exception.kind ()
+          == octave_mplapack::MpcCgetrfError::Kind::invalid_argument)
+        error_with_id ("mplapack:mp:LuError",
+                       "MPLAPACK Cgetrf rejected argument %d",
+                       -static_cast<int> (exception.info ()));
+      error_with_id ("mplapack:mp:LuInternalError", "%s",
+                     exception.what ());
+    }
+  catch (const std::overflow_error& exception)
+    {
+      error_with_id ("mplapack:mp:DimensionOverflow", "%s",
+                     exception.what ());
+    }
+  catch (const std::invalid_argument& exception)
+    {
+      error_with_id ("mplapack:mp:InvalidInput", "%s", exception.what ());
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:LuError", "%s", exception.what ());
+    }
+  return ovl ();
+}
+
+octave_value_list
 mp_lu_operation (const octave_value& value, const std::string& output_mode)
 {
   if (! is_mp_value (value))
     error_with_id ("mplapack:mp:InvalidInput",
                    "lu expects one real mp value");
+
+  if (is_complex_payload (value))
+    return complex_lu_operation (value, output_mode);
 
   const octave_value payload = require_mp_payload (value);
   const octave_mplapack::MpfrMatrixStorage *input = nullptr;
@@ -2243,9 +6214,147 @@ mp_mtimes_operation (const octave_value& lhs_value,
                                   ScalarBinaryOperation::multiply);
 }
 
+long
+require_integer_power_exponent (const octave_value& value)
+{
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          const auto& complex
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage ().native_value ();
+          if (! mpfr_zero_p (mpc_imagref (complex.mpc_data ())))
+            error_with_id ("mplapack:mp:InvalidExponent",
+                           "matrix power exponent must be a real integer");
+          if (! mpfr_integer_p (mpc_realref (complex.mpc_data ()))
+              || ! mpfr_fits_slong_p (mpc_realref (complex.mpc_data ()),
+                                      MPFR_RNDN))
+            error_with_id ("mplapack:mp:InvalidExponent",
+                           "matrix power exponent must fit a native integer");
+          return mpfr_get_si (mpc_realref (complex.mpc_data ()), MPFR_RNDN);
+        }
+
+      const auto& real
+        = octave_mplapack_mpfr_scalar_internal::checked_value (
+            require_scalar_payload (payload)).storage ().native_value ();
+      if (! mpfr_integer_p (real.mpfr_data ())
+          || ! mpfr_fits_slong_p (real.mpfr_data (), MPFR_RNDN))
+        error_with_id ("mplapack:mp:InvalidExponent",
+                       "matrix power exponent must fit a native integer");
+      return mpfr_get_si (real.mpfr_data (), MPFR_RNDN);
+    }
+
+  if (! value.is_double_type () || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidExponent",
+                   "matrix power exponent must be a real integer scalar");
+  const double exponent = value.double_value ();
+  if (! std::isfinite (exponent) || std::trunc (exponent) != exponent
+      || static_cast<long double> (exponent)
+           < static_cast<long double> (std::numeric_limits<long>::min ())
+      || static_cast<long double> (exponent)
+           > static_cast<long double> (std::numeric_limits<long>::max ()))
+    error_with_id ("mplapack:mp:InvalidExponent",
+                   "matrix power exponent must fit a native integer");
+  return static_cast<long> (exponent);
+}
+
+octave_value
+mpower_identity (const octave_value& value, std::size_t dimension)
+{
+  if (is_complex_payload (value))
+    {
+      const mpfr_prec_t precision
+        = arithmetic_mp_precision (value);
+      octave_mplapack::MpfrMpcPrecisionScope scope (precision);
+      octave_mplapack::MpfrComplexMatrixStorage identity (
+        dimension, dimension, precision);
+      for (std::size_t index = 0; index < dimension; ++index)
+        mpc_set_ui (identity.at (index, index).mpc_data (), 1,
+                    MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return make_complex_inspection_result (std::move (identity));
+    }
+
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  octave_mplapack::MpfrMatrixStorage identity (dimension, dimension,
+                                                precision);
+  for (std::size_t index = 0; index < dimension; ++index)
+    mpfr_set_ui (identity.at (index, index).mpfr_data (), 1, MPFR_RNDN);
+  return make_inspection_result (std::move (identity));
+}
+
+octave_value
+mpower_operation (const octave_value& lhs_value,
+                  const octave_value& rhs_value)
+{
+  if (! is_mp_value (lhs_value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "matrix power requires an mp base");
+
+  const octave_value base_payload = require_mp_payload (lhs_value);
+  const bool base_is_matrix = is_matrix_payload (lhs_value);
+  if (! base_is_matrix)
+    return scalar_binary_operation (lhs_value, rhs_value,
+                                    ScalarBinaryOperation::power);
+
+  const std::size_t rows
+    = base_payload.type_id ()
+        == octave_mplapack_mpfr_matrix_internal::static_type_id ()
+        ? octave_mplapack_mpfr_matrix_internal::checked_value (base_payload)
+            .storage ().rows ()
+        : octave_mplapack_mpc_matrix_internal::checked_value (base_payload)
+            .storage ().rows ();
+  const std::size_t columns
+    = base_payload.type_id ()
+        == octave_mplapack_mpfr_matrix_internal::static_type_id ()
+        ? octave_mplapack_mpfr_matrix_internal::checked_value (base_payload)
+            .storage ().columns ()
+        : octave_mplapack_mpc_matrix_internal::checked_value (base_payload)
+            .storage ().columns ();
+  if (rows != columns)
+    error_with_id ("mplapack:mp:NonSquareMatrix",
+                   "matrix power requires a square matrix");
+
+  const long exponent = require_integer_power_exponent (rhs_value);
+  if (exponent == 0)
+    return mpower_identity (lhs_value, rows);
+
+  octave_value current = exponent < 0
+    ? mp_inverse_operation (lhs_value) : lhs_value;
+  unsigned long magnitude;
+  if (exponent < 0)
+    {
+      magnitude = 0UL - static_cast<unsigned long> (exponent);
+    }
+  else
+    magnitude = static_cast<unsigned long> (exponent);
+
+  octave_value result = mpower_identity (lhs_value, rows);
+  const auto multiply = [&] (const octave_value& lhs,
+                             const octave_value& rhs)
+  {
+    if (is_complex_arithmetic_operand (lhs)
+        || is_complex_arithmetic_operand (rhs))
+      return complex_mtimes_operation (lhs, rhs);
+    return mp_mtimes_operation (lhs, rhs);
+  };
+  while (magnitude != 0)
+    {
+      if ((magnitude & 1UL) != 0)
+        result = multiply (result, current);
+      magnitude >>= 1;
+      if (magnitude != 0)
+        current = multiply (current, current);
+    }
+  return result;
+}
+
 octave_value
 mp_mldivide_operation (const octave_value& lhs_value,
-                       const octave_value& rhs_value)
+                       const octave_value& rhs_value,
+                       bool force_rank_revealing = false)
 {
   const bool lhs_is_mp = is_mp_value (lhs_value);
   const bool rhs_is_mp = is_mp_value (rhs_value);
@@ -2393,7 +6502,7 @@ mp_mldivide_operation (const octave_value& lhs_value,
         error_with_id ("mplapack:mp:UnsupportedOperand",
                        "matrix left division requires a dense mp or real double right-hand side");
 
-      if (lhs->rows () != lhs->columns ())
+      if (lhs->rows () != lhs->columns () || force_rank_revealing)
         return make_mldivide_result (
           octave_mplapack::mplapack_mpfr_matrix_rank_revealing_solve (
             *lhs, *rhs).solution);
@@ -2463,6 +6572,29 @@ mp_mldivide_operation (const octave_value& lhs_value,
 octave_value
 scalar_negate (const octave_value& value)
 {
+  if (is_mp_value (value) && is_complex_payload (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        return make_internal_complex_scalar (
+          octave_mplapack::mpc_scalar_negate (
+            octave_mplapack_mpc_scalar_internal::checked_value (payload)
+              .storage ()));
+      try
+        {
+          return make_complex_inspection_result (
+            octave_mplapack::mpc_matrix_negate (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ()));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:ArithmeticError", "%s",
+                         exception.what ());
+        }
+    }
+
   if (is_mp_value (value) && is_matrix_payload (value))
     {
       try
@@ -2499,6 +6631,1599 @@ scalar_negate (const octave_value& value)
   return octave_value ();
 }
 
+octave_value
+script_unary_operation (const octave_value& value,
+                        octave_mplapack::MpScriptUnaryOperation operation)
+{
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          if (operation == octave_mplapack::MpScriptUnaryOperation::sign)
+            {
+              if (payload.type_id ()
+                  == octave_mplapack_mpc_scalar_internal::static_type_id ())
+                return make_internal_complex_scalar (
+                  octave_mplapack::mpc_script_unary (
+                    octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                      .storage (), operation));
+              return make_complex_inspection_result (
+                octave_mplapack::mpc_script_unary (
+                  octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                    .storage (), operation));
+            }
+
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            return make_internal_scalar (
+              octave_mplapack::mpc_script_real_unary (
+                octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                  .storage (), operation));
+          return make_inspection_result (octave_mplapack::mpc_script_real_unary (
+            octave_mplapack_mpc_matrix_internal::checked_value (payload)
+              .storage (), operation));
+        }
+
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        return make_internal_scalar (octave_mplapack::mpfr_script_unary (
+          octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage (), operation));
+      return make_inspection_result (octave_mplapack::mpfr_script_unary (
+        octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+          .storage (), operation));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+bool
+real_elementary_requires_complex (const octave_value& payload,
+                                  octave_mplapack::MpScriptElementaryOperation operation)
+{
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    return octave_mplapack::mpfr_script_elementary_requires_complex (
+      octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+        .storage ().native_value ().mpfr_data (), operation);
+
+  const auto& source
+    = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+        .storage ();
+  for (std::size_t index = 0; index < source.numel (); ++index)
+    if (octave_mplapack::mpfr_script_elementary_requires_complex (
+          source.data ()[index].mpfr_data (), operation))
+      return true;
+  return false;
+}
+
+octave_value
+script_elementary_operation (
+  const octave_value& value,
+  octave_mplapack::MpScriptElementaryOperation operation)
+{
+  const octave_value payload = require_mp_payload (value);
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            return make_internal_complex_scalar (
+              octave_mplapack::mpc_script_elementary (
+                octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                  .storage (), operation));
+          return make_complex_inspection_result (
+            octave_mplapack::mpc_script_elementary (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage (), operation));
+        }
+
+      if (real_elementary_requires_complex (payload, operation))
+        {
+          if (payload.type_id ()
+              == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+            return make_internal_complex_scalar (
+              octave_mplapack::mpc_script_elementary (
+                octave_mplapack::mpfr_script_promote (
+                  octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                    .storage ()), operation));
+          return make_complex_inspection_result (
+            octave_mplapack::mpc_script_elementary (
+              octave_mplapack::mpfr_script_promote (
+                octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+                  .storage ()), operation));
+        }
+
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        return make_internal_scalar (octave_mplapack::mpfr_script_elementary (
+          octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage (), operation));
+      return make_inspection_result (octave_mplapack::mpfr_script_elementary (
+        octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+          .storage (), operation));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+struct ParsedScriptOptions
+{
+  octave_mplapack::MpScriptReductionOptions reduction;
+  octave_mplapack::MpScriptComparisonMethod comparison
+    = octave_mplapack::MpScriptComparisonMethod::automatic;
+};
+
+std::pair<std::size_t, std::size_t>
+script_shape (const octave_value& value)
+{
+  const octave_value payload = require_mp_payload (value);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ()
+      || payload.type_id ()
+         == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return {1, 1};
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    {
+      const auto& source
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      return {source.rows (), source.columns ()};
+    }
+  const auto& source
+    = octave_mplapack_mpc_matrix_internal::checked_value (payload).storage ();
+  return {source.rows (), source.columns ()};
+}
+
+std::size_t
+script_default_dimension (const octave_value& value)
+{
+  const auto shape = script_shape (value);
+  return shape.first != 1 ? 1 : 2;
+}
+
+std::size_t
+script_dimension (const octave_value& value)
+{
+  if (! value.isnumeric () || value.islogical () || ! value.isreal ()
+      || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "reduction dimension must be 1 or 2");
+  const double dimension = value.double_value ();
+  if (! std::isfinite (dimension) || std::trunc (dimension) != dimension
+      || (dimension != 1.0 && dimension != 2.0))
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "reduction dimension must be 1 or 2");
+  return static_cast<std::size_t> (dimension);
+}
+
+ParsedScriptOptions
+parse_script_options (const octave_value_list& args, int first,
+                      std::size_t default_dimension, bool extremum,
+                      bool allow_direction)
+{
+  ParsedScriptOptions parsed;
+  parsed.reduction.dimension = default_dimension;
+  if (extremum)
+    parsed.reduction.omit_nan = true;
+
+  for (int index = first; index < args.length (); ++index)
+    {
+      const octave_value& option = args(index);
+      if (option.isnumeric () && option.isempty ())
+        continue;
+      if (option.isnumeric () && ! option.isempty ())
+        {
+          parsed.reduction.dimension = script_dimension (option);
+          continue;
+        }
+      if (! option.is_string ())
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "invalid reduction option");
+      const std::string text = option.string_value ();
+      if (text == "all")
+        {
+          parsed.reduction.all = true;
+          continue;
+        }
+      if (text == "omitnan")
+        {
+          parsed.reduction.omit_nan = true;
+          continue;
+        }
+      if (text == "includenan")
+        {
+          parsed.reduction.omit_nan = false;
+          continue;
+        }
+      if (text == "forward" || text == "reverse")
+        {
+          if (! allow_direction)
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "cumulative direction is not valid here");
+          parsed.reduction.reverse = text == "reverse";
+          continue;
+        }
+      if (text == "default" || text == "native")
+        continue;
+      if (text == "double")
+        {
+          parsed.reduction.output_double = true;
+          continue;
+        }
+      if (extremum && text == "ComparisonMethod")
+        {
+          if (index + 1 >= args.length () || ! args(index + 1).is_string ())
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "ComparisonMethod requires auto, real, or abs");
+          const std::string method = args(++index).string_value ();
+          if (method == "auto")
+            parsed.comparison
+              = octave_mplapack::MpScriptComparisonMethod::automatic;
+          else if (method == "real")
+            parsed.comparison = octave_mplapack::MpScriptComparisonMethod::real;
+          else if (method == "abs")
+            parsed.comparison
+              = octave_mplapack::MpScriptComparisonMethod::absolute;
+          else
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "ComparisonMethod must be auto, real, or abs");
+          continue;
+        }
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "unknown reduction option: %s", text.c_str ());
+    }
+  return parsed;
+}
+
+octave_value
+script_real_matrix_result (octave_mplapack::MpfrMatrixStorage storage,
+                           bool output_double)
+{
+  octave_value result = make_inspection_result (std::move (storage));
+  if (! output_double)
+    return result;
+  const octave_value payload = require_mp_payload (result);
+  if (payload.type_id ()
+      == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    return octave_value (mpfr_get_d (
+      octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+        .storage ().native_value ().mpfr_data (), MPFR_RNDN));
+  return octave_value (matrix_to_double (result));
+}
+
+octave_value
+script_complex_matrix_result (
+  octave_mplapack::MpfrComplexMatrixStorage storage, bool output_double)
+{
+  octave_value result = make_complex_inspection_result (std::move (storage));
+  if (! output_double)
+    return result;
+  const octave_value payload = require_mp_payload (result);
+  if (payload.type_id ()
+      == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    {
+      const auto converted
+        = octave_mplapack_mpc_scalar_internal::checked_value (payload)
+            .storage ().to_double ();
+      return octave_value (Complex (converted.real (), converted.imag ()));
+    }
+  return octave_value (complex_matrix_to_double (result));
+}
+
+octave_value
+script_indices_result (std::size_t rows, std::size_t columns,
+                       const std::vector<std::size_t>& indices)
+{
+  Matrix result (checked_octave_dimension_for_inspection (rows),
+                 checked_octave_dimension_for_inspection (columns));
+  for (std::size_t column = 0; column < columns; ++column)
+    for (std::size_t row = 0; row < rows; ++row)
+      result.xelem (static_cast<octave_idx_type> (row),
+                    static_cast<octave_idx_type> (column))
+        = static_cast<double> (indices.at (row + column * rows));
+  return octave_value (result);
+}
+
+octave_mplapack::MpfrMatrixStorage
+script_real_matrix_operand (const octave_value& value, mpfr_prec_t precision)
+{
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (is_complex_payload (value))
+        error_with_id ("mplapack:mp:ComplexUnsupported",
+                       "real reduction operand cannot be complex");
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          octave_mplapack::MpfrMatrixStorage result (1, 1, precision);
+          mpfr_set (result.at (0, 0).mpfr_data (),
+                    octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                      .storage ().native_value ().mpfr_data (), MPFR_RNDN);
+          return result;
+        }
+      const auto& source
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      octave_mplapack::MpfrMatrixStorage result (source.rows (), source.columns (), precision);
+      for (std::size_t index = 0; index < source.numel (); ++index)
+        mpfr_set (result.data ()[index].mpfr_data (),
+                  source.data ()[index].mpfr_data (), MPFR_RNDN);
+      return result;
+    }
+  if (! value.is_double_type () || ! value.isreal ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "reduction operands must be mp or real double values");
+  if (value.is_real_scalar ())
+    {
+      octave_mplapack::MpfrMatrixStorage result (1, 1, precision);
+      mpfr_set_d (result.at (0, 0).mpfr_data (), value.double_value (), MPFR_RNDN);
+      return result;
+    }
+  return make_double_matrix_storage (value, precision);
+}
+
+octave_mplapack::MpfrComplexMatrixStorage
+script_complex_matrix_operand (const octave_value& value,
+                               mpfr_prec_t precision)
+{
+  octave_mplapack::MpfrMpcPrecisionScope scope (precision);
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        {
+          octave_mplapack::MpfrComplexMatrixStorage result (1, 1, precision);
+          mpc_set (result.at (0, 0).mpc_data (),
+                   octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                     .storage ().native_value ().mpc_data (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          return result;
+        }
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        {
+          const auto& source
+            = octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ();
+          octave_mplapack::MpfrComplexMatrixStorage result (source.rows (), source.columns (),
+                                                            precision);
+          for (std::size_t index = 0; index < source.numel (); ++index)
+            mpc_set (result.data ()[index].mpc_data (),
+                     source.data ()[index].mpc_data (),
+                     MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          return result;
+        }
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& source
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          octave_mplapack::MpfrComplexMatrixStorage result (1, 1, precision);
+          mpc_set_fr (result.at (0, 0).mpc_data (),
+                      source.native_value ().mpfr_data (),
+                      MPC_RND (MPFR_RNDN, MPFR_RNDN));
+          return result;
+        }
+      const auto& source
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      octave_mplapack::MpfrComplexMatrixStorage result (source.rows (), source.columns (), precision);
+      for (std::size_t index = 0; index < source.numel (); ++index)
+        mpc_set_fr (result.data ()[index].mpc_data (),
+                    source.data ()[index].mpfr_data (),
+                    MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return result;
+    }
+  if (! value.is_double_type ())
+    error_with_id ("mplapack:mp:UnsupportedOperand",
+                   "reduction operands must be mp or double values");
+  if (value.is_real_scalar () || value.is_complex_scalar ())
+    {
+      const Complex scalar = value.complex_value ();
+      octave_mplapack::MpfrComplexMatrixStorage result (1, 1, precision);
+      mpc_set_d_d (result.at (0, 0).mpc_data (), scalar.real (), scalar.imag (),
+                   MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return result;
+    }
+  return make_complex_double_matrix_storage (value, precision);
+}
+
+std::int64_t
+require_signed_structure_integer (const octave_value& value,
+                                  const char *description)
+{
+  if (! value.isnumeric () || value.islogical () || value.is_string ()
+      || ! value.isreal () || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "%s must be a real integer scalar", description);
+  const double supplied = value.double_value ();
+  if (! std::isfinite (supplied) || std::trunc (supplied) != supplied
+      || static_cast<long double> (supplied)
+           < static_cast<long double> (std::numeric_limits<std::int64_t>::min ())
+      || static_cast<long double> (supplied)
+           > static_cast<long double> (std::numeric_limits<std::int64_t>::max ()))
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "%s must be an integer in the supported range",
+                   description);
+  return static_cast<std::int64_t> (supplied);
+}
+
+std::size_t
+require_nonnegative_structure_dimension (const octave_value& value,
+                                         const char *description)
+{
+  if (! value.isnumeric () || value.islogical () || value.is_string ()
+      || ! value.isreal () || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s must be a nonnegative integer scalar", description);
+  const double supplied = value.double_value ();
+  if (! std::isfinite (supplied) || std::trunc (supplied) != supplied
+      || supplied < 0.0
+      || static_cast<long double> (supplied)
+           > static_cast<long double> (
+                std::numeric_limits<octave_idx_type>::max ()))
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s must be a nonnegative integer scalar", description);
+  return checked_size_dimension (static_cast<octave_idx_type> (supplied));
+}
+
+std::vector<std::size_t>
+parse_structure_dimensions (const octave_value_list& args, int first,
+                            const char *description)
+{
+  if (first >= args.length ())
+    error_with_id ("mplapack:mp:InvalidDimension",
+                   "%s requires one or two dimensions", description);
+
+  std::vector<std::size_t> dimensions;
+  if (args.length () == first + 1 && args(first).isnumeric ()
+      && ! args(first).islogical () && ! args(first).is_string ()
+      && ! args(first).is_real_scalar ())
+    {
+      const octave_value& vector = args(first);
+      if (! vector.isreal () || vector.ndims () != 2
+          || (vector.rows () != 1 && vector.columns () != 1)
+          || vector.numel () == 0 || vector.numel () > 2)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "%s dimension vector must contain one or two integers",
+                       description);
+      const NDArray values = vector.array_value ();
+      for (octave_idx_type index = 0; index < values.numel (); ++index)
+        dimensions.push_back (require_nonnegative_structure_dimension (
+          octave_value (values(index)), description));
+    }
+  else
+    {
+      for (int index = first; index < args.length (); ++index)
+        dimensions.push_back (require_nonnegative_structure_dimension (
+          args(index), description));
+      if (dimensions.size () > 2)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "%s accepts at most two dimensions", description);
+    }
+  if (dimensions.size () == 1)
+    dimensions.push_back (dimensions.front ());
+  return dimensions;
+}
+
+std::pair<std::size_t, std::size_t>
+parse_repmat_dimensions (const octave_value_list& args, int first)
+{
+  const auto dimensions = parse_structure_dimensions (args, first, "repmat");
+  return {dimensions.at (0), dimensions.at (1)};
+}
+
+octave_value
+script_structure_operation (const octave_value& value,
+                            const std::string& operation,
+                            const octave_value_list& args, int first)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s requires an mp value", operation.c_str ());
+
+  try
+    {
+      const mpfr_prec_t precision = arithmetic_mp_precision (value);
+      if (operation == "diag")
+        {
+          if (args.length () != first && args.length () != first + 1)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "diag accepts an optional diagonal offset");
+          const std::int64_t diagonal = args.length () == first
+            ? 0 : require_signed_structure_integer (args(first), "diag offset");
+          if (is_complex_payload (value))
+            {
+              const auto source = script_complex_matrix_operand (value, precision);
+              return make_complex_inspection_result (
+                octave_mplapack::mpc_script_diag (
+                  source, source.rows () == 1 || source.columns () == 1,
+                  diagonal));
+            }
+          const auto source = script_real_matrix_operand (value, precision);
+          return make_inspection_result (octave_mplapack::mpfr_script_diag (
+            source, source.rows () == 1 || source.columns () == 1, diagonal));
+        }
+
+      if (operation == "triu" || operation == "tril")
+        {
+          if (args.length () != first && args.length () != first + 1)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "%s accepts an optional diagonal offset",
+                           operation.c_str ());
+          const std::int64_t diagonal = args.length () == first
+            ? 0 : require_signed_structure_integer (
+                args(first), "triangular diagonal offset");
+          const bool upper = operation == "triu";
+          if (is_complex_payload (value))
+            return make_complex_inspection_result (
+              octave_mplapack::mpc_script_triangular (
+                script_complex_matrix_operand (value, precision), diagonal,
+                upper));
+          return make_inspection_result (octave_mplapack::mpfr_script_triangular (
+            script_real_matrix_operand (value, precision), diagonal, upper));
+        }
+
+      if (operation == "repmat")
+        {
+          const auto repetitions = parse_repmat_dimensions (args, first);
+          if (is_complex_payload (value))
+            return make_complex_inspection_result (
+              octave_mplapack::mpc_script_repmat (
+                script_complex_matrix_operand (value, precision),
+                repetitions.first, repetitions.second));
+          return make_inspection_result (octave_mplapack::mpfr_script_repmat (
+            script_real_matrix_operand (value, precision),
+            repetitions.first, repetitions.second));
+        }
+
+      if (operation == "flip")
+        {
+          if (args.length () != first && args.length () != first + 1)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "flip accepts an optional dimension");
+          const int dimension = args.length () == first
+            ? 0 : static_cast<int> (require_signed_structure_integer (
+                args(first), "flip dimension"));
+          if (dimension != 0 && dimension != 1 && dimension != 2)
+            error_with_id ("mplapack:mp:InvalidDimension",
+                           "flip dimension must be 1 or 2");
+          if (is_complex_payload (value))
+            {
+              const auto source = script_complex_matrix_operand (value, precision);
+              const int selected = dimension == 0
+                ? (source.rows () != 1 ? 1 : 2) : dimension;
+              return make_complex_inspection_result (
+                octave_mplapack::mpc_script_flip (source, selected));
+            }
+          const auto source = script_real_matrix_operand (value, precision);
+          const int selected = dimension == 0
+            ? (source.rows () != 1 ? 1 : 2) : dimension;
+          return make_inspection_result (
+            octave_mplapack::mpfr_script_flip (source, selected));
+        }
+
+      if (operation == "rot90")
+        {
+          if (args.length () != first && args.length () != first + 1)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "rot90 accepts an optional integer count");
+          const std::int64_t supplied = args.length () == first
+            ? 1 : require_signed_structure_integer (args(first), "rot90 count");
+          if (supplied < static_cast<std::int64_t> (std::numeric_limits<int>::min ())
+              || supplied > static_cast<std::int64_t> (std::numeric_limits<int>::max ()))
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "rot90 count is outside the supported range");
+          const int turns = static_cast<int> (supplied);
+          if (is_complex_payload (value))
+            return make_complex_inspection_result (
+              octave_mplapack::mpc_script_rot90 (
+                script_complex_matrix_operand (value, precision), turns));
+          return make_inspection_result (octave_mplapack::mpfr_script_rot90 (
+            script_real_matrix_operand (value, precision), turns));
+        }
+
+      if (operation == "like")
+        {
+          const std::vector<std::size_t> dimensions
+            = parse_structure_dimensions (args, first, "like constructor");
+          const std::size_t rows = dimensions.at (0);
+          const std::size_t columns = dimensions.at (1);
+          const std::string kind = require_string (args(2), "constructor kind");
+          if (kind != "zeros" && kind != "ones" && kind != "eye"
+              && kind != "nan" && kind != "inf")
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "unknown like constructor kind");
+
+          if (is_complex_payload (value))
+            {
+              octave_mplapack::MpfrMpcPrecisionScope scope (precision);
+              octave_mplapack::MpfrComplexMatrixStorage result (
+                rows, columns, precision);
+              for (std::size_t index = 0; index < result.numel (); ++index)
+                {
+                  if (kind == "nan")
+                    mpc_set_nan (result.data ()[index].mpc_data ());
+                  else if (kind == "inf")
+                    {
+                      mpfr_set_inf (mpc_realref (
+                        result.data ()[index].mpc_data ()), 1);
+                      mpfr_set_zero (mpc_imagref (
+                        result.data ()[index].mpc_data ()), 0);
+                    }
+                  else if (kind == "ones")
+                    mpc_set_ui (result.data ()[index].mpc_data (), 1,
+                                MPC_RND (MPFR_RNDN, MPFR_RNDN));
+                  else
+                    mpc_set_ui (result.data ()[index].mpc_data (), 0,
+                                MPC_RND (MPFR_RNDN, MPFR_RNDN));
+                }
+              if (kind == "eye")
+                {
+                  for (std::size_t index = 0;
+                       index < std::min (rows, columns); ++index)
+                    mpc_set_ui (result.at (index, index).mpc_data (), 1,
+                                MPC_RND (MPFR_RNDN, MPFR_RNDN));
+                }
+              return make_complex_inspection_result (std::move (result));
+            }
+
+          octave_mplapack::MpfrMatrixStorage result (rows, columns, precision);
+          for (std::size_t index = 0; index < result.numel (); ++index)
+            {
+              if (kind == "nan")
+                mpfr_set_nan (result.data ()[index].mpfr_data ());
+              else if (kind == "inf")
+                mpfr_set_inf (result.data ()[index].mpfr_data (), 1);
+              else
+                mpfr_set_ui (result.data ()[index].mpfr_data (),
+                             kind == "ones" ? 1UL : 0UL, MPFR_RNDN);
+            }
+          if (kind == "eye")
+            {
+              for (std::size_t index = 0;
+                   index < std::min (rows, columns); ++index)
+                mpfr_set_ui (result.at (index, index).mpfr_data (), 1,
+                             MPFR_RNDN);
+            }
+          return make_inspection_result (std::move (result));
+        }
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StructureError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+mpfr_prec_t
+script_utility_precision (const octave_value_list& args, int first, int last)
+{
+  mpfr_prec_t precision = MPFR_PREC_MIN;
+  bool has_mp = false;
+  for (int index = first; index < last; ++index)
+    if (is_mp_value (args(index)))
+      {
+        has_mp = true;
+        precision = std::max (precision, arithmetic_mp_precision (args(index)));
+      }
+  if (! has_mp)
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "utility operation requires at least one mp operand");
+  return precision;
+}
+
+octave_mplapack::MpfrScalarStorage
+script_real_scalar_argument (const octave_value& value, mpfr_prec_t precision,
+                             const char *description)
+{
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (is_complex_payload (value))
+        error_with_id ("mplapack:mp:ComplexUnsupported",
+                       "%s does not accept complex mp values", description);
+      if (payload.type_id ()
+          != octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        error_with_id ("mplapack:mp:MatrixUnsupported",
+                       "%s accepts scalar mp values only", description);
+      const auto& source
+        = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage ().native_value ();
+      auto result
+        = octave_mplapack::MpfrScalarStorage::NativeScalar::with_precision (
+            precision);
+      mpfr_set (result.mpfr_data (), source.mpfr_data (), MPFR_RNDN);
+      return octave_mplapack::MpfrScalarStorage (std::move (result));
+    }
+  if (! value.isnumeric () || value.islogical () || value.is_string ()
+      || ! value.isreal () || ! value.is_real_scalar ())
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s expects a real numeric scalar", description);
+  return octave_mplapack::MpfrScalarStorage (value.double_value (), precision);
+}
+
+octave_mplapack::MpfrComplexScalarStorage
+script_complex_scalar_argument (const octave_value& value,
+                                mpfr_prec_t precision,
+                                const char *description)
+{
+  if (is_mp_value (value))
+    {
+      const octave_value payload = require_mp_payload (value);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ()
+          || payload.type_id ()
+             == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+        error_with_id ("mplapack:mp:MatrixUnsupported",
+                       "%s accepts scalar mp values only", description);
+      auto result
+        = octave_mplapack::MpfrComplexScalarStorage::NativeScalar::with_precision (
+            precision);
+      if (payload.type_id ()
+          == octave_mplapack_mpc_scalar_internal::static_type_id ())
+        mpc_set (result.mpc_data (),
+                 octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                   .storage ().native_value ().mpc_data (),
+                 MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      else
+        mpc_set_fr (result.mpc_data (),
+                    octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                      .storage ().native_value ().mpfr_data (),
+                    MPC_RND (MPFR_RNDN, MPFR_RNDN));
+      return octave_mplapack::MpfrComplexScalarStorage (std::move (result));
+    }
+  if (! value.isnumeric () || value.islogical () || value.is_string ()
+      || ! value.is_real_scalar () && ! value.is_complex_scalar ())
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s expects a numeric scalar", description);
+  const Complex scalar = value.complex_value ();
+  return octave_mplapack::MpfrComplexScalarStorage (
+    scalar.real (), scalar.imag (), precision);
+}
+
+std::size_t
+script_utility_count (const octave_value& value, const char *description)
+{
+  return require_nonnegative_structure_dimension (value, description);
+}
+
+octave_value
+script_range_operation (const octave_value_list& args)
+{
+  if (args.length () != 3 && args.length () != 4)
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "colon expects two endpoints or an endpoint and a step");
+  const mpfr_prec_t precision = script_utility_precision (args, 1, args.length ());
+  if (is_complex_arithmetic_operand (args(1))
+      || (args.length () == 4 && is_complex_arithmetic_operand (args(2)))
+      || is_complex_arithmetic_operand (args(args.length () - 1)))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex colon ranges are not supported");
+  const auto first = script_real_scalar_argument (args(1), precision, "colon");
+  octave_mplapack::MpfrScalarStorage step (1.0, precision);
+  const octave_value& last = args(args.length () - 1);
+  if (args.length () == 4)
+    step = script_real_scalar_argument (args(2), precision, "colon step");
+  return make_inspection_result (octave_mplapack::mpfr_script_colon (
+    first, step, script_real_scalar_argument (last, precision, "colon endpoint")));
+}
+
+octave_value
+script_linspace_operation (const octave_value_list& args)
+{
+  if (args.length () != 3 && args.length () != 4)
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "linspace expects two endpoints and an optional count");
+  const mpfr_prec_t precision = script_utility_precision (args, 1, 3);
+  const std::size_t count = args.length () == 4
+    ? script_utility_count (args(3), "linspace count") : 100;
+  const bool complex = is_complex_arithmetic_operand (args(1))
+                       || is_complex_arithmetic_operand (args(2));
+  if (complex)
+    return make_complex_inspection_result (octave_mplapack::mpc_script_linspace (
+      script_complex_scalar_argument (args(1), precision, "linspace"),
+      script_complex_scalar_argument (args(2), precision, "linspace"), count));
+  return make_inspection_result (octave_mplapack::mpfr_script_linspace (
+    script_real_scalar_argument (args(1), precision, "linspace"),
+    script_real_scalar_argument (args(2), precision, "linspace"), count));
+}
+
+octave_value
+script_logspace_operation (const octave_value_list& args)
+{
+  if (args.length () != 3 && args.length () != 4)
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "logspace expects two endpoints and an optional count");
+  if (is_complex_arithmetic_operand (args(1))
+      || is_complex_arithmetic_operand (args(2)))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "complex logspace endpoints are not supported");
+  const mpfr_prec_t precision = script_utility_precision (args, 1, 3);
+  const std::size_t count = args.length () == 4
+    ? script_utility_count (args(3), "logspace count") : 50;
+  return make_inspection_result (octave_mplapack::mpfr_script_logspace (
+    script_real_scalar_argument (args(1), precision, "logspace"),
+    script_real_scalar_argument (args(2), precision, "logspace"), count));
+}
+
+octave_value
+script_round_operation (const octave_value& value,
+                        const std::string& operation)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s expects an mp value", operation.c_str ());
+  if (is_complex_payload (value))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "%s is implemented for real mp values only", operation.c_str ());
+  const auto source = script_real_matrix_operand (
+    value, arithmetic_mp_precision (value));
+  const auto select = [&] ()
+  {
+    if (operation == "floor")
+      return octave_mplapack::MpScriptRoundingOperation::floor;
+    if (operation == "ceil")
+      return octave_mplapack::MpScriptRoundingOperation::ceil;
+    if (operation == "fix")
+      return octave_mplapack::MpScriptRoundingOperation::fix;
+    return octave_mplapack::MpScriptRoundingOperation::round;
+  } ();
+  return make_inspection_result (octave_mplapack::mpfr_script_round (source, select));
+}
+
+octave_value
+script_real_binary_utility (const octave_value& lhs,
+                            const octave_value& rhs,
+                            const std::string& operation)
+{
+  if (is_complex_arithmetic_operand (lhs)
+      || is_complex_arithmetic_operand (rhs))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "%s is implemented for real mp values only", operation.c_str ());
+  const octave_value_list operands = ovl (lhs, rhs);
+  const mpfr_prec_t precision = script_utility_precision (operands, 0, 2);
+  const auto left = script_real_matrix_operand (lhs, precision);
+  const auto right = script_real_matrix_operand (rhs, precision);
+  if (operation == "rem" || operation == "mod")
+    return make_inspection_result (octave_mplapack::mpfr_script_remainder (
+      left, right, operation == "mod"));
+  if (operation == "hypot")
+    return make_inspection_result (octave_mplapack::mpfr_script_hypot (
+      left, right));
+  return make_inspection_result (octave_mplapack::mpfr_script_atan2 (
+    left, right));
+}
+
+octave_value
+script_signbit_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "signbit expects an mp value");
+  if (is_complex_payload (value))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "signbit is implemented for real mp values only");
+  const auto source = script_real_matrix_operand (
+    value, arithmetic_mp_precision (value));
+  if (source.rows () == 1 && source.columns () == 1)
+    return octave_value (mpfr_signbit (source.at (0, 0).mpfr_data ()) != 0);
+  boolMatrix result (checked_octave_dimension_for_inspection (source.rows ()),
+                     checked_octave_dimension_for_inspection (source.columns ()));
+  for (std::size_t column = 0; column < source.columns (); ++column)
+    for (std::size_t row = 0; row < source.rows (); ++row)
+      result (static_cast<octave_idx_type> (row),
+              static_cast<octave_idx_type> (column))
+        = mpfr_signbit (source.at (row, column).mpfr_data ()) != 0;
+  return octave_value (result);
+}
+
+octave_value
+script_eps_operation (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "eps expects an mp value");
+  if (is_complex_payload (value))
+    error_with_id ("mplapack:mp:ComplexUnsupported",
+                   "eps is implemented for real mp values only");
+  return make_inspection_result (octave_mplapack::mpfr_script_eps (
+    script_real_matrix_operand (value, arithmetic_mp_precision (value))));
+}
+
+struct ParsedStatisticsOptions
+{
+  octave_mplapack::MpScriptStatisticsOptions statistics;
+  bool output_double = false;
+};
+
+ParsedStatisticsOptions
+parse_statistics_options (const octave_value_list& args, int first,
+                          const octave_value& value,
+                          const std::string& operation)
+{
+  const bool range_like = operation == "range" || operation == "bounds";
+  int option_first = first;
+  ParsedStatisticsOptions result;
+  if (operation == "var" || operation == "std")
+    {
+      if (option_first < args.length () && args(option_first).isnumeric ())
+        {
+          const octave_value weight = args(option_first++);
+          if (! weight.isempty ())
+            {
+              if (weight.islogical () || ! weight.isreal ()
+                  || ! weight.is_real_scalar ())
+                error_with_id ("mplapack:mp:InvalidOption",
+                               "%s normalization must be scalar 0 or 1",
+                               operation.c_str ());
+              const double supplied = weight.double_value ();
+              if (! std::isfinite (supplied)
+                  || (supplied != 0.0 && supplied != 1.0))
+                error_with_id ("mplapack:mp:InvalidOption",
+                               "%s normalization must be scalar 0 or 1",
+                               operation.c_str ());
+              result.statistics.correction
+                = supplied == 1.0 ? 1U : 0U;
+            }
+        }
+    }
+
+  const ParsedScriptOptions parsed
+    = parse_script_options (args, option_first, script_default_dimension (value),
+                            range_like, false);
+  result.statistics.dimension = parsed.reduction.dimension;
+  result.statistics.all = parsed.reduction.all;
+  result.statistics.omit_nan = parsed.reduction.omit_nan;
+  result.output_double = parsed.reduction.output_double;
+  return result;
+}
+
+octave_value_list
+script_statistics_operation (const octave_value& value,
+                             const std::string& operation,
+                             const octave_value_list& args)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "%s requires an mp value", operation.c_str ());
+  if (operation != "mean" && operation != "median" && operation != "var"
+      && operation != "std" && operation != "range" && operation != "bounds")
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "unknown statistics operation: %s", operation.c_str ());
+
+  const ParsedStatisticsOptions parsed
+    = parse_statistics_options (args, 3, value, operation);
+  const bool complex = is_complex_arithmetic_operand (value);
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  try
+    {
+      if (complex)
+        {
+          const auto source = script_complex_matrix_operand (value, precision);
+          if (operation == "mean")
+            return ovl (script_complex_matrix_result (
+              octave_mplapack::mpc_script_mean (source, parsed.statistics),
+              parsed.output_double));
+          if (operation == "median")
+            return ovl (script_complex_matrix_result (
+              octave_mplapack::mpc_script_median (source, parsed.statistics),
+              parsed.output_double));
+          if (operation == "var" || operation == "std")
+            {
+              const auto result = octave_mplapack::mpc_script_variance (
+                source, parsed.statistics, operation == "std");
+              return ovl (
+                script_real_matrix_result (std::move (result.values),
+                                           parsed.output_double),
+                script_complex_matrix_result (std::move (result.means),
+                                              parsed.output_double));
+            }
+          if (operation == "range")
+            return ovl (script_complex_matrix_result (
+              octave_mplapack::mpc_script_range (source, parsed.statistics),
+              parsed.output_double));
+          const auto result
+            = octave_mplapack::mpc_script_bounds (source, parsed.statistics);
+          return ovl (
+            script_complex_matrix_result (std::move (result.lower),
+                                          parsed.output_double),
+            script_complex_matrix_result (std::move (result.upper),
+                                          parsed.output_double));
+        }
+
+      const auto source = script_real_matrix_operand (value, precision);
+      if (operation == "mean")
+        return ovl (script_real_matrix_result (
+          octave_mplapack::mpfr_script_mean (source, parsed.statistics),
+          parsed.output_double));
+      if (operation == "median")
+        return ovl (script_real_matrix_result (
+          octave_mplapack::mpfr_script_median (source, parsed.statistics),
+          parsed.output_double));
+      if (operation == "var" || operation == "std")
+        {
+          const auto result = octave_mplapack::mpfr_script_variance (
+            source, parsed.statistics, operation == "std");
+          return ovl (
+            script_real_matrix_result (std::move (result.values),
+                                       parsed.output_double),
+            script_real_matrix_result (std::move (result.means),
+                                       parsed.output_double));
+        }
+      if (operation == "range")
+        return ovl (script_real_matrix_result (
+          octave_mplapack::mpfr_script_range (source, parsed.statistics),
+          parsed.output_double));
+      const auto result
+        = octave_mplapack::mpfr_script_bounds (source, parsed.statistics);
+      return ovl (
+        script_real_matrix_result (std::move (result.lower),
+                                   parsed.output_double),
+        script_real_matrix_result (std::move (result.upper),
+                                   parsed.output_double));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:StatisticsError", "%s", exception.what ());
+    }
+  return ovl (octave_value ());
+}
+
+octave_value
+script_reduce_operation (
+  const octave_value& value,
+  octave_mplapack::MpScriptReductionOperation operation,
+  const octave_value_list& args, int first_option)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "reduction functions require an mp value");
+
+  const ParsedScriptOptions parsed
+    = parse_script_options (args, first_option,
+                            script_default_dimension (value), false,
+                            operation == octave_mplapack::MpScriptReductionOperation::cumsum
+                            || operation == octave_mplapack::MpScriptReductionOperation::cumprod);
+  if (parsed.reduction.all
+      && (operation == octave_mplapack::MpScriptReductionOperation::cumsum
+          || operation == octave_mplapack::MpScriptReductionOperation::cumprod))
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "all is not valid for cumulative reductions");
+
+  try
+    {
+      const mpfr_prec_t precision = arithmetic_mp_precision (value);
+      if (is_complex_payload (value))
+        {
+          const auto source = script_complex_matrix_operand (value, precision);
+          if (operation == octave_mplapack::MpScriptReductionOperation::sumsq)
+            return script_real_matrix_result (
+              octave_mplapack::mpc_script_sumsq (source, parsed.reduction),
+              parsed.reduction.output_double);
+          return script_complex_matrix_result (
+            octave_mplapack::mpc_script_reduce (source, operation,
+                                                parsed.reduction),
+            parsed.reduction.output_double);
+        }
+
+      const auto source = script_real_matrix_operand (value, precision);
+      return script_real_matrix_result (
+        octave_mplapack::mpfr_script_reduce (source, operation,
+                                             parsed.reduction),
+        parsed.reduction.output_double);
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+  return octave_value ();
+}
+
+octave_value_list
+script_extremum_operation (const octave_value& value,
+                           const octave_value_list& args, int mode)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "min/max functions require an mp value as the first operand");
+
+  const bool has_pair = args.length () > 4
+                        && ! args(4).isempty ()
+                        && (is_mp_value (args(4)) || args(4).isnumeric ());
+  const int first_option = has_pair ? 5 : 4;
+  const octave_value& rhs_value = has_pair ? args(4) : value;
+  const bool complex = is_complex_arithmetic_operand (value)
+                       || (has_pair && is_complex_arithmetic_operand (rhs_value));
+
+  ParsedScriptOptions parsed;
+  if (has_pair)
+    parsed = parse_script_options (args, first_option, 1, true, false);
+  else
+    parsed = parse_script_options (args, first_option,
+                                   script_default_dimension (value), true, false);
+  if (has_pair && parsed.reduction.all)
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "all is not valid for pairwise min/max");
+  if (has_pair && mode == 1)
+    error_with_id ("mplapack:mp:InvalidOutput",
+                   "pairwise min/max does not return indices");
+
+  try
+    {
+      mpfr_prec_t precision = arithmetic_mp_precision (value);
+      if (has_pair && is_mp_value (rhs_value))
+        precision = std::max (precision, arithmetic_mp_precision (rhs_value));
+
+      const auto extremum
+        = require_string (args(2), "extremum operation");
+      const auto operation
+        = extremum == "min"
+          ? octave_mplapack::MpScriptExtremumOperation::minimum
+          : octave_mplapack::MpScriptExtremumOperation::maximum;
+
+      if (complex)
+        {
+          const auto lhs = script_complex_matrix_operand (value, precision);
+          const auto rhs = script_complex_matrix_operand (rhs_value, precision);
+          octave_mplapack::MpScriptExtremumResultComplex result
+            = has_pair
+              ? octave_mplapack::mpc_script_extremum_pair (
+                  lhs, rhs, operation,
+                  octave_mplapack::MpScriptExtremumOptions {
+                    parsed.reduction, parsed.comparison })
+              : octave_mplapack::mpc_script_extremum (
+                  lhs, operation,
+                  octave_mplapack::MpScriptExtremumOptions {
+                    parsed.reduction, parsed.comparison });
+          const std::size_t result_rows = result.values.rows ();
+          const std::size_t result_columns = result.values.columns ();
+          const auto indices = result.indices;
+          const octave_value values
+            = script_complex_matrix_result (std::move (result.values),
+                                            parsed.reduction.output_double);
+          if (mode == 0)
+            return ovl (values);
+          return ovl (values, script_indices_result (
+            result_rows, result_columns, indices));
+        }
+
+      const auto lhs = script_real_matrix_operand (value, precision);
+      const auto rhs = script_real_matrix_operand (rhs_value, precision);
+      octave_mplapack::MpScriptExtremumResultReal result
+        = has_pair
+          ? octave_mplapack::mpfr_script_extremum_pair (
+              lhs, rhs, operation,
+              octave_mplapack::MpScriptExtremumOptions {
+                parsed.reduction, parsed.comparison })
+          : octave_mplapack::mpfr_script_extremum (
+              lhs, operation,
+              octave_mplapack::MpScriptExtremumOptions {
+                parsed.reduction, parsed.comparison });
+      const std::size_t result_rows = result.values.rows ();
+      const std::size_t result_columns = result.values.columns ();
+      const auto indices = result.indices;
+      const octave_value values
+        = script_real_matrix_result (std::move (result.values),
+                                     parsed.reduction.output_double);
+      if (mode == 0)
+        return ovl (values);
+      return ovl (values, script_indices_result (
+        result_rows, result_columns, indices));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+  return octave_value_list ();
+}
+
+octave_value
+script_predicate_operation (const octave_value& value,
+                            octave_mplapack::MpScriptPredicate predicate)
+{
+  const octave_value payload = require_mp_payload (value);
+  octave_mplapack::MpScriptPredicateResult result;
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          if (payload.type_id ()
+              == octave_mplapack_mpc_scalar_internal::static_type_id ())
+            result = octave_mplapack::mpc_script_predicate (
+              octave_mplapack_mpc_scalar_internal::checked_value (payload)
+                .storage (), predicate);
+          else
+            result = octave_mplapack::mpc_script_predicate (
+              octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage (), predicate);
+        }
+      else if (payload.type_id ()
+               == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        result = octave_mplapack::mpfr_script_predicate (
+          octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+            .storage (), predicate);
+      else
+        result = octave_mplapack::mpfr_script_predicate (
+          octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage (), predicate);
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:CompatibilityError", "%s",
+                     exception.what ());
+    }
+
+  if (result.rows == 1 && result.columns == 1)
+    return octave_value (result.values.at (0) != 0);
+
+  boolMatrix logicals (checked_octave_dimension_for_inspection (result.rows),
+                       checked_octave_dimension_for_inspection (result.columns));
+  for (std::size_t column = 0; column < result.columns; ++column)
+    for (std::size_t row = 0; row < result.rows; ++row)
+      logicals (static_cast<octave_idx_type> (row),
+               static_cast<octave_idx_type> (column))
+        = result.values.at (column * result.rows + row) != 0;
+  return octave_value (logicals);
+}
+
+octave_mplapack::MpScriptLogicalResult
+script_logical_values_for_mp (const octave_value& value)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput",
+                   "logical script operation requires an mp value");
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  auto operand = prepare_script_logic_operand (
+    value, precision, is_complex_payload (value));
+  return is_complex_payload (value)
+    ? octave_mplapack::mpc_script_logical (operand.complex_view)
+    : octave_mplapack::mpfr_script_logical (operand.real_view);
+}
+
+octave_value
+script_any_all_operation (const octave_value& value,
+                          const std::string& operation,
+                          const octave_value_list& args)
+{
+  if (operation != "any" && operation != "all")
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "logical reduction must be any or all");
+  const ParsedScriptOptions parsed
+    = parse_script_options (args, 3, script_default_dimension (value),
+                            false, false);
+  const auto source = script_logical_values_for_mp (value);
+  if (parsed.reduction.all)
+    {
+      bool result = operation == "all";
+      for (const unsigned char entry : source.values)
+        {
+          if (operation == "any")
+            result = result || entry != 0;
+          else
+            result = result && entry != 0;
+        }
+      return octave_value (result);
+    }
+
+  const std::size_t rows
+    = parsed.reduction.dimension == 1 ? 1 : source.rows;
+  const std::size_t columns
+    = parsed.reduction.dimension == 1 ? source.columns : 1;
+  boolMatrix result (checked_octave_dimension_for_inspection (rows),
+                     checked_octave_dimension_for_inspection (columns));
+  for (std::size_t column = 0; column < columns; ++column)
+    for (std::size_t row = 0; row < rows; ++row)
+      {
+        const std::size_t length
+          = parsed.reduction.dimension == 1 ? source.rows : source.columns;
+        bool accumulated = operation == "all";
+        for (std::size_t position = 0; position < length; ++position)
+          {
+            const std::size_t source_row
+              = parsed.reduction.dimension == 1 ? position : row;
+            const std::size_t source_column
+              = parsed.reduction.dimension == 1 ? column : position;
+            const bool entry
+              = source.values[source_row + source_column * source.rows] != 0;
+            if (operation == "any")
+              accumulated = accumulated || entry;
+            else
+              accumulated = accumulated && entry;
+          }
+        result (static_cast<octave_idx_type> (row),
+                static_cast<octave_idx_type> (column)) = accumulated;
+      }
+  return octave_value (result);
+}
+
+octave_value
+script_linear_selection_result (const octave_value& value,
+                                const std::vector<std::size_t>& indices)
+{
+  const mpfr_prec_t precision = arithmetic_mp_precision (value);
+  if (is_complex_payload (value))
+    {
+      const auto source = script_complex_matrix_operand (value, precision);
+      return make_complex_inspection_result (
+        octave_mplapack::select_complex_linear (source, indices));
+    }
+  const auto source = script_real_matrix_operand (value, precision);
+  return make_inspection_result (
+    octave_mplapack::select_linear (source, indices));
+}
+
+octave_value_list
+script_find_operation (const octave_value_list& args)
+{
+  if (args.length () < 3)
+    error_with_id ("mplapack:InvalidArguments",
+                   "script_find expects an mp value and output count");
+  const octave_value& value = args(1);
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "find expects an mp value");
+  if (! args(2).is_real_scalar ())
+    error_with_id ("mplapack:mp:OutputCount", "find output count is invalid");
+  const double supplied_outputs = args(2).double_value ();
+  if (! std::isfinite (supplied_outputs)
+      || std::trunc (supplied_outputs) != supplied_outputs
+      || supplied_outputs < 0.0 || supplied_outputs > 3.0)
+    error_with_id ("mplapack:mp:OutputCount", "find supports zero through three outputs");
+  const int output_count = std::max (1, static_cast<int> (supplied_outputs));
+
+  std::size_t limit = std::numeric_limits<std::size_t>::max ();
+  bool last = false;
+  for (int index = 3; index < args.length (); ++index)
+    {
+      const octave_value& option = args(index);
+      if (option.isnumeric () && option.isempty ())
+        continue;
+      if (option.isnumeric () && option.is_real_scalar ())
+        {
+          const double supplied = option.double_value ();
+          if (! std::isfinite (supplied) || std::trunc (supplied) != supplied
+              || supplied < 0.0
+              || supplied > static_cast<double> (
+                   std::numeric_limits<std::size_t>::max ()))
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "find count must be a nonnegative integer");
+          limit = static_cast<std::size_t> (supplied);
+          continue;
+        }
+      if (option.is_string ())
+        {
+          const std::string direction = option.string_value ();
+          if (direction == "first")
+            { last = false; continue; }
+          if (direction == "last")
+            { last = true; continue; }
+        }
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "find option must be a count, \"first\", or \"last\"");
+    }
+
+  const auto logical = script_logical_values_for_mp (value);
+  std::vector<std::size_t> indices;
+  indices.reserve (logical.values.size ());
+  for (std::size_t index = 0; index < logical.values.size (); ++index)
+    if (logical.values[index] != 0)
+      indices.push_back (index);
+  if (limit != std::numeric_limits<std::size_t>::max ()
+      && indices.size () > limit)
+    {
+      if (last)
+        indices.erase (indices.begin (), indices.end () - limit);
+      else
+        indices.resize (limit);
+    }
+
+  const std::size_t rows = logical.rows;
+  const std::size_t columns = logical.columns;
+  Matrix linear (checked_octave_dimension_for_inspection (indices.size ()), 1);
+  Matrix row_output (checked_octave_dimension_for_inspection (indices.size ()), 1);
+  Matrix column_output (checked_octave_dimension_for_inspection (indices.size ()), 1);
+  for (std::size_t output = 0; output < indices.size (); ++output)
+    {
+      const std::size_t linear_index = indices[output];
+      linear.xelem (static_cast<octave_idx_type> (output), 0)
+        = static_cast<double> (linear_index + 1);
+      row_output.xelem (static_cast<octave_idx_type> (output), 0)
+        = rows == 0 ? 1.0 : static_cast<double> (linear_index % rows + 1);
+      column_output.xelem (static_cast<octave_idx_type> (output), 0)
+        = rows == 0 ? 1.0 : static_cast<double> (linear_index / rows + 1);
+    }
+  if (output_count == 1)
+    return ovl (octave_value (linear));
+  if (output_count == 2)
+    return ovl (octave_value (row_output), octave_value (column_output));
+  return ovl (octave_value (row_output), octave_value (column_output),
+              script_linear_selection_result (value, indices));
+}
+
+octave_value_list
+script_sort_operation (const octave_value& value,
+                       const octave_value_list& args)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "sort expects an mp value");
+
+  std::size_t dimension = script_default_dimension (value);
+  bool dimension_supplied = false;
+  bool descending = false;
+  bool direction_supplied = false;
+  for (int index = 2; index < args.length (); ++index)
+    {
+      const octave_value& option = args(index);
+      if (option.isnumeric () && ! option.islogical ()
+          && ! option.is_string () && option.isreal ()
+          && option.is_real_scalar ())
+        {
+          if (dimension_supplied)
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "sort dimension was supplied more than once");
+          const std::int64_t supplied
+            = require_signed_structure_integer (option, "sort dimension");
+          if (supplied != 1 && supplied != 2)
+            error_with_id ("mplapack:mp:InvalidDimension",
+                           "sort dimension must be 1 or 2");
+          dimension = static_cast<std::size_t> (supplied);
+          dimension_supplied = true;
+          continue;
+        }
+      if (option.is_string ())
+        {
+          if (direction_supplied)
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "sort direction was supplied more than once");
+          const std::string direction = option.string_value ();
+          if (direction == "ascend")
+            descending = false;
+          else if (direction == "descend")
+            descending = true;
+          else
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "sort direction must be \"ascend\" or \"descend\"");
+          direction_supplied = true;
+          continue;
+        }
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "sort expects a dimension or direction option");
+    }
+
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          auto result = octave_mplapack::mpc_script_sort (
+            script_complex_matrix_operand (value, arithmetic_mp_precision (value)),
+            dimension, descending);
+          const std::size_t rows = result.values.rows ();
+          const std::size_t columns = result.values.columns ();
+          return ovl (make_complex_inspection_result (std::move (result.values)),
+                      script_indices_result (rows, columns, result.indices));
+        }
+      auto result = octave_mplapack::mpfr_script_sort (
+        script_real_matrix_operand (value, arithmetic_mp_precision (value)),
+        dimension, descending);
+      const std::size_t rows = result.values.rows ();
+      const std::size_t columns = result.values.columns ();
+      return ovl (make_inspection_result (std::move (result.values)),
+                  script_indices_result (rows, columns, result.indices));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:SequenceError", "%s", exception.what ());
+    }
+  return octave_value_list ();
+}
+
+octave_value
+script_diff_operation (const octave_value& value,
+                       const octave_value_list& args)
+{
+  if (! is_mp_value (value))
+    error_with_id ("mplapack:mp:InvalidInput", "diff expects an mp value");
+  if (args.length () < 2 || args.length () > 4)
+    error_with_id ("mplapack:mp:InvalidArguments",
+                   "diff expects an mp value and optional order/dimension");
+
+  std::size_t order = 1;
+  std::size_t dimension = script_default_dimension (value);
+  bool dimension_supplied = false;
+  if (args.length () >= 3 && ! args(2).isnumeric ()
+      && ! args(2).islogical ())
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "diff order must be a nonnegative integer");
+  if (args.length () >= 3 && ! args(2).isempty ())
+    order = require_nonnegative_structure_dimension (args(2), "diff order");
+  if (args.length () == 4)
+    {
+      const std::int64_t supplied
+        = require_signed_structure_integer (args(3), "diff dimension");
+      if (supplied != 1 && supplied != 2)
+        error_with_id ("mplapack:mp:InvalidDimension",
+                       "diff dimension must be 1 or 2");
+      dimension = static_cast<std::size_t> (supplied);
+      dimension_supplied = true;
+    }
+
+  try
+    {
+      if (is_complex_payload (value))
+        {
+          const auto source = script_complex_matrix_operand (
+            value, arithmetic_mp_precision (value));
+          if (! dimension_supplied && source.numel () == 1 && order != 0)
+            return make_complex_inspection_result (
+              octave_mplapack::MpfrComplexMatrixStorage (
+                0, 0, source.precision_bits ()));
+          return make_complex_inspection_result (
+            octave_mplapack::mpc_script_diff (source, order, dimension));
+        }
+      const auto source = script_real_matrix_operand (
+        value, arithmetic_mp_precision (value));
+      if (! dimension_supplied && source.numel () == 1 && order != 0)
+        return make_inspection_result (octave_mplapack::MpfrMatrixStorage (
+          0, 0, source.precision_bits ()));
+      return make_inspection_result (
+        octave_mplapack::mpfr_script_diff (source, order, dimension));
+    }
+  catch (const std::exception& exception)
+    {
+      error_with_id ("mplapack:mp:SequenceError", "%s", exception.what ());
+    }
+  return octave_value ();
+}
+
+bool
+script_equal_operation (const octave_value& lhs_value,
+                        const octave_value& rhs_value,
+                        bool nan_equal)
+{
+  if (! is_mp_value (lhs_value) || ! is_mp_value (rhs_value))
+    return false;
+
+  const octave_value lhs = require_mp_payload (lhs_value);
+  const octave_value rhs = require_mp_payload (rhs_value);
+  if (lhs.type_id () != rhs.type_id ())
+    return false;
+
+  if (lhs.type_id () == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+    return octave_mplapack::mpfr_script_equal (
+      octave_mplapack_mpfr_scalar_internal::checked_value (lhs).storage (),
+      octave_mplapack_mpfr_scalar_internal::checked_value (rhs).storage (),
+      nan_equal);
+  if (lhs.type_id () == octave_mplapack_mpfr_matrix_internal::static_type_id ())
+    return octave_mplapack::mpfr_script_equal (
+      octave_mplapack_mpfr_matrix_internal::checked_value (lhs).storage (),
+      octave_mplapack_mpfr_matrix_internal::checked_value (rhs).storage (),
+      nan_equal);
+  if (lhs.type_id () == octave_mplapack_mpc_scalar_internal::static_type_id ())
+    return octave_mplapack::mpc_script_equal (
+      octave_mplapack_mpc_scalar_internal::checked_value (lhs).storage (),
+      octave_mplapack_mpc_scalar_internal::checked_value (rhs).storage (),
+      nan_equal);
+  return octave_mplapack::mpc_script_equal (
+    octave_mplapack_mpc_matrix_internal::checked_value (lhs).storage (),
+    octave_mplapack_mpc_matrix_internal::checked_value (rhs).storage (),
+    nan_equal);
+}
+
 octave_value_list
 version_info ()
 {
@@ -2518,6 +8243,155 @@ version_info ()
   info.assign ("probe_value", probe_value);
 
   return ovl (info);
+}
+
+octave_value_list
+mp_hess_operation (const octave_value& value)
+{
+  const auto input = generalized_matrix_payload (value);
+  return std::visit ([] (const auto& matrix) -> octave_value_list
+  {
+    using Matrix = std::decay_t<decltype (matrix)>;
+    if constexpr (std::is_same_v<Matrix, octave_mplapack::MpfrMatrixStorage>)
+      {
+        const auto result = octave_mplapack::mplapack_mpfr_hess (matrix);
+        return ovl (make_inspection_result (result.p),
+                    make_inspection_result (result.h));
+      }
+    else
+      {
+        const auto result = octave_mplapack::mplapack_mpc_hess (matrix);
+        return ovl (make_complex_inspection_result (result.p),
+                    make_complex_inspection_result (result.h));
+      }
+  }, input);
+}
+
+octave_value_list
+mp_schur_operation (const octave_value& value, bool force_complex)
+{
+  auto input = generalized_matrix_payload (value);
+  if (force_complex && ! is_complex_payload (value))
+    input = generalized_matrix_at_precision (
+      input, generalized_matrix_precision (input), true);
+
+  return std::visit ([] (const auto& matrix) -> octave_value_list
+  {
+    using Matrix = std::decay_t<decltype (matrix)>;
+    if constexpr (std::is_same_v<Matrix, octave_mplapack::MpfrMatrixStorage>)
+      {
+        const auto result = octave_mplapack::mplapack_mpfr_schur (matrix);
+        return ovl (make_inspection_result (result.u),
+                    make_inspection_result (result.s));
+      }
+    else
+      {
+        const auto result = octave_mplapack::mplapack_mpc_schur (matrix);
+        return ovl (make_complex_inspection_result (result.u),
+                    make_complex_inspection_result (result.s));
+      }
+  }, input);
+}
+
+octave_value
+mp_balance_operation (const octave_value& value, const std::string& option)
+{
+  const auto input = generalized_matrix_payload (value);
+  const char *job = "B";
+  if (option == "noperm" || option == "S")
+    job = "S";
+  else if (option == "noscal" || option == "P")
+    job = "P";
+  else if (option != "" && option != "balance" && option != "B")
+    error_with_id ("mplapack:mp:InvalidOption",
+                   "balance option must be \"noperm\", \"noscal\", or default");
+
+  return std::visit ([job] (const auto& matrix) -> octave_value
+  {
+    using Matrix = std::decay_t<decltype (matrix)>;
+    if (matrix.rows () != matrix.columns ())
+      error_with_id ("mplapack:mp:InvalidInput",
+                     "balance expects a square mp matrix");
+    if constexpr (std::is_same_v<Matrix, octave_mplapack::MpfrMatrixStorage>)
+      {
+        octave_mplapack::MpfrMatrixStorage result (matrix);
+        octave_mplapack::MpfrMatrixStorage scale (
+          matrix.rows (), 1, matrix.precision_bits ());
+        octave_mplapack::MpfrMatrixStorage::MplapackInteger ilo = 0;
+        octave_mplapack::MpfrMatrixStorage::MplapackInteger ihi = 0;
+        octave_mplapack::MpfrMatrixStorage::MplapackInteger info = 0;
+        {
+          MplapackMpfrPrecisionScope scope (matrix.precision_bits ());
+          Rgebal (job, static_cast<octave_mplapack::MpfrMatrixStorage::MplapackInteger> (
+                    matrix.rows ()), result.data (), result.leading_dimension (),
+                  ilo, ihi, scale.data (), info);
+        }
+        if (info != 0)
+          error_with_id ("mplapack:mp:BalanceError",
+                         "MPLAPACK Rgebal failed (info %d)", static_cast<int> (info));
+        return make_inspection_result (std::move (result));
+      }
+    else
+      {
+        octave_mplapack::MpfrComplexMatrixStorage result (matrix);
+        octave_mplapack::MpfrMatrixStorage scale (
+          matrix.rows (), 1, matrix.precision_bits ());
+        octave_mplapack::MpfrComplexMatrixStorage::MplapackInteger ilo = 0;
+        octave_mplapack::MpfrComplexMatrixStorage::MplapackInteger ihi = 0;
+        octave_mplapack::MpfrComplexMatrixStorage::MplapackInteger info = 0;
+        {
+          octave_mplapack::MpfrMpcPrecisionScope scope (
+            matrix.precision_bits ());
+          Cgebal (job, static_cast<octave_mplapack::MpfrComplexMatrixStorage::MplapackInteger> (
+                    matrix.rows ()), result.data (), result.leading_dimension (),
+                  ilo, ihi, scale.data (), info);
+        }
+        if (info != 0)
+          error_with_id ("mplapack:mp:BalanceError",
+                         "MPLAPACK Cgebal failed (info %d)", static_cast<int> (info));
+        return make_complex_inspection_result (std::move (result));
+      }
+  }, input);
+}
+
+octave_value_list
+mp_qz_operation (const octave_value& value_a, const octave_value& value_b,
+                 bool force_complex)
+{
+  auto a = generalized_matrix_payload (value_a);
+  auto b = generalized_matrix_payload (value_b);
+  if (generalized_matrix_precision (a) != generalized_matrix_precision (b))
+    error_with_id ("mplapack:mp:PrecisionMismatch",
+                   "qz matrix operands must have the same precision");
+
+  const bool complex_output = force_complex || is_complex_payload (value_a)
+                              || is_complex_payload (value_b);
+  if (complex_output)
+    {
+      a = generalized_matrix_at_precision (
+        a, generalized_matrix_precision (a), true);
+      b = generalized_matrix_at_precision (
+        b, generalized_matrix_precision (b), true);
+    }
+
+  if (! complex_output)
+    {
+      const auto& ar = std::get<octave_mplapack::MpfrMatrixStorage> (a);
+      const auto& br = std::get<octave_mplapack::MpfrMatrixStorage> (b);
+      const auto result = octave_mplapack::mplapack_mpfr_qz (ar, br);
+      return ovl (make_inspection_result (result.aa),
+                  make_inspection_result (result.bb),
+                  make_inspection_result (result.q),
+                  make_inspection_result (result.z));
+    }
+
+  const auto& ac = std::get<octave_mplapack::MpfrComplexMatrixStorage> (a);
+  const auto& bc = std::get<octave_mplapack::MpfrComplexMatrixStorage> (b);
+  const auto result = octave_mplapack::mplapack_mpc_qz (ac, bc);
+  return ovl (make_complex_inspection_result (result.aa),
+              make_complex_inspection_result (result.bb),
+              make_complex_inspection_result (result.q),
+              make_complex_inspection_result (result.z));
 }
 
 } // namespace
@@ -2606,6 +8480,71 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         }
     }
 
+  if (command == "rng_seed")
+    {
+      require_argument_count (args, 2, command);
+      const auto state = octave_mplapack::mp_random_seed (
+        require_rng_word (args(1), "rng seed"));
+      return ovl (octave_uint64 (state.first),
+                  octave_uint64 (state.second));
+    }
+
+  if (command == "rng_uniform" || command == "rng_normal")
+    {
+      require_argument_count (args, 5, command);
+      const std::size_t rows
+        = parse_reshape_dimension (args(1), "rng rows");
+      const std::size_t columns
+        = parse_reshape_dimension (args(2), "rng columns");
+      auto state = require_rng_state (args(3), args(4));
+      const mpfr_prec_t precision
+        = octave_mplapack::default_precision_bits ();
+      octave_mplapack::synchronize_current_thread_precision ();
+      try
+        {
+          if (command == "rng_uniform")
+            return make_random_result (
+              octave_mplapack::mp_random_uniform (
+                rows, columns, precision, state), state);
+          return make_random_result (
+            octave_mplapack::mp_random_normal (
+              rows, columns, precision, state), state);
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:rng:GenerationError", "%s",
+                         exception.what ());
+        }
+    }
+
+  if (command == "rng_integer")
+    {
+      require_argument_count (args, 7, command);
+      const auto lower
+        = require_real_mp_scalar_for_rng (args(1), "rng lower bound");
+      const auto upper
+        = require_real_mp_scalar_for_rng (args(2), "rng upper bound");
+      const std::size_t rows
+        = parse_reshape_dimension (args(3), "rng rows");
+      const std::size_t columns
+        = parse_reshape_dimension (args(4), "rng columns");
+      auto state = require_rng_state (args(5), args(6));
+      const mpfr_prec_t precision
+        = octave_mplapack::default_precision_bits ();
+      octave_mplapack::synchronize_current_thread_precision ();
+      try
+        {
+          return make_random_result (
+            octave_mplapack::mp_random_integer (
+              rows, columns, precision, lower, upper, state), state);
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:rng:GenerationError", "%s",
+                         exception.what ());
+        }
+    }
+
   if (command == "matrix_create_double")
     {
       require_argument_count (args, 2, command);
@@ -2616,6 +8555,32 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 2, command);
       return ovl (make_matrix_from_text_cell (args(1)));
+    }
+
+  if (command == "matrix_create_complex_text_cell")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (make_complex_matrix_from_text_cell (args(1)));
+    }
+
+  if (command == "serialize")
+    {
+      require_argument_count (args, 2, command);
+      try
+        {
+          return ovl (serialize_mp_value (args(1)));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:SerializationError", "%s",
+                         exception.what ());
+        }
+    }
+
+  if (command == "deserialize")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (deserialize_mp_value (args(1)));
     }
 
   if (command == "value_shape_info")
@@ -2630,21 +8595,369 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       return ovl (is_matrix_payload (args(1)));
     }
 
+  if (command == "value_is_real")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (! is_complex_payload (args(1)));
+    }
+
+  if (command == "value_real")
+    {
+      require_argument_count (args, 2, command);
+      if (is_complex_payload (args(1)))
+        return ovl (complex_real_result (args(1)));
+      return ovl (require_mp_payload (args(1)));
+    }
+
+  if (command == "value_imag")
+    {
+      require_argument_count (args, 2, command);
+      if (is_complex_payload (args(1)))
+        return ovl (complex_imag_result (args(1)));
+
+      const octave_value payload = require_mp_payload (args(1));
+      if (payload.type_id ()
+          == octave_mplapack_mpfr_scalar_internal::static_type_id ())
+        {
+          const auto& source
+            = octave_mplapack_mpfr_scalar_internal::checked_value (payload)
+                .storage ();
+          return ovl (make_internal_scalar (
+            0.0, source.precision_bits ()));
+        }
+
+      const auto& source
+        = octave_mplapack_mpfr_matrix_internal::checked_value (payload)
+            .storage ();
+      return ovl (make_internal_matrix (
+        octave_mplapack::MpfrMatrixStorage (
+          source.rows (), source.columns (), source.precision_bits ())));
+    }
+
+  if (command == "value_conj")
+    {
+      require_argument_count (args, 2, command);
+      if (is_complex_payload (args(1)))
+        return ovl (complex_conj_result (args(1)));
+      return ovl (require_mp_payload (args(1)));
+    }
+
+  if (command == "script_unary")
+    {
+      require_argument_count (args, 3, command);
+      const std::string operation = require_string (args(2), "unary operation");
+      if (operation == "abs")
+        return ovl (script_unary_operation (
+          args(1), octave_mplapack::MpScriptUnaryOperation::absolute));
+      if (operation == "angle")
+        return ovl (script_unary_operation (
+          args(1), octave_mplapack::MpScriptUnaryOperation::angle));
+      if (operation == "sign")
+        return ovl (script_unary_operation (
+          args(1), octave_mplapack::MpScriptUnaryOperation::sign));
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "unknown script unary operation: %s", operation.c_str ());
+    }
+
+  if (command == "script_elementary")
+    {
+      require_argument_count (args, 3, command);
+      const std::string operation = require_string (args(2), "elementary operation");
+      const auto select_operation = [&] ()
+      {
+        if (operation == "sqrt") return octave_mplapack::MpScriptElementaryOperation::sqrt;
+        if (operation == "exp") return octave_mplapack::MpScriptElementaryOperation::exp;
+        if (operation == "expm1") return octave_mplapack::MpScriptElementaryOperation::expm1;
+        if (operation == "log") return octave_mplapack::MpScriptElementaryOperation::log;
+        if (operation == "log1p") return octave_mplapack::MpScriptElementaryOperation::log1p;
+        if (operation == "log10") return octave_mplapack::MpScriptElementaryOperation::log10;
+        if (operation == "log2") return octave_mplapack::MpScriptElementaryOperation::log2;
+        if (operation == "sin") return octave_mplapack::MpScriptElementaryOperation::sin;
+        if (operation == "cos") return octave_mplapack::MpScriptElementaryOperation::cos;
+        if (operation == "tan") return octave_mplapack::MpScriptElementaryOperation::tan;
+        if (operation == "asin") return octave_mplapack::MpScriptElementaryOperation::asin;
+        if (operation == "acos") return octave_mplapack::MpScriptElementaryOperation::acos;
+        if (operation == "atan") return octave_mplapack::MpScriptElementaryOperation::atan;
+        if (operation == "sinh") return octave_mplapack::MpScriptElementaryOperation::sinh;
+        if (operation == "cosh") return octave_mplapack::MpScriptElementaryOperation::cosh;
+        if (operation == "tanh") return octave_mplapack::MpScriptElementaryOperation::tanh;
+        if (operation == "asinh") return octave_mplapack::MpScriptElementaryOperation::asinh;
+        if (operation == "acosh") return octave_mplapack::MpScriptElementaryOperation::acosh;
+        if (operation == "atanh") return octave_mplapack::MpScriptElementaryOperation::atanh;
+        if (operation == "erf") return octave_mplapack::MpScriptElementaryOperation::erf;
+        if (operation == "erfc") return octave_mplapack::MpScriptElementaryOperation::erfc;
+        if (operation == "gamma") return octave_mplapack::MpScriptElementaryOperation::gamma;
+        if (operation == "gammaln" || operation == "lgamma") return octave_mplapack::MpScriptElementaryOperation::lngamma;
+        if (operation == "cbrt") return octave_mplapack::MpScriptElementaryOperation::cbrt;
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown elementary operation: %s", operation.c_str ());
+        return octave_mplapack::MpScriptElementaryOperation::sqrt;
+      } ();
+      return ovl (script_elementary_operation (args(1), select_operation));
+    }
+
+  if (command == "script_reduce")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:InvalidArguments",
+                       "__mplapack_core__(\"script_reduce\") expects an mp value and operation");
+      const std::string operation = require_string (args(2), "reduction operation");
+      const auto select_operation = [&] ()
+      {
+        if (operation == "sum")
+          return octave_mplapack::MpScriptReductionOperation::sum;
+        if (operation == "prod")
+          return octave_mplapack::MpScriptReductionOperation::prod;
+        if (operation == "sumsq")
+          return octave_mplapack::MpScriptReductionOperation::sumsq;
+        if (operation == "cumsum")
+          return octave_mplapack::MpScriptReductionOperation::cumsum;
+        if (operation == "cumprod")
+          return octave_mplapack::MpScriptReductionOperation::cumprod;
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown reduction operation: %s", operation.c_str ());
+        return octave_mplapack::MpScriptReductionOperation::sum;
+      } ();
+      return ovl (script_reduce_operation (args(1), select_operation, args, 3));
+    }
+
+  if (command == "script_extremum")
+    {
+      if (args.length () < 4)
+        error_with_id ("mplapack:InvalidArguments",
+                       "__mplapack_core__(\"script_extremum\") expects an mp value, operation, and output mode");
+      const std::string operation = require_string (args(2), "extremum operation");
+      if (operation != "min" && operation != "max")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "extremum operation must be min or max");
+      const std::string mode = require_string (args(3), "extremum output mode");
+      if (mode != "value" && mode != "value_index")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "extremum output mode must be value or value_index");
+      return script_extremum_operation (args(1), args, mode == "value_index");
+    }
+
+  if (command == "script_predicate")
+    {
+      require_argument_count (args, 3, command);
+      const std::string predicate = require_string (args(2), "predicate");
+      if (predicate == "isnan")
+        return ovl (script_predicate_operation (
+          args(1), octave_mplapack::MpScriptPredicate::isnan));
+      if (predicate == "isinf")
+        return ovl (script_predicate_operation (
+          args(1), octave_mplapack::MpScriptPredicate::isinf));
+      if (predicate == "isfinite")
+        return ovl (script_predicate_operation (
+          args(1), octave_mplapack::MpScriptPredicate::isfinite));
+      error_with_id ("mplapack:mp:InvalidOption",
+                     "unknown script predicate: %s", predicate.c_str ());
+    }
+
+  if (command == "script_compare")
+    {
+      require_argument_count (args, 4, command);
+      const std::string operation = require_string (args(3),
+                                                    "comparison operation");
+      const auto select_operation = [&] ()
+      {
+        if (operation == "eq")
+          return octave_mplapack::MpScriptComparisonOperation::equal;
+        if (operation == "ne")
+          return octave_mplapack::MpScriptComparisonOperation::not_equal;
+        if (operation == "lt")
+          return octave_mplapack::MpScriptComparisonOperation::less;
+        if (operation == "le")
+          return octave_mplapack::MpScriptComparisonOperation::less_equal;
+        if (operation == "gt")
+          return octave_mplapack::MpScriptComparisonOperation::greater;
+        if (operation == "ge")
+          return octave_mplapack::MpScriptComparisonOperation::greater_equal;
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown comparison operation: %s", operation.c_str ());
+        return octave_mplapack::MpScriptComparisonOperation::equal;
+      } ();
+      return ovl (script_compare_operation (args(1), args(2),
+                                            select_operation));
+    }
+
+  if (command == "script_logical")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:InvalidArguments",
+                       "script_logical expects one or two operands");
+      const std::string operation = require_string (args(2),
+                                                    "logical operation");
+      if (operation == "not")
+        {
+          require_argument_count (args, 3, command);
+          return ovl (script_logical_not_operation (args(1)));
+        }
+      require_argument_count (args, 4, command);
+      const auto select_operation = [&] ()
+      {
+        if (operation == "and")
+          return octave_mplapack::MpScriptLogicalOperation::and_op;
+        if (operation == "or")
+          return octave_mplapack::MpScriptLogicalOperation::or_op;
+        if (operation == "xor")
+          return octave_mplapack::MpScriptLogicalOperation::xor_op;
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown logical operation: %s", operation.c_str ());
+        return octave_mplapack::MpScriptLogicalOperation::and_op;
+      } ();
+      return ovl (script_logical_operation (args(1), args(3),
+                                            select_operation));
+    }
+
+  if (command == "script_any_all")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:InvalidArguments",
+                       "script_any_all expects an mp value and operation");
+      return ovl (script_any_all_operation (
+        args(1), require_string (args(2), "logical reduction operation"), args));
+    }
+
+  if (command == "script_find")
+    return script_find_operation (args);
+
+  if (command == "script_sort")
+    return script_sort_operation (args(1), args);
+
+  if (command == "script_diff")
+    return ovl (script_diff_operation (args(1), args));
+
+  if (command == "script_structure")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:InvalidArguments",
+                       "script_structure expects an mp value and operation");
+      if (args(1).is_string () && args(1).string_value () == "like")
+        {
+          if (args.length () < 5)
+            error_with_id ("mplapack:mp:InvalidArguments",
+                           "like constructor expects a kind, template, and dimensions");
+          return ovl (script_structure_operation (
+            args(3), "like", args, 4));
+        }
+      return ovl (script_structure_operation (
+        args(1), require_string (args(2), "structure operation"), args, 3));
+    }
+
+  if (command == "script_range")
+    {
+      try
+        { return ovl (script_range_operation (args)); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:RangeError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_linspace")
+    {
+      try
+        { return ovl (script_linspace_operation (args)); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:RangeError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_logspace")
+    {
+      try
+        { return ovl (script_logspace_operation (args)); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:RangeError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_round")
+    {
+      require_argument_count (args, 3, command);
+      try
+        {
+          const std::string operation = require_string (args(2), "rounding operation");
+          if (operation != "floor" && operation != "ceil"
+              && operation != "fix" && operation != "round")
+            error_with_id ("mplapack:mp:InvalidOption",
+                           "unknown rounding operation: %s", operation.c_str ());
+          return ovl (script_round_operation (args(1), operation));
+        }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:UtilityError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_binary_utility")
+    {
+      require_argument_count (args, 4, command);
+      const std::string operation = require_string (args(3), "utility operation");
+      if (operation != "rem" && operation != "mod"
+          && operation != "hypot" && operation != "atan2")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "unknown binary utility operation: %s", operation.c_str ());
+      try
+        { return ovl (script_real_binary_utility (args(1), args(2), operation)); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:UtilityError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_signbit")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (script_signbit_operation (args(1)));
+    }
+
+  if (command == "script_eps")
+    {
+      require_argument_count (args, 2, command);
+      try
+        { return ovl (script_eps_operation (args(1))); }
+      catch (const std::exception& exception)
+        { error_with_id ("mplapack:mp:UtilityError", "%s", exception.what ()); }
+    }
+
+  if (command == "script_statistics")
+    {
+      if (args.length () < 3)
+        error_with_id ("mplapack:mp:InvalidArguments",
+                       "script_statistics expects an mp value and operation");
+      return script_statistics_operation (
+        args(1), require_string (args(2), "statistics operation"), args);
+    }
+
+  if (command == "value_equal")
+    {
+      require_argument_count (args, 4, command);
+      const std::string mode = require_string (args(3), "equality mode");
+      if (mode != "isequal" && mode != "isequaln")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "equality mode must be isequal or isequaln");
+      return ovl (script_equal_operation (args(1), args(2),
+                                          mode == "isequaln"));
+    }
+
   if (command == "matrix_subscript")
     {
       require_argument_count (args, 4, command);
+      if (is_complex_payload (args(1)))
+        return ovl (complex_matrix_subscript_result (
+          args(1), args(2), args(3)));
       return ovl (matrix_subscript_result (args(1), args(2), args(3)));
     }
 
   if (command == "matrix_linear_subscript")
     {
       require_argument_count (args, 3, command);
+      if (is_complex_payload (args(1)))
+        return ovl (complex_matrix_linear_subscript_result (args(1), args(2)));
       return ovl (matrix_linear_subscript_result (args(1), args(2)));
     }
 
   if (command == "matrix_subsasgn")
     {
       require_argument_count (args, 5, command);
+      if (is_complex_payload (args(1))
+          || is_complex_arithmetic_operand (args(4)))
+        return ovl (complex_matrix_assignment_result (
+          args(1), args(2), args(3), args(4)));
       return ovl (matrix_two_subscript_assignment_result (
         args(1), args(2), args(3), args(4)));
     }
@@ -2652,6 +8965,10 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
   if (command == "matrix_linear_subsasgn")
     {
       require_argument_count (args, 4, command);
+      if (is_complex_payload (args(1))
+          || is_complex_arithmetic_operand (args(3)))
+        return ovl (complex_matrix_linear_assignment_result (
+          args(1), args(2), args(3)));
       return ovl (matrix_linear_assignment_result (
         args(1), args(2), args(3)));
     }
@@ -2660,6 +8977,12 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 2, command);
       return ovl (matrix_transpose_result (args(1)));
+    }
+
+  if (command == "matrix_ctranspose")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (matrix_ctranspose_result (args(1)));
     }
 
   if (command == "matrix_reshape")
@@ -2685,6 +9008,8 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
   if (command == "matrix_to_double")
     {
       require_argument_count (args, 2, command);
+      if (is_mp_value (args(1)) && is_complex_payload (args(1)))
+        return ovl (complex_matrix_to_double (args(1)));
       return ovl (matrix_to_double (args(1)));
     }
 
@@ -2693,6 +9018,13 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       require_argument_count (args, 2, command);
       try
         {
+          if (is_complex_payload (args(1)))
+            {
+              const auto& source
+                = octave_mplapack_mpc_matrix_internal::checked_value (
+                    require_matrix_payload (args(1))).storage ();
+              return ovl (octave_mplapack::format_complex_matrix (source));
+            }
           return ovl (matrix_display_text (args(1)));
         }
       catch (const std::exception& exception)
@@ -2706,6 +9038,27 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 2, command);
       const octave_value payload = require_matrix_payload (args(1));
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        {
+          const auto& matrix
+            = octave_mplapack_mpc_matrix_internal::checked_value (payload);
+          const auto& storage = matrix.storage ();
+          octave_scalar_map info;
+          info.assign ("internal_type", matrix.static_type_name ());
+          info.assign ("rows", octave_uint64 (storage.rows ()));
+          info.assign ("columns", octave_uint64 (storage.columns ()));
+          info.assign ("numel", octave_uint64 (storage.numel ()));
+          info.assign ("precision_bits",
+                       octave_uint64 (storage.precision_bits ()));
+          info.assign ("leading_dimension",
+                       octave_int64 (storage.leading_dimension ()));
+          info.assign ("storage_kind", "column_major_contiguous_complex");
+          info.assign ("all_elements_same_precision",
+                       storage.all_elements_have_uniform_precision ());
+          info.assign ("is_complex", true);
+          return ovl (info);
+        }
       const auto& matrix
         = octave_mplapack_mpfr_matrix_internal::checked_value (payload);
       const auto& storage = matrix.storage ();
@@ -2722,6 +9075,7 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       info.assign ("storage_kind", "column_major_contiguous");
       info.assign ("all_elements_same_precision",
                    storage.all_elements_have_uniform_precision ());
+      info.assign ("is_complex", false);
       return ovl (info);
     }
 
@@ -2729,6 +9083,23 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 5, command);
       const octave_value payload = require_matrix_payload (args(1));
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        {
+          const auto& storage
+            = octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ();
+          try
+            {
+              return ovl (storage.element_exactly_equal_text (
+                require_matrix_index (args(2)), require_matrix_index (args(3)),
+                require_string (args(4), "matrix test text")));
+            }
+          catch (const std::out_of_range&)
+            { error_with_id ("mplapack:InvalidArguments", "matrix test index is out of range"); }
+          catch (const std::invalid_argument&)
+            { error_with_id ("mplapack:InvalidScalarText", "invalid complex matrix test text"); }
+        }
       const auto& storage
         = octave_mplapack_mpfr_matrix_internal::checked_value (
             payload).storage ();
@@ -2756,6 +9127,20 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 5, command);
       const octave_value payload = require_matrix_payload (args(1));
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        {
+          const auto& storage
+            = octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ();
+          const std::size_t row = require_matrix_index (args(2));
+          const std::size_t column = require_matrix_index (args(3));
+          if (! args(4).is_complex_scalar () && ! args(4).is_real_scalar ())
+            error_with_id ("mplapack:InvalidArguments",
+                           "matrix test value must be a scalar");
+          return ovl (storage.element_exactly_equal_double (
+            row, column, args(4).complex_value ()));
+        }
       const auto& storage
         = octave_mplapack_mpfr_matrix_internal::checked_value (
             payload).storage ();
@@ -2773,6 +9158,19 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
     {
       require_argument_count (args, 4, command);
       const octave_value payload = require_matrix_payload (args(1));
+      if (payload.type_id ()
+          == octave_mplapack_mpc_matrix_internal::static_type_id ())
+        {
+          const auto& storage
+            = octave_mplapack_mpc_matrix_internal::checked_value (payload)
+                .storage ();
+          const std::size_t row = require_matrix_index (args(2));
+          const std::size_t column = require_matrix_index (args(3));
+          if (row >= storage.rows () || column >= storage.columns ())
+            error_with_id ("mplapack:InvalidArguments",
+                           "matrix test index is out of range");
+          return ovl (storage.at (row, column).real_to_double ());
+        }
       const auto& storage
         = octave_mplapack_mpfr_matrix_internal::checked_value (
             payload).storage ();
@@ -2827,13 +9225,119 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
   if (command == "mtimes")
     {
       require_argument_count (args, 3, command);
+      if (is_complex_arithmetic_operand (args(1))
+          || is_complex_arithmetic_operand (args(2)))
+        return ovl (complex_mtimes_operation (args(1), args(2)));
       return ovl (mp_mtimes_operation (args(1), args(2)));
+    }
+
+  if (command == "power")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (scalar_binary_operation (
+        args(1), args(2), ScalarBinaryOperation::power));
+    }
+
+  if (command == "mpower")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (mpower_operation (args(1), args(2)));
     }
 
   if (command == "mldivide")
     {
       require_argument_count (args, 3, command);
+      if (is_complex_arithmetic_operand (args(1))
+          || is_complex_arithmetic_operand (args(2)))
+        return ovl (complex_mldivide_operation (args(1), args(2)));
       return ovl (mp_mldivide_operation (args(1), args(2)));
+    }
+
+  if (command == "mldivide_rank")
+    {
+      require_argument_count (args, 3, command);
+      if (is_complex_arithmetic_operand (args(1))
+          || is_complex_arithmetic_operand (args(2)))
+        return ovl (complex_mldivide_operation (args(1), args(2), true));
+      return ovl (mp_mldivide_operation (args(1), args(2), true));
+    }
+
+  if (command == "norm")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (mp_norm_operation (args(1), args(2)));
+    }
+
+  if (command == "det")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (mp_det_operation (args(1)));
+    }
+
+  if (command == "det_rcond")
+    {
+      require_argument_count (args, 2, command);
+      return mp_det_rcond_operation (args(1));
+    }
+
+  if (command == "inv")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (mp_inverse_operation (args(1)));
+    }
+
+  if (command == "svd")
+    {
+      require_argument_count (args, 4, command);
+      const std::string option = require_string (args(2), "svd option");
+      const std::string outputs = require_string (args(3), "svd output mode");
+      if (option != "full" && option != "econ")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "svd option must be \"full\" or \"econ\"");
+      if (outputs != "values" && outputs != "factors")
+        error_with_id ("mplapack:mp:InvalidArguments",
+                       "svd output mode is invalid");
+      return mp_svd_operation (args(1), option == "econ",
+                               outputs == "factors");
+    }
+
+  if (command == "rank")
+    {
+      if (args.length () != 2 && args.length () != 3)
+        error_with_id ("mplapack:InvalidArguments",
+                       "__mplapack_core__(\"rank\") expects one or two arguments");
+      return ovl (mp_rank_operation (args(1),
+                                     args.length () == 3 ? &args(2) : nullptr));
+    }
+
+  if (command == "eig")
+    {
+      require_argument_count (args, 4, command);
+      return mp_eig_operation (
+        args(1), require_string (args(2), "eig output mode"),
+        require_string (args(3), "eig balance mode"));
+    }
+
+  if (command == "geig")
+    {
+      require_argument_count (args, 5, command);
+      return mp_generalized_eig_operation (
+        args(1), args(2), require_string (args(3), "generalized eig output mode"),
+        require_string (args(4), "generalized eig algorithm"));
+    }
+
+  if (command == "cond")
+    {
+      require_argument_count (args, 3, command);
+      const std::string option = require_string (args(2), "cond norm");
+      return ovl (mp_condition_operation (args(1),
+                                          require_condition_kind (option)));
+    }
+
+  if (command == "rcond")
+    {
+      require_argument_count (args, 2, command);
+      return ovl (mp_rcond_operation (args(1)));
     }
 
   if (command == "chol")
@@ -2857,7 +9361,43 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       if (outputs != "r" && outputs != "qr")
         error_with_id ("mplapack:mp:InvalidArguments",
                        "qr output mode is invalid");
+      if (is_complex_payload (args(1)))
+        return complex_qr_operation (args(1), option == "econ",
+                                     outputs == "qr");
       return mp_qr_operation (args(1), option == "econ", outputs == "qr");
+    }
+
+  if (command == "hess")
+    {
+      require_argument_count (args, 2, command);
+      return mp_hess_operation (args(1));
+    }
+
+  if (command == "schur")
+    {
+      require_argument_count (args, 3, command);
+      const std::string option = require_string (args(2), "schur option");
+      if (option != "real" && option != "complex")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "schur option must be \"real\" or \"complex\"");
+      return mp_schur_operation (args(1), option == "complex");
+    }
+
+  if (command == "balance")
+    {
+      require_argument_count (args, 3, command);
+      return ovl (mp_balance_operation (args(1),
+                                        require_string (args(2), "balance option")));
+    }
+
+  if (command == "qz")
+    {
+      require_argument_count (args, 4, command);
+      const std::string option = require_string (args(3), "qz option");
+      if (option != "real" && option != "complex")
+        error_with_id ("mplapack:mp:InvalidOption",
+                       "qz option must be \"real\" or \"complex\"");
+      return mp_qz_operation (args(1), args(2), option == "complex");
     }
 
   if (command == "qr_pivoted")
@@ -2872,6 +9412,9 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       if (permutation != "matrix" && permutation != "vector")
         error_with_id ("mplapack:mp:InvalidArguments",
                        "pivoted qr permutation output is invalid");
+      if (is_complex_payload (args(1)))
+        return complex_pivoted_qr_operation (args(1), option == "econ",
+                                             permutation == "vector");
       return mp_pivoted_qr_operation (args(1), option == "econ",
                                       permutation == "vector");
     }
@@ -2904,12 +9447,70 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
         text, octave_mplapack::default_precision_bits ()));
     }
 
+  if (command == "scalar_create_complex_text")
+    {
+      require_argument_count (args, 3, command);
+      const std::string real_text = require_string (args(1), "real text");
+      const std::string imag_text = require_string (args(2), "imaginary text");
+      return ovl (make_internal_complex_scalar (
+        "(" + real_text + "," + imag_text + ")",
+        octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "scalar_create_complex_text_single")
+    {
+      require_argument_count (args, 2, command);
+      const std::string text = require_string (args(1), "complex scalar text");
+      return ovl (make_internal_complex_scalar (
+        text, octave_mplapack::default_precision_bits ()));
+    }
+
   if (command == "scalar_create_double")
     {
       require_argument_count (args, 2, command);
       const double value = require_double_scalar (args(1), "scalar value");
       return ovl (make_internal_scalar (
         value, octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "scalar_create_complex_double")
+    {
+      require_argument_count (args, 2, command);
+      if (! args(1).is_complex_scalar ())
+        error_with_id ("mplapack:InvalidArguments",
+                       "complex scalar value is required");
+      return ovl (make_internal_complex_scalar (
+        args(1).complex_value (),
+        octave_mplapack::default_precision_bits ()));
+    }
+
+  if (command == "matrix_create_complex_double")
+    {
+      require_argument_count (args, 2, command);
+      if (! args(1).is_double_type () || args(1).is_real_scalar ()
+          || args(1).ndims () != 2)
+        error_with_id ("mplapack:mp:InvalidInput",
+                       "complex matrix input must be a two-dimensional array");
+      const ComplexMatrix input = args(1).complex_matrix_value ();
+      const std::size_t rows = checked_size_dimension (input.rows ());
+      const std::size_t columns = checked_size_dimension (input.columns ());
+      std::vector<Complex> values;
+      values.reserve (octave_mplapack::MpfrComplexMatrixStorage::
+                      checked_element_count (rows, columns));
+      for (octave_idx_type column = 0; column < input.columns (); ++column)
+        for (octave_idx_type row = 0; row < input.rows (); ++row)
+          values.push_back (input.xelem (row, column));
+      try
+        {
+          return ovl (make_internal_complex_matrix (
+            octave_mplapack::MpfrComplexMatrixStorage (
+              rows, columns, octave_mplapack::default_precision_bits (),
+              values)));
+        }
+      catch (const std::exception& exception)
+        {
+          error_with_id ("mplapack:NativeError", "%s", exception.what ());
+        }
     }
 
   if (command == "scalar_default_precision")
@@ -2922,6 +9523,25 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
   if (command == "scalar_test_info")
     {
       require_argument_count (args, 2, command);
+      if (is_mp_value (args(1)) && is_complex_payload (args(1)))
+        {
+          const octave_value payload = require_mp_payload (args(1));
+          const auto& value
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+          octave_scalar_map info;
+          info.assign ("internal_type", value.static_type_name ());
+          info.assign ("precision_bits",
+                       octave_int64 (value.storage ().precision_bits ()));
+          info.assign ("backend", "mpc");
+          info.assign ("is_scalar", true);
+          info.assign ("is_complex", true);
+          info.assign ("is_nan", value.storage ().is_nan ());
+          info.assign ("is_infinite", value.storage ().is_infinite ());
+          info.assign ("is_zero", value.storage ().is_zero ());
+          info.assign ("real_signbit", value.storage ().real_signbit ());
+          info.assign ("imag_signbit", value.storage ().imag_signbit ());
+          return ovl (info);
+        }
       const octave_value payload = require_scalar_payload (args(1));
       const auto& value
         = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
@@ -2936,12 +9556,20 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
       info.assign ("is_infinite", value.storage ().is_infinite ());
       info.assign ("is_zero", value.storage ().is_zero ());
       info.assign ("signbit", value.storage ().signbit ());
+      info.assign ("is_complex", false);
       return ovl (info);
     }
 
   if (command == "scalar_to_canonical_text")
     {
       require_argument_count (args, 2, command);
+      if (is_mp_value (args(1)) && is_complex_payload (args(1)))
+        {
+          const octave_value payload = require_mp_payload (args(1));
+          const auto& value
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+          return ovl (value.storage ().to_canonical_string ());
+        }
       const octave_value payload = require_scalar_payload (args(1));
       const auto& value
         = octave_mplapack_mpfr_scalar_internal::checked_value (payload);
@@ -2960,6 +9588,14 @@ DEFMETHOD_DLD (__mplapack_core__, interp, args, ,
   if (command == "scalar_to_double")
     {
       require_argument_count (args, 2, command);
+      if (is_complex_payload (args(1)))
+        {
+          const octave_value payload = require_mp_payload (args(1));
+          const auto& value
+            = octave_mplapack_mpc_scalar_internal::checked_value (payload);
+          const std::complex<double> converted = value.storage ().to_double ();
+          return ovl (Complex (converted.real (), converted.imag ()));
+        }
       const octave_value payload = require_scalar_payload (args(1));
       const auto& value
         = octave_mplapack_mpfr_scalar_internal::checked_value (payload);

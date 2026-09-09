@@ -50,8 +50,9 @@
 %!  value (1, 1) = [];
 %!endfunction
 
-%!function assign_linear_vector (value)
+%!function result = assign_linear_vector (value)
 %!  value ([1, 2]) = mp ([5, 6]);
+%!  result = value;
 %!endfunction
 
 %!function assign_complex (value)
@@ -212,8 +213,8 @@
 %!                    "mplapack:mp:IndexOutOfBounds"));
 %! assert (raises_id (@() assign_delete (A), ...
 %!                    "mplapack:mp:DeletionUnsupported"));
-%! assert (raises_id (@() assign_linear_vector (A), ...
-%!                    "mplapack:mp:LinearAssignmentUnsupported"));
+%! assigned = assign_linear_vector (A);
+%! assert_matrix_text (assigned, {"5", "2"; "6", "4"});
 
 %!test
 %! A = mp ({"1", "2"; "3", "4"});
@@ -234,8 +235,15 @@
 
 %!test
 %! A = mp ({"1", "2"; "3", "4"});
-%! bad = {@() assign_complex (A), @() assign_sparse (A), ...
-%!        @() assign_nd (A)};
+%! before = double (A);
+%! A(1, 1) = 1 + 2i;
+%! assert (__mplapack_core__ ("matrix_test_info", A).is_complex);
+%! assert (__mplapack_core__ ("matrix_test_element_equal_double", ...
+%!                            A, 1, 1, 1 + 2i));
+%! assert (double (A(:, 2)), before(:, 2));
+%! B = mp ({"1", "2"; "3", "4"});
+%! bad = {@() assign_sparse (B), ...
+%!        @() assign_nd (B)};
 %! for k = 1:numel (bad)
 %!   try
 %!     bad{k} ();

@@ -1,4 +1,4 @@
-mplapack >> MPLAPACK
+mplapack-interop >> MPLAPACK Interop
 Information
  mplapack_version
 Core multiprecision type
@@ -16,6 +16,8 @@ Matrix inspection
 Arithmetic and structure
  mtimes
  mldivide
+ mrdivide
+ rdivide
  transpose
  ctranspose
  reshape
@@ -25,3 +27,74 @@ Factorizations
  chol
  qr
  lu
+ eig
+  det
+  inv
+Reductions
+ norm
+ rank
+ cond
+ rcond
+Advanced dense numerics
+ hess
+ balance
+ schur
+ qz
+ pinv
+ null
+ orth
+ rref
+ kron
+ expm
+ logm
+ sqrtm
+ polyval
+ polyvalm
+ roots
+ poly
+ conv
+ deconv
+ polyder
+ polyint
+ compan
+ unique
+ union
+ intersect
+ setdiff
+ setxor
+ ismember
+ gamma
+ gammaln
+ lgamma
+ erf
+ erfc
+ saveobj
+ loadobj
+ mprand
+ mprandn
+ mprandi
+ mprng
+ interp1
+ pchip
+ spline
+ ppval
+ mkpp
+ unmkpp
+ ppder
+ ppint
+ interp2
+ fzero
+ fsolve
+ integral
+ quadgk
+ fminbnd
+ fminsearch
+Graphics boundary
+ plot3
+ scatter3
+ mesh
+ surf
+ contour3
+ meshc
+ surfc
+ waterfall

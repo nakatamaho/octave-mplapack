@@ -6,7 +6,7 @@ function result = rdivide (lhs, rhs)
   ## Divide real scalar or dense matrix operands element by element with
   ## @code{./} and 2-D singleton expansion.  Division by zero and special
   ## values follow MPFR round-to-nearest semantics.  Matrix right division
-  ## @code{/} remains unsupported.
+  ## with @code{/} is provided separately by @code{mrdivide}.
   ## @end deftypefn
   if (nargin != 2)
     error ("mplapack:mp:InvalidOperands", ...

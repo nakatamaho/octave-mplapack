@@ -92,8 +92,9 @@ depend on the current MPFR default.
 ## Unsupported matrix operators
 
 The scalar-only M06 path does not implement `*`, `/`, or `\`; public matrix
-dispatch for those operators is owned by M08/M09. Powers and comparisons
-also remain unsupported and must not fall back through `double(mp)`.
+dispatch for those operators is owned by M08/M09. Powers use the S01 native
+path and comparisons use the S03 native MPFR/MPC path; neither falls back
+through `double(mp)`.
 
 ## Relationship to M07/M08/M09/M10/M11
 

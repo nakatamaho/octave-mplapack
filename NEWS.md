@@ -1,5 +1,116 @@
 # News
 
+## mplapack-interop 0.5.0-dev (2026-09-08)
+
+The T00–T14 development line closes the advanced arbitrary-precision surface
+for Schur/QZ, dense utilities, matrix functions, polynomial helpers, exact
+sets, serialization, three-dimensional graphics boundaries, random
+generation, 1-D/2-D interpolation, nonlinear equations, scalar quadrature,
+and bounded/simplex optimization. All numerical paths retain the
+one-operation/one-precision MPFR/MPC contract and reject unsupported calls
+instead of falling through to builtin binary64 implementations.
+
+The final T-series wall passed M00–M23, C00–C12 including mandatory C11L,
+N00–N08, S00–S08, and T00–T14, with 1024/2048-bit canaries, package
+lifecycle, and native ASan/UBSan/LSan coverage. The current development
+surface and deferred re-entry records are in
+`docs/advanced-numerics-compatibility.md` and `docs/todo/`.
+
+DOC00 closes the user/developer documentation surface with a task-oriented
+manual, complete public API inventory, native backend map, runnable examples,
+Octave help text, and reproducible manual/Doxygen build checks. The D04
+dependency is currently the MPLAPACK 3.0.1 release candidate; it must not be
+described as finally released MPLAPACK 3.0.1 until its upstream release
+process is complete.
+
+## 0.4.0
+
+S00 begins the ordinary Octave script-compatibility series with native
+arbitrary-precision `abs`, `arg`, `angle`, and `sign`, special-value
+predicates, exact `isequal`/`isequaln`, and the `isnumeric` class predicate.
+S01 adds native MPFR/MPC element-wise power, integer square-matrix powers, and
+the audited elementary-function family with exact real-domain promotion.
+S02 adds native MPFR/MPC `sum`, `prod`, `sumsq`, `cumsum`, and `cumprod`, plus
+`min`/`max` with dimensions, NaN controls, cumulative direction, indices, and
+supported complex comparison methods. The 0.3.1 source release remains
+immutable. S05 adds native MPFR/MPC sequence generation, rounding, spacing,
+and utility arithmetic. S06 adds native descriptive statistics. S07 adds the
+common line-graphics boundary wrappers with conversion limited to the final
+graphics call. S08 closes the ordinary dense script corpus with native
+`sort`/`diff`, structural audits, precision canaries, and explicit firewall
+coverage for deferred surface graphics. No numerical path uses an implicit
+binary64 fallback.
+S03 adds native MPFR/MPC comparisons, logical conversion and element-wise
+logical operators, `any`/`all`, `find`, general numeric linear indexing, and
+logical indexing/assignment. Ordered comparisons remain explicitly rejected
+for complex values; no comparison or logical path uses builtin binary64
+complex arithmetic. S04 adds native dense `diag`, `triu`/`tril`, `repmat`,
+row/column flips, `rot90`, `cat(1/2)`, and `zeros`/`ones`/`eye`/`NaN`/`Inf`
+`"like"` constructors. The dense two-dimensional contract and explicit
+rejection of packed triangular output remain in force.
+
+## 0.3.1
+
+N08 adds dense real and complex matrix right division with `/`, including
+scalar forms, mixed `mp`/double operands, rectangular least-squares solves,
+rank-deficient minimum-norm results, and the complex conjugate-transpose
+identity. Existing `mldivide` square-singular error behavior is unchanged;
+right division uses a private rank-revealing retry for Octave-compatible
+singular results. All paths preserve one-operation/one-precision MPFR/MPC
+semantics and operation-owned destructive-call buffers.
+
+## 0.3.0
+
+This release completes the numerical API after the frozen 0.2.1 package
+identity. N00 adds native arbitrary-precision `norm` support; all operation
+paths preserve stored MPFR/MPC precision and avoid binary64 fallbacks.
+
+N05 adds dense general standard `eig` through MPLAPACK `Rgeevx`/`Cgeevx`,
+including balance/nobalance controls, right and left eigenvectors, permanent
+Grcar coverage, and high-precision real conjugate-pair conversion.
+
+N06 adds dense generalized `eig(A,B)` through the definite
+`Rsygvd`/`Chegvd` and QZ `Rggev`/`Cggev` drivers. It supports Octave-compatible
+`chol`/`qz` algorithm selection, matrix/vector eigenvalue layouts, left
+eigenvectors, singular-B infinite eigenvalues, mixed real/complex promotion,
+and 1024/2048-bit precision canaries without binary64 fallback.
+
+N07 closes the documented dense real/complex API surface, adds the permanent
+high-precision Grcar example, and records the compatibility firewall. The
+0.3.0 source archive and tag are created only after the complete freeze
+regression and reproducibility gates pass.
+
+## 0.2.1
+
+The GNU Octave package public identity is now `mplapack-interop`, version
+`0.2.1`.  The rename avoids presenting the Octave package as the MPLAPACK
+upstream project; the repository remains `octave-mplapack` and the public
+numeric API remains `mp`, `mpbits`, and `mpdigits`.  Existing `mplapack` 0.2.0
+source/tag/archive provenance is retained as a historical release and is not
+an alias for the new package.
+
+The release documentation adds an Octave high-precision Hilbert inverse
+example.  The inverse is computed as `H \\ I`, because `inv(mp)` is
+intentionally outside the public API and the example must not pass through
+binary64 `hilb(n)` construction.  The separate MPLAPACK public-header
+consumer is covered by MPLAPACK release QA and is not copied into this
+package's examples.
+
+## 0.2.0
+
+The first public real-plus-complex release adds dense complex `mp` scalars and
+matrices with explicit MPFR/MPC precision semantics. It provides mixed
+real/complex construction, arithmetic, structure and indexing operations,
+MPLAPACK `Cgemm`, `Cgesv`, `Cgelsy`, `Cpotrf`, `Cgeqrf`/`Cungqr`, `Cgeqp3`, and
+`Cgetrf`, including the mandatory complex LU path. Destructive backend calls
+use operation-owned copies, real-only operations remain on real MPLAPACK
+paths, and no builtin binary64 complex fallback is used.
+
+The release dependency stack is `gmpfrxx_mkII 1.4.1`, MPLAPACK `3.0.1`, and
+this package `0.2.0`. Exact source commits, tags, archives, checksums,
+licenses, and isolated-build evidence are recorded in
+`docs/dependency-release-stack.md` and `reports/D00-report.md`.
+
 ## 0.1.0
 
 The frozen first release candidate is a dense real arbitrary-precision Octave

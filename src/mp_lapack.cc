@@ -464,9 +464,6 @@ MpfrRankRevealingSolveResult
 mplapack_mpfr_matrix_rank_revealing_solve (
   const MpfrMatrixStorage& lhs, const MpfrMatrixStorage& rhs)
 {
-  if (lhs.rows () == lhs.columns ())
-    throw std::invalid_argument (
-      "rank-revealing MPLAPACK solve is only used for rectangular matrices");
   if (rhs.rows () != lhs.rows ())
     throw std::invalid_argument ("matrix solve dimensions must agree");
 

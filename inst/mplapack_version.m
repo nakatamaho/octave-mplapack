@@ -1,4 +1,12 @@
+## SPDX-License-Identifier: BSD-2-Clause
+
 function info = mplapack_version ()
+  ## -*- texinfo -*-
+  ## @deftypefn {} {@var{info} =} mplapack_version ()
+  ## Report the loaded Octave, MPLAPACK, and MPFR backend versions.
+  ## This diagnostic does not perform numerical conversion or change the
+  ## current arbitrary-precision default. @seealso{mp, mpbits}
+  ## @end deftypefn
   if (nargin != 0)
     print_usage ();
   endif

@@ -6,7 +6,7 @@ function varargout = qr (value, varargin)
   ## @deftypefnx {} {[@var{Q}, @var{R}] =} qr (@var{A})
   ## @deftypefnx {} {@var{R} =} qr (@var{A}, "econ")
   ## @deftypefnx {} {[@var{Q}, @var{R}] =} qr (@var{A}, "econ")
-  ## Compute dense real MPFR QR.  One output is R and two outputs are Q,R;
+  ## Compute dense MPFR QR for real or complex input.  One output is R and two outputs are Q,R;
   ## three outputs request column-pivoted QR with a matrix or vector
   ## permutation output.  The numeric 0 option is a deprecated economy
   ## compatibility form.

@@ -142,7 +142,7 @@ executing DLD object's `islocked()` is true.  Installed-package QA therefore
 uses the exact function-object state rather than treating the cache-sensitive
 name lookup as authoritative.
 
-Octave 11.1 `pkg unload mplapack` forcibly removes package function names and
+Octave 11.1 `pkg unload mplapack-interop` forcibly removes package function names and
 the visible lock flag, but the DLD-aware native values and registration
 prototype retain the module.  In an isolated subprocess with a native value
 alive, the value retained its type identity, its virtual print method executed,

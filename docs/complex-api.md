@@ -1,0 +1,91 @@
+# Complex `mp` API
+
+This is the C00–C12 implementation inventory carried by the 0.3.1 package;
+the N00-N08 additions complete the current release surface.
+Release identity and dependency provenance are maintained in
+`docs/dependency-release-stack-r1.md` and the D02 freeze report.
+
+## Values and construction
+
+`mp` has one public class with separate real MPFR and complex MPC payload
+kinds. Complex scalars and dense two-dimensional matrices are supported.
+
+- `mp (complex_double_scalar_or_matrix)` transfers the already-rounded
+  binary64 real and imaginary components into MPFR/MPC storage;
+- `mp (real_text, imag_text)` constructs one complex scalar directly from two
+  decimal strings, without a binary64 intermediate;
+- `mp ("(real,imag)")` accepts the canonical single-string complex scalar
+  form;
+- `mp (existing_mp)` preserves the existing value and stored precision;
+- complex values are immutable at the public boundary and retain their
+  two-dimensional shape;
+- `char`, `double`, and `disp` are explicit conversions/inspection, with
+  `double` being the only intentional binary64 conversion.
+
+Real and complex payloads use the stored precision of their source. Every
+complex numerical operation chooses one `p_op`, promotes real MP values to
+MPC at that precision when needed, enters one MPFR/MPC scope, and returns
+uniform-precision operation-owned storage. Ambient precision does not change
+an existing value or override `p_op`.
+
+## Supported forms
+
+| Area | Supported complex forms | Result/backend |
+|---|---|---|
+| inspection | `size`, `rows`, `columns`, `numel`, `ndims`, `isempty`, scalar `char`, `disp` | native metadata/text |
+| structure | `real`, `imag`, `conj`, transpose, ctranspose, 2-D `reshape` | MPC/native MPFR |
+| indexing | scalar, row/column, linear, two-dimensional dense indexing | operation-owned MPC |
+| logical/indexing | `==`, `~=`, `logical`, `&`, `|`, `xor`, `~`, `any`, `all`, `find`, logical masks | native MPC truth/equality; builtin logical/index outputs |
+| assignment | in-bounds dense assignment from complex/real `mp` or double, including logical masks | value-semantic MPC promotion |
+| arithmetic | `+`, `-`, `.*`, `./`, unary signs | MPC element-wise path |
+| multiplication | `*` for scalar/matrix and mixed real/complex dense operands | MPLAPACK `Cgemm` |
+| square solve | `A \ B` | MPLAPACK `Cgesv` |
+| rectangular solve | full-rank/rank-revealing `A \ B` | MPLAPACK `Cgelsy` |
+| right division | dense `A / B`, including rank-deficient `B` | conjugate-transpose `Cgelsy`/`Cgesv` path |
+| Cholesky | `chol(A)`, `chol(A,"upper"/"lower")`, optional status | MPLAPACK `Cpotrf` |
+| QR | one/two-output full/economy `qr` | `Cgeqrf`/`Cungqr` |
+| pivoted QR | three-output matrix/vector/deprecated economy forms | `Cgeqp3`/`Cungqr` |
+| LU | packed, two-output, matrix/vector permutation forms | MPLAPACK `Cgetrf` |
+| norms | vector 0/1/2/Inf/-Inf/Fro and positive finite p; matrix 1/2/Inf/Fro | MPFR/MPC native norms and `Cgesvd` |
+| determinant | dense real/complex one-output `det(A)` | `Rgetrf`/`Cgetrf` and MPFR/MPC diagonal product |
+| inverse | dense real/complex `inv(A)` | `Rgetrf`/`Rgetri` or `Cgetrf`/`Cgetri` |
+| SVD | one-output values and full/economy `[U,S,V]=svd(A)` | `Rgesvd`/`Cgesvd` |
+| rank | `rank(A)` and `rank(A,tol)` | MPFR/MPC singular values |
+| condition | `cond(A)`, `cond(A,1)`, `cond(A,2)`, `cond(A,Inf)`, `cond(A,"fro")` | `Rgecon`/`Cgecon` or singular values |
+| reciprocal condition | `rcond(A)` | `Rgecon`/`Cgecon` 1-norm estimator |
+| structured eig | `eig(A)` for real symmetric or complex Hermitian input; matrix/vector outputs | `Rsyevd`/`Cheevd` |
+| general eig | standard real/complex `eig`, matrix/vector/balance/nobalance forms, and `[V,D,W]` | `Rgeevx`/`Cgeevx` |
+| generalized eig | `eig(A,B)` with `matrix`/`vector`, `chol`/`qz`, and `[V,D,W]` forms | `Rsygvd`/`Chegvd` or `Rggev`/`Cggev` |
+| mixed structural | horizontal/vertical concat; real/complex assignment | MPC destination at max stored precision |
+
+For LU, one output is the packed factor. Two outputs return `A=L*U`; three
+outputs return builtin real `P` with `P*A=L*U`; `lu(A,"vector")` returns a
+builtin real column `p` with `A(p,:)=L*U`. Square, rectangular, empty, and
+singular factors are supported. Singular `Cgetrf INFO` is retained by the
+native result and partial factors are returned, matching real M21 public
+behavior; the public wrapper has no separate LU status output.
+
+Permutation matrices, permutation vectors, and other structural outputs are
+builtin real values. Real-only operands remain on the real MPFR `R*` paths;
+they are never routed through complex kernels.
+
+## Precision and ownership contract
+
+The complex backend accepts `mpc_class` arrays only when both components have
+the same operation precision. Destructive `Cgesv`, `Cpotrf`, QR, and `Cgetrf`
+calls receive operation-owned copies. There is no silent builtin binary64
+complex fallback. Explicit `double(...)` conversion is outside this numerical
+contract.
+
+N05 adds general standard `eig`. Real nonsymmetric inputs and complex
+non-Hermitian inputs return complex `mp` eigenvalues and eigenvectors through
+`Rgeevx`/`Cgeevx`; `eig(A,"balance")` and `eig(A,"nobalance")` select the
+expert-driver balance mode. Three outputs return right vectors, a complex
+diagonal matrix, and left vectors satisfying `W'*A = D*W'`. Generalized
+`eig(A,B)` is added by N06: exactly symmetric/Hermitian pairs use the
+definite `Rsygvd`/`Chegvd` path unless `"qz"` is forced, while other pairs use
+`Rggev`/`Cggev`. The returned values satisfy `A*V = B*V*D` and
+`W'*A = D*W'*B`; singular `B` preserves infinite eigenvalues. Real
+generalized QZ results remain complex `mp` values so conjugate pairs and the
+`alpha/beta` representation are not lost. Mixed real/complex pairs are
+promoted once to MPC at the maximum stored precision.

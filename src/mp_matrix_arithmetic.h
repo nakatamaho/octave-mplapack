@@ -16,7 +16,8 @@ enum class MpfrElementwiseBinaryOperation
   add,
   subtract,
   multiply,
-  divide
+  divide,
+  power
 };
 
 struct MpfrElementwiseOperand

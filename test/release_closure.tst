@@ -10,6 +10,14 @@
 %!  assert (did_fail, label);
 %!endfunction
 
+%!function result = reference_square (value)
+%!  d = double (value);
+%!  result = [d(1, 1) * d(1, 1) + d(1, 2) * d(2, 1), ...
+%!            d(1, 1) * d(1, 2) + d(1, 2) * d(2, 2); ...
+%!            d(2, 1) * d(1, 1) + d(2, 2) * d(2, 1), ...
+%!            d(2, 1) * d(1, 2) + d(2, 2) * d(2, 2)];
+%!endfunction
+
 %!test
 %! saved = mpbits ();
 %! unwind_protect
@@ -59,18 +67,25 @@
 
 %!test
 %! A = mp ([1, 2; 3, 4]);
-%! assert_fails (@() eig (A), "eig must reject mp matrices");
-%! assert_fails (@() svd (A), "svd must reject mp matrices");
-%! assert_fails (@() det (A), "det must reject mp matrices");
-%! assert_fails (@() inv (A), "inv must reject mp matrices");
-%! assert_fails (@() rank (A), "rank must reject mp matrices");
-%! assert_fails (@() norm (A), "norm must reject mp matrices");
-%! assert_fails (@() sin (A), "sin must reject mp matrices");
-%! assert_fails (@() exp (A), "exp must reject mp matrices");
-%! assert_fails (@() sqrt (A), "sqrt must reject mp matrices");
-%! assert_fails (@() (A ^ 2), "power must reject mp matrices");
-%! assert_fails (@() (A == A), "comparison must reject mp matrices");
-%! assert_fails (@() (A / A), "right division must reject mp matrices");
+%! [Vg, Dg] = eig (A);
+%! assert (double (norm (A * Vg - Vg * Dg, "fro")) < 1e-12, ...
+%!         "N05 general eig real residual");
+%! assert (double (norm (sin (A) - sin (double (A)), "fro")) < 1e-12);
+%! assert (double (norm (exp (A) - exp (double (A)), "fro")) < 1e-12);
+%! assert (double (norm (sqrt (A) - sqrt (double (A)), "fro")) < 1e-12);
+%! assert (double (norm (A ^ 2 - mp (reference_square (A)), "fro")) < 1e-12);
+%! assert (isequal (A == A, true (2)), "real matrix equality compatibility");
+%! assert (double (A / A), eye (2), 1e-12);
+%! assert (double (det (A)), -2, 1e-12);
+%! assert (double (A * inv (A)), eye (2), 1e-12);
+%! [U, S, V] = svd (A);
+%! assert (double (norm (A - U * S * transpose (V), "fro")) < 1e-12);
+%! assert (rank (A), 2);
+%! assert (double (cond (A)) > 14);
+%! assert (double (rcond (A)) > 0);
+%! S = mp ([2, 1; 1, 2]);
+%! [Vs, Ds] = eig (S);
+%! assert (double (norm (S * Vs - Vs * Ds, "fro")) < 1e-12);
 
 %!test
 %! help_text = evalc ("help @mp/qr");
@@ -79,3 +94,5 @@
 %! assert (! isempty (strfind (help_text, "lu")));
 %! help_text = evalc ("help @mp/rows");
 %! assert (! isempty (strfind (help_text, "rows")));
+%! help_text = evalc ("help @mp/rank");
+%! assert (! isempty (strfind (help_text, "rank")));

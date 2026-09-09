@@ -19,13 +19,13 @@ trap 'exit 1' HUP INT TERM
 for command_name in git gh octave mkoctfile pkg-config c++ make python3 \
   ldd readelf nm tar gzip sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "FAIL: mandatory M23 command is unavailable: $command_name" >&2
+    echo "FAIL: mandatory D00 command is unavailable: $command_name" >&2
     exit 1
   fi
 done
 
 if ! gh auth status >/dev/null 2>&1; then
-    echo "FAIL: mandatory M23 GitHub authentication is unavailable" >&2
+    echo "FAIL: mandatory D00 GitHub authentication is unavailable" >&2
   exit 1
 fi
 
@@ -34,10 +34,18 @@ if ! pkg-config --exists 'mplapack_mpfr >= 3.0.0'; then
   exit 1
 fi
 
-echo "PASS: mandatory M23 prerequisites"
+echo "PASS: mandatory D00 prerequisites"
 tools/check-tree.sh
 tools/check-format.sh
 make -C src check-dependency
+make -C src check-norm
+make -C src check-det-inv
+make -C src check-svd
+make -C src check-rank-condition
+make -C src check-structured-eig
+make -C src check-general-eig
+make -C src check-generalized-eig
+make -C src check-script-sequence
 
 mplapack_include_dir=$(pkg-config --variable=includedir mplapack_mpfr)
 if [ ! -f "$mplapack_include_dir/mplapack_mpfr_precision.h" ]; then
@@ -63,7 +71,24 @@ make -C src check-cholesky
 make -C src check-qr
 make -C src check-pivoted-qr
 make -C src check-lu
-echo "PASS: M02-M21 ASan/UBSan/LSan scalar, matrix, Rgemm, Rgesv, Rgels, Rgelss, inspection, element-wise, structural, concatenation, assignment, Cholesky, QR, pivoted QR, LU, and complex audit QA"
+make -C src check-complex-storage
+make -C src check-complex-structure
+make -C src check-complex-arithmetic
+make -C src check-complex-blas
+make -C src check-complex-lapack
+make -C src check-complex-rank
+make -C src check-complex-cholesky
+make -C src check-complex-qr
+make -C src check-complex-pivoted-qr
+make -C src check-complex-concat
+make -C src check-complex-lu
+make -C src check-det-inv
+make -C src check-svd
+make -C src check-rank-condition
+make -C src check-structured-eig
+make -C src check-general-eig
+make -C src check-generalized-eig
+echo "PASS: D00 ASan/UBSan/LSan real and complex storage, arithmetic, BLAS, LAPACK, rank, Cholesky, QR, pivoted QR, concatenation, assignment, LU, structured eig, general eig, generalized eig, and script sequence QA"
 make -C src clean
 
 M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
@@ -74,7 +99,7 @@ M01_REPO_ROOT=$repo_root octave --no-gui --quiet --no-init-file --eval '
   required = {"name", "version", "date", "title", "author", ...
               "maintainer", "description", "license"};
   assert (all (isfield (metadata, required)));
-  assert (strcmp (metadata.name, "mplapack"));
+  assert (strcmp (metadata.name, "mplapack-interop"));
   rmpath (pkg_private);
 '
 echo "PASS: Octave DESCRIPTION parser"
@@ -127,16 +152,21 @@ c++ -std=c++17 -Wall -Wextra -Wpedantic \
 echo "PASS: installed MPLAPACK Rgeqp3/Rorgqr precision probe"
 
 lu_probe=$qa_root/m21_rgetrf_probe
-c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread \
-  $(pkg-config --cflags mplapack_mpfr) test/m21_rgetrf_probe.cc \
-  $(pkg-config --libs mplapack_mpfr) -o "$lu_probe"
+sed '/^[[:space:]]*#include <mplapack\.h>[[:space:]]*$/d' \
+  test/m21_rgetrf_probe.cc \
+  | c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread -x c++ - \
+      $(pkg-config --cflags mplapack_mpfr) \
+      $(pkg-config --libs mplapack_mpfr) -o "$lu_probe"
 "$lu_probe"
 echo "PASS: installed MPLAPACK Rgetrf precision/IPIV probe"
 
 complex_probe=$qa_root/m20_complex_probe
-c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread -DMPLAPACK_BUILD_WITH_MPFR \
-  $(pkg-config --cflags mplapack_mpfr) test/m20_complex_probe.cc \
-  $(pkg-config --libs mplapack_mpfr) -o "$complex_probe"
+sed '/^[[:space:]]*#include <mplapack\.h>[[:space:]]*$/d' \
+  test/m20_complex_probe.cc \
+  | c++ -std=c++17 -Wall -Wextra -Wpedantic -pthread \
+      -DMPLAPACK_BUILD_WITH_MPFR -x c++ - \
+      $(pkg-config --cflags mplapack_mpfr) \
+      $(pkg-config --libs mplapack_mpfr) -o "$complex_probe"
 "$complex_probe"
 echo "PASS: installed MPLAPACK MPFR complex type/backend precision probe"
 
@@ -250,6 +280,81 @@ fi
 
 if ! nm -D -C "$module" | grep -Eq ' U Rgetrf\('; then
   echo "FAIL: M21 native module lacks an unresolved Rgetrf reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgetri\('; then
+  echo "FAIL: N01 native module lacks an unresolved Rgetri reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cgetrf\('; then
+  echo "FAIL: C11L native module lacks an unresolved Cgetrf reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cgetri\('; then
+  echo "FAIL: N01 native module lacks an unresolved Cgetri reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgesvd\('; then
+  echo "FAIL: N02 native module lacks an unresolved Rgesvd reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cgesvd\('; then
+  echo "FAIL: N02 native module lacks an unresolved Cgesvd reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgecon\('; then
+  echo "FAIL: N03 native module lacks an unresolved Rgecon reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cgecon\('; then
+  echo "FAIL: N03 native module lacks an unresolved Cgecon reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rsyevd\('; then
+  echo "FAIL: N04 native module lacks an unresolved Rsyevd reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cheevd\('; then
+  echo "FAIL: N04 native module lacks an unresolved Cheevd reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rgeevx\('; then
+  echo "FAIL: N05 native module lacks an unresolved Rgeevx reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cgeevx\('; then
+  echo "FAIL: N05 native module lacks an unresolved Cgeevx reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rggev\('; then
+  echo "FAIL: N06 native module lacks an unresolved Rggev reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Cggev\('; then
+  echo "FAIL: N06 native module lacks an unresolved Cggev reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Rsygvd\('; then
+  echo "FAIL: N06 native module lacks an unresolved Rsygvd reference" >&2
+  exit 1
+fi
+
+if ! nm -D -C "$module" | grep -Eq ' U Chegvd\('; then
+  echo "FAIL: N06 native module lacks an unresolved Chegvd reference" >&2
   exit 1
 fi
 
@@ -554,10 +659,18 @@ make -C src clean
 tools/build-package.sh
 package_name=$(sed -n 's/^Name: *//p' DESCRIPTION)
 package_version=$(sed -n 's/^Version: *//p' DESCRIPTION)
-if [ "$package_version" != "0.1.0" ]; then
-  echo "FAIL: M23 requires frozen DESCRIPTION version 0.1.0" >&2
+if [ "$package_name" != "mplapack-interop" ]; then
+  echo "FAIL: D01R1 requires DESCRIPTION package name mplapack-interop" >&2
   exit 1
 fi
+case $package_version in
+  0.2.1|0.2.1-dev|0.3.0-dev|0.3.0|0.3.1-dev|0.3.1|0.4.0-dev|0.4.0|0.5.0-dev)
+    ;;
+  *)
+    echo "FAIL: release CI requires a recognized DESCRIPTION version" >&2
+    exit 1
+    ;;
+esac
 package_dir=$package_name-$package_version
 archive=$repo_root/dist/$package_dir.tar.gz
 first_hash=$(sha256sum "$archive" | awk '{ print $1 }')
@@ -626,26 +739,95 @@ for required_path in DESCRIPTION COPYING INDEX inst/ src/ \
   docs/milestones/M20-complex-architecture.md \
   inst/@mp/lu.m test/lu.tst test/mp_lapack_lu_test.cc \
   test/m21_rgetrf_probe.cc docs/lu.md docs/milestones/M21-lu.md \
-  test/m22_dependency_probe.cc test/release_closure.tst \
+  test/m22_dependency_probe.cc test/release_closure.tst test/mrdivide.tst \
   docs/v0.1-api.md docs/octave-compatibility.md docs/ppa-plan.md \
   docs/release-checklist.md docs/milestones/M22-real-release-closure.md \
   docs/milestones/M23-v0.1-freeze.md \
   examples/01_scalar_precision.m examples/02_matrix_arithmetic.m \
   examples/03_linear_solve.m examples/04_factorizations.m \
+  examples/05_hilbert_inverse.m examples/06_grcar_eig.m \
   tools/dev-octave.sh tools/verify-release-candidate.sh \
+  docs/mplapack-interop-hilbert.md docs/binary-distribution.md \
+  docs/mrdivide.md docs/milestones/N08-mrdivide.md \
+  docs/binary-redistribution-licenses.md \
+  inst/@mp/sum.m inst/@mp/prod.m inst/@mp/cumsum.m inst/@mp/cumprod.m \
+  inst/@mp/sumsq.m inst/@mp/min.m inst/@mp/max.m \
+  src/mp_script_reductions.h src/mp_script_reductions.cc \
+  test/script-compat/s00.tst test/script-compat/s01.tst \
+  test/script-compat/s02.tst test/script-compat/s03.tst \
+  test/script-compat/s04.tst test/script-compat/s05.tst \
+  test/script-compat/s06.tst \
+  test/script-compat/s07.tst \
+  test/script-compat/s08.tst \
+  docs/octave-script-compatibility.md \
+  src/mp_script_logic.h src/mp_script_logic.cc \
+  inst/@mp/eq.m inst/@mp/ne.m inst/@mp/lt.m inst/@mp/le.m \
+  inst/@mp/gt.m inst/@mp/ge.m inst/@mp/logical.m inst/@mp/and.m \
+  inst/@mp/or.m inst/@mp/xor.m inst/@mp/not.m inst/@mp/any.m \
+  inst/@mp/all.m inst/@mp/find.m \
+  inst/@mp/diag.m inst/@mp/triu.m inst/@mp/tril.m \
+  inst/@mp/repmat.m inst/@mp/flip.m inst/@mp/fliplr.m \
+  inst/@mp/flipud.m inst/@mp/rot90.m inst/@mp/cat.m \
+  inst/@mp/zeros.m inst/@mp/ones.m inst/@mp/eye.m \
+  inst/@mp/NaN.m inst/@mp/Inf.m inst/@mp/nan.m inst/@mp/inf.m \
+  inst/@mp/private/mp_parse_like_constructor.m \
+  inst/@mp/colon.m inst/@mp/linspace.m inst/@mp/logspace.m \
+  inst/@mp/floor.m inst/@mp/ceil.m inst/@mp/fix.m inst/@mp/round.m \
+  inst/@mp/rem.m inst/@mp/mod.m inst/@mp/hypot.m inst/@mp/atan2.m \
+  inst/@mp/signbit.m inst/@mp/eps.m \
+  inst/@mp/private/mp_binary_utility.m \
+  inst/@mp/private/mp_statistic_result.m inst/@mp/mean.m \
+  inst/@mp/median.m inst/@mp/var.m inst/@mp/std.m \
+  inst/@mp/range.m inst/@mp/bounds.m \
+  inst/@mp/private/mp_graphics_args.m inst/@mp/plot.m \
+  inst/@mp/semilogx.m inst/@mp/semilogy.m inst/@mp/loglog.m \
+  inst/@mp/scatter.m inst/@mp/stem.m inst/@mp/stairs.m \
+  inst/@mp/sort.m inst/@mp/diff.m inst/@mp/length.m \
+  docs/graphics-bridge.md \
+  src/mp_script_structure.h src/mp_script_structure.cc \
+  src/mp_script_ranges.h src/mp_script_ranges.cc \
+  src/mp_script_statistics.h src/mp_script_statistics.cc \
+  src/mp_script_sequence.h src/mp_script_sequence.cc \
+  test/mp_script_sequence_test.cc \
   docs/dense-matrix-design.md inst/@mp/size.m inst/@mp/rows.m \
   inst/@mp/columns.m inst/@mp/numel.m inst/@mp/ndims.m \
   inst/@mp/isempty.m inst/@mp/subsref.m inst/@mp/subsasgn.m \
-  inst/@mp/mrdivide.m; do
+  inst/@mp/mrdivide.m inst/@mp/norm.m docs/norm.md \
+  docs/milestones/N00-norm.md \
+  src/mp_det_inv.h src/mp_det_inv.cc test/det_inv.tst \
+  test/mp_det_inv_test.cc docs/determinant-inverse.md \
+  docs/milestones/N01-det-inv.md inst/@mp/det.m inst/@mp/inv.m \
+  src/mp_svd.h src/mp_svd.cc test/svd.tst test/mp_svd_test.cc \
+  docs/svd.md docs/milestones/N02-svd.md inst/@mp/svd.m \
+  src/mp_rank_condition.h src/mp_rank_condition.cc \
+  test/rank_condition.tst test/mp_rank_condition_test.cc \
+  docs/rank-condition.md docs/milestones/N03-rank-condition.md \
+  inst/@mp/rank.m inst/@mp/cond.m inst/@mp/rcond.m \
+  src/mp_structured_eig.h src/mp_structured_eig.cc \
+  test/eig_structured.tst test/mp_structured_eig_test.cc \
+  src/mp_general_eig.h src/mp_general_eig.cc \
+  test/eig_general.tst test/mp_general_eig_test.cc \
+  src/mp_generalized_eig.h src/mp_generalized_eig.cc \
+  test/eig_generalized.tst test/mp_generalized_eig_test.cc \
+  test/n07_closure.tst \
+  inst/@mp/eig.m docs/eig.md docs/generalized-eig.md \
+  docs/v0.3-api.md \
+  docs/milestones/N04-eig-structured.md docs/milestones/N05-eig-general.md \
+  docs/milestones/N06-eig-generalized.md; do
   if ! grep -Eq "^$package_dir/$required_path" "$archive_listing"; then
     echo "FAIL: package archive lacks $required_path" >&2
     exit 1
   fi
 done
 
-if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
+if grep -Eq '(^|/)(\.git|dist|\.build-m02|\.build-m06|\.build-m07|\.build-m08|\.build-m09|\.build-m10|\.build-m11|\.build-m12|\.build-m13|\.build-m14|\.build-m15|\.build-m16|\.build-m17|\.build-m18|\.build-m19|\.build-m21|\.build-m22|\.build-n00|\.build-n01|\.build-n02|\.build-n03|\.build-n04|\.build-n05|\.build-n06|\.build-s08)(/|$)|\.(oct|o|lo)$|/\.(libs|deps)/' \
     "$archive_listing"; then
   echo "FAIL: package archive contains a generated or private path" >&2
+  exit 1
+fi
+
+if grep -Eq '(^|/)\.build-n0[456]/' "$archive_listing"; then
+  echo "FAIL: package archive contains an N04/N05/N06 native build directory" >&2
   exit 1
 fi
 
@@ -672,7 +854,7 @@ mkdir -p "$test_home" "$neutral_dir"
     octave --no-gui --quiet --no-init-file --eval '
       archive = getenv ("M01_ARCHIVE");
       pkg ("install", "-verbose", archive);
-      [description, status] = pkg ("describe", "mplapack");
+      [description, status] = pkg ("describe", "mplapack-interop");
       assert (numel (description) == 1);
       assert (any (strcmp (status, {"Loaded", "Not loaded"})));
       metadata = description{1};
@@ -687,7 +869,7 @@ mkdir -p "$test_home" "$neutral_dir"
     MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     octave --no-gui --quiet --no-init-file --eval '
       root = getenv ("M01_REPO_ROOT");
-      pkg ("load", "mplapack");
+      pkg ("load", "mplapack-interop");
       assert (test (fullfile (root, "test", "concat.tst")));
       assert (test (fullfile (root, "test", "assignment.tst")));
       assert (test (fullfile (root, "test", "chol.tst")));
@@ -695,6 +877,17 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "pivoted_qr.tst")));
       assert (test (fullfile (root, "test", "lu.tst")));
       assert (test (fullfile (root, "test", "release_closure.tst")));
+      assert (test (fullfile (root, "test", "mrdivide.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s00.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s01.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s02.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s03.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s04.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s05.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s06.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s07.tst")));
+      assert (test (fullfile (root, "test", "script-compat", "s08.tst")));
+      assert (test (fullfile (root, "test", "rank_condition.tst")));
       examples = dir (fullfile (root, "examples", "*.m"));
       for example = 1:numel (examples)
         evalc ("run (fullfile (root, \"examples\", examples(example).name));");
@@ -802,6 +995,7 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (test (fullfile (root, "test", "qr.tst")));
       assert (test (fullfile (root, "test", "pivoted_qr.tst")));
       assert (test (fullfile (root, "test", "lu.tst")));
+      assert (test (fullfile (root, "test", "mrdivide.tst")));
       assert (isempty (which ("scalar_test_create")));
       assert (isempty (which ("scalar_create_text")));
       assert (mpbits () == uint64 (512));
@@ -818,10 +1012,10 @@ mkdir -p "$test_home" "$neutral_dir"
       unload_text = char (unload_value);
       unload_double = double (unload_value);
       assert (evalc ("disp (unload_value)"), [unload_text, "\n"]);
-      pkg ("unload", "mplapack");
+      pkg ("unload", "mplapack-interop");
       assert (strcmp (class (unload_value), "mp"));
       assert (strcmp (class (unload_matrix), "mp"));
-      pkg ("load", "mplapack");
+      pkg ("load", "mplapack-interop");
       assert (size (unload_matrix), [2, 2]);
       unload_matrix_info = __mplapack_core__ (
         "matrix_test_info", unload_matrix);
@@ -848,11 +1042,11 @@ mkdir -p "$test_home" "$neutral_dir"
       clear reloaded_state_value reloaded_state_info;
       destroy_while_unloaded = mp ("1.5");
       destroy_matrix_while_unloaded = mp ([1, 2; 3, 4]);
-      pkg ("unload", "mplapack");
+      pkg ("unload", "mplapack-interop");
       assert (strcmp (class (destroy_while_unloaded), "mp"));
       clear destroy_while_unloaded;
       clear destroy_matrix_while_unloaded;
-      pkg ("load", "mplapack");
+      pkg ("load", "mplapack-interop");
       reloaded_value = __mplapack_core__ (
         "scalar_test_create", "1.5", 256);
       reloaded_info = __mplapack_core__ (
@@ -860,8 +1054,8 @@ mkdir -p "$test_home" "$neutral_dir"
       assert (reloaded_info.precision_bits == 256);
       assert (__mplapack_core__ ("module_test_locked"));
       clear reloaded_value;
-      pkg ("unload", "mplapack");
-      pkg ("uninstall", "mplapack");
+      pkg ("unload", "mplapack-interop");
+      pkg ("uninstall", "mplapack-interop");
     '
 )
 
@@ -889,7 +1083,7 @@ mkdir -p "$test_home" "$neutral_dir"
 HOME=$test_home M01_REPO_ROOT=$repo_root \
     MPLAPACK_EXPECTED_VERSION=$mplapack_version \
     octave --no-gui --quiet --no-init-file --eval '
-      pkg ("load", "mplapack");
+      pkg ("load", "mplapack-interop");
       root = getenv ("M01_REPO_ROOT");
       public_path = which ("mplapack_version");
       native_path = which ("__mplapack_core__");
@@ -1067,6 +1261,6 @@ HOME=$test_home M01_REPO_ROOT=$repo_root \
     '
 )
 
-echo "PASS: isolated package M01-M23 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU, release closure, and complex audit QA, unload, uninstall, and reinstall"
+echo "PASS: isolated package D00 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU, release closure, and complex audit QA, unload, uninstall, and reinstall"
 make -C src clean
-echo "PASS: M23 local CI"
+echo "PASS: D00 local CI"

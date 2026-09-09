@@ -8,6 +8,7 @@ cd "$repo_root"
 failed=0
 
 for file in $(git ls-files --cached --others --exclude-standard | LC_ALL=C sort); do
+  [ -f "$file" ] || continue
   case "$file" in
     src/.build-*/*)
       continue
@@ -26,7 +27,15 @@ for file in $(git ls-files --cached --others --exclude-standard | LC_ALL=C sort)
 done
 
 for script in tools/*.sh; do
-  if ! sh -n "$script"; then
+  case "$(sed -n '1{s/^#![[:space:]]*//p;q;}' "$script")" in
+    *bash*|*bash[[:space:]]*)
+      syntax_checker=bash
+      ;;
+    *)
+      syntax_checker=sh
+      ;;
+  esac
+  if ! "$syntax_checker" -n "$script"; then
     echo "FAIL: shell syntax error in $script" >&2
     failed=1
   fi

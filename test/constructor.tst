@@ -128,8 +128,13 @@
 
 %!error <expects exactly one scalar input> mp ()
 %!error <expects exactly one scalar input> mp (1, 2)
-%!error <complex mp values are not supported> mp (1 + 2i)
-%!error <complex mp values are not supported> mp (complex (1, 0))
+%!test
+%! z = mp (1 + 2i);
+%! assert (! isreal (z));
+%! assert (double (z) == 1 + 2i);
+%!test
+%! z = mp (complex (1, 0));
+%! assert (! isreal (z));
 %!error <text arrays are not implemented before M07> mp (["1"; "2"])
 %!error <scalar text must not be empty> mp ("")
 %!error <invalid scalar text> mp ("abc")

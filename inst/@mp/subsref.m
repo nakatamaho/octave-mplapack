@@ -10,6 +10,11 @@ function result = subsref (value, index)
     return;
   endif
 
+  if (strcmp (index(1).type, ".") && strcmp (index(1).subs, "payload_"))
+    error ("mplapack:mp:PrivateAccess", ...
+           "private access to payload_ is not permitted");
+  endif
+
   if (strcmp (index(1).type, "{}"))
     error ("mplapack:mp:IndexingUnsupported", ...
            "dense mp cell indexing is not supported");

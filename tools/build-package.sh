@@ -54,6 +54,7 @@ CONTRIBUTING.md
 inst
 src
 test
+doc
 docs
 tools
 examples
@@ -66,6 +67,8 @@ for source_root in $source_roots; do
   fi
 done
 
+# Repository-only release handoff manifests contain archive checksums and
+# therefore must not hash themselves into the source archive.
 find $source_roots -type f \
   ! -name '*.o' \
   ! -name '*.oct' \
@@ -88,7 +91,41 @@ find $source_roots -type f \
   ! -path '*/.build-m19/*' \
   ! -path '*/.build-m21/*' \
   ! -path '*/.build-m22/*' \
+  ! -path '*/.build-n00/*' \
+  ! -path '*/.build-n01/*' \
+  ! -path '*/.build-n02/*' \
+  ! -path '*/.build-n03/*' \
+  ! -path '*/.build-n04/*' \
+  ! -path '*/.build-n05/*' \
+  ! -path '*/.build-n06/*' \
+  ! -path '*/.build-c00/*' \
+  ! -path '*/.build-c03/*' \
+  ! -path '*/.build-c04/*' \
+  ! -path '*/.build-c05/*' \
+  ! -path '*/.build-c06/*' \
+  ! -path '*/.build-c07/*' \
+  ! -path '*/.build-c08/*' \
+  ! -path '*/.build-c09/*' \
+  ! -path '*/.build-c10/*' \
+  ! -path '*/.build-c11/*' \
+  ! -path '*/.build-c11l/*' \
+  ! -path '*/.build-m09/*' \
+  ! -path '*/.build-m10/*' \
+  ! -path '*/.build-m11/*' \
+  ! -path '*/.build-m12/*' \
+  ! -path '*/.build-m13/*' \
+  ! -path '*/.build-m14/*' \
+  ! -path '*/.build-m15/*' \
+  ! -path '*/.build-m16/*' \
+  ! -path '*/.build-m17/*' \
+  ! -path '*/.build-m18/*' \
+  ! -path '*/.build-m19/*' \
+  ! -path '*/.build-m21/*' \
+  ! -path 'docs/.build/*' \
   ! -path 'docs/v0.1-release-manifest.md' \
+  ! -path 'docs/dependency-release-stack.md' \
+  ! -path 'docs/dependency-release-stack-r1.md' \
+  ! -path 'tools/install-local-octave-mplapack.sh' \
   ! -path '*/.libs/*' \
   ! -path '*/.deps/*' \
   -print | LC_ALL=C sort > "$manifest"

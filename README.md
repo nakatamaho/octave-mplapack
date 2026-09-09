@@ -1,7 +1,18 @@
 # octave-mplapack
 
-**Status: real-only v0.1.0 release candidate frozen.** M00 through M23 pass; M20 is a design-only
-complex architecture freeze and the public `mp` surface remains real-only.
+**Status: 0.5.0-dev; 0.4.0 is the immutable D03 release and 0.3.1 is
+historical.**
+C00 through C12 pass, including mandatory complex `Cgetrf` LU, and the public
+complex API is closed. N08 adds dense right division. The package identity is
+`mplapack-interop`; the public GNU Octave class/API remains `mp`, `mpbits`, and
+`mpdigits`.
+The real-only v0.1.0 release candidate remains historical. The historical D00
+stack is recorded in [`docs/dependency-release-stack.md`](docs/dependency-release-stack.md);
+the forward `mplapack-interop` handoff is in
+[`docs/dependency-release-stack-r1.md`](docs/dependency-release-stack-r1.md).
+N00–N08 and the 0.3.1 source freeze are tracked in the D02R1 release records;
+the S00–S08 script-compatibility work is tracked in the S-series records;
+the 0.2.1 package remains historical provenance.
 The package provides a public real `mp` scalar and dense matrix with
 native MPFR storage, public default-precision control, canonical scalar text,
 explicit binary64 conversion, scalar display, and native scalar/dense
@@ -17,12 +28,23 @@ through MPLAPACK MPFR `Rgeqrf`/`Rorgqr`; one-output `qr(A)` returns `R` and
 two-output forms return `Q,R` with full or economy shapes. M19 adds
 three-output column-pivoted QR through `Rgeqp3`, with builtin-double
 permutation matrix/vector outputs.
-M20 audits the installed MPLAPACK MPFR complex backend and freezes a future
-four-payload architecture without implementing public complex values. See
-[`docs/complex-architecture.md`](docs/complex-architecture.md).
+M20 audits the installed MPLAPACK MPFR complex backend and C01–C12 implement
+complex scalar/matrix values, mixed real/complex operations, Cgemm/Cgesv/
+Cgelsy/Cpotrf/Cgeqrf/Cgeqp3/Cgetrf paths, structural operations, and the
+compatibility firewall. See [`docs/complex-api.md`](docs/complex-api.md) and
+[`docs/complex-compatibility.md`](docs/complex-compatibility.md).
 M21 adds dense real LU through MPLAPACK MPFR `Rgetrf`, including packed,
 two-output, row-permutation-matrix, and 1-based permutation-vector forms for
 square, rectangular, and singular matrices. See [`docs/lu.md`](docs/lu.md).
+N00 adds arbitrary-precision `norm`; N01 adds dense real/complex `det` and
+`inv` through stored-precision `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri` paths;
+N02 adds dense real/complex `svd` through `Rgesvd`/`Cgesvd`; N03 adds
+`rank`, `cond`, and `rcond` through MPFR/MPC singular values and
+`Rgecon`/`Cgecon`; N04 adds structured symmetric/Hermitian `eig` through
+`Rsyevd`/`Cheevd`; N05 adds general standard `eig` through `Rgeevx`/`Cgeevx`,
+including balance controls and left eigenvectors. N06 adds generalized
+standard eig through definite `Rsygvd`/`Chegvd` and QZ `Rggev`/`Cggev`, with
+Octave-compatible `matrix`/`vector` layouts and left eigenvectors.
 
 M22 closed the real-only API and M23 froze the v0.1.0 release candidate for
 PPA packaging. See the [v0.1 API inventory](docs/v0.1-api.md),
@@ -30,32 +52,77 @@ PPA packaging. See the [v0.1 API inventory](docs/v0.1-api.md),
 [release checklist](docs/release-checklist.md) and the repository-only release
 manifest.
 
+The T00–T14 development line closes the next advanced numerical surface:
+Schur/QZ, dense utilities, matrix functions, polynomial helpers, exact sets,
+the T05 gamma/error family, exact serialization, three-dimensional graphics
+boundaries, arbitrary-precision random generation, 1-D/2-D interpolation,
+`fzero`/`fsolve`, scalar quadrature, and `fminbnd`/`fminsearch`. The complete
+compatibility boundary and deferred re-entry records are in
+[`docs/advanced-numerics-compatibility.md`](docs/advanced-numerics-compatibility.md).
+
 ## Goal
 
-`octave-mplapack` will provide GNU Octave access to MPLAPACK
-multiple-precision linear algebra through an Octave-native multiprecision
-numeric type named `mp`. MPLAPACK is the numerical backend rather than the
-user-facing programming model.
+`mplapack-interop` provides GNU Octave access to MPLAPACK multiple-precision
+linear algebra through an Octave-native multiprecision numeric type named
+`mp`. MPLAPACK is the numerical backend rather than the user-facing
+programming model.
+
+## Documentation
+
+The task-oriented [user manual](doc/mplapack-interop.texi) covers installation,
+precision, real/complex behavior, dense linear algebra, advanced numerics,
+serialization, graphics, random generation, interpolation, solvers,
+quadrature, optimization, and troubleshooting. The [public API inventory]
+(docs/public-api-inventory.md) is the complete machine-auditable coverage
+matrix. The [advanced compatibility matrix]
+(docs/advanced-numerics-compatibility.md) records supported and deferred
+forms, while the [backend map](docs/backend-map.md) connects public calls to
+native algorithms. Runnable examples are under
+[examples/](examples/01_scalar_precision.m). Developer documentation is
+generated from [docs/doxygen/Doxyfile](docs/doxygen/Doxyfile).
 
 ## Quick start
 
-Install a locally built release-candidate archive with Octave's package manager
+Install a locally built source archive with Octave's package manager
 (the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-0.1.0.tar.gz
-octave:2> pkg load mplapack
+octave:1> pkg install mplapack-interop-0.5.0-dev.tar.gz
+octave:2> pkg load mplapack-interop
 ```
 
 For a checkout, `tools/dev-octave.sh` verifies the `pkg-config` dependency,
 builds the native module, and starts a configured development session. It does
 not replace clean package/install QA.
 
-The v0.1 surface is dense real `mp` only. It includes precision-controlled
-construction, arithmetic, `*`, square and rectangular `\`, indexing and
-in-bounds assignment, `chol`, full/economy and pivoted `qr`, and `lu`.
-Complex, sparse, N-D, reductions, `det`, `inv`, `rank`, `cond`, `norm`, `eig`,
-and `svd` remain explicitly unsupported; see the [complete limitations](docs/v0.1-api.md#unsupported-v01-surface).
+The current surface includes dense real and complex `mp`, precision-controlled
+construction, arithmetic, mixed real/complex `*`, `\`, and `/`, indexing and
+in-bounds assignment, `chol`, full/economy and pivoted `qr`, `lu`, `norm`,
+`det`, `inv`, `svd`, `rank`, `cond`, `rcond`, structured and general standard
+and generalized `eig`, dense concatenation, element-wise power, integer
+matrix powers, native elementary functions, reductions, and extrema. S03 also
+provides native comparisons, logical conversion and operators, `any`/`all`,
+`find`, and logical indexing. S04 adds native dense matrix utilities
+(`diag`, `triu`/`tril`, `repmat`, flips, `rot90`, `cat(1/2)`) and explicit
+`"like"` constructors for `mp` templates. S05 adds native sequences,
+rounding, spacing, and utility arithmetic; S06 adds descriptive statistics;
+S07 adds common line-graphics wrappers; and S08 closes the ordinary dense
+script corpus with native `sort`/`diff` and structural compatibility. Sparse,
+surface-graphics, and N-D APIs remain explicitly unsupported; see the
+[advanced numerical compatibility](docs/advanced-numerics-compatibility.md),
+[complex API](docs/complex-api.md), and [compatibility limits](docs/complex-compatibility.md).
+
+### Hilbert inverse example
+
+The package includes a 1024-bit Hilbert inverse example in
+[`examples/05_hilbert_inverse.m`](examples/05_hilbert_inverse.m). It constructs
+each `1/(i+j-1)` from decimal `mp` values and computes all inverse columns as
+`H \ I`; this avoids the binary64 matrix produced by builtin `hilb(n)`. N01
+also provides the explicit `inv(H)` API.
+
+The external MPLAPACK C++ consumer boundary is validated separately by the
+MPLAPACK release QA. Its source is intentionally not copied into this Octave
+package's examples.
 
 The required MPLAPACK MPFR dependency is discovered through `pkg-config` and
 must provide the uniform-precision scope interface. The package never vendors
@@ -63,15 +130,16 @@ or searches a developer-specific MPLAPACK path.
 
 ## Initial backend
 
-The initial backend is **MPFR real arithmetic**. MPLAPACK remains a separately
-installed dependency discovered with `pkg-config`; it is not vendored here.
+The backend is MPLAPACK's MPFR/MPC implementation for real and complex values.
+MPLAPACK remains a separately installed dependency discovered through
+`pkg-config`; it is not vendored here.
 
 ## Working diagnostic
 
 With the current source package installed:
 
 ```octave
-pkg load mplapack
+pkg load mplapack-interop
 info = mplapack_version()
 
 a = mp("0.1");
@@ -155,34 +223,40 @@ one-output `qr(A)` returns `R` and two-output forms return `Q,R`. M19 adds
 column-pivoted three-output `qr` through `Rgeqp3`, reusing `Rorgqr` for `Q`.
 M21 adds dense real `lu` through `Rgetrf`; packed one-output factors,
 permutation-aware two/three-output factors, and vector row pivots preserve the
-stored operand precision.
+stored operand precision. N00 adds `norm`; N01 adds `det` and `inv` through
+stored-precision `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri` paths.
 
-## v0.1 feature status
+## Current feature status
 
 | Feature | Scalar | Dense matrix | Backend | Status |
 |---|---:|---:|---|---|
 | `+ - .* ./` | yes | yes | MPFR | supported |
 | `*` | yes | yes | `Rgemm` | supported |
 | `\` | yes | yes | `Rgesv`/`Rgelss` | supported |
+| `/` | yes | yes | transpose solve; `Rgesv`/`Rgelss` | supported |
 | `chol` | yes | yes | `Rpotrf` | supported |
 | `qr` / pivoted `qr` | yes | yes | `Rgeqrf`/`Rgeqp3`/`Rorgqr` | supported |
 | `lu` | yes | yes | `Rgetrf` | supported |
-| complex / sparse | no | no | future | deferred |
+| structured `eig` | yes | yes | `Rsyevd`/`Cheevd` | supported |
+| complex | yes | yes | `Cgemm`/`Cgesv`/`Cgelsy`/`Cpotrf`/`Cgeqrf`/`Cgeqp3`/`Cgetrf` | supported |
+| T00–T14 advanced numerics | yes | yes | MPFR/MPC native bridges | supported/deferred by API |
+| sparse | no | no | future | deferred |
 
 ## Release provenance
 
-The frozen real-only v0.1.0 source candidate is identified by the full commit
-in the repository-only release manifest (`docs/v0.1-release-manifest.md`). It was
-validated with Octave 11.1.0 and the installed MPLAPACK MPFR interface
-provided by `mplapack_mpfr` through `pkg-config`. PPA packaging is the next
-step; no PPA or final Git tag is published yet.
+The frozen real-only v0.1.0 source candidate remains identified by the full
+commit in the repository-only release manifest
+(`docs/v0.1-release-manifest.md`). The 0.2.0 release was validated with Octave
+11.1.0 and the installed MPLAPACK MPFR interface provided by
+`mplapack_mpfr` through `pkg-config`. Binary distribution and PPA work are
+separate later milestones.
 
-## Intended future API
+## Public API baseline
 
-The following workflow is available through M19:
+The following workflow is available in the current release line:
 
 ```octave
-pkg load mplapack
+pkg load mplapack-interop
 
 mpdigits(100);
 
@@ -212,11 +286,11 @@ that exact value when converting to MPFR. Thus the two `0.1` values above are
 intentionally different. See
 [`docs/precision-semantics.md`](docs/precision-semantics.md).
 
-## Non-goals for 0.1.0
+## Historical 0.1.0 non-goals
 
 - Wrapping every MPLAPACK routine
 - Supporting every MPLAPACK backend
-- Complex multiprecision arithmetic
+- Complex multiprecision arithmetic (implemented in the 0.2.x line)
 - Replacing Octave BLAS/LAPACK
 - Transparent conversion of all Octave code to multiprecision
 - Complete MATLAB compatibility
@@ -249,10 +323,13 @@ M21  Dense real LU factorization
 M22  Real v0.1 API and release closure
 M23  v0.1.0 feature freeze and release candidate
 
+D01R1  Rename package identity to mplapack-interop and freeze binary architecture
+
 PPA1-PPA4  Debian/Ubuntu/PPA packaging and final release
 ```
 
-M00 through M23 are complete (M20 is design-only and M23 is the frozen release
-candidate). No final tag or PPA upload exists yet. Consult
+M00 through M23, C00 through C12, S00 through S08, and T00 through T14 are
+complete (M20 is design-only and the real-only M23 candidate remains
+historical). No PPA upload exists. Consult
 [`docs/milestones/README.md`](docs/milestones/README.md) for gate definitions
 and status.

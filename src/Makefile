@@ -8,13 +8,34 @@ SOURCE = octave_bridge.cc mp_value.cc mp_matrix_value.cc mp_blas.cc mp_lapack.cc
   mp_scalar_storage.cc mp_matrix_storage.cc mp_matrix_inspection.cc \
   mp_matrix_arithmetic.cc mp_matrix_structure.cc mp_matrix_concat.cc \
   mp_matrix_assignment.cc \
-  mp_arithmetic.cc mp_precision.cc
+  mp_arithmetic.cc mp_precision.cc mp_complex_precision.cc \
+  mp_complex_scalar_storage.cc mp_complex_matrix_storage.cc \
+  mp_complex_value.cc mp_complex_matrix_value.cc mp_complex_structure.cc \
+  mp_complex_arithmetic.cc mp_complex_blas.cc mp_complex_lapack.cc \
+  mp_complex_rank.cc mp_complex_cholesky.cc mp_complex_qr.cc \
+  mp_complex_lu.cc mp_complex_matrix_concat.cc mp_norm.cc mp_det_inv.cc \
+  mp_svd.cc mp_rank_condition.cc mp_structured_eig.cc mp_general_eig.cc \
+  mp_generalized_eig.cc mp_script_compat.cc mp_script_reductions.cc \
+  mp_schur_qz.cc \
+  mp_script_logic.cc mp_script_structure.cc mp_script_ranges.cc \
+  mp_script_statistics.cc mp_script_sequence.cc mp_native_serialization.cc \
+  mp_random.cc
 HEADERS = mp_value.h mp_matrix_value.h mp_scalar_storage.h \
   mp_matrix_storage.h mp_matrix_inspection.h mp_matrix_arithmetic.h \
   mp_matrix_structure.h mp_matrix_concat.h \
   mp_matrix_assignment.h \
   mp_precision.h mp_blas.h \
-  mp_lapack.h
+  mp_lapack.h mp_complex_precision.h mp_complex_scalar_storage.h \
+  mp_complex_matrix_storage.h mp_complex_value.h mp_complex_matrix_value.h \
+  mp_complex_structure.h mp_complex_arithmetic.h mp_complex_blas.h \
+  mp_complex_lapack.h mp_complex_rank.h mp_complex_cholesky.h mp_complex_qr.h \
+  mp_complex_lu.h mp_complex_matrix_concat.h mp_norm.h mp_det_inv.h mp_svd.h \
+  mp_rank_condition.h mp_structured_eig.h mp_general_eig.h \
+  mp_generalized_eig.h mp_script_compat.h mp_script_reductions.h \
+  mp_schur_qz.h \
+  mp_script_logic.h mp_script_structure.h mp_script_ranges.h \
+  mp_script_statistics.h mp_script_sequence.h mp_native_serialization.h \
+  mp_random.h
 STORAGE_TEST = .build-m02/mp_scalar_storage_test
 ARITHMETIC_TEST = .build-m06/mp_scalar_arithmetic_test
 MATRIX_TEST = .build-m07/mp_matrix_storage_test
@@ -32,6 +53,20 @@ QR_TEST = .build-m18/mp_lapack_qr_test
 PIVOTED_QR_TEST = .build-m19/mp_lapack_pivoted_qr_test
 LU_TEST = .build-m21/mp_lapack_lu_test
 DEPENDENCY_TEST = .build-m22/m22_dependency_probe
+CPLX_STORAGE_TEST = .build-c00/mp_complex_storage_test
+CPLX_STRUCTURE_TEST = .build-c03/mp_complex_structure_test
+CPLX_ARITHMETIC_TEST = .build-c04/mp_complex_arithmetic_test
+CPLX_BLAS_TEST = .build-c05/mp_complex_blas_test
+CPLX_LAPACK_TEST = .build-c06/mp_complex_lapack_test
+CPLX_LU_TEST = .build-c11l/mp_complex_lu_test
+NORM_TEST = .build-n00/mp_norm_test
+DET_INV_TEST = .build-n01/mp_det_inv_test
+SVD_TEST = .build-n02/mp_svd_test
+RANK_CONDITION_TEST = .build-n03/mp_rank_condition_test
+STRUCTURED_EIG_TEST = .build-n04/mp_structured_eig_test
+GENERAL_EIG_TEST = .build-n05/mp_general_eig_test
+GENERALIZED_EIG_TEST = .build-n06/mp_generalized_eig_test
+SCRIPT_SEQUENCE_TEST = .build-s08/mp_script_sequence_test
 MPLAPACK_VERSION := $(shell $(PKG_CONFIG) --modversion $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
 MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
@@ -42,10 +77,16 @@ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
   check-arithmetic-sanitized check-matrix-sanitized check-blas \
   check-lapack check-inspection check-elementwise check-structure \
   check-concat check-assignment check-rgels check-rank check-cholesky check-qr \
-  check-pivoted-qr check-lu clean
+  check-pivoted-qr check-lu check-complex-storage check-complex-structure \
+  check-complex-arithmetic check-complex-blas check-complex-lapack \
+  check-complex-rank check-complex-cholesky check-complex-qr \
+  check-complex-pivoted-qr check-complex-concat check-complex-lu check-norm \
+  check-det-inv check-svd check-rank-condition check-structured-eig \
+  check-general-eig check-generalized-eig check-schur-qz check-script-sequence clean
 .DELETE_ON_ERROR:
 
 all: $(TARGET)
+	$(RM) -r .build-m22
 
 $(TARGET): $(SOURCE) $(HEADERS) | check-dependency
 	@echo "Building $(TARGET) with MKOCTFILE=$(MKOCTFILE)"
@@ -112,11 +153,16 @@ check-lapack: $(LAPACK_TEST)
 
 $(INSPECTION_TEST): ../test/mp_matrix_inspection_test.cc \
   mp_matrix_inspection.cc mp_matrix_inspection.h mp_matrix_storage.cc \
-  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h | check-deps
 	mkdir -p $(dir $@)
 	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
 	  $(MPLAPACK_CFLAGS) -I. ../test/mp_matrix_inspection_test.cc \
 	  mp_matrix_inspection.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_complex_precision.cc \
 	  $(MPLAPACK_LIBS) -o $@
 
 check-inspection: $(INSPECTION_TEST)
@@ -138,11 +184,16 @@ check-elementwise: $(ELEMENTWISE_TEST)
 
 $(STRUCTURE_TEST): ../test/mp_matrix_structure_test.cc \
   mp_matrix_structure.cc mp_matrix_structure.h mp_matrix_storage.cc \
-  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h | check-deps
 	mkdir -p $(dir $@)
 	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic $(SANITIZER_FLAGS) \
 	  $(MPLAPACK_CFLAGS) -I. ../test/mp_matrix_structure_test.cc \
 	  mp_matrix_structure.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_complex_precision.cc \
 	  $(MPLAPACK_LIBS) -o $@
 
 check-structure: $(STRUCTURE_TEST)
@@ -251,6 +302,343 @@ check-dependency: $(DEPENDENCY_TEST)
 	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
 	UBSAN_OPTIONS=halt_on_error=1 $(DEPENDENCY_TEST)
 
+$(CPLX_STORAGE_TEST): ../test/mp_complex_storage_test.cc \
+  mp_complex_precision.cc mp_complex_precision.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_storage_test.cc \
+	  mp_complex_precision.cc mp_complex_scalar_storage.cc \
+	  mp_complex_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-complex-storage: $(CPLX_STORAGE_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_STORAGE_TEST)
+
+$(CPLX_STRUCTURE_TEST): ../test/mp_complex_structure_test.cc \
+  mp_complex_structure.cc mp_complex_structure.h mp_matrix_structure.cc \
+  mp_matrix_structure.h mp_complex_matrix_storage.cc \
+  mp_complex_matrix_storage.h mp_complex_scalar_storage.cc \
+  mp_complex_scalar_storage.h mp_complex_precision.cc \
+  mp_complex_precision.h mp_matrix_storage.cc mp_matrix_storage.h \
+  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_structure_test.cc \
+	  mp_complex_structure.cc mp_matrix_structure.cc \
+	  mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_complex_precision.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-complex-structure: $(CPLX_STRUCTURE_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_STRUCTURE_TEST)
+
+$(CPLX_ARITHMETIC_TEST): ../test/mp_complex_arithmetic_test.cc \
+  mp_complex_arithmetic.cc mp_complex_arithmetic.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h \
+  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_arithmetic_test.cc \
+	  mp_complex_arithmetic.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-complex-arithmetic: $(CPLX_ARITHMETIC_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_ARITHMETIC_TEST)
+
+$(CPLX_BLAS_TEST): ../test/mp_complex_blas_test.cc \
+  mp_complex_blas.cc mp_complex_blas.h mp_complex_matrix_storage.cc \
+  mp_complex_matrix_storage.h mp_complex_scalar_storage.cc \
+  mp_complex_scalar_storage.h mp_complex_precision.cc \
+  mp_complex_precision.h mp_matrix_storage.cc mp_matrix_storage.h \
+  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_blas_test.cc \
+	  mp_complex_blas.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-complex-blas: $(CPLX_BLAS_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_BLAS_TEST)
+
+$(CPLX_LAPACK_TEST): ../test/mp_complex_lapack_test.cc \
+  mp_complex_lapack.cc mp_complex_lapack.h mp_complex_blas.cc \
+  mp_complex_blas.h mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_lapack_test.cc \
+	  mp_complex_lapack.cc mp_complex_blas.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc mp_matrix_storage.cc \
+	  mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-complex-lapack: $(CPLX_LAPACK_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_LAPACK_TEST)
+
+CPLX_RANK_TEST = .build-c07/mp_complex_rank_test
+
+$(CPLX_RANK_TEST): ../test/mp_complex_rank_test.cc \
+  mp_complex_rank.cc mp_complex_rank.h mp_complex_blas.cc mp_complex_blas.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_rank_test.cc mp_complex_rank.cc \
+	  mp_complex_blas.cc mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_complex_precision.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-complex-rank: $(CPLX_RANK_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_RANK_TEST)
+
+CPLX_CHOLESKY_TEST = .build-c08/mp_complex_cholesky_test
+
+$(CPLX_CHOLESKY_TEST): ../test/mp_complex_cholesky_test.cc \
+  mp_complex_cholesky.cc mp_complex_cholesky.h mp_complex_blas.cc \
+  mp_complex_blas.h mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_cholesky_test.cc \
+  mp_complex_cholesky.cc mp_complex_blas.cc mp_complex_matrix_storage.cc \
+  mp_complex_scalar_storage.cc mp_complex_precision.cc mp_matrix_storage.cc \
+  mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-complex-cholesky: $(CPLX_CHOLESKY_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_CHOLESKY_TEST)
+
+CPLX_QR_TEST = .build-c09/mp_complex_qr_test
+
+$(CPLX_QR_TEST): ../test/mp_complex_qr_test.cc \
+  mp_complex_qr.cc mp_complex_qr.h mp_complex_blas.cc mp_complex_blas.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_qr_test.cc mp_complex_qr.cc \
+	  mp_complex_blas.cc mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_complex_precision.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-complex-qr: $(CPLX_QR_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_QR_TEST)
+
+CPLX_PIVOTED_QR_TEST = .build-c10/mp_complex_pivoted_qr_test
+
+$(CPLX_PIVOTED_QR_TEST): ../test/mp_complex_pivoted_qr_test.cc \
+  mp_complex_qr.cc mp_complex_qr.h mp_complex_blas.cc mp_complex_blas.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_pivoted_qr_test.cc \
+	  mp_complex_qr.cc mp_complex_blas.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc mp_matrix_storage.cc \
+	  mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-complex-pivoted-qr: $(CPLX_PIVOTED_QR_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_PIVOTED_QR_TEST)
+
+CPLX_CONCAT_TEST = .build-c11/mp_complex_matrix_concat_test
+
+$(CPLX_CONCAT_TEST): ../test/mp_complex_matrix_concat_test.cc \
+  mp_complex_matrix_concat.cc mp_complex_matrix_concat.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_matrix_concat_test.cc \
+	  mp_complex_matrix_concat.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc mp_matrix_storage.cc \
+	  mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-complex-concat: $(CPLX_CONCAT_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_CONCAT_TEST)
+
+$(CPLX_LU_TEST): ../test/mp_complex_lu_test.cc \
+  mp_complex_lu.cc mp_complex_lu.h mp_complex_blas.cc mp_complex_blas.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_complex_lu_test.cc mp_complex_lu.cc \
+	  mp_complex_blas.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc mp_matrix_storage.cc \
+	  mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-complex-lu: $(CPLX_LU_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(CPLX_LU_TEST)
+
+$(NORM_TEST): ../test/mp_norm_test.cc mp_norm.cc mp_norm.h \
+  mp_complex_blas.cc mp_complex_blas.h mp_complex_matrix_storage.cc \
+  mp_complex_matrix_storage.h mp_complex_scalar_storage.cc \
+  mp_complex_scalar_storage.h mp_complex_precision.cc mp_complex_precision.h \
+  mp_matrix_storage.cc mp_matrix_storage.h mp_scalar_storage.cc \
+  mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_norm_test.cc mp_norm.cc \
+	  mp_complex_blas.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-norm: $(NORM_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(NORM_TEST)
+
+$(DET_INV_TEST): ../test/mp_det_inv_test.cc mp_det_inv.cc mp_det_inv.h \
+  mp_complex_blas.cc mp_complex_blas.h mp_complex_matrix_storage.cc \
+  mp_complex_matrix_storage.h mp_complex_scalar_storage.cc \
+  mp_complex_scalar_storage.h mp_complex_precision.cc mp_complex_precision.h \
+  mp_matrix_storage.cc mp_matrix_storage.h mp_scalar_storage.cc \
+  mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_det_inv_test.cc mp_det_inv.cc \
+	  mp_complex_blas.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-det-inv: $(DET_INV_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(DET_INV_TEST)
+
+$(SVD_TEST): ../test/mp_svd_test.cc mp_svd.cc mp_svd.h mp_norm.cc mp_norm.h \
+  mp_complex_blas.cc mp_complex_blas.h mp_complex_matrix_storage.cc \
+  mp_complex_matrix_storage.h mp_complex_scalar_storage.cc \
+  mp_complex_scalar_storage.h mp_complex_precision.cc mp_complex_precision.h \
+  mp_matrix_storage.cc mp_matrix_storage.h mp_scalar_storage.cc \
+  mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_svd_test.cc mp_svd.cc mp_norm.cc \
+	  mp_complex_blas.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-svd: $(SVD_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(SVD_TEST)
+
+$(RANK_CONDITION_TEST): ../test/mp_rank_condition_test.cc \
+  mp_rank_condition.cc mp_rank_condition.h mp_svd.cc mp_svd.h mp_norm.cc \
+  mp_norm.h mp_complex_blas.cc mp_complex_blas.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_complex_precision.cc mp_complex_precision.h mp_matrix_storage.cc \
+  mp_matrix_storage.h mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_rank_condition_test.cc \
+	  mp_rank_condition.cc mp_svd.cc mp_norm.cc mp_complex_blas.cc \
+	  mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_complex_precision.cc mp_matrix_storage.cc mp_scalar_storage.cc \
+	  $(MPLAPACK_LIBS) -o $@
+
+check-rank-condition: $(RANK_CONDITION_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(RANK_CONDITION_TEST)
+
+$(STRUCTURED_EIG_TEST): ../test/mp_structured_eig_test.cc \
+  mp_structured_eig.cc mp_structured_eig.h mp_complex_precision.cc \
+  mp_complex_precision.h mp_complex_matrix_storage.cc \
+  mp_complex_matrix_storage.h mp_complex_scalar_storage.cc \
+  mp_complex_scalar_storage.h mp_matrix_storage.cc mp_matrix_storage.h \
+  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_structured_eig_test.cc \
+	  mp_structured_eig.cc mp_complex_precision.cc \
+	  mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-structured-eig: $(STRUCTURED_EIG_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(STRUCTURED_EIG_TEST)
+
+$(GENERAL_EIG_TEST): ../test/mp_general_eig_test.cc \
+  mp_general_eig.cc mp_general_eig.h mp_complex_precision.cc \
+  mp_complex_precision.h mp_complex_matrix_storage.cc \
+  mp_complex_matrix_storage.h mp_complex_scalar_storage.cc \
+  mp_complex_scalar_storage.h mp_matrix_storage.cc mp_matrix_storage.h \
+  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_general_eig_test.cc \
+	  mp_general_eig.cc mp_complex_precision.cc \
+	  mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-general-eig: $(GENERAL_EIG_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(GENERAL_EIG_TEST)
+
+$(GENERALIZED_EIG_TEST): ../test/mp_generalized_eig_test.cc \
+  mp_generalized_eig.cc mp_generalized_eig.h mp_structured_eig.cc \
+  mp_structured_eig.h mp_complex_precision.cc mp_complex_precision.h \
+  mp_complex_matrix_storage.cc mp_complex_matrix_storage.h \
+  mp_complex_scalar_storage.cc mp_complex_scalar_storage.h \
+  mp_matrix_storage.cc mp_matrix_storage.h mp_scalar_storage.cc \
+  mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_generalized_eig_test.cc \
+	  mp_generalized_eig.cc mp_structured_eig.cc mp_complex_precision.cc \
+	  mp_complex_matrix_storage.cc mp_complex_scalar_storage.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-generalized-eig: $(GENERALIZED_EIG_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(GENERALIZED_EIG_TEST)
+
+$(SCRIPT_SEQUENCE_TEST): ../test/mp_script_sequence_test.cc \
+  mp_script_sequence.cc mp_script_sequence.h mp_complex_matrix_storage.cc \
+  mp_complex_matrix_storage.h mp_complex_scalar_storage.cc \
+  mp_complex_scalar_storage.h mp_complex_precision.cc \
+  mp_complex_precision.h mp_matrix_storage.cc mp_matrix_storage.h \
+  mp_scalar_storage.cc mp_scalar_storage.h | check-deps
+	mkdir -p $(dir $@)
+	$(CXX) -std=c++17 -Wall -Wextra -Wpedantic -pthread $(SANITIZER_FLAGS) \
+	  $(MPLAPACK_CFLAGS) -I. ../test/mp_script_sequence_test.cc \
+	  mp_script_sequence.cc mp_complex_matrix_storage.cc \
+	  mp_complex_scalar_storage.cc mp_complex_precision.cc \
+	  mp_matrix_storage.cc mp_scalar_storage.cc $(MPLAPACK_LIBS) -o $@
+
+check-script-sequence: $(SCRIPT_SEQUENCE_TEST)
+	ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1 $(SCRIPT_SEQUENCE_TEST)
+
 check-deps:
 	@$(MKOCTFILE) --help >/dev/null 2>&1 || { \
 	  echo "FAIL: mkoctfile command not found: $(MKOCTFILE)" >&2; exit 1; }
@@ -269,4 +657,4 @@ check-deps:
 
 clean:
 	$(RM) $(TARGET) *.o *.lo
-	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21 .build-m22
+	$(RM) -r .libs .deps .build-m02 .build-m06 .build-m07 .build-m08 .build-m09 .build-m10 .build-m11 .build-m12 .build-m13 .build-m14 .build-m15 .build-m16 .build-m17 .build-m18 .build-m19 .build-m21 .build-m22 .build-c00 .build-c06 .build-c07 .build-c08 .build-c09 .build-c10 .build-c11 .build-c11l .build-n00 .build-n01 .build-n02 .build-n03 .build-n04 .build-n05 .build-n06 .build-s08
