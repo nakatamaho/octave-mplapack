@@ -79,7 +79,9 @@ matrix. The [advanced compatibility matrix]
 forms, while the [backend map](docs/backend-map.md) connects public calls to
 native algorithms. Runnable examples are under
 [examples/](examples/01_scalar_precision.m). Developer documentation is
-generated from [docs/doxygen/Doxyfile](docs/doxygen/Doxyfile).
+generated from [docs/doxygen/Doxyfile](docs/doxygen/Doxyfile). A generated
+[Markdown version of the manual](docs/mplapack-interop.md) is also provided;
+edit the Texinfo source and run `tools/build-manual-markdown.sh` to refresh it.
 
 ## Quick start
 

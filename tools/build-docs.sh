@@ -27,6 +27,14 @@ mkdir -p "$build_dir/html"
 
 makeinfo --html --no-split "$manual" -o "$build_dir/html/index.html"
 makeinfo --plaintext "$manual" -o "$build_dir/mplapack-interop.txt"
+tools/build-manual-markdown.sh "$build_dir/mplapack-interop.md"
+
+[[ -f "$repo_root/docs/mplapack-interop.md" ]] || {
+  echo "ERROR: tracked Markdown manual is missing" >&2; exit 1;
+}
+cmp -s "$build_dir/mplapack-interop.md" "$repo_root/docs/mplapack-interop.md" || {
+  echo "ERROR: tracked Markdown manual is stale; regenerate it" >&2; exit 1;
+}
 
 if command -v texi2pdf >/dev/null 2>&1 && command -v tex >/dev/null 2>&1; then
   texi2pdf --batch --quiet --output="$build_dir/mplapack-interop.pdf" "$manual"
@@ -42,8 +50,11 @@ fi
 [[ -s "$build_dir/mplapack-interop.txt" ]] || {
   echo "ERROR: user Info/plaintext output was not generated" >&2; exit 1;
 }
+[[ -s "$build_dir/mplapack-interop.md" ]] || {
+  echo "ERROR: user Markdown output was not generated" >&2; exit 1;
+}
 [[ -f "$build_dir/doxygen/html/index.html" ]] || {
   echo "ERROR: Doxygen HTML was not generated" >&2; exit 1;
 }
 
-echo "PASS: user HTML, Info/plaintext, and Doxygen HTML built"
+echo "PASS: user HTML, Info/plaintext, Markdown, and Doxygen HTML built"
