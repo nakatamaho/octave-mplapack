@@ -99,22 +99,74 @@ Result tolerances should be based on the stored operation precision and the cond
 
 ## Eigenvalues, SVD, Schur and QZ
 
-`eig` has structured, general, and generalized forms. Structured real symmetric and complex Hermitian inputs use `Rsyevd`/`Cheevd`. General problems use `Rgeevx`/`Cgeevx`. Generalized definite and QZ forms use `Rsygvd`/`Chegvd` and `Rggev`/`Cggev`.
+This chapter covers the dense eigenvalue, singular-value, Schur, Hessenberg, and generalized Schur interfaces. These routines are useful for analysing conditioning and invariant subspaces, but their factors are not unique. A successful call therefore must be checked with a residual, an orthogonality or unitarity relation, and a precision-aware tolerance rather than by comparing vectors element by element.
 
-Eigenvalue order is not canonical. Eigenvector scale and complex phase are not canonical either, so validate residuals rather than elementwise vectors. For a standard problem use `A*V = V*D`; for a generalized problem use `A*V = B*V*D`. Three-output forms return left vectors and should be checked with the corresponding conjugate-transpose identity.
+### Standard eigenproblems
 
-The required Grcar example is:
+The standard dense interface accepts a square `mp` matrix `A`:
+
+    lambda = eig (A)
+    [V, D] = eig (A)
+    [V, d] = eig (A, "vector")
+    [V, D, W] = eig (A)
+    [V, D] = eig (A, "balance")
+    [V, D] = eig (A, "nobalance")
+
+The default one-output form returns a column vector of eigenvalues. The explicit `"matrix"` form returns a diagonal eigenvalue matrix, while `"vector"` returns a column. The two-output forms return right eigenvectors and eigenvalues; the three-output form additionally returns left eigenvectors. For the matrix form the identities are `A*V = V*D` and `W'*A = D*W'`. For the vector form replace `D` by `diag(d)`.
+
+An exactly represented real symmetric matrix uses the structured MPFR `Rsyevd` path. An exactly represented complex Hermitian matrix uses `Cheevd`. Structured real eigenvalues and eigenvectors are real `mp`; a Hermitian problem has real eigenvalues but generally complex eigenvectors. The structured path does not need balancing.
+
+All other square real matrices use MPLAPACK `Rgeevx`, and all other complex matrices use `Cgeevx`. General real results are returned as complex `mp` values even when every eigenvalue happens to be real. This keeps the imaginary parts of conjugate pairs and gives one output type for the general driver. `"balance"` and `"nobalance"` select the expert-driver mode explicitly; balancing can improve the scaling of a badly scaled problem but changes the returned vectors.
+
+The structured/general decision is based on the represented values, not on a floating-point closeness test. A nearly symmetric matrix, a non-Hermitian complex matrix, a defective or nearly defective matrix, and a badly scaled matrix therefore exercise the general path. Sparse, non-square, and N-dimensional eigenproblems are outside the dense `mp` contract.
+
+This example deliberately uses a nonnormal Grcar matrix. It checks the right-eigenvector residual without assuming a particular eigenvalue order, vector scale, or complex phase:
 
     mpbits (1024);
-    A = mp (gallery ("grcar", 32));
-    [V, D] = eig (A);
-    r = norm (A*V - V*D, "fro") / norm (A, "fro");
-    disp (r);
+    G = mp (gallery ("grcar", 32));
+    [V, D] = eig (G, "nobalance");
+    right_residual = norm (G*V - V*D, "fro") / norm (G, "fro");
+    disp (right_residual);
 
-`schur`, `hess`, and `qz` have non-unique factors. QZ generalized eigenvalues may be represented by an `alpha`/`beta` pair; `beta == 0` represents an infinite eigenvalue. Reconstruction orientation is part of the API contract and is documented in `docs/eig.md` and `docs/generalized-eig.md`.
+For a three-output call also check the left relation. Near repeated eigenvalues can have very sensitive eigenvectors even when the residual is small, so report the residual and inspect the eigenvalue separation before interpreting the vectors.
 
-`svd`, `pinv`, `null`, `orth`, and `rref` are sensitive to singular-value tolerances. Singular-vector signs/phases are non-unique; use reconstruction, orthogonality, and projector residuals.
+### Generalized eigenproblems
 
+The generalized interface solves the pencil `A - lambda*B`:
+
+    lambda = eig (A, B)
+    [V, D] = eig (A, B)
+    [V, d] = eig (A, B, "vector")
+    [V, D, W] = eig (A, B)
+    [V, D] = eig (A, B, "chol")
+    [V, D] = eig (A, B, "qz")
+
+Right and left eigenvectors satisfy `A*V = B*V*D` and `W'*A = D*W'*B`. The default one-output form is a column vector; an explicit `"matrix"` option returns a diagonal matrix. `"vector"` selects the column layout for two- and three-output forms. The output and algorithm options can be supplied together, for example `eig (A, B, "chol", "vector")`; duplicate or contradictory options are rejected.
+
+The `"chol"` algorithm is valid only for an exactly symmetric real or Hermitian complex `A`, with a positive-definite `B`. It uses `Rsygvd` or `Chegvd`. The default chooses this definite path when the represented pair satisfies those conditions. `"qz"` forces the generalized Schur path, using `Rggev` for real input and `Cggev` for complex or promoted input. If `B` is singular or not positive definite, the default falls back to QZ; an explicit `"chol"` request reports the invalid pair instead. Generalized `"balance"` and `"nobalance"` options are not supported.
+
+The QZ backend represents an eigenvalue as `alpha/beta`. Division is performed at the operation precision. When `beta` is zero, the result is an infinite eigenvalue rather than a binary64 overflow or a rejected problem. Real QZ conjugate pairs are returned as complex `mp` values so their imaginary components are not discarded. Mixed real/complex pencils are promoted once to MPC at the maximum stored operand precision.
+
+For a singular or ill-conditioned pencil, use the residual relations and inspect the `beta == 0` cases. Do not compare eigenvalue vectors by position: QZ ordering and eigenvector normalization are not canonical. The detailed compatibility and reconstruction notes are in `docs/generalized-eig.md`.
+
+### Singular value decomposition
+
+The dense SVD interface is:
+
+    s = svd (A)
+    [U, S, V] = svd (A)
+    [U, S, V] = svd (A, "econ")
+    [U, S, V] = svd (A, 0)
+
+The numeric `0` form is accepted as the deprecated economy spelling. Two-output SVD calls are rejected; request either the singular values or all three factors. If `A` is `m` by `n`, let `k = min (m, n)`. The one-output result is a real `mp` column of `k` nonnegative singular values in descending order. The full factors have shapes `U`: `m` by `m`, `S`: `m` by `n`, and `V`: `n` by `n`. Economy factors have shapes `m` by `k`, `k` by `k`, and `n` by `k`.
+
+For real input the factors are real and the reconstruction is `A = U*S*transpose(V)`. For complex input `U` and `V` are complex `mp`, `S` remains real, and the reconstruction is `A = U*S*ctranspose(V)`. Full factors are orthogonal or unitary; economy factors have orthonormal columns. Singular vectors can change sign or complex phase, especially for repeated or clustered singular values. Check reconstruction and orthogonality rather than individual factor entries.
+
+SVD uses MPLAPACK `Rgesvd` for real input and `Cgesvd` for complex input. The input buffer, factors, singular values, and workspaces are operation-owned storage at one uniform precision. The input is not modified. The operation precision comes from the stored input precision, not from the ambient default at the time of the call. No SVD path calls builtin Octave `svd` or reduces through binary64.
+
+The following Hilbert example is more informative than a diagonal test: the matrix is dense, non-diagonal, and ill-conditioned. Its entries are created from decimal `mp` values, so the Hilbert matrix is not first created by the builtin binary64 `hilb` function:
+
+    mpbits (512);
     n = 8;
     H = mp (zeros (n, n));
     for i = 1:n
@@ -123,10 +175,43 @@ The required Grcar example is:
       endfor
     endfor
     [U, S, V] = svd (H);
-    sv = diag (S);
-    svd_residual = norm (H - U*S*V', "fro") / norm (H, "fro");
-    disp (sv);
-    disp (svd_residual);
+    reconstruction = norm (H - U*S*V', "fro") / norm (H, "fro");
+    left_orthogonality = norm (U'*U - mp (eye (n)), "fro");
+    right_orthogonality = norm (V'*V - mp (eye (n)), "fro");
+    disp (diag (S));
+    disp (reconstruction);
+    disp (left_orthogonality);
+    disp (right_orthogonality);
+
+For a high-condition-number problem, increase `mpbits` before creating the input and choose tolerances from the requested precision and problem conditioning. A later change to `mpbits` does not change an existing matrix or the precision of an already-created SVD result. `pinv`, `null`, `orth`, and `rref` use singular values or related rank decisions and therefore require the same tolerance discipline.
+
+### Schur Hessenberg and QZ decompositions
+
+The Hessenberg and Schur interfaces provide useful intermediate forms:
+
+    H = hess (A)
+    [P, H] = hess (A)
+    S = schur (A)
+    [U, S] = schur (A)
+    [U, S] = schur (A, "complex")
+    [AA, BB, Q, Z] = qz (A, B)
+    [AA, BB, Q, Z] = qz (A, B, "real")
+
+The two-output Hessenberg form satisfies `P*H*P' = A`; `H` is upper Hessenberg and `P` is orthogonal or unitary. The default Schur type is `"real"` for real input and `"complex"` for complex input. The two-output Schur form satisfies `S = U'*A*U`. A real Schur form can contain 2-by-2 blocks for conjugate pairs; a complex Schur form is triangular. The factors and their ordering are not unique, and Schur reordering selectors are not part of this public interface.
+
+The generalized Schur (QZ) interface returns the orientation used by this package: `Q*A*Z = AA` and `Q*B*Z = BB`. The default QZ type is complex; `"real"` requests the real generalized Schur form for a real pencil. The diagonal or 2-by-2 blocks encode the generalized eigenvalues; the `alpha`/`beta` interpretation and infinite-eigenvalue rule are the same as for generalized `eig`. QZ is a decomposition of a pencil, not an inverse of `B`, so it remains usable when `B` is singular.
+
+For all of these routines use the exact reconstruction orientation above. Do not substitute a transpose for a conjugate transpose in a complex test, and do not assume that two valid runs return the same signs, phases, or block ordering. The optional Schur/QZ ordering helpers remain intentionally deferred.
+
+### Precision and validation
+
+Every eig, SVD, Hessenberg, Schur, and QZ call selects one operation precision from its stored input operands. For a generalized problem this is the maximum stored precision of `A` and `B`. The native wrapper enters the matching MPFR/MPC precision scope, converts real values to complex values once when promotion is required, and restores the caller’s ambient precision on return. A new worker thread does not inherit a parent thread’s precision automatically; a worker must establish its own scope at entry.
+
+The LAPACK drivers destructively overwrite their input buffers. The public `mp` payload is immutable, so the wrapper always passes an operation-owned copy and leaves the input unchanged. Workspace queries and driver status values are checked before results are returned. The complex paths use MPC-native storage throughout and never silently fall back to builtin binary64 complex arithmetic.
+
+For a normal validation, compute a relative residual such as `norm (A*V - V*D, "fro") / norm (A, "fro")`, an orthogonality or unitarity residual such as `norm (U'*U - eye (n), "fro")`, and the appropriate generalized relation. Keep the residual as an `mp` value until the final display or an explicitly justified pass/fail conversion. At 1024 bits, test a `2^-700` tail; at 2048 bits, test a `2^-1500` tail. Also test with a low ambient default, a high ambient default, and a restored default to ensure that the operation precision belongs to the input and not to unrelated global state.
+
+The focused API and backend notes are maintained in `docs/eig.md`, `docs/generalized-eig.md`, and `docs/svd.md`; the runnable examples are `examples/06_grcar_eig.m`, `examples/07_svd_hilbert.m`, and `examples/08_advanced_dense.m`.
 
 ## Matrix functions
 
