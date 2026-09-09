@@ -91,6 +91,32 @@ octave:1> pkg install mplapack-interop-0.5.0-dev.tar.gz
 octave:2> pkg load mplapack-interop
 ```
 
+For the reproducible Linux/Docker development stack used by this repository,
+run the local installation helper:
+
+```sh
+bash /home/docker/install-local-octave-mplapack.sh
+```
+
+The helper installs the verified gmpfrxx/MPLAPACK stack and the current
+`mplapack-interop` development package under
+`/home/docker/opt/octave-mplapack-stack`. Start the configured Octave wrapper
+with:
+
+```sh
+/home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
+```
+
+The wrapper loads `mplapack-interop` automatically. In an Octave session, it
+can also be loaded explicitly with:
+
+```octave
+pkg load mplapack-interop
+```
+
+These paths are specific to the local Docker helper; other installations
+should use the package-manager or checkout instructions above.
+
 For a checkout, `tools/dev-octave.sh` verifies the `pkg-config` dependency,
 builds the native module, and starts a configured development session. It does
 not replace clean package/install QA.
