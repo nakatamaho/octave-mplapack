@@ -2,6 +2,8 @@
 
 DOC00 closes the documentation gap before D04.  Work is on
 `topic/t00-t14-continuation`, whose development version is `0.5.0-dev`.
+The documentation implementation freeze commit is
+`8f8bbdc0d75ccf4bc572ba843ad6b1ebf4ae0f75`.
 
 | Gate | Result | Evidence |
 |---|---|---|
