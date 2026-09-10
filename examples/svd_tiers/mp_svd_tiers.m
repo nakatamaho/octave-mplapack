@@ -7,10 +7,9 @@ function results = mp_svd_tiers (profile, options)
   ## Run the Tier S/A/V SVD example suite for a named profile.
   ##
   ## This facade owns option validation, manifest accounting, precision cleanup,
-  ## and result-directory safety.  Numerical constructors and verifiers are
+  ## and result-directory safety. Numerical constructors and verifiers are
   ## private example helpers; the public package API is not changed by this
-  ## example suite.  The implementation is deliberately incomplete until the
-  ## later SVT milestones register all constructors and certificate jobs.
+  ## example suite.
   ## @end deftypefn
 
   if (nargin < 1 || nargin > 2)
@@ -100,28 +99,23 @@ function results = mp_svd_tiers (profile, options)
 
   saved_bits = mpbits ();
   cleanup_precision = onCleanup (@() mpbits (saved_bits));
-  results = struct ();
-  results.schema = "svt-v1";
-  results.profile = profile;
-  results.tier = tier;
-  results.plot = plot_enabled;
+  results = svt_run_profile (profile_data, profile, tier, plot_enabled);
   results.output_dir = output_dir;
   results.manifest_schema = manifest.schema;
   results.case_count = numel (selected_cases);
   results.manifest_case_count = numel (profile_data.cases);
-  results.expected_svd_rows = profile_data.expected_svd_rows;
-  results.measured_svd_rows = 0;
-  results.scope_ok = true;
-  results.ok = false;
-  results.status = "INCOMPLETE";
-  results.message = "SVT01 facade registered; numerical cases are pending";
   results.cases = selected_cases;
-  results.v_jobs = struct ("count", 0, "status", "NOT_RUN");
-  results.environment = struct ("octave", version (), ...
-                                "mpbits_at_entry", saved_bits);
-
-  ## Do not emit a fake complete result.  Later milestones replace this
-  ## status only after every selected case and mandatory verification job has
-  ## been executed.
+  results.v_jobs = struct ("count", results.v_job_count, ...
+                           "status", ternary_status (results.v_job_count > 0));
+  results.environment.mpbits_at_entry = saved_bits;
+  if (! isempty (output_dir))
+    results.artifacts = svt_write_profile_artifacts (results, profile_data, output_dir);
+  else
+    results.artifacts = {};
+  endif
   clear cleanup_precision;
+endfunction
+
+function value = ternary_status (condition)
+  if (condition), value = "EXECUTED"; else, value = "NOT_RUN"; endif
 endfunction

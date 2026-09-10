@@ -23,7 +23,11 @@ function value = svt_dyadic_decode (encoded, target_bits)
     saved_bits = mpbits ();
     cleanup = onCleanup (@() mpbits (saved_bits));
     mpbits (target_bits);
-    value = mp (0);
+    if (isfield (encoded, "zero_signbit") && encoded.zero_signbit)
+      value = mp ("-0");
+    else
+      value = mp (0);
+    endif
     clear cleanup;
     return;
   endif

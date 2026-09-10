@@ -81,13 +81,13 @@ function certificate = svt_certify_factor_boxes (a, u, s, v, q, indices)
     radius_u = svt_iv ("add", value_certificate.dU, z);
     radius_v = svt_iv ("add", value_certificate.dV, z);
     if (isreal (uq))
-      [boxes_u, unused] = set_real_box (boxes_u, real (uq), position, ...
+      [boxes_u, unused] = set_real_box (boxes_u, real (uq), index, ...
                                         radius_u.hi, q);
-      [boxes_v, unused] = set_real_box (boxes_v, real (vq), position, ...
+      [boxes_v, unused] = set_real_box (boxes_v, real (vq), index, ...
                                         radius_v.hi, q);
     else
-      [boxes_u, unused] = set_complex_box (boxes_u, uq, position, radius_u.hi, q);
-      [boxes_v, unused] = set_complex_box (boxes_v, vq, position, radius_v.hi, q);
+      [boxes_u, unused] = set_complex_box (boxes_u, uq, index, radius_u.hi, q);
+      [boxes_v, unused] = set_complex_box (boxes_v, vq, index, radius_v.hi, q);
     endif
     certificate.individual_status{position} = "CERTIFIED";
   endfor
