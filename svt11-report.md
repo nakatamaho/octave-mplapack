@@ -2,27 +2,28 @@
 
 ## Result
 
-SVT11: PASS. The Lauchli tall/wide family, repeated-small-singular-group
-projectors, quarter-turn complex control, and named normal-equations negative
-control are implemented. All A4 smoke/demo rows passed.
+SVT11: PASS. The deterministic bounded-integer NRO companion-like family is
+implemented with the specified alternating `k/nu` construction, Horner
+unimodularity proof, entry bound, and published equation-(82) inverse fixture.
+All A6 smoke/demo rows passed.
 
 ## Implemented paths
 
 ```text
-examples/svd_tiers/private/svt_make_lauchli.m
-examples/svd_tiers/svt_lauchli_selftest.m
+examples/svd_tiers/private/svt_make_nro_companion.m
+examples/svd_tiers/svt_nro_companion_selftest.m
 ```
 
-The constructor forms `T=[ones;mu*I]`, with `mu=2^-b`, and its wide transpose.
-The analytic spectrum is `sqrt(n+mu^2)` followed by `n-1` copies of `mu`.
-Known left/right projectors for the repeated small group are generated from
-the exact MP rank-one complement; wide-form projectors are swapped. The
-quarter-turn case uses `D_L*T*D_R'`, preserving singular values while
-transforming the projectors by the corresponding unitary phases.
+The first row is generated from `a_1=k_1` and
+`a_i=k_i-nu*k_(i-1)`, while the lower rows use the prescribed subdiagonal
+one and diagonal `-nu`. Horner states are retained and compared directly with
+the exact `k_i` sequence; determinant sign is recorded from the construction,
+not inferred from a small floating determinant. Every entry is checked against
+`nu+1`.
 
-`T'*T = ones(n)+mu^2*I` is recorded and checked only as the specified
-negative control. No normal-equations result is used as the SVD oracle, and no
-claim is made that native binary64 SVD must fail.
+The independent 4-by-4 equation-(82) matrices `C` and `X` satisfy both
+`C*X=I` and `X*C=I` exactly in MP arithmetic. Their printed singular values
+are not used as an oracle.
 
 ## Gate and command
 
@@ -31,23 +32,24 @@ export PKG_CONFIG_PATH=/home/docker/opt/octave-mplapack-stack/lib/pkgconfig:$PKG
 export LD_LIBRARY_PATH=/home/docker/opt/octave-mplapack-stack/lib:$LD_LIBRARY_PATH
 export CPATH=/home/docker/opt/octave-mplapack-stack/include:$CPATH
 octave --no-gui --quiet --no-init-file --path inst --path src --eval \
-  "addpath('examples/svd_tiers'); report=svt_lauchli_selftest(); assert(report.ok); fprintf('SVT11 Lauchli selftest PASS rows=%d\\n', report.measured_rows);"
+  "addpath('examples/svd_tiers'); report=svt_nro_companion_selftest(); assert(report.ok); fprintf('SVT11 NRO companion selftest PASS rows=%d\\n', report.measured_rows);"
 ```
 
-Observed result: `SVT11 Lauchli selftest PASS rows=52` under GNU Octave
-11.1.0 with the recorded MPLAPACK 3.0.1 environment. The wall covers tall
-and wide smoke rows plus the demo complex tall case at 128/256/512 bits,
-both modes, and one explicit native comparison row per mode.
+Observed result: `SVT11 NRO companion selftest PASS rows=20` under GNU
+Octave 11.1.0 with the recorded MPLAPACK 3.0.1 environment. The wall covers
+`n=8,nu=16` at 128/256 bits and `n=16,nu=256` at 128/256/512 bits, both
+`values` and `econ` modes, and one explicit native comparison row per mode.
 
 Branch: `topic/svd-tier-sav-examples`
 
-Starting commit: `0de2e170ac1b11c72d4f88c5ae2747b7214cded4`
+Starting commit: `2ac674afaf5c0347b94d9050d586bf5eef0ccf41`
 
 Final commit: recorded after this report is committed
 
-Tests: Lauchli spectrum/projector/phase gate, negative control, and 52 A4 measured rows PASS
+Tests: Horner/entry-bound/inverse gate and 20 A6 measured rows PASS
 
 Gate: PASS
 
-Known limitations: analytic values and projector identities are not yet
-outward-certified; Tier V implementation remains pending.
+Known limitations: SVD values remain provisional until the independent Tier V
+enclosures are consumed; this is the selected deterministic specialization,
+not every sign/parameter choice in the source paper.
