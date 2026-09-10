@@ -31,4 +31,22 @@ for k = 1:numel (forsythe_demo.rows)
     endif
   endif
 endfor
+all_smoke = mp_eig_suite ("smoke");
+assert (all_smoke.ok && numel (all_smoke.rows) == 30);
+all_demo = mp_eig_suite ("demo");
+assert (all_demo.ok && numel (all_demo.rows) == 40);
+output_dir = tempname ();
+written = mp_eig_suite ("smoke", struct ("output_dir", output_dir));
+assert (written.ok && exist (written.output.summary, "file") ...
+        && exist (written.output.eigenvalues, "file") ...
+        && exist (written.output.environment, "file") ...
+        && exist (written.output.report, "file"));
+caught = false;
+try
+  nes_write (written, output_dir);
+catch exception
+  caught = strcmp (exception.identifier, "NEIG:WriteExists");
+end_try_catch
+assert (caught);
+rmdir (output_dir, "s");
 fprintf ("PASS: test_nonsymmetric_eig_suite (NEIG06)\n");

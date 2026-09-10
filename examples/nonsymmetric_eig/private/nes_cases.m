@@ -6,9 +6,35 @@ function cases = nes_cases (profile, family)
   if (! any (strcmp (profile, {"smoke", "demo", "stress"})))
     error ("NEIG:Profile", "profile must be smoke, demo, or stress");
   endif
-  if (! any (strcmp (family, {"hadamard", "frank", "companion", "forsythe"})))
+  if (! any (strcmp (family, {"all", "hadamard", "frank", "companion", "forsythe"})))
     error ("NEIG:CaseFamily", ...
-           "current milestones implement only family=hadamard, frank, companion, or forsythe");
+           "unknown nonsymmetric eigensystem family");
+  endif
+  if (strcmp (family, "all"))
+    if (strcmp (profile, "smoke"))
+      hadamard_n = 8; hadamard_s = 16; frank_n = 8; companion_n = 10;
+      forsythe_n = 8; forsythe_a = 4;
+    elseif (strcmp (profile, "demo"))
+      hadamard_n = 16; hadamard_s = 128; frank_n = 24; companion_n = 20;
+      forsythe_n = 20; forsythe_a = 20;
+    else
+      hadamard_n = 16; hadamard_s = 16; frank_n = 16; companion_n = 30;
+      forsythe_n = 20; forsythe_a = 80;
+    endif
+    cases(1) = struct ("family", "hadamard", "representation", ...
+                       "hadamard_similar", "n", hadamard_n, ...
+                       "s", hadamard_s, "a", NaN);
+    cases(2) = struct ("family", "frank", "representation", "frank", ...
+                       "n", frank_n, "s", NaN, "a", NaN);
+    cases(3) = struct ("family", "companion", "representation", ...
+                       "companion", "n", companion_n, "s", NaN, "a", NaN);
+    cases(4) = struct ("family", "forsythe", "representation", ...
+                       "original", "n", forsythe_n, "s", NaN, ...
+                       "a", forsythe_a);
+    cases(5) = struct ("family", "forsythe", "representation", ...
+                       "explicitly_scaled", "n", forsythe_n, "s", NaN, ...
+                       "a", forsythe_a);
+    return;
   endif
   if (strcmp (family, "frank"))
     if (strcmp (profile, "smoke"))
