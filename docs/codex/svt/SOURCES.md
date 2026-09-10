@@ -294,3 +294,28 @@ modes, precision ownership, test commands, manual source, and package QA process
 | V1/V2/V3 targets | RL23 / RO24 / R11 | Baselines, not full paper reproductions |
 | Certified primitive arithmetic | MPFR + explicit outward-padding proof | Source audit, range checks, no final-only padding |
 | Exact endpoint persistence | Dyadic encoding derivation | Decimal display is not an outward certificate |
+
+## SVT implementation ledger
+
+The executable suite is an independently written adaptation of the families
+and claim classes above. The selected matrix dimensions, dyadic scalings,
+complex phases, global-scale controls, reference precisions, acceptance
+targets, and exact replay representation are suite choices. They are not
+reproduced published tables or a claim that the source papers' structured
+solvers have been ported.
+
+The implemented Tier V baselines are deliberately narrower than the motivating
+papers: `svt_polar_weyl_v1` encloses singular values from the actual stored
+factors; `svt_dilation_projector_v1` encloses separated positive cluster
+projectors; `svt_dilation_factor_boxes_v1` gives conservative compatible
+norm-derived boxes for simple pairs; and `svt_neumann_inverse_v1` verifies a
+public solve output through an outward residual and a Neumann bound. These
+methods do not claim interval-input coverage, full componentwise algorithms,
+or the performance guarantees of the cited work.
+
+The certificate implementation uses only the existing public `mp`, `mpbits`,
+dense arithmetic, `svd`, and solve operations. MPFR/MPC values remain at one
+operation precision; exact dyadic serialization is used for replay, while
+binary64 conversion is limited to optional presentation plots. The verifier is
+example-local and no public API, backend, rounding setter, dependency, or
+installed header was added for SVT.

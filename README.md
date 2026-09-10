@@ -82,6 +82,10 @@ native algorithms. Runnable examples are under
 generated from [docs/doxygen/Doxyfile](docs/doxygen/Doxyfile). A generated
 [Markdown version of the manual](docs/mplapack-interop.md) is also provided;
 edit the Texinfo source and run `tools/build-manual-markdown.sh` to refresh it.
+The difficult SVD example/verification suite is documented in
+[`docs/svd-tiers.md`](docs/svd-tiers.md) and
+[`docs/svd-verification.md`](docs/svd-verification.md), with runnable defaults
+in `examples/14_svd_tier_s.m` through `examples/16_svd_verified.m`.
 
 ## Quick start
 

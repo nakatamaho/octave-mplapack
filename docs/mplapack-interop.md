@@ -196,6 +196,35 @@ The following Hilbert example is more informative than a diagonal test: the matr
     disp (left_orthogonality);
     disp (right_orthogonality);
 
+### Tier S/A/V SVD example suite
+
+The repository contains an example-local suite for difficult dense singular value problems in `examples/svd_tiers/`. It is a measurement and verification harness around the public `mp`/`svd` path, not a second SVD implementation and not an installed package API. The suite keeps the stored SVD precision, model-construction precision, reference precision, and interval-evaluation precision separate.
+
+The smoke profile has 20 cases and exactly 120 measured SVD rows. The demo profile has 23 cases and exactly 184 measured rows. References, inverse solves, and Tier V jobs are counted separately. The demo adds a complex Lauchli control and global-scale NRO controls; the optional stress profile is not part of the default acceptance wall.
+
+Run the complete profile from a configured checkout as follows:
+
+    pkg load mplapack-interop
+    addpath (fullfile (pwd (), "examples", "svd_tiers"));
+    smoke = mp_svd_tiers ("smoke");
+    demo = mp_svd_tiers ("demo", struct ("tier", "all", ...
+      "output_dir", fullfile (pwd (), "svt-demo"), "plot", false));
+    assert (demo.ok);
+
+Three short top-level examples provide a small starting point:
+
+- `examples/14_svd_tier_s.m` runs a dense NRO two-level block.
+
+- `examples/15_svd_tier_a.m` runs a rectangular dyadic-node Vandermonde matrix.
+
+- `examples/16_svd_verified.m` certifies singular values and an inverse using the Tier V baselines.
+
+The complete construction inventory and measured-output schema are in `docs/svd-tiers.md`. The finite-arithmetic claim boundary, exact dyadic replay format, and failure classifications are in `docs/svd-verification.md`. The normative source and attribution ledger is `docs/codex/svt/SOURCES.md`.
+
+Tier V uses conservative baseline method IDs `svt_polar_weyl_v1`, `svt_dilation_projector_v1`, `svt_dilation_factor_boxes_v1`, and `svt_neumann_inverse_v1`. Certificates bind to the actual represented target and factors. They use exact MPFR/MPC dyadic snapshots, not decimal round trips, and record `paper_algorithm_reproduction=false`. A broad valid interval is distinct from a narrow accuracy target; `INCONCLUSIVE` is not a singularity proof.
+
+The examples preserve the one-operation/one-precision MPFR/MPC contract and never route numerical evidence through builtin binary64 arithmetic. Optional plots are presentation-only. Existing SVD and nonsymmetric-eigenproblem tests remain in the standard test runner; the SVT tests extend that runner rather than replacing earlier coverage.
+
 For a high-condition-number problem, increase `mpbits` before creating the input and choose tolerances from the requested precision and problem conditioning. A later change to `mpbits` does not change an existing matrix or the precision of an already-created SVD result. `pinv`, `null`, `orth`, and `rref` use singular values or related rank decisions and therefore require the same tolerance discipline.
 
 ### Schur Hessenberg and QZ decompositions
@@ -224,7 +253,7 @@ The LAPACK drivers destructively overwrite their input buffers. The public `mp` 
 
 For a normal validation, compute a relative residual such as `norm (A*V - V*D, "fro") / norm (A, "fro")`, an orthogonality or unitarity residual such as `norm (U'*U - eye (n), "fro")`, and the appropriate generalized relation. Keep the residual as an `mp` value until the final display or an explicitly justified pass/fail conversion. At 1024 bits, test a `2^-700` tail; at 2048 bits, test a `2^-1500` tail. Also test with a low ambient default, a high ambient default, and a restored default to ensure that the operation precision belongs to the input and not to unrelated global state.
 
-The focused API and backend notes are maintained in `docs/eig.md`, `docs/generalized-eig.md`, and `docs/svd.md`; the runnable examples are `examples/06_grcar_eig.m`, `examples/07_svd_hilbert.m`, and `examples/08_advanced_dense.m`.
+The focused API and backend notes are maintained in `docs/eig.md`, `docs/generalized-eig.md`, and `docs/svd.md`; the runnable examples are `examples/06_grcar_eig.m`, `examples/07_svd_hilbert.m`, `examples/08_advanced_dense.m`, and the Tier S/A/V examples `examples/14_svd_tier_s.m`, `examples/15_svd_tier_a.m`, and `examples/16_svd_verified.m`.
 
 ## Matrix functions
 

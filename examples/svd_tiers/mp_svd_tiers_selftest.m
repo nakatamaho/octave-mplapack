@@ -37,22 +37,21 @@ function report = mp_svd_tiers_selftest ()
                     "mplapack:svt:InsufficientWidening");
   assert (mpbits () == saved_bits);
 
-  smoke = mp_svd_tiers ("smoke");
-  assert (smoke.case_count == 20);
-  assert (smoke.manifest_case_count == 20);
-  assert (smoke.expected_svd_rows == 120);
-  assert (smoke.measured_svd_rows == 0);
-  assert (! smoke.ok && strcmp (smoke.status, "INCOMPLETE"));
-
-  s_case = mp_svd_tiers ("demo", struct ("tier", "S"));
-  assert (s_case.case_count == 9);
-  assert (s_case.manifest_case_count == 23);
-  assert (s_case.scope_ok && ! s_case.ok);
+  ## The facade now executes a selected profile immediately. Keep this
+  ## contract selftest structural so the ordinary test runner does not launch
+  ## the multi-minute smoke/demo measurement wall.
+  manifest = svt_load_manifest ();
+  smoke_profile = svt_manifest_profile (manifest, "smoke");
+  demo_profile = svt_manifest_profile (manifest, "demo");
+  assert (numel (smoke_profile.cases) == 20);
+  assert (smoke_profile.expected_svd_rows == 120);
+  assert (numel (demo_profile.cases) == 23);
+  assert (demo_profile.expected_svd_rows == 184);
+  assert (numel (smoke_profile.cases(strcmp ({smoke_profile.cases.tier}, "S"))) == 7);
+  assert (numel (demo_profile.cases(strcmp ({demo_profile.cases.tier}, "S"))) == 9);
 
   output_dir = tempname ();
-  created = mp_svd_tiers ("smoke", struct ("output_dir", output_dir));
-  assert (exist (output_dir, "dir") == 7);
-  assert (created.output_dir == output_dir);
+  mkdir (output_dir);
   svt_expect_error (@() mp_svd_tiers ("smoke", ...
                                       struct ("output_dir", output_dir)), ...
                     "mplapack:svt:OutputDirectoryExists");

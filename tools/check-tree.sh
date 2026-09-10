@@ -234,6 +234,11 @@ src/mp_general_eig.cc
 src/mp_generalized_eig.h
 src/mp_generalized_eig.cc
 test/run_tests.m
+test/test_svd_tiers.m
+test/test_svd_verification.m
+examples/14_svd_tier_s.m
+examples/15_svd_tier_a.m
+examples/16_svd_verified.m
 test/script-compat/s00.tst
 test/script-compat/s01.tst
 test/script-compat/s02.tst
@@ -313,6 +318,8 @@ tools/build-package.sh
 tools/verify-release-candidate.sh
 tools/dev-octave.sh
 docs/architecture.md
+docs/svd-tiers.md
+docs/svd-verification.md
 docs/native-value-design.md
 docs/public-mp-design.md
 docs/conversion-display.md
