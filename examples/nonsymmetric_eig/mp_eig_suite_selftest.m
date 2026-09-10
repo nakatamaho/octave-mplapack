@@ -38,6 +38,10 @@ function mp_eig_suite_selftest ()
     assert (! strcmp (char (widened), "0"));
     endfor
 
+    small_reference = nes_reference ("hadamard", struct ("n", 2, "s", 1), 512);
+    assert (double (small_reference.condition_numbers(1)) == sqrt (2));
+    assert (double (small_reference.condition_numbers(2)) == sqrt (2));
+
     one = mp ("1");
     match = nes_match (mp ([3; 1; 2]), mp ([1; 2; 3]), "absolute");
     assert (double (match.threshold) == 0);
