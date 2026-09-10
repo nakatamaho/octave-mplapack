@@ -2,27 +2,29 @@
 
 ## Result
 
-SVT10: PASS. The graded bidiagonal raw/mixed pair is implemented with exact
-dyadic entries and the prescribed Hadamard two-sided mixing. The raw/mixed
-singular-spectrum cross-check and all A3 smoke/demo rows passed.
+SVT10: PASS. The A4 Lauchli controls and A5 Hadamard known-spectrum,
+close/repeated-group, and exact-rank fixtures are implemented. All A4/A5
+smoke/demo measured rows passed.
 
 ## Implemented paths
 
 ```text
-examples/svd_tiers/private/svt_make_bidiagonal.m
-examples/svd_tiers/svt_bidiagonal_selftest.m
+examples/svd_tiers/private/svt_make_lauchli.m
+examples/svd_tiers/svt_lauchli_selftest.m
+examples/svd_tiers/private/svt_make_hadamard_spectrum.m
+examples/svd_tiers/svt_hadamard_spectrum_selftest.m
 ```
 
-The raw matrix uses the one-bit entries
-`B(i,i)=2^(-a*(i-1))` and
-`B(i,i+1)=2^(-a*(i-1)-1)`. The mixed representation reuses the exact dense
-`H*B*G'/n` helper, records the common-denominator guard
-`a*(n-1)+4`, and retains the raw representation for independent comparison.
-No HRA/LASQ1 binding or unconditional dense-driver guarantee is claimed.
+Lauchli covers tall/wide `T=[ones;mu*I]`, the known repeated-small-group
+projectors, and the quarter-turn complex tall control. Its normal-equations
+identity is explicitly a negative control and is not the SVD oracle.
 
-At 512 bits the raw and mixed singular values agree within the focused
-cross-check tolerance after exact widening; this is a numerical consequence
-check, not a Tier V certificate.
+A5 uses `mix(diag(d))` with exact dyadic `d`. The constructor records geometric,
+close, repeated, rank-four, and rank-five model ranks and known projectors.
+Close/rank perturbations are built as MP dyadics; native input rounding does
+not alter the ideal model metadata. The raw/mixed and analytic checks remain
+provisional until Tier V. The implementation does not infer generic null-space
+multiplicity from tiny approximate singular values.
 
 ## Gate and command
 
@@ -31,23 +33,25 @@ export PKG_CONFIG_PATH=/home/docker/opt/octave-mplapack-stack/lib/pkgconfig:$PKG
 export LD_LIBRARY_PATH=/home/docker/opt/octave-mplapack-stack/lib:$LD_LIBRARY_PATH
 export CPATH=/home/docker/opt/octave-mplapack-stack/include:$CPATH
 octave --no-gui --quiet --no-init-file --path inst --path src --eval \
-  "addpath('examples/svd_tiers'); report=svt_bidiagonal_selftest(); assert(report.ok); fprintf('SVT10 bidiagonal selftest PASS rows=%d\\n', report.measured_rows);"
+  "addpath('examples/svd_tiers'); report=svt_hadamard_spectrum_selftest(); assert(report.ok); fprintf('SVT10 A4/A5 selftest PASS rows=%d\\n', report.measured_rows);"
 ```
 
-Observed result: `SVT10 bidiagonal selftest PASS rows=40` under GNU Octave
-11.1.0 with the recorded MPLAPACK 3.0.1 environment. The wall covers raw
-and mixed A3 cases at smoke 128/256 bits and demo 128/256/512 bits, both
-`values` and `econ` modes, and one explicit native row per mode.
+Observed result: `SVT10 A4/A5 selftest PASS rows=152` under GNU Octave
+11.1.0 with the recorded MPLAPACK 3.0.1 environment. A5 contributes 100
+rows (five cases in smoke and five in demo); A4 contributes 52 rows (two
+smoke and three demo cases), for 152 total. Each profile uses every listed
+MP work precision, both `values` and `econ`, and one explicit native
+comparison row per mode.
 
 Branch: `topic/svd-tier-sav-examples`
 
-Starting commit: `f99c92421946530eb519555e6a279dd2f9b5302a`
+Starting commit: `8e791b6962292bef163bfa6caba7076e977b4342`
 
 Final commit: recorded after this report is committed
 
-Tests: exact raw/mixed construction, high-precision spectrum cross-check, and 40 A3 measured rows PASS
+Tests: A4/A5 constructor/projector/negative-control gate and 152 measured rows PASS
 
 Gate: PASS
 
-Known limitations: the raw/mixed agreement is provisional until independent
-outward verification; no structured bidiagonal solver is implemented.
+Known limitations: analytic spectra/projector bounds are not yet outward
+certificates; A6 and Tier V remain pending.

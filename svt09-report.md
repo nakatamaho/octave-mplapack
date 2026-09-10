@@ -2,49 +2,67 @@
 
 ## Result
 
-SVT09: PASS. The dyadic Vandermonde constructor uses exact MP node and
-successive-power construction, with distinct-node and positive-determinant
-metadata. All A2 smoke/demo precision, mode, and explicit native comparison
-rows passed.
+SVT09: PASS. The A2 dyadic Vandermonde and A3 graded bidiagonal raw/mixed
+families are implemented and their exactness/model checks pass. The A2/A3
+smoke/demo measurement wall passed before the next milestone.
 
 ## Implemented paths
 
 ```text
 examples/svd_tiers/private/svt_make_vandermonde.m
 examples/svd_tiers/svt_vandermonde_selftest.m
+examples/svd_tiers/private/svt_make_bidiagonal.m
+examples/svd_tiers/svt_bidiagonal_selftest.m
 ```
 
-For `x_i=i/2^d`, the denominator is constructed by the exact power-of-two
-helper and each row is filled by multiplying the preceding power by the same
-MP node. The constructor enforces `n < 2^d`, records the specified
-`2+(n-1)ceil_log2(n)` guard, checks strict node ordering, and records the
-algebraic determinant-sign/full-rank proof. No determinant-based numerical
-accuracy gate is substituted for the SVD measurement.
+The Vandermonde constructor uses exact MP nodes `i/2^d` and successive MP
+powers, records the `n < 2^d` and
+`2+(n-1)ceil_log2(n)` guards, and proves distinct positive nodes. The
+bidiagonal constructor uses one-bit dyadic diagonal/superdiagonal entries,
+the existing exact Hadamard equivalence for the mixed representation, and the
+`a*(n-1)+4` guard. No generic dense HRA guarantee or new driver is claimed.
 
-## Gate and command
+The A3 raw/mixed singular-value comparison was made at 512 bits after exact
+widening. It is a provisional numerical consequence check; it is not a Tier V
+certificate.
+
+## Gate and commands
+
+Vandermonde:
 
 ```sh
 export PKG_CONFIG_PATH=/home/docker/opt/octave-mplapack-stack/lib/pkgconfig:$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=/home/docker/opt/octave-mplapack-stack/lib:$LD_LIBRARY_PATH
 export CPATH=/home/docker/opt/octave-mplapack-stack/include:$CPATH
 octave --no-gui --quiet --no-init-file --path inst --path src --eval \
-  "addpath('examples/svd_tiers'); report=svt_vandermonde_selftest(); assert(report.ok); fprintf('SVT09 Vandermonde selftest PASS rows=%d\\n', report.measured_rows);"
+  "addpath('examples/svd_tiers'); report=svt_vandermonde_selftest(); assert(report.ok);"
 ```
 
-Observed result: `SVT09 Vandermonde selftest PASS rows=20` under GNU Octave
-11.1.0 with the recorded MPLAPACK 3.0.1 environment. The wall covers A2
-`n=8,d=4` at 128/256 bits and `n=16,d=5` at 128/256/512 bits, both modes,
-and one explicit native comparison row per mode.
+Bidiagonal:
+
+```sh
+octave --no-gui --quiet --no-init-file --path inst --path src --eval \
+  "addpath('examples/svd_tiers'); report=svt_bidiagonal_selftest(); assert(report.ok);"
+```
+
+Observed results: `SVT09 Vandermonde selftest PASS rows=20` and
+`SVT10 bidiagonal selftest PASS rows=40` under GNU Octave 11.1.0 with the
+recorded MPLAPACK 3.0.1 environment. Combined A2/A3 coverage is 60 measured
+rows: each family has smoke 128/256-bit and demo 128/256/512-bit MP rows,
+both `values` and `econ` modes, plus one explicit native comparison row per
+mode.
+
+The source history contains two implementation commits because the A2 and A3
+families were developed consecutively: A2 ended at
+`f99c92421946530eb519555e6a279dd2f9b5302a`, and A3 ended at
+`0de2e170ac1b11c72d4f88c5ae2747b7214cded4`. This correction records the
+authoritative SVT09 scope from `MILESTONES.md`; no numerical code was removed.
 
 Branch: `topic/svd-tier-sav-examples`
 
-Starting commit: `12322f51321f48cd6fc5044bb1e5e4611691d0e5`
-
-Final commit: recorded after this report is committed
-
-Tests: dyadic-node/power and determinant-sign gate and 20 A2 measured rows PASS
+Tests: A2/A3 constructor gates and 60 measured rows PASS
 
 Gate: PASS
 
-Known limitations: singular values are provisional until V1 certification;
-native rounding is recorded rather than treated as exact model data.
+Known limitations: all references remain provisional until the Tier V
+outward-certification milestones.
