@@ -42,6 +42,41 @@ function mp_eig_suite_selftest ()
     assert (double (small_reference.condition_numbers(1)) == sqrt (2));
     assert (double (small_reference.condition_numbers(2)) == sqrt (2));
 
+    frank5 = nes_build ("frank", struct ("n", 5), 512);
+    expected_frank5 = mp ([5, 4, 3, 2, 1; 4, 4, 3, 2, 1; ...
+                           0, 3, 3, 2, 1; 0, 0, 2, 2, 1; ...
+                           0, 0, 0, 1, 1]);
+    assert (double (norm (frank5.A - expected_frank5, "fro")) == 0);
+    expected_coefficients = {[1, -3, 1], [1, -6, 6, -1], ...
+                             [1, -10, 21, -10, 1], ...
+                             [1, -15, 55, -55, 15, -1]};
+    for degree = 2:5
+      coefficients = nes_frank_characteristic_coefficients (degree, 512);
+      assert (double (norm (coefficients - mp (expected_coefficients{degree - 1}))) == 0);
+      for x = -1:6
+        polynomial_value = mp ("0");
+        for coefficient = 1:(degree + 1)
+          polynomial_value = polynomial_value * mp (x) + coefficients(coefficient);
+        endfor
+        matrix = nes_build ("frank", struct ("n", degree), 512).A;
+        determinant = nes_exact_small_determinant (mp (x) * mp (eye (degree)) - matrix);
+        if (! (polynomial_value == determinant))
+          error ("NEIG:FrankTest", "Frank polynomial mismatch degree=%d x=%d poly=%s det=%s", ...
+                 degree, x, char (polynomial_value), char (determinant));
+        endif
+      endfor
+    endfor
+    frank_reference = nes_reference ("frank", struct ("n", 8), 640, 512);
+    assert (strcmp (frank_reference.reference_status, "evaluated_consistent"));
+    assert (isreal (frank_reference.eigenvalues));
+    assert (all (isfinite (frank_reference.eigenvalues)));
+    for j = 1:4
+      assert (abs (frank_reference.eigenvalues(j) ...
+                   * frank_reference.eigenvalues(9 - j) - mp ("1")) < mp ("1e-150"));
+    endfor
+    odd_reference = nes_reference ("frank", struct ("n", 7), 640, 512);
+    assert (abs (odd_reference.eigenvalues(4) - mp ("1")) < mp ("1e-150"));
+
     one = mp ("1");
     match = nes_match (mp ([3; 1; 2]), mp ([1; 2; 3]), "absolute");
     assert (double (match.threshold) == 0);

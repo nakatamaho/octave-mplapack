@@ -6,9 +6,19 @@ function cases = nes_cases (profile, family)
   if (! any (strcmp (profile, {"smoke", "demo", "stress"})))
     error ("NEIG:Profile", "profile must be smoke, demo, or stress");
   endif
-  if (! strcmp (family, "hadamard"))
+  if (! any (strcmp (family, {"hadamard", "frank"})))
     error ("NEIG:CaseFamily", ...
-           "NEIG01 implements only family=hadamard; other families are deferred");
+           "current milestones implement only family=hadamard or family=frank");
+  endif
+  if (strcmp (family, "frank"))
+    if (strcmp (profile, "smoke"))
+      cases = struct ("family", "frank", "representation", "frank", "n", 8);
+    elseif (strcmp (profile, "demo"))
+      cases = struct ("family", "frank", "representation", "frank", "n", 24);
+    else
+      cases = struct ("family", "frank", "representation", "frank", "n", 16);
+    endif
+    return;
   endif
   switch (profile)
     case "smoke"
