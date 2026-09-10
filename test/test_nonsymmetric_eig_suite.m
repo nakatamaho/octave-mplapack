@@ -10,4 +10,11 @@ frank_smoke = mp_eig_suite ("smoke", struct ("family", "frank"));
 assert (frank_smoke.ok && numel (frank_smoke.rows) == 6);
 frank_demo = mp_eig_suite ("demo", struct ("family", "frank"));
 assert (frank_demo.ok && numel (frank_demo.rows) == 8);
+companion_smoke = mp_eig_suite ("smoke", struct ("family", "companion"));
+assert (companion_smoke.ok && numel (companion_smoke.rows) == 6);
+companion_demo = mp_eig_suite ("demo", struct ("family", "companion"));
+assert (companion_demo.ok && numel (companion_demo.rows) == 8);
+native_companion = companion_demo.rows(1);
+assert (strcmp (native_companion.backend, "native")
+        && native_companion.input_error > mp ("0"));
 fprintf ("PASS: test_nonsymmetric_eig_suite (NEIG01)\n");

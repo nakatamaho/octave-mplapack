@@ -31,6 +31,19 @@ function result = nes_build (family, parameters, work_bits)
            && n == fix (n) && n >= 2))
       error ("NEIG:BuildParameters", "Frank n must be an integer at least two");
     endif
+  elseif (strcmp (family, "companion"))
+    if (! isfield (parameters, "n"))
+      error ("NEIG:BuildParameters", "companion construction requires n");
+    endif
+    n = parameters.n;
+    if (! (isnumeric (n) && isscalar (n) && isreal (n) && isfinite (n)
+           && n == fix (n) && n >= 1))
+      error ("NEIG:BuildParameters", "companion n must be a positive integer");
+    endif
+    if (work_bits < nes_companion_min_bits (n))
+      error ("NEIG:BuildPrecision", ...
+             "companion work precision is below its exact-coefficient guard");
+    endif
   else
     error ("NEIG:BuildFamily", "family is not implemented by the current milestone");
   endif
@@ -55,7 +68,7 @@ function result = nes_build (family, parameters, work_bits)
                        nes_hadamard_native_matrix (n, s), ...
                        "native_exact_bound", n * (n + s), ...
                        "native_exact_safe", n * (n + s) < 2^53);
-    else
+    elseif (strcmp (family, "frank"))
       A = mp (zeros (n, n));
       for i = 1:n
         for j = 1:n
@@ -67,6 +80,19 @@ function result = nes_build (family, parameters, work_bits)
       result = struct ("family", family, "representation", "frank", ...
                        "n", n, "A", A, "work_bits", work_bits, ...
                        "native_A", nes_frank_native_matrix (n));
+    else
+      coefficients = nes_companion_coefficients (n, work_bits);
+      A = mp (zeros (n, n));
+      for j = 1:n
+        A(1, j) = -coefficients(j + 1);
+      endfor
+      for i = 2:n
+        A(i, i - 1) = mp ("1");
+      endfor
+      result = struct ("family", family, "representation", "companion", ...
+                       "n", n, "A", A, "coefficients", coefficients, ...
+                       "work_bits", work_bits, "native_A", ...
+                       nes_companion_native_matrix (n, work_bits));
     endif
   unwind_protect_cleanup
     mpbits (saved_bits);
@@ -94,6 +120,15 @@ function answer = nes_frank_native_matrix (n)
         answer(i, j) = n + 1 - max (i, j);
       endif
     endfor
+  endfor
+endfunction
+
+function answer = nes_companion_native_matrix (n, bits)
+  coefficients = double (nes_companion_coefficients (n, bits));
+  answer = zeros (n, n);
+  answer(1, :) = -coefficients(2:end);
+  for i = 2:n
+    answer(i, i - 1) = 1;
   endfor
 endfunction
 

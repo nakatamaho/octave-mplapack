@@ -4,7 +4,7 @@ function result = nes_reference (family, parameters, reference_bits, reference_l
     error ("NEIG:ReferenceArguments", ...
            "nes_reference expects a family, parameter struct, and precision");
   endif
-  if (! any (strcmp (family, {"hadamard", "frank"})))
+  if (! any (strcmp (family, {"hadamard", "frank", "companion"})))
     error ("NEIG:ReferenceFamily", "family reference is not implemented yet");
   endif
   n = parameters.n;
@@ -38,7 +38,7 @@ function result = nes_reference (family, parameters, reference_bits, reference_l
       result = struct ("family", family, "reference_status", "analytic_exact", ...
                        "reference_bits", reference_bits, "eigenvalues", values, ...
                        "condition_numbers", condition_numbers);
-    else
+    elseif (strcmp (family, "frank"))
       if (nargin == 4)
         low_bits = reference_low_bits;
       else
@@ -65,6 +65,11 @@ function result = nes_reference (family, parameters, reference_bits, reference_l
                        low_bits, "eigenvalues", values, "condition_numbers", ...
                        mp ("NaN"), "reference_agreement", agreement.threshold, ...
                        "reference_agreement_limit", agreement_limit);
+    else
+      values = mp (transpose (1:n));
+      result = struct ("family", family, "reference_status", "analytic_exact", ...
+                       "reference_bits", reference_bits, "eigenvalues", values, ...
+                       "condition_numbers", mp ("NaN"));
     endif
   unwind_protect_cleanup
     mpbits (saved_bits);

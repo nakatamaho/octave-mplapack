@@ -60,10 +60,7 @@ function mp_eig_suite_selftest ()
         endfor
         matrix = nes_build ("frank", struct ("n", degree), 512).A;
         determinant = nes_exact_small_determinant (mp (x) * mp (eye (degree)) - matrix);
-        if (! (polynomial_value == determinant))
-          error ("NEIG:FrankTest", "Frank polynomial mismatch degree=%d x=%d poly=%s det=%s", ...
-                 degree, x, char (polynomial_value), char (determinant));
-        endif
+        assert (polynomial_value == determinant);
       endfor
     endfor
     frank_reference = nes_reference ("frank", struct ("n", 8), 640, 512);
@@ -76,6 +73,40 @@ function mp_eig_suite_selftest ()
     endfor
     odd_reference = nes_reference ("frank", struct ("n", 7), 640, 512);
     assert (abs (odd_reference.eigenvalues(4) - mp ("1")) < mp ("1e-150"));
+
+    companion4 = nes_companion_coefficients (4, 512);
+    assert (double (norm (companion4 - mp ([1, -10, 35, -50, 24]))) == 0);
+    for degree = [10, 20]
+      low_coefficients = nes_companion_coefficients (degree, 128);
+      high_coefficients = nes_companion_coefficients (degree, 512);
+      widened_coefficients = nes_promote (low_coefficients, 512, 128);
+      assert (double (norm (widened_coefficients - high_coefficients)) == 0);
+      q_check = 2 * degree * nes_ceil_log2_integer (degree + 1) + 32;
+      check_coefficients = nes_companion_coefficients (degree, q_check);
+      for root = 1:degree
+        polynomial_value = mp ("0");
+        for coefficient = 1:(degree + 1)
+          polynomial_value = polynomial_value * mp (root) ...
+                             + check_coefficients(coefficient);
+        endfor
+        assert (polynomial_value == mp ("0"));
+      endfor
+    endfor
+    exact20 = nes_companion_coefficients (20, 512);
+    native20 = mp (poly (1:20));
+    assert (double (norm (native20 - exact20)) > 0);
+    saved_for_guard = mpbits ();
+    caught = false;
+    try
+      nes_companion_coefficients (20, nes_companion_min_bits (20) - 1);
+    catch
+      caught = true;
+    end_try_catch
+    assert (caught && mpbits () == saved_for_guard);
+    companion_fixture = nes_build ("companion", struct ("n", 20), 512);
+    native_fixture_q = nes_promote (companion_fixture.native_A, 768, 53);
+    exact_fixture_q = nes_promote (companion_fixture.A, 768, 512);
+    assert (norm (native_fixture_q - exact_fixture_q, "fro") > mp ("0"));
 
     one = mp ("1");
     match = nes_match (mp ([3; 1; 2]), mp ([1; 2; 3]), "absolute");

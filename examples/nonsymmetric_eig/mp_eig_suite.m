@@ -41,7 +41,7 @@ function results = mp_eig_suite (profile, options)
                                      "companion", "forsythe"})))
     error ("NEIG:Options", "unknown family: %s", options.family);
   endif
-  if (! any (strcmp (options.family, {"hadamard", "frank"})))
+  if (! any (strcmp (options.family, {"hadamard", "frank", "companion"})))
     error ("NEIG:DeferredFamily", ...
            "this family is not implemented yet; no family was silently skipped");
   endif
@@ -65,16 +65,20 @@ function results = mp_eig_suite (profile, options)
     mode = {"balance", "nobalance"}{mode_index};
     if (strcmp (options.family, "hadamard"))
       native_row = nes_hadamard_run (selected, 53, mode, model, reference, true);
-    else
+    elseif (strcmp (options.family, "frank"))
       native_row = nes_frank_run (selected, 53, mode, model, reference, true);
+    else
+      native_row = nes_companion_run (selected, 53, mode, model, reference, true);
     endif
     rows_out(end + 1) = native_row;
     for precision_index = 1:numel (work_precisions)
       work_bits = work_precisions(precision_index);
       if (strcmp (options.family, "hadamard"))
         row = nes_hadamard_run (selected, work_bits, mode, model, reference, false);
-      else
+      elseif (strcmp (options.family, "frank"))
         row = nes_frank_run (selected, work_bits, mode, model, reference, false);
+      else
+        row = nes_companion_run (selected, work_bits, mode, model, reference, false);
       endif
       rows_out(end + 1) = row;
       if (strcmp (row.solver_status, "error") ...
@@ -110,6 +114,17 @@ function results = mp_eig_suite (profile, options)
         rows_out(end) = row;
       elseif (strcmp (options.family, "frank") && strcmp (profile, "demo")
               && work_bits == 512 && row.relative_error > negative_power_of_two (200, q))
+        ok = false;
+        row.accuracy_status = "failed";
+        rows_out(end) = row;
+      endif
+      if (strcmp (options.family, "companion") && strcmp (profile, "smoke")
+          && work_bits == 256 && row.absolute_error > negative_power_of_two (120, q))
+        ok = false;
+        row.accuracy_status = "failed";
+        rows_out(end) = row;
+      elseif (strcmp (options.family, "companion") && strcmp (profile, "demo")
+              && work_bits == 512 && row.absolute_error > negative_power_of_two (200, q))
         ok = false;
         row.accuracy_status = "failed";
         rows_out(end) = row;
