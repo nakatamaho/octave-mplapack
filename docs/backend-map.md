@@ -54,3 +54,12 @@ sequence, and graphics-adaptation helpers are package-owned code. They must
 use MPFR/MPC values directly. The graphics helper is explicitly different:
 it converts only final display data to builtin `double`, after numerical
 calculation has completed.
+
+## Difficult nonsymmetric eigensystem example boundary
+
+`examples/nonsymmetric_eig/` is a repository-local QA/example harness, not a
+new public package entry. It calls the existing general `eig` path in MPFR/MPC
+mode, compares both `balance` and `nobalance`, and reevaluates the actual
+returned eigentriples at a high MP precision. Its references and deterministic
+matching are described in `docs/nonsymmetric-eig-suite.md`; the optional plot
+is the only display-only `double` boundary.

@@ -6,4 +6,8 @@
  * classes and functions.  This page records invariants that span several
  * files: explicit precision, RAII lifetime, operation-owned destructive-call
  * buffers, MPLAPACK scope restoration, and the real/complex boundary.
+ * The nonsymmetric eigensystem example also documents the left-vector
+ * convention W'*A = D*W', actual-output high-precision reevaluation, and
+ * deterministic one-to-one eigenvalue matching without assuming LAPACK
+ * ordering or vector normalization.
  */

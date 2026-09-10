@@ -156,6 +156,14 @@ The required MPLAPACK MPFR dependency is discovered through `pkg-config` and
 must provide the uniform-precision scope interface. The package never vendors
 or searches a developer-specific MPLAPACK path.
 
+### Difficult nonsymmetric eigensystem examples
+
+The repository also includes a high-precision QA/example suite for nonnormal
+eigenproblems. It covers Hadamard-similar, Frank, companion, and two Forsythe
+representations with both `balance` and `nobalance`; see
+[`docs/nonsymmetric-eig-suite.md`](docs/nonsymmetric-eig-suite.md) and run
+`tools/run-nonsymmetric-eig-suite.sh smoke` from a configured checkout.
+
 ## Initial backend
 
 The backend is MPLAPACK's MPFR/MPC implementation for real and complex values.

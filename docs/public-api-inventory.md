@@ -11,6 +11,12 @@ supported call; `INTERNAL` is an Octave dispatch hook rather than a user
 entry point. A supported entry has a help block, a manual/MP note, a
 pasteable example or grouped example, and a backend/algorithm reference.
 
+The difficult nonsymmetric eigensystem harness under
+`examples/nonsymmetric_eig/` is a repository-local example/QA surface built
+from existing public APIs. It intentionally has no additional package-level
+API row; its runnable entry point and coverage are recorded in
+`docs/nonsymmetric-eig-suite.md` and the compatibility matrix.
+
 | API | Kind | Status | Manual/MP notes | Help | Example | Backend/Doxygen |
 |---|---|---|---|---|---|---|
 | `mp` | @mp method/constructor | SUPPORTED | User manual § API quick reference; precision/compatibility notes | yes | `examples/01_scalar_precision.m` | `docs/backend-map.md`; Doxygen |

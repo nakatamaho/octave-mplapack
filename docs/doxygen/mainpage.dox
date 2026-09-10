@@ -50,4 +50,15 @@
  * test/t00_schur_qz.tst contains the Grcar and QZ reconstruction contract.
  * See docs/backend-map.md and docs/public-api-inventory.md for the public
  * entry-to-backend map.
+ *
+ * \section neig Difficult nonsymmetric eigensystem example
+ *
+ * examples/13_nonsymmetric_eig_suite.m and the helpers under
+ * examples/nonsymmetric_eig/ form a repository-local QA harness on top of
+ * the existing public mp/eig API. It constructs exact or independently
+ * referenced nonnormal matrices, runs balance and nobalance, and measures
+ * the returned right and left relations at high MP precision. The harness
+ * preserves stored precision and ambient-default restoration; its native
+ * double rows are explicit rounded-input controls. Result serialization
+ * retains MP text, while the optional PNG is a display-only boundary.
  */

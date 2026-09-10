@@ -24,6 +24,15 @@ interp1 pchip spline ppval mkpp unmkpp ppder ppint interp2
 fzero fsolve integral quadgk fminbnd fminsearch
 ```
 
+The repository-local difficult nonsymmetric eigensystem harness is documented
+in `docs/nonsymmetric-eig-suite.md` and exercised by
+`examples/13_nonsymmetric_eig_suite.m`. It is built only from the existing
+public `mp`/`eig` API and does not add a new package-level call. The harness
+covers Hadamard-similar, Frank, companion, and two Forsythe representations,
+both balance modes, actual-output residuals, left/right conditioning, and
+deterministic eigenvalue matching. Native rows are explicit rounded-input
+controls; MP rows retain the one-operation/one-precision contract.
+
 The T-series preserves the one-operation/one-precision MPFR/MPC contract,
 uses operation-owned copies for destructive backend calls, and never silently
 routes numerical work through builtin binary64 or routes a real-only call

@@ -22,6 +22,7 @@ precision/value test have passed.
 | descriptive statistics | SUPPORTED | S06 native MPFR/MPC mean, median, variance, standard deviation, range, and bounds |
 | graphics boundary wrappers | SUPPORTED | S07 private final-boundary conversion for common line graphics |
 | ordinary script corpus closure | SUPPORTED | S08 six-script corpus, structural audit, and intentional-stop firewall |
+| difficult nonsymmetric eigensystem example | SUPPORTED | `examples/13_nonsymmetric_eig_suite.m`; 30-row smoke and 40-row demo walls |
 | T00–T14 advanced dense numerics | SUPPORTED | T00–T14 focused walls and final controller wall; see `docs/advanced-numerics-compatibility.md` |
 | `fminbnd`, `fminsearch` | SUPPORTED | T14 MPFR bounded/simplex optimization tests |
 | `fminunc` | INTENTIONALLY-DEFERRED | `docs/todo/T14-fminunc.md` |

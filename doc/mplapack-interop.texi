@@ -251,6 +251,7 @@ comparing vectors element by element.
 
 @menu
 * Standard eigenproblems::
+* Difficult nonsymmetric eigensystem suite::
 * Generalized eigenproblems::
 * Singular value decomposition::
 * Schur Hessenberg and QZ decompositions::
@@ -314,6 +315,44 @@ For a three-output call also check the left relation. Near repeated
 eigenvalues can have very sensitive eigenvectors even when the residual is
 small, so report the residual and inspect the eigenvalue separation before
 interpreting the vectors.
+
+@section Difficult nonsymmetric eigensystem suite
+
+The repository includes a runnable difficult-eigensystem experiment based on
+the existing public @code{mp}, @code{mpbits}, @code{eig}, @code{norm}, and
+MP inspection functions. It is a QA/example harness, not an additional
+package-level API. Run it from a checkout with:
+
+@verbatim
+tools/run-nonsymmetric-eig-suite.sh smoke
+tools/run-nonsymmetric-eig-suite.sh demo
+@end verbatim
+
+The smoke profile has 30 rows and the demo profile has 40 rows. Each row is
+one of five representations (Hadamard-similar, Frank, companion, Forsythe
+original, or explicitly scaled Forsythe), one of @code{balance} and
+@code{nobalance}, and one explicit native-binary64 or MP work precision.
+Native rows are rounded-input controls; they are never substituted for MP
+rows.
+
+The harness constructs MP input matrices at the requested work precision,
+restores the ambient @code{mpbits ()} default, and evaluates the actual
+solver outputs at a separate high precision. It checks @code{A*V = V*D},
+@code{W'*A = D*W'}, column residuals, one-to-one eigenvalue matches, and
+left/right eigenvector condition estimates. It does not assume solver output
+ordering or vector normalization. For a high-quality example, the
+Hadamard-similar model has exact integer eigenvalues but can be highly
+nonnormal, while the Forsythe pair separates a small coupling from a native
+underflow control.
+
+The result writer accepts an @code{output_dir} option and creates
+@file{summary.tsv}, @file{eigenvalues.tsv}, @file{environment.txt}, and
+@file{report.md}. Existing result files are rejected rather than overwritten.
+MP numerical fields are serialized with @code{char(mp)}. An optional
+@code{plot = true} output is a display-only conversion to a PNG and is not
+numerical evidence. Full construction details and limitations are in
+@file{docs/nonsymmetric-eig-suite.md}; the runnable package example is
+@file{examples/13_nonsymmetric_eig_suite.m}.
 
 @section Generalized eigenproblems
 
