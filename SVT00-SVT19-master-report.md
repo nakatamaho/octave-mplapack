@@ -31,8 +31,8 @@ Branch:
 SVT19 report commit:
     1ed8b044f4dae898ad9290fd9ddd1312164d839d
 
-Master-report commit:
-    recorded after this report is committed
+Master-report content commit:
+    b9a044c44cdd9318f9d65ff08aa0e463e6675416
 
 Historical SVT starting commit:
     760ec415a6f2b634f5cb80ee53758925cd32b83d
