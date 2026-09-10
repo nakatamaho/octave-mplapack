@@ -100,12 +100,14 @@ function result = iv_primitive (value, exact_zero, q)
 endfunction
 
 function result = iv_add(a, b)
-  require_same_kind(a, b);
-  if (isfield (a, "kind") && strcmp (a.kind, "complex"))
+  if (strcmp (a.kind, "complex") || strcmp (b.kind, "complex"))
+    a = complexify (a);
+    b = complexify (b);
     result = complex_interval (svt_iv ("add", a.real, b.real), ...
                                svt_iv ("add", a.imag, b.imag));
     return;
   endif
+  require_same_kind(a, b);
   q = a.q;
   lower = a.lo + b.lo;
   upper = a.hi + b.hi;
@@ -116,12 +118,14 @@ function result = iv_add(a, b)
 endfunction
 
 function result = iv_sub(a, b)
-  require_same_kind(a, b);
-  if (strcmp (a.kind, "complex"))
+  if (strcmp (a.kind, "complex") || strcmp (b.kind, "complex"))
+    a = complexify (a);
+    b = complexify (b);
     result = complex_interval (svt_iv ("sub", a.real, b.real), ...
                                svt_iv ("sub", a.imag, b.imag));
     return;
   endif
+  require_same_kind(a, b);
   q = a.q;
   lower = a.lo - b.hi;
   upper = a.hi - b.lo;
