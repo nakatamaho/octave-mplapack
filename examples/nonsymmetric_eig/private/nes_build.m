@@ -44,6 +44,26 @@ function result = nes_build (family, parameters, work_bits)
       error ("NEIG:BuildPrecision", ...
              "companion work precision is below its exact-coefficient guard");
     endif
+  elseif (strcmp (family, "forsythe"))
+    if (! isfield (parameters, "n") || ! isfield (parameters, "a")
+        || ! isfield (parameters, "representation"))
+      error ("NEIG:BuildParameters", ...
+             "Forsythe construction requires n, a, and representation");
+    endif
+    n = parameters.n;
+    a = parameters.a;
+    representation = parameters.representation;
+    if (! (isnumeric (n) && isscalar (n) && isreal (n) && isfinite (n)
+           && n == fix (n) && n >= 3))
+      error ("NEIG:BuildParameters", "Forsythe n must be an integer at least three");
+    endif
+    if (! (isnumeric (a) && isscalar (a) && isreal (a) && isfinite (a)
+           && a == fix (a) && a >= 1))
+      error ("NEIG:BuildParameters", "Forsythe a must be a positive integer");
+    endif
+    if (! any (strcmp (representation, {"original", "explicitly_scaled"})))
+      error ("NEIG:BuildParameters", "invalid Forsythe representation");
+    endif
   else
     error ("NEIG:BuildFamily", "family is not implemented by the current milestone");
   endif
@@ -80,7 +100,7 @@ function result = nes_build (family, parameters, work_bits)
       result = struct ("family", family, "representation", "frank", ...
                        "n", n, "A", A, "work_bits", work_bits, ...
                        "native_A", nes_frank_native_matrix (n));
-    else
+    elseif (strcmp (family, "companion"))
       coefficients = nes_companion_coefficients (n, work_bits);
       A = mp (zeros (n, n));
       for j = 1:n
@@ -93,6 +113,44 @@ function result = nes_build (family, parameters, work_bits)
                        "n", n, "A", A, "coefficients", coefficients, ...
                        "work_bits", work_bits, "native_A", ...
                        nes_companion_native_matrix (n, work_bits));
+    else
+      radius = mp ("1");
+      for k = 1:a
+        radius = radius * mp ("0.5");
+      endfor
+      epsilon = mp ("1");
+      for k = 1:(a * n)
+        epsilon = epsilon * mp ("0.5");
+      endfor
+      original = mp (eye (n));
+      for k = 1:(n - 1)
+        original(k, k + 1) = mp ("1");
+      endfor
+      original(n, 1) = epsilon;
+      shift = mp (zeros (n, n));
+      for k = 1:(n - 1)
+        shift(k, k + 1) = mp ("1");
+      endfor
+      shift(n, 1) = mp ("1");
+      scaled = mp (eye (n)) + radius * shift;
+      scaling = mp (zeros (n, n));
+      power = mp ("1");
+      for k = 1:n
+        scaling(k, k) = power;
+        power = power * radius;
+      endfor
+      if (strcmp (representation, "original"))
+        A = original;
+      else
+        A = scaled;
+      endif
+      result = struct ("family", family, "representation", representation, ...
+                       "n", n, "a", a, "radius", radius, ...
+                       "epsilon", epsilon, "A", A, "original_A", original, ...
+                       "scaled_A", scaled, "scaling", scaling, ...
+                       "native_A", nes_forsythe_native_matrix (n, a, representation), ...
+                       "native_epsilon", 2^(-(a * n)), ...
+                       "native_underflow", 2^(-(a * n)) == 0);
     endif
   unwind_protect_cleanup
     mpbits (saved_bits);
@@ -130,6 +188,22 @@ function answer = nes_companion_native_matrix (n, bits)
   for i = 2:n
     answer(i, i - 1) = 1;
   endfor
+endfunction
+
+function answer = nes_forsythe_native_matrix (n, a, representation)
+  radius = 2^(-a);
+  epsilon = 2^(-(a * n));
+  shift = zeros (n, n);
+  for k = 1:(n - 1)
+    shift(k, k + 1) = 1;
+  endfor
+  shift(n, 1) = 1;
+  if (strcmp (representation, "original"))
+    answer = eye (n) + shift;
+    answer(n, 1) = epsilon;
+  else
+    answer = eye (n) + radius * shift;
+  endif
 endfunction
 
 function answer = is_power_of_two (n)

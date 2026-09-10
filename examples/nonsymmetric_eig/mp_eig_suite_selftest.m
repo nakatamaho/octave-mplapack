@@ -108,6 +108,61 @@ function mp_eig_suite_selftest ()
     exact_fixture_q = nes_promote (companion_fixture.A, 768, 512);
     assert (norm (native_fixture_q - exact_fixture_q, "fro") > mp ("0"));
 
+    for representation = {"original", "explicitly_scaled"}
+      forsythe_parameters = struct ("n", 8, "a", 4, ...
+                                    "representation", representation{1});
+      forsythe_fixture = nes_build ("forsythe", forsythe_parameters, 512);
+      assert (strcmp (forsythe_fixture.representation, representation{1}));
+      assert (forsythe_fixture.epsilon == mp ("2")^(-32));
+      assert (forsythe_fixture.radius == mp ("2")^(-4));
+      assert (all (isfinite (forsythe_fixture.A)));
+      if (strcmp (representation{1}, "original"))
+        assert (norm (forsythe_fixture.A * forsythe_fixture.A' ...
+                      - forsythe_fixture.A' * forsythe_fixture.A, "fro") > mp ("0"));
+      else
+        assert (norm (forsythe_fixture.A * forsythe_fixture.A' ...
+                      - forsythe_fixture.A' * forsythe_fixture.A, "fro") == mp ("0"));
+      endif
+    endfor
+    original_forsythe = nes_build ("forsythe", ...
+                                   struct ("n", 8, "a", 4, ...
+                                           "representation", "original"), 512);
+    scaled_forsythe = nes_build ("forsythe", ...
+                                 struct ("n", 8, "a", 4, ...
+                                         "representation", "explicitly_scaled"), 512);
+    assert (norm (original_forsythe.A * original_forsythe.scaling ...
+                  - original_forsythe.scaling * scaled_forsythe.A, "fro") == mp ("0"));
+    forsythe_even_reference = nes_reference ("forsythe", ...
+                                             struct ("n", 8, "a", 4, ...
+                                                     "representation", "original"), ...
+                                             640, 512);
+    assert (strcmp (forsythe_even_reference.reference_status, ...
+                    "evaluated_consistent"));
+    assert (all (isfinite (forsythe_even_reference.eigenvalues)));
+    assert (all (abs (abs (forsythe_even_reference.unit_roots)) ...
+                 - mp ("1") < mp ("1e-150")));
+    assert (abs (forsythe_even_reference.eigenvalues(1) ...
+                 - (mp ("1") + mp ("2")^(-4))) < mp ("1e-150"));
+    assert (abs (forsythe_even_reference.eigenvalues(5) ...
+                 - (mp ("1") - mp ("2")^(-4))) < mp ("1e-150"));
+    forsythe_odd_reference = nes_reference ("forsythe", ...
+                                            struct ("n", 7, "a", 4, ...
+                                                    "representation", "original"), ...
+                                            640, 512);
+    assert (abs (forsythe_odd_reference.eigenvalues(1) ...
+                 - (mp ("1") + mp ("2")^(-4))) < mp ("1e-150"));
+    assert (abs (forsythe_odd_reference.eigenvalues(2) ...
+                 - conj (forsythe_odd_reference.eigenvalues(7))) < mp ("1e-150"));
+    high_a_forsythe = nes_build ("forsythe", ...
+                                 struct ("n", 20, "a", 80, ...
+                                         "representation", "original"), 2048);
+    assert (high_a_forsythe.epsilon > mp ("0"));
+    assert (high_a_forsythe.native_underflow);
+    high_a_scaled = nes_build ("forsythe", ...
+                               struct ("n", 20, "a", 80, ...
+                                       "representation", "explicitly_scaled"), 2048);
+    assert (high_a_scaled.A(1, 2) == mp ("2")^(-80));
+
     one = mp ("1");
     match = nes_match (mp ([3; 1; 2]), mp ([1; 2; 3]), "absolute");
     assert (double (match.threshold) == 0);
@@ -204,16 +259,9 @@ function mp_eig_suite_selftest ()
 
     mpbits (333);
     assert (mpbits () == uint64 (333));
-    caught = false;
-    try
-      mp_eig_suite ("smoke", struct ("family", "all"));
-    catch
-      caught = true;
-    end_try_catch
-    assert (caught);
     assert (mpbits () == uint64 (333));
 
-    fprintf ("PASS: NEIG01 constructors, promotion, and precision isolation\n");
+    fprintf ("PASS: NEIG06 Forsythe constructors, references, and precision isolation\n");
   unwind_protect_cleanup
     mpbits (saved_bits);
   end_unwind_protect

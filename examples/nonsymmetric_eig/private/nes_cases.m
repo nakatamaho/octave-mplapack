@@ -6,9 +6,9 @@ function cases = nes_cases (profile, family)
   if (! any (strcmp (profile, {"smoke", "demo", "stress"})))
     error ("NEIG:Profile", "profile must be smoke, demo, or stress");
   endif
-  if (! any (strcmp (family, {"hadamard", "frank", "companion"})))
+  if (! any (strcmp (family, {"hadamard", "frank", "companion", "forsythe"})))
     error ("NEIG:CaseFamily", ...
-           "current milestones implement only family=hadamard, frank, or companion");
+           "current milestones implement only family=hadamard, frank, companion, or forsythe");
   endif
   if (strcmp (family, "frank"))
     if (strcmp (profile, "smoke"))
@@ -28,6 +28,20 @@ function cases = nes_cases (profile, family)
     else
       cases = struct ("family", "companion", "representation", "companion", "n", 30);
     endif
+    return;
+  endif
+  if (strcmp (family, "forsythe"))
+    if (strcmp (profile, "smoke"))
+      n = 8; a = 4;
+    elseif (strcmp (profile, "demo"))
+      n = 20; a = 20;
+    else
+      n = 20; a = 80;
+    endif
+    cases(1) = struct ("family", "forsythe", "representation", "original", ...
+                       "n", n, "a", a);
+    cases(2) = struct ("family", "forsythe", "representation", ...
+                       "explicitly_scaled", "n", n, "a", a);
     return;
   endif
   switch (profile)

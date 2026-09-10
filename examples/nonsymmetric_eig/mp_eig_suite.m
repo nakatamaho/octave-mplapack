@@ -41,11 +41,6 @@ function results = mp_eig_suite (profile, options)
                                      "companion", "forsythe"})))
     error ("NEIG:Options", "unknown family: %s", options.family);
   endif
-  if (! any (strcmp (options.family, {"hadamard", "frank", "companion"})))
-    error ("NEIG:DeferredFamily", ...
-           "this family is not implemented yet; no family was silently skipped");
-  endif
-
   selected = nes_cases (profile, options.family);
   if (strcmp (profile, "smoke"))
     work_precisions = [128, 256];
@@ -57,78 +52,26 @@ function results = mp_eig_suite (profile, options)
   pmax = max (work_precisions);
   q0 = max (512, pmax + 128);
   q = q0 + 128;
-  reference = nes_reference (options.family, selected, q, q0);
-  model = nes_build (options.family, selected, q).A;
   rows_out = struct ([]);
   ok = true;
-  for mode_index = 1:2
-    mode = {"balance", "nobalance"}{mode_index};
-    if (strcmp (options.family, "hadamard"))
-      native_row = nes_hadamard_run (selected, 53, mode, model, reference, true);
-    elseif (strcmp (options.family, "frank"))
-      native_row = nes_frank_run (selected, 53, mode, model, reference, true);
-    else
-      native_row = nes_companion_run (selected, 53, mode, model, reference, true);
-    endif
-    rows_out(end + 1) = native_row;
-    for precision_index = 1:numel (work_precisions)
-      work_bits = work_precisions(precision_index);
-      if (strcmp (options.family, "hadamard"))
-        row = nes_hadamard_run (selected, work_bits, mode, model, reference, false);
-      elseif (strcmp (options.family, "frank"))
-        row = nes_frank_run (selected, work_bits, mode, model, reference, false);
-      else
-        row = nes_companion_run (selected, work_bits, mode, model, reference, false);
-      endif
-      rows_out(end + 1) = row;
-      if (strcmp (row.solver_status, "error") ...
-          || strcmp (row.reference_status, "unresolved") ...
-          || row.right_residual > residual_tolerance (selected.n, work_bits, q) ...
-          || row.left_residual > residual_tolerance (selected.n, work_bits, q))
-        ok = false;
-      endif
-      if (strcmp (options.family, "hadamard") && strcmp (profile, "smoke")
-          && work_bits == 256 && row.absolute_error > negative_power_of_two (120, q))
-        ok = false;
-        row.accuracy_status = "failed";
+  for case_index = 1:numel (selected)
+    parameters = selected(case_index);
+    reference = nes_reference (parameters.family, parameters, q, q0);
+    model = nes_build (parameters.family, parameters, q).A;
+    for mode_index = 1:2
+      mode = {"balance", "nobalance"}{mode_index};
+      native_row = run_case (parameters, 53, mode, model, reference, true);
+      rows_out(end + 1) = native_row;
+      for precision_index = 1:numel (work_precisions)
+        work_bits = work_precisions(precision_index);
+        row = run_case (parameters, work_bits, mode, model, reference, false);
+        rows_out(end + 1) = row;
+        [row_ok, row] = check_row (row, profile, work_bits, q);
+        if (! row_ok)
+          ok = false;
+        endif
         rows_out(end) = row;
-      elseif (strcmp (options.family, "hadamard") && strcmp (profile, "demo") && work_bits == 256
-              && row.absolute_error > negative_power_of_two (100, q))
-        ok = false;
-        row.accuracy_status = "failed";
-        rows_out(end) = row;
-      elseif (strcmp (options.family, "hadamard") && strcmp (profile, "demo") && work_bits == 512
-              && row.absolute_error > negative_power_of_two (300, q))
-        ok = false;
-        row.accuracy_status = "failed";
-        rows_out(end) = row;
-      endif
-      if (strcmp (options.family, "hadamard") && strcmp (profile, "demo") && work_bits == 512
-          && row.condition_disagreement > negative_power_of_two (80, q))
-        ok = false;
-      endif
-      if (strcmp (options.family, "frank") && strcmp (profile, "smoke")
-          && work_bits == 256 && row.relative_error > negative_power_of_two (120, q))
-        ok = false;
-        row.accuracy_status = "failed";
-        rows_out(end) = row;
-      elseif (strcmp (options.family, "frank") && strcmp (profile, "demo")
-              && work_bits == 512 && row.relative_error > negative_power_of_two (200, q))
-        ok = false;
-        row.accuracy_status = "failed";
-        rows_out(end) = row;
-      endif
-      if (strcmp (options.family, "companion") && strcmp (profile, "smoke")
-          && work_bits == 256 && row.absolute_error > negative_power_of_two (120, q))
-        ok = false;
-        row.accuracy_status = "failed";
-        rows_out(end) = row;
-      elseif (strcmp (options.family, "companion") && strcmp (profile, "demo")
-              && work_bits == 512 && row.absolute_error > negative_power_of_two (200, q))
-        ok = false;
-        row.accuracy_status = "failed";
-        rows_out(end) = row;
-      endif
+      endfor
     endfor
   endfor
   results = struct ("schema", "neig-v1", "profile", profile, ...
@@ -136,6 +79,79 @@ function results = mp_eig_suite (profile, options)
                     "cases", selected, "work_precisions", work_precisions, ...
                     "q0", q0, "evaluation_bits", q, "rows", rows_out, ...
                     "ok", ok, "status", ternary (ok, "PASS", "FAIL"));
+endfunction
+
+function row = run_case (parameters, work_bits, mode, model, reference, native)
+  switch parameters.family
+    case "hadamard"
+      row = nes_hadamard_run (parameters, work_bits, mode, model, reference, native);
+    case "frank"
+      row = nes_frank_run (parameters, work_bits, mode, model, reference, native);
+    case "companion"
+      row = nes_companion_run (parameters, work_bits, mode, model, reference, native);
+    case "forsythe"
+      row = nes_forsythe_run (parameters, work_bits, mode, model, reference, native);
+    otherwise
+      error ("NEIG:Family", "unsupported family: %s", parameters.family);
+  endswitch
+endfunction
+
+function [ok, row] = check_row (row, profile, work_bits, q)
+  ok = true;
+  if (strcmp (row.solver_status, "error") ...
+      || strcmp (row.reference_status, "unresolved") ...
+      || row.right_residual > residual_tolerance (row.n, work_bits, q) ...
+      || row.left_residual > residual_tolerance (row.n, work_bits, q))
+    ok = false;
+  endif
+  target = mp ("NaN");
+  metric_name = "absolute_error";
+  family = row.family;
+  if (strcmp (family, "hadamard"))
+    if (strcmp (profile, "smoke") && work_bits == 256)
+      target = negative_power_of_two (120, q);
+    elseif (strcmp (profile, "demo") && work_bits == 256)
+      target = negative_power_of_two (100, q);
+    elseif (strcmp (profile, "demo") && work_bits == 512)
+      target = negative_power_of_two (300, q);
+    endif
+    if (strcmp (profile, "demo") && work_bits == 512
+        && row.condition_disagreement > negative_power_of_two (80, q))
+      ok = false;
+    endif
+  elseif (strcmp (family, "frank"))
+    metric_name = "relative_error";
+    if (strcmp (profile, "smoke") && work_bits == 256)
+      target = negative_power_of_two (120, q);
+    elseif (strcmp (profile, "demo") && work_bits == 512)
+      target = negative_power_of_two (200, q);
+    endif
+  elseif (strcmp (family, "companion"))
+    if (strcmp (profile, "smoke") && work_bits == 256)
+      target = negative_power_of_two (120, q);
+    elseif (strcmp (profile, "demo") && work_bits == 512)
+      target = negative_power_of_two (200, q);
+    endif
+  elseif (strcmp (family, "forsythe"))
+    if (strcmp (profile, "smoke") && work_bits == 256)
+      target = negative_power_of_two (120, q);
+    elseif (strcmp (profile, "demo") && work_bits == 512)
+      if (strcmp (row.representation, "original"))
+        target = negative_power_of_two (64, q);
+      else
+        target = negative_power_of_two (200, q);
+      endif
+    endif
+    metric_name = "circle_error";
+  endif
+  if (! isnan (target))
+    if (row.(metric_name) > target)
+      ok = false;
+      row.accuracy_status = "failed";
+    else
+      row.accuracy_status = "meets_target";
+    endif
+  endif
 endfunction
 
 function result = residual_tolerance (n, work_bits, q)

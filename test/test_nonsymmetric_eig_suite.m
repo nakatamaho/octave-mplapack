@@ -1,4 +1,4 @@
-## Focused NEIG01 test entry point.
+## Focused nonsymmetric eigensystem test entry point.
 test_root = fileparts (fileparts (mfilename ("fullpath")));
 addpath (fullfile (test_root, "examples", "nonsymmetric_eig"));
 mp_eig_suite_selftest ();
@@ -17,4 +17,18 @@ assert (companion_demo.ok && numel (companion_demo.rows) == 8);
 native_companion = companion_demo.rows(1);
 assert (strcmp (native_companion.backend, "native")
         && native_companion.input_error > mp ("0"));
-fprintf ("PASS: test_nonsymmetric_eig_suite (NEIG01)\n");
+forsythe_smoke = mp_eig_suite ("smoke", struct ("family", "forsythe"));
+assert (forsythe_smoke.ok && numel (forsythe_smoke.rows) == 12);
+forsythe_demo = mp_eig_suite ("demo", struct ("family", "forsythe"));
+assert (forsythe_demo.ok && numel (forsythe_demo.rows) == 16);
+for k = 1:numel (forsythe_demo.rows)
+  row = forsythe_demo.rows(k);
+  if (! row.native)
+    if (row.work_bits == 512 && strcmp (row.representation, "original"))
+      assert (row.circle_error < mp ("2")^(-64));
+    elseif (row.work_bits == 512)
+      assert (row.circle_error < mp ("2")^(-200));
+    endif
+  endif
+endfor
+fprintf ("PASS: test_nonsymmetric_eig_suite (NEIG06)\n");
