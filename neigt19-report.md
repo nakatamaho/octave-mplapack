@@ -112,7 +112,7 @@ binary64 numerical fallback was introduced.
 
 Branch: `topic/neigt-tier-sav-examples`
 Starting commit: `d5184c09c9ae22e8e0438e88e8db345f466856a5` (NEIGT18 report state)
-Final implementation commit: to be recorded after commit
+Final implementation commit: `2443dfc3e61c75e4ced61ccb8e0c69c7dc847240`.
 Gate: PASS
 VA1 Schur/block-Schur: PASS, 3/3
 V-A integration: partial by design, VA1 complete and VA2/VA3 pending
