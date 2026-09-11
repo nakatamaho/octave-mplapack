@@ -125,6 +125,39 @@ function result = mp_neig_verify_examples (profile, options)
         end_try_catch
         fprintf (2, "NEIGT20: finished %s status=%s milestone_pass=%d\n", ...
                  status(index).id, status(index).status, status(index).milestone_pass);
+      elseif (strncmp (jobs{index}.id, "VA3-", 4))
+        fprintf (2, "NEIGT21: starting %s (%s)\n", jobs{index}.id, opts.profile);
+        try
+          perron_job = net_v_a3_job (jobs{index}, ...
+                                    bundle.jobs.profiles.(opts.profile), ...
+                                    opts.profile);
+          status(index).status = perron_job.status;
+          status(index).claim_status = perron_job.claim_status;
+          status(index).claim_quality = perron_job.claim_quality;
+          status(index).milestone_pass = perron_job.milestone_pass;
+          status(index).details = perron_job;
+          status(index).certificate = perron_job.pair;
+          status(index).candidate_source = perron_job.candidate_source;
+          status(index).candidate_bits = perron_job.candidate_bits;
+          status(index).evaluation_bits = perron_job.evaluation_bits;
+          status(index).raw_V_hash = perron_job.raw_V_hash;
+          status(index).raw_D_hash = perron_job.raw_D_hash;
+          status(index).raw_W_hash = perron_job.raw_W_hash;
+          status(index).input_hash = perron_job.input_hash;
+          status(index).source = perron_job.source;
+          status(index).input_status = perron_job.input_status;
+          status(index).raw_V = perron_job.raw_V;
+          status(index).raw_D = perron_job.raw_D;
+          status(index).raw_W = perron_job.raw_W;
+          status(index).pass = perron_job.pass;
+        catch exception
+          status(index).status = "FAILED_VERIFIER";
+          status(index).claim_status = "ERROR";
+          status(index).error_identifier = exception.identifier;
+          status(index).error_message = exception.message;
+        end_try_catch
+        fprintf (2, "NEIGT21: finished %s status=%s milestone_pass=%d\n", ...
+                 status(index).id, status(index).status, status(index).milestone_pass);
       endif
     endfor
     vs1 = status(starts_with ({status.id}, "VS1-"));
