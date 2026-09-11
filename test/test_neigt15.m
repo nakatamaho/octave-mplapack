@@ -54,7 +54,9 @@ unwind_protect
     job = manifest.jobs.profiles.smoke.jobs{job_index};
     computed = net_v_s2_job (job, manifest.cases.profiles.smoke, "smoke");
     assert (computed.milestone_pass);
-    assert (strcmp (computed.claim_status, "CERTIFIED_INVARIANT_BASIS"));
+    assert (any (strcmp (computed.claim_status, ...
+                        {"CERTIFIED_INVARIANT_BASIS", "CERTIFIED_CLUSTER"})));
+    assert (strcmp (computed.graph.claim_status, "CERTIFIED_INVARIANT_BASIS"));
     assert (computed.graph.nontrivial);
     assert (strcmp (computed.candidate_source, ...
                     "computed_subspace_bounded_schedule"));

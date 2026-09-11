@@ -40,9 +40,8 @@ function result = mp_neig_verify_examples (profile, options)
           bundle.cases.profiles.(opts.profile), opts.profile);
         fprintf (2, "NEIGT14: finished %s status=%s pass=%d\n", ...
                  status(index).id, status(index).status, status(index).pass);
-      elseif (strncmp (jobs{index}.id, "VS2-", 4) ...
-             && any (strcmp (jobs{index}.id, {"VS2-01", "VS2-02"})))
-        fprintf (2, "NEIGT15: starting %s (%s)\n", jobs{index}.id, opts.profile);
+      elseif (strncmp (jobs{index}.id, "VS2-", 4))
+        fprintf (2, "NEIGT16: starting %s (%s)\n", jobs{index}.id, opts.profile);
         try
           graph_job = net_v_s2_job (jobs{index}, ...
                                     bundle.cases.profiles.(opts.profile), opts.profile);
@@ -55,13 +54,13 @@ function result = mp_neig_verify_examples (profile, options)
           status(index).candidate_source = graph_job.candidate_source;
           status(index).candidate_bits = graph_job.candidate_bits;
           status(index).evaluation_bits = graph_job.evaluation_bits;
-          status(index).pass = false;
+          status(index).pass = graph_job.pass;
         catch exception
           status(index).status = "FAILED_PREPARATION";
           status(index).error_identifier = exception.identifier;
           status(index).error_message = exception.message;
         end_try_catch
-        fprintf (2, "NEIGT15: finished %s status=%s milestone_pass=%d\n", ...
+        fprintf (2, "NEIGT16: finished %s status=%s milestone_pass=%d\n", ...
                  status(index).id, status(index).status, status(index).milestone_pass);
       endif
     endfor
@@ -92,7 +91,7 @@ function result = mp_neig_verify_examples (profile, options)
                                           "vs2_invariant_complete", vs2_milestone_complete), ...
                      "manifest", struct ("cases", bundle.cases_path, ...
                                          "verification_jobs", bundle.jobs_path), ...
-                     "options", opts, "source", "NEIGT15_VS2_RICCATI_GRAPH_V1");
+                     "options", opts, "source", "NEIGT16_VS2_CLUSTER_POWER_PROJECTOR_V1");
     if (added)
       rmpath (private_root);
     endif
@@ -201,6 +200,6 @@ endfunction
 function result = active_vs2 (values)
   result = false (size (values));
   for index = 1:numel (values)
-    result(index) = any (strcmp (values{index}, {"VS2-01", "VS2-02"}));
+    result(index) = strncmp (values{index}, "VS2-", 4);
   endfor
 endfunction

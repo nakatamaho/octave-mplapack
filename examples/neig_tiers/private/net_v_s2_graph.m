@@ -131,8 +131,15 @@ function result = net_v_s2_graph (A, X, k, q, options)
     Y1_box = net_iv_cmatrix_add (X1, net_iv_cmatrix_mul (X2, Z_box, q), q);
     M_box = net_iv_cmatrix_add (C11, net_iv_cmatrix_mul (C12, Z_box, q), q);
     result.Z_box = Z_box;
+    result.Z_radius = accepted_t;
     result.Y1_box = Y1_box;
     result.M_box = M_box;
+    % The lower-left block of the exact graph similarity is zero and the
+    % complementary diagonal block is D2=C22-Z*C12.  Keep this enclosure
+    % separate so NEIGT16 can prove spectral separation without treating a
+    % graph-existence result as an isolated-cluster result.
+    result.D2_box = net_iv_cmatrix_sub (C22, ...
+                                        net_iv_cmatrix_mul (Z_box, C12, q), q);
     result.k = k;
     result.h = h;
     result.n = n;

@@ -1,6 +1,4 @@
-% Run one bounded computed V-S2 candidate schedule and invariant-graph proof.
-% Cluster separation and projector claims are intentionally deferred to the
-% next milestone; this job records only the nontrivial invariant basis.
+% Run one bounded computed V-S2 candidate schedule and full cluster proof.
 function result = net_v_s2_job (job, profile_data, profile)
   if (nargin != 3 || ! isstruct (job) || ! isfield (job, "fixture") ...
       || ! isfield (job, "cluster_dimension"))
@@ -14,8 +12,17 @@ function result = net_v_s2_job (job, profile_data, profile)
   radius = net_dyadic_parameter (fixture.query_radius, candidate_bits);
   preparation = net_v_s2_candidate (model.A_frozen, center, radius, ...
                                      job.cluster_dimension, candidate_bits);
+  if (strcmp (char (fixture.regime), "mks_zero"))
+    [mks_candidate, mks_record] = mks_eigen_complement (...
+      model.A_frozen, center, radius, preparation, job.cluster_dimension, ...
+      candidate_bits);
+    preparation.candidates = {mks_candidate, preparation.candidates{1}};
+    preparation.candidate_source = "computed_subspace_plus_mks_eigen_complement";
+    preparation.mks_complement = mks_record;
+  endif
   attempts = struct ([]);
   graph = [];
+  cluster = [];
   selected_strategy = 0;
   selected_X = [];
   selected_newton = [];
@@ -30,27 +37,39 @@ function result = net_v_s2_job (job, profile_data, profile)
       corrected_X = transform_basis (candidate_X, newton.final_Z, ...
                                      job.cluster_dimension, q);
     endif
-    graph_try = net_v_s2_graph (A, corrected_X, ...
-                                job.cluster_dimension, q);
+    cluster_try = [];
+    try
+      graph_try = net_v_s2_graph (A, corrected_X, ...
+                                  job.cluster_dimension, q);
+      if (graph_try.pass)
+        cluster_try = net_v_s2_cluster (graph_try, corrected_X, center, ...
+                                        job, profile, q);
+      endif
+    catch exception
+      graph_try = graph_exception (exception, rows (A), job.cluster_dimension);
+    end_try_catch
     attempt = struct ("strategy", strategy, ...
       "candidate_source", preparation.candidate_source, ...
       "candidate_bits", candidate_bits, "evaluation_bits", q, ...
       "raw_candidate", candidate_X, "newton", newton, ...
       "corrected_candidate", corrected_X, "graph", graph_try, ...
-      "status", graph_try.status, "pass", graph_try.pass);
+      "cluster", cluster_try, "status", graph_try.status, ...
+      "pass", ! isempty (cluster_try) && cluster_try.pass);
     if (isempty (attempts))
       attempts = attempt;
     else
       attempts(end + 1) = attempt;
     endif
-    if (graph_try.pass)
+    if (! isempty (cluster_try) && cluster_try.pass)
       graph = graph_try;
+      cluster = cluster_try;
       selected_strategy = strategy;
       selected_X = corrected_X;
       selected_newton = newton;
       break;
     endif
     graph = graph_try;
+    cluster = cluster_try;
   endfor
   if (selected_strategy == 0)
     selected_strategy = 1;
@@ -61,11 +80,24 @@ function result = net_v_s2_job (job, profile_data, profile)
   result.id = job.id;
   result.tier = job.tier;
   result.kind = job.kind;
-  result.status = graph.status;
-  result.claim_status = graph.claim_status;
-  result.claim_quality = graph.claim_quality;
-  result.pass = false;
-  result.milestone_pass = graph.pass && graph.nontrivial;
+  if (! isempty (cluster)
+      && isfield (cluster, "status") && cluster.pass)
+    result.status = cluster.status;
+    result.claim_status = cluster.claim_status;
+    result.claim_quality = cluster.claim_quality;
+    result.pass = true;
+  else
+    result.status = graph.status;
+    result.claim_status = graph.claim_status;
+    result.claim_quality = graph.claim_quality;
+    if (! isempty (cluster) && isfield (cluster, "status"))
+      result.status = cluster.status;
+      result.claim_status = cluster.claim_status;
+      result.claim_quality = cluster.claim_quality;
+    endif
+    result.pass = false;
+  endif
+  result.milestone_pass = result.pass && graph.nontrivial;
   result.expected_claim = job.expected;
   result.candidate_source = preparation.candidate_source;
   result.candidate_bits = candidate_bits;
@@ -81,8 +113,60 @@ function result = net_v_s2_job (job, profile_data, profile)
   result.selected_candidate = selected_X;
   result.selected_newton = selected_newton;
   result.graph = graph;
+  result.cluster = cluster;
   result.error_identifier = "";
   result.error_message = "";
+endfunction
+
+function result = graph_exception (exception, n, k)
+  result = struct ("method", "neigt_riccati_graph_v1", ...
+    "paper_algorithm_reproduction", false, "status", "FAILED_VERIFIER", ...
+    "pass", false, "claim_status", "ERROR", "claim_quality", "not_identified", ...
+    "nontrivial", k > 0 && k < n, "full_space_triviality", false, ...
+    "basis_nonsingular", false, "preconditioner_residual_pass", false, ...
+    "contraction_pass", false, "candidate_source", "", ...
+    "candidate_C0_hash", "", "trials", struct ([]), ...
+    "error_identifier", exception.identifier, "error_message", exception.message);
+endfunction
+
+function [candidate, result] = mks_eigen_complement (A, center, radius, ...
+                                                     preparation, k, bits)
+  saved_bits = mpbits ();
+  unwind_protect
+    mpbits (bits);
+    [V, D] = eig (A, "nobalance");
+    values = diag (D);
+    h = rows (A) - k;
+    selected = false (1, columns (V));
+    selected_indices = zeros (1, h);
+    for target = 1:h
+      best = 0;
+      best_modulus = mp (0);
+      for index = 1:numel (values)
+        if (! selected(index) && abs (values(index) - center) > radius ...
+            && (best == 0 || abs (values(index) - center) > best_modulus))
+          best = index;
+          best_modulus = abs (values(index) - center);
+        endif
+      endfor
+      if (best == 0)
+        error ("mplapack:neigt:VS2", ...
+               "MKS computed eig complement did not find enough separated roots");
+      endif
+      selected(best) = true;
+      selected_indices(target) = best;
+    endfor
+    q1 = preparation.selected_bases{end};
+    candidate = [q1, V(:, selected_indices)];
+    result = struct ("method", "computed_mks_nonzero_eigen_complement_v1", ...
+      "candidate_only", true, "candidate_bits", bits, ...
+      "selected_indices", selected_indices, "selected_values", values(selected_indices), ...
+      "source", "public_eig_nobalance_outside_query_region", ...
+      "query_center", center, "query_radius", radius, ...
+      "raw_eigenvalue_hash", net_raw_hash (values, "VS2_MKS_complement_D"));
+  unwind_protect_cleanup
+    mpbits (saved_bits);
+  end_unwind_protect
 endfunction
 
 function result = make_fixture (fixture, bits)

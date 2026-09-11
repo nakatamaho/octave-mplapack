@@ -14,6 +14,8 @@ function result = net_v_s2_newton (C, k, Z0, bits)
     n = rows (C);
     h = n - k;
     Z = Z0;
+    max_candidate_entry = net_pow2 (64, bits);
+    initial_residual = mp (0);
     records = struct ([]);
     for step = 1:4
       C11 = C(1:k, 1:k);
@@ -22,6 +24,9 @@ function result = net_v_s2_newton (C, k, Z0, bits)
       C22 = C((k + 1):n, (k + 1):n);
       F = C21 + C22 * Z - Z * C11 - Z * C12 * Z;
       before = norm (F, "fro");
+      if (step == 1)
+        initial_residual = before;
+      endif
       Kz = kron (mp (eye (k)), C22 - Z * C12) ...
             - kron (transpose (C11 + C12 * Z), mp (eye (h)));
       record = struct ("step", step, "status", "NOT_RUN", ...
@@ -31,6 +36,17 @@ function result = net_v_s2_newton (C, k, Z0, bits)
       try
         correction = Kz \ (-reshape (F, h * k, 1));
         Z = Z + reshape (correction, h, k);
+        if (! all (isfinite (Z(:))) || any (abs (Z(:)) > max_candidate_entry))
+          record.status = "REJECTED_UNBOUNDED_STEP";
+          record.error_identifier = "mplapack:neigt:CandidateBound";
+          record.error_message = "candidate Newton step exceeded bounded preparation range";
+          if (isempty (records))
+            records = record;
+          else
+            records(end + 1) = record;
+          endif
+          break;
+        endif
         F_after = C21 + C22 * Z - Z * C11 - Z * C12 * Z;
         record.status = "SUCCESS";
         record.residual_after = norm (F_after, "fro");
@@ -51,11 +67,14 @@ function result = net_v_s2_newton (C, k, Z0, bits)
         break;
       endif
     endfor
+    improved = ! isempty (records) && strcmp (records(end).status, "SUCCESS") ...
+               && records(end).residual_after <= initial_residual;
     result = struct ("method", "neigt_candidate_graph_newton_v1", ...
       "paper_algorithm_reproduction", false, "candidate_only", true, ...
       "max_steps", 4, "steps", records, "steps_used", numel (records), ...
       "initial_Z", Z0, "final_Z", Z, "candidate_bits", bits, ...
-      "success", ! isempty (records) && all (strcmp ({records.status}, "SUCCESS")));
+      "initial_residual", initial_residual, "improved", improved, ...
+      "success", improved && all (strcmp ({records.status}, "SUCCESS")));
   unwind_protect_cleanup
     mpbits (saved_bits);
   end_unwind_protect
