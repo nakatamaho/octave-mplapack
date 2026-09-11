@@ -38,7 +38,7 @@ function result = net_v_s2_graph (A, X, k, q, options)
     result.candidate_C0 = C0;
     result.candidate_C0_hash = net_raw_hash (C0, "VS2_candidate_C0");
 
-    similarity = certified_similarity (A, X, R_candidate, C0, q);
+    similarity = certified_similarity (A, X, R_candidate, C0, q, options);
     result.similarity = similarity;
     if (! similarity.basis_nonsingular)
       result.status = "INCONCLUSIVE_BASIS_INVERSE";
@@ -173,9 +173,18 @@ function result = graph_failure_template (status)
     "candidate_C0_hash", "", "trials", struct ([]));
 endfunction
 
-function result = certified_similarity (A, X, R, C0, q)
+function result = certified_similarity (A, X, R, C0, q, options)
   n = rows (A);
   A_box = net_iv_cmatrix_point (A, q);
+  if (isfield (options, "A_box"))
+    if (! isstruct (options.A_box) || ! isequal (size (options.A_box.rl), size (A)))
+      result = struct ("E_box", [], "e", mp ("NaN"), "basis_nonsingular", false, ...
+                       "C0", C0, "C_box", [], "RF_box", [], "c", mp ("NaN"), ...
+                       "eta", mp ("NaN"));
+      return;
+    endif
+    A_box = options.A_box;
+  endif
   X_box = net_iv_cmatrix_point (X, q);
   R_box = net_iv_cmatrix_point (R, q);
   E_box = net_iv_cmatrix_sub (net_iv_cmatrix_eye (n, q), ...

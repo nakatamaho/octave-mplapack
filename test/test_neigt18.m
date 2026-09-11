@@ -31,7 +31,7 @@ unwind_protect
   mpbits (q);
   pair = net_exact_similarity (4, q);
   J = mp (zeros (4, 4));
-  simple_diagonal = [1, 2, 4, 5];
+  simple_diagonal = [1, 2, 4, 8];
   for diagonal_index = 1:4
     J(diagonal_index,diagonal_index) = mp (simple_diagonal(diagonal_index));
   endfor

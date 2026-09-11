@@ -92,6 +92,39 @@ function result = mp_neig_verify_examples (profile, options)
         end_try_catch
         fprintf (2, "NEIGT18: finished %s status=%s milestone_pass=%d\n", ...
                  status(index).id, status(index).status, status(index).milestone_pass);
+      elseif (strncmp (jobs{index}.id, "VA2-", 4))
+        fprintf (2, "NEIGT20: starting %s (%s)\n", jobs{index}.id, opts.profile);
+        try
+          pencil_job = net_v_a2_job (jobs{index}, ...
+                                     bundle.jobs.profiles.(opts.profile), ...
+                                     opts.profile);
+          status(index).status = pencil_job.status;
+          status(index).claim_status = pencil_job.claim_status;
+          status(index).claim_quality = pencil_job.claim_quality;
+          status(index).milestone_pass = pencil_job.milestone_pass;
+          status(index).details = pencil_job;
+          status(index).certificate = pencil_job.finite_certificate;
+          status(index).candidate_source = pencil_job.candidate_source;
+          status(index).candidate_bits = pencil_job.candidate_bits;
+          status(index).evaluation_bits = pencil_job.evaluation_bits;
+          status(index).raw_V_hash = pencil_job.raw_V_hash;
+          status(index).raw_D_hash = pencil_job.raw_D_hash;
+          status(index).raw_W_hash = pencil_job.raw_W_hash;
+          status(index).input_hash = pencil_job.input_hash_A;
+          status(index).source = pencil_job.source;
+          status(index).input_status = pencil_job.input_status;
+          status(index).raw_V = pencil_job.raw_V;
+          status(index).raw_D = pencil_job.raw_D;
+          status(index).raw_W = pencil_job.raw_Wc;
+          status(index).pass = pencil_job.pass;
+        catch exception
+          status(index).status = "FAILED_VERIFIER";
+          status(index).claim_status = "ERROR";
+          status(index).error_identifier = exception.identifier;
+          status(index).error_message = exception.message;
+        end_try_catch
+        fprintf (2, "NEIGT20: finished %s status=%s milestone_pass=%d\n", ...
+                 status(index).id, status(index).status, status(index).milestone_pass);
       endif
     endfor
     vs1 = status(starts_with ({status.id}, "VS1-"));
@@ -109,6 +142,14 @@ function result = mp_neig_verify_examples (profile, options)
     va1 = status(va1_active);
     va1_complete = ! isempty (va1) && all ([va1.pass]);
     implemented += sum (va1_active);
+    va2_active = active_prefix ({status.id}, "VA2-");
+    va2 = status(va2_active);
+    va2_complete = ! isempty (va2) && all ([va2.pass]);
+    implemented += sum (va2_active);
+    va3_active = active_prefix ({status.id}, "VA3-");
+    va3 = status(va3_active);
+    va3_complete = ! isempty (va3) && all ([va3.pass]);
+    implemented += sum (va3_active);
     selected_complete = ! isempty (status) && all ([status.pass]);
     if (isempty (status))
       overall_status = "NOT_APPLICABLE";
@@ -130,7 +171,11 @@ function result = mp_neig_verify_examples (profile, options)
                                           "vs3_job_count", sum (vs3_active), ...
                                           "vs3_complete", vs3_complete, ...
                                           "va1_job_count", sum (va1_active), ...
-                                          "va1_complete", va1_complete), ...
+                                          "va1_complete", va1_complete, ...
+                                          "va2_job_count", sum (va2_active), ...
+                                          "va2_complete", va2_complete, ...
+                                          "va3_job_count", sum (va3_active), ...
+                                          "va3_complete", va3_complete), ...
                      "manifest", struct ("cases", bundle.cases_path, ...
                                          "verification_jobs", bundle.jobs_path), ...
                      "options", opts, "source", "NEIGT17_VS3_SVD_POLAR_WEYL_V1");

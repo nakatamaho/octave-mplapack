@@ -352,6 +352,7 @@
           },
           "candidate_source": "verified_solve_reduction",
           "public_generalized_eig_required": false,
+          "cluster_radius_target_exponent": -16,
           "required_claims": [
             "CERTIFIED_ALL_FINITE",
             "CERTIFIED_CLUSTER"
@@ -772,6 +773,7 @@
           },
           "candidate_source": "verified_solve_reduction",
           "public_generalized_eig_required": false,
+          "cluster_radius_target_exponent": -16,
           "required_claims": [
             "CERTIFIED_ALL_FINITE",
             "CERTIFIED_CLUSTER"

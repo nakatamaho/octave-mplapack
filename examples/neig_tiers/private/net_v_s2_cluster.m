@@ -296,6 +296,10 @@ function result = raw_projector_bound (X, graph, k, q, profile)
 endfunction
 
 function value = cluster_radius_target (job, profile, q)
+  if (isfield (job, "cluster_radius_target_exponent"))
+    value = net_pow2 (job.cluster_radius_target_exponent, q);
+    return;
+  endif
   if (strcmp (profile, "demo"))
     target = net_pow2 (-48, q);
   else

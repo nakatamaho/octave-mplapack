@@ -46,6 +46,13 @@ block).  The defective leading-block lower entry was retained from
 column returned `INCONCLUSIVE_QR_NORMALIZATION` and did not produce a Schur
 claim.
 
+The fixed VA1 source models were corrected during the NEIGT19 audit to the
+mandatory `diag(1,2,4,8)`, phase-conjugate complex case, and `J2(1),4,8`
+defective case.  The corrected NEIGT18/19 gates were rerun and passed.  The
+normalization lower bounds remain strictly positive for every column, while
+the pre-correction representative figures are retained only as historical
+diagnostics and are not current release measurements.
+
 ## V-A integration
 
 Command:
@@ -104,11 +111,12 @@ test/test_neigt19.m
 neigt19-report.md
 ```
 
-The VA1 model helper uses a computed exact-similarity real-simple fixture and
-the complex quarter-turn Hadamard fixture.  The defective model is prepared by
-the bounded computed contour/QR candidate schedule.  No generator basis is
-used as a certificate input, no public dependency/API was changed, and no
-binary64 numerical fallback was introduced.
+The VA1 model helper uses the specified computed exact-similarity real-simple
+fixture and its diagonal phase-conjugate complex fixture.  The defective model
+is explicit `J2(1),4,8` and is prepared by the bounded computed contour/QR
+candidate schedule.  No generator basis is used as a certificate input, no
+public dependency/API was changed, and no binary64 numerical fallback was
+introduced.
 
 Branch: `topic/neigt-tier-sav-examples`
 Starting commit: `d5184c09c9ae22e8e0438e88e8db345f466856a5` (NEIGT18 report state)

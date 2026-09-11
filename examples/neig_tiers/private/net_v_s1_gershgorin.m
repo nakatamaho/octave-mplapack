@@ -1,14 +1,23 @@
 % Conservative counted all-spectrum inclusion from CERTIFICATES.md section 1.
-function result = net_v_s1_gershgorin (A, X, T, R, q, usefulness_exponent)
+function result = net_v_s1_gershgorin (A, X, T, R, q, usefulness_exponent, options)
   net_iv_q (q);
-  if (nargin != 6 || ! isa (A, "mp") || ! isa (X, "mp") ...
+  if (nargin < 6 || nargin > 7 || ! isa (A, "mp") || ! isa (X, "mp") ...
       || ! isa (T, "mp") || ! isa (R, "mp") || rows (A) != columns (A) ...
       || ! isequal (size (A), size (X)) || ! isequal (size (A), size (T)) ...
       || ! isequal (size (A), size (R)))
     error ("mplapack:neigt:VS1", "invalid similarity certificate inputs");
   endif
+  if (nargin == 6)
+    options = struct ();
+  endif
   n = rows (A);
   A_box = net_iv_cmatrix_point (A, q);
+  if (isfield (options, "A_box"))
+    if (! isstruct (options.A_box) || ! isequal (size (options.A_box.rl), size (A)))
+      error ("mplapack:neigt:VS1", "invalid supplied A enclosure");
+    endif
+    A_box = options.A_box;
+  endif
   X_box = net_iv_cmatrix_point (X, q);
   T_box = net_iv_cmatrix_point (T, q);
   R_box = net_iv_cmatrix_point (R, q);

@@ -1,6 +1,9 @@
 # NEIGT18 report — compatible eigenfactor boxes
 
-NEIGT18 implements the V-A1 compatible simple-eigenfactor baseline.  Each
+NEIGT18 implements the V-A1 compatible simple-eigenfactor baseline.  The fixed
+fixtures are the specified `A=Y*J*X` model with `J=diag(1,2,4,8)` for the
+simple real case, its `[1,i,-1,-i]` diagonal phase conjugate for the complex
+case, and `J2(1),4,8` for the defective case.  Each
 simple root is prepared from one public `eig(...,"nobalance")` result, reordered
 as a candidate-only basis, and independently passed through the k=1 NEIGT15
 Riccati graph checker.  The resulting graph vectors and scalar root boxes are
@@ -55,6 +58,27 @@ boxes were checked against the fixed `2^-40` usefulness target.
 Both factors record raw `V`, `D`, and `W` hashes, graph certificates for all
 four k=1 roots, `E_box`, `Lambda_box`, and the dual `W_box`.  The complex case
 uses complex-coordinate arithmetic throughout the compatibility proof.
+
+## Fixture correction audit
+
+The NEIGT19 specification audit found that the initial implementation had
+used `[1,2,4,5]` for the simple VA1 model.  That did not match the mandatory
+CASES.md fixture.  The model and its independent assembly test were corrected
+to `[1,2,4,8]`; the complex case now derives from that corrected real model by
+the specified diagonal phase conjugation.  The defective case is explicit as
+`J2(1),4,8` rather than a different generic model.
+
+The corrected direct factor measurements at 256/768 source/evaluation bits
+are:
+
+| Job | status | width ratio | target | inverse `e` | roots disjoint | compatibility |
+|---|---|---:|---:|---:|---|---|
+| VA1-01 real | `CERTIFIED_EIGENFACTORS` | `8.5203938428343769e-153` | `9.0949470177292824e-13` | `5.793378436367298e-151` | true | enclosed |
+| VA1-02 complex | `CERTIFIED_EIGENFACTORS` | `1.7040787685668754e-152` | `9.0949470177292824e-13` | `9.4738723077880239e-151` | true | enclosed |
+
+Corrective logs are `/tmp/neigt-va1-correction-1.log` and
+`/tmp/neigt-va1-correction-measurements-4.log`.  They supersede the
+pre-correction measurements below.
 
 ## V-A integration
 
