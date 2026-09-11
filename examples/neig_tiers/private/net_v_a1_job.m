@@ -14,11 +14,9 @@ function result = net_v_a1_job (job, profile_data, profile)
     try
       regime = char (job.fixture.regime);
       if (strcmp (regime, "real_simple"))
-        model = real_simple_model (job.fixture.n, source_bits);
+        model = net_v_a1_model (regime, job.fixture.n, source_bits);
       elseif (strcmp (regime, "complex_simple"))
-        entry = struct ("id", "HAD_COMPLEX", "tier", "V", ...
-          "parameters", struct ("n", job.fixture.n, "s", 2, ...
-                                 "phases", "quarter_turn_repeated"));
+        model = net_v_a1_model (regime, job.fixture.n, source_bits);
       elseif (strcmp (regime, "defective_block"))
         result = defective_guard (job, profile_data, profile);
         return;
@@ -26,9 +24,6 @@ function result = net_v_a1_job (job, profile_data, profile)
         error ("mplapack:neigt:VA1", "unsupported VA1 regime %s", regime);
       endif
       mpbits (source_bits);
-      if (strcmp (regime, "complex_simple"))
-        model = net_case_model (entry, source_bits);
-      endif
       [V, D, W] = eig (model.A_frozen, "nobalance");
       result.raw_V = V;
       result.raw_D = D;
@@ -68,33 +63,13 @@ function result = net_v_a1_job (job, profile_data, profile)
   end_unwind_protect
 endfunction
 
-function result = real_simple_model (n, bits)
-  if (n != 4)
-    error ("mplapack:neigt:VA1", "the fixed real-simple fixture is 4-by-4");
-  endif
-  pair = net_exact_similarity (n, bits);
-  J = mp (zeros (n, n));
-  diagonal = [1, 2, 4, 5];
-  for index = 1:n
-    J(index,index) = mp (diagonal(index));
-  endfor
-  A = pair.Y * J * pair.X;
-  result = struct ("family", "exact_similarity", "n", n, ...
-                   "A_model", A, "A_frozen", A, ...
-                   "source", "VA1_REAL_SIMPLE_EXACT_SIMILARITY", ...
-                   "input_status", "exact_model");
-endfunction
-
 function result = defective_guard (job, profile_data, profile)
   bits = profile_data.source_bits;
   q = profile_data.evaluation_bits;
   saved_bits = mpbits ();
   unwind_protect
     mpbits (bits);
-    entry = struct ("id", "SIM_JORDAN", "tier", "V", ...
-      "parameters", struct ("n", job.fixture.n, "gap_exponent", 0, ...
-                             "regime", "jordan"));
-    model = net_case_model (entry, bits);
+    model = net_v_a1_model ("defective_block", job.fixture.n, bits);
     A = net_widen (model.A_frozen, q, bits);
     preparation = net_v_s2_candidate (model.A_frozen, mp (1), net_pow2 (-2, bits), 2, bits);
     X = net_widen (preparation.candidates{1}, q, bits);
