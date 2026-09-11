@@ -101,6 +101,15 @@ function [lo, hi] = array_round (rounded, q, zero_witness, operation)
       || ! isequal (size (rounded), size (zero_witness)))
     error ("mplapack:neigt:IntervalRange", "invalid batched primitive result");
   endif
+  % The public mp type deliberately rejects indexing a scalar object.  Use
+  % the audited scalar implementation for the 1-by-1 row case; larger rows
+  % take the genuinely batched path below.
+  if (isscalar (rounded))
+    scalar_box = net_iv_round (rounded, q, zero_witness, operation);
+    lo = scalar_box.lo;
+    hi = scalar_box.hi;
+    return;
+  endif
   if (any (rounded(:) == 0 & ! zero_witness(:)))
     error ("mplapack:neigt:IntervalRange", ...
            "unwitnessed zero in batched primitive %s", operation);
@@ -138,6 +147,14 @@ function [lo, hi] = array_round (rounded, q, zero_witness, operation)
 endfunction
 
 function value = elementwise_min (left, right)
+  if (isscalar (left))
+    if (right < left)
+      value = right;
+    else
+      value = left;
+    endif
+    return;
+  endif
   value = left;
   for index = 1:numel (left)
     if (right(index) < left(index))
@@ -147,6 +164,14 @@ function value = elementwise_min (left, right)
 endfunction
 
 function value = elementwise_max (left, right)
+  if (isscalar (left))
+    if (right > left)
+      value = right;
+    else
+      value = left;
+    endif
+    return;
+  endif
   value = left;
   for index = 1:numel (left)
     if (right(index) > left(index))

@@ -40,11 +40,38 @@ function result = mp_neig_verify_examples (profile, options)
           bundle.cases.profiles.(opts.profile), opts.profile);
         fprintf (2, "NEIGT14: finished %s status=%s pass=%d\n", ...
                  status(index).id, status(index).status, status(index).pass);
+      elseif (strncmp (jobs{index}.id, "VS2-", 4) ...
+             && any (strcmp (jobs{index}.id, {"VS2-01", "VS2-02"})))
+        fprintf (2, "NEIGT15: starting %s (%s)\n", jobs{index}.id, opts.profile);
+        try
+          graph_job = net_v_s2_job (jobs{index}, ...
+                                    bundle.cases.profiles.(opts.profile), opts.profile);
+          status(index).status = graph_job.status;
+          status(index).claim_status = graph_job.claim_status;
+          status(index).claim_quality = graph_job.claim_quality;
+          status(index).milestone_pass = graph_job.milestone_pass;
+          status(index).details = graph_job;
+          status(index).certificate = graph_job.graph;
+          status(index).candidate_source = graph_job.candidate_source;
+          status(index).candidate_bits = graph_job.candidate_bits;
+          status(index).evaluation_bits = graph_job.evaluation_bits;
+          status(index).pass = false;
+        catch exception
+          status(index).status = "FAILED_PREPARATION";
+          status(index).error_identifier = exception.identifier;
+          status(index).error_message = exception.message;
+        end_try_catch
+        fprintf (2, "NEIGT15: finished %s status=%s milestone_pass=%d\n", ...
+                 status(index).id, status(index).status, status(index).milestone_pass);
       endif
     endfor
     vs1 = status(starts_with ({status.id}, "VS1-"));
-    implemented = sum (starts_with ({status.id}, "VS1-"));
+    vs2_active = active_vs2 ({status.id});
+    implemented = sum (starts_with ({status.id}, "VS1-")) + sum (vs2_active);
     vs1_complete = ! isempty (vs1) && all ([vs1.pass]);
+    vs2 = status(vs2_active);
+    vs2_milestone_complete = ! isempty (vs2) ...
+                             && all ([vs2.milestone_pass]);
     selected_complete = ! isempty (status) && all ([status.pass]);
     if (isempty (status))
       overall_status = "NOT_APPLICABLE";
@@ -60,10 +87,12 @@ function result = mp_neig_verify_examples (profile, options)
                                           "expected_all_verification_job_count", 26, ...
                                           "verification_jobs_implemented", implemented, ...
                                           "vs1_job_count", numel (vs1), ...
-                                          "vs1_complete", vs1_complete), ...
+                                          "vs1_complete", vs1_complete, ...
+                                          "vs2_invariant_job_count", sum (vs2_active), ...
+                                          "vs2_invariant_complete", vs2_milestone_complete), ...
                      "manifest", struct ("cases", bundle.cases_path, ...
                                          "verification_jobs", bundle.jobs_path), ...
-                     "options", opts, "source", "NEIGT14_VS1_GERSHGORIN_V1");
+                     "options", opts, "source", "NEIGT15_VS2_RICCATI_GRAPH_V1");
     if (added)
       rmpath (private_root);
     endif
@@ -76,7 +105,9 @@ endfunction
 
 function result = job_status_template ()
   result = struct ("id", "", "tier", "", "kind", "", ...
-    "status", "NOT_IMPLEMENTED", "pass", false, "candidate_source", "", ...
+    "status", "NOT_IMPLEMENTED", "pass", false, "milestone_pass", false, ...
+    "claim_status", "", "claim_quality", "", "details", [], ...
+    "candidate_source", "", ...
     "candidate_bits", NaN, "evaluation_bits", NaN, "raw_V_hash", "", ...
     "raw_D_hash", "", "raw_W_hash", "", "certificate", [], ...
     "raw_V", [], "raw_D", [], "raw_W", [], "error_identifier", "", ...
@@ -132,6 +163,10 @@ function result = run_vs1_job (job, profile_data, profile)
       result.pass = strcmp (certificate.status, "CERTIFIED_ALL") ...
                     && certificate.all_roots && certificate.counted_roots == rows (A) ...
                     && certificate.singleton_useful && certificate.useful;
+      result.milestone_pass = result.pass;
+      result.claim_status = certificate.status;
+      result.claim_quality = "resolved";
+      result.details = certificate;
       if (result.pass)
         result.status = "PASS";
       endif
@@ -160,5 +195,12 @@ function result = starts_with (values, prefix)
   result = false (size (values));
   for index = 1:numel (values)
     result(index) = strncmp (values{index}, prefix, numel (prefix));
+  endfor
+endfunction
+
+function result = active_vs2 (values)
+  result = false (size (values));
+  for index = 1:numel (values)
+    result(index) = any (strcmp (values{index}, {"VS2-01", "VS2-02"}));
   endfor
 endfunction

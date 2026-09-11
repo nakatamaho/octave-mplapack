@@ -1,0 +1,109 @@
+% Candidate-only preparation for the V-S2 graph checker.
+% The contour projector and QR are numerical suggestions only.  No candidate
+% status is used as proof; net_v_s2_graph rechecks the supplied basis.
+function result = net_v_s2_candidate (A, center, radius, k, bits)
+  if (nargin != 5 || ! isa (A, "mp") || rows (A) != columns (A) ...
+      || ! isa (center, "mp") || ! isscalar (center) || ! isa (radius, "mp") ...
+      || ! isscalar (radius) || radius <= mp (0) || k != fix (k) ...
+      || k < 1 || k >= rows (A) || bits != fix (bits) || bits < 64)
+    error ("mplapack:neigt:VS2", "invalid candidate preparation arguments");
+  endif
+  saved_bits = mpbits ();
+  unwind_protect
+    mpbits (bits);
+    n = rows (A);
+    I = mp (eye (n));
+    node_counts = [16, 32, 64];
+    projectors = cell (numel (node_counts), 1);
+    q_bases = cell (numel (node_counts), 1);
+    records = struct ([]);
+    for count_index = 1:numel (node_counts)
+      node_count = node_counts(count_index);
+      P_hat = mp (zeros (n, n));
+      solve_count = 0;
+      failed_nodes = 0;
+      for node = 0:(node_count - 1)
+        theta = (mp (2) * pi ()) * (mp (node) + mp ("0.5")) / mp (node_count);
+        unit = net_mp_complex (cos (theta), sin (theta));
+        z = center + radius * unit;
+        zI = mp (zeros (n, n));
+        for diagonal = 1:n
+          zI(diagonal, diagonal) = z;
+        endfor
+        shifted = zI - A;
+        try
+          resolvent = shifted \ I;
+          solve_count += 1;
+          P_hat += ((z - center) / mp (node_count)) * resolvent;
+        catch
+          failed_nodes += 1;
+        end_try_catch
+      endfor
+      projectors{count_index} = P_hat;
+      if (failed_nodes == 0)
+        [Q, R] = qr (P_hat);
+        q_bases{count_index} = Q;
+        rank_indicator = abs (R(k,k));
+      else
+        q_bases{count_index} = [];
+        rank_indicator = mp (0);
+      endif
+      record = struct ("node_count", node_count, "solve_count", solve_count, ...
+                       "failed_nodes", failed_nodes, "rank_indicator", rank_indicator, ...
+                       "candidate_source", "contour_projector_then_public_qr", ...
+                       "candidate_bits", bits);
+      if (isempty (records))
+        records = record;
+      else
+        records(end + 1) = record;
+      endif
+    endfor
+    final_Q = q_bases{end};
+    if (isempty (final_Q) || ! isequal (size (final_Q), [n, n]))
+      error ("mplapack:neigt:VS2", "contour candidate did not produce a square QR basis");
+    endif
+    X_coordinate = coordinate_completion (final_Q(:,1:k), final_Q, k, bits);
+    result = struct ("method", "neigt_candidate_contour_qr_v1", ...
+      "paper_algorithm_reproduction", false, "candidate_source", ...
+      "computed_subspace_bounded_schedule", "node_counts", node_counts, ...
+      "records", records, "projectors", {projectors}, "q_bases", {q_bases}, ...
+      "candidates", {{final_Q, X_coordinate}}, "completion_strategies", 2, ...
+      "selected_node_count", node_counts(end), "candidate_bits", bits, ...
+      "cluster_dimension", k);
+  unwind_protect_cleanup
+    mpbits (saved_bits);
+  end_unwind_protect
+endfunction
+
+function result = coordinate_completion (Q1, Q, k, bits)
+  n = rows (Q1);
+  result = mp (zeros (n, n));
+  result(:, 1:k) = Q1;
+  used = k;
+  threshold = net_pow2 (-floor (bits / 4), bits);
+  for coordinate = 1:n
+    if (used == n)
+      break;
+    endif
+    e = mp (zeros (n, 1));
+    e(coordinate) = mp (1);
+    coefficient = ctranspose (result(:,1:used)) * e;
+    residual = e - result(:,1:used) * coefficient;
+    if (norm (residual) > threshold)
+      used += 1;
+      result(:, used) = e;
+    endif
+  endfor
+  if (used < n)
+    for column = (k + 1):columns (Q)
+      if (used == n)
+        break;
+      endif
+      used += 1;
+      result(:, used) = Q(:, column);
+    endfor
+  endif
+  if (used != n)
+    error ("mplapack:neigt:VS2", "coordinate completion did not reach full dimension");
+  endif
+endfunction
