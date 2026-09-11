@@ -122,7 +122,8 @@ numerical path.
 
 Branch: `topic/neigt-tier-sav-examples`
 Starting commit: `2919f8c` (NEIGT15)
-Final commit: pending
+Final implementation commit: `9e7e638` (`NEIGT16: certify separated clusters and raw projectors`).
+The subsequent report-record commit is the final NEIGT16 branch state.
 Files changed: `private/net_v_s2_cluster.m`, `private/net_v_s2_candidate.m`,
 `private/net_v_s2_graph.m`, `private/net_v_s2_job.m`,
 `private/net_v_s2_newton.m`, `mp_neig_verify_examples.m`,
