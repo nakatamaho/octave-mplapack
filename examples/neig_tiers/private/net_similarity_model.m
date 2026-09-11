@@ -20,7 +20,8 @@ function result = net_similarity_model (regime, n, gap_exponent, bits)
     if (strcmp (regime, "simple") || strcmp (regime, "two_jordan"))
       gap = net_pow2 (-gap_exponent, bits);
     endif
-    if (strcmp (regime, "simple"))
+    if (strcmp (regime, "simple") || strcmp (regime, "jordan") ...
+        || strcmp (regime, "two_jordan"))
       J(1, 2) = mp (1);
     endif
     J(1, 1) = mp (1);
@@ -31,6 +32,7 @@ function result = net_similarity_model (regime, n, gap_exponent, bits)
     endif
     start = 3;
     if (strcmp (regime, "two_jordan"))
+      J(2, 2) = mp (1);
       J(2, 1) = mp (0);
       J(2, 3) = mp (0);
       J(3, 3) = mp (1) + gap;
