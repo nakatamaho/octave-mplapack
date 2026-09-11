@@ -62,15 +62,34 @@ function result = mp_neig_verify_examples (profile, options)
         end_try_catch
         fprintf (2, "NEIGT16: finished %s status=%s milestone_pass=%d\n", ...
                  status(index).id, status(index).status, status(index).milestone_pass);
+      elseif (strncmp (jobs{index}.id, "VS3-", 4))
+        fprintf (2, "NEIGT17: starting %s (%s)\n", jobs{index}.id, opts.profile);
+        try
+          pseudospectrum_job = net_v_s3_job (jobs{index}, ...
+                                             bundle.jobs.profiles.(opts.profile), ...
+                                             opts.profile);
+          status(index) = pseudospectrum_job;
+        catch exception
+          status(index).status = "FAILED_VERIFIER";
+          status(index).claim_status = "ERROR";
+          status(index).error_identifier = exception.identifier;
+          status(index).error_message = exception.message;
+        end_try_catch
+        fprintf (2, "NEIGT17: finished %s status=%s milestone_pass=%d\n", ...
+                 status(index).id, status(index).status, status(index).milestone_pass);
       endif
     endfor
     vs1 = status(starts_with ({status.id}, "VS1-"));
     vs2_active = active_vs2 ({status.id});
-    implemented = sum (starts_with ({status.id}, "VS1-")) + sum (vs2_active);
+    implemented = sum (starts_with ({status.id}, "VS1-")) ...
+                  + sum (vs2_active) + sum (active_prefix ({status.id}, "VS3-"));
     vs1_complete = ! isempty (vs1) && all ([vs1.pass]);
     vs2 = status(vs2_active);
     vs2_milestone_complete = ! isempty (vs2) ...
                              && all ([vs2.milestone_pass]);
+    vs3_active = active_prefix ({status.id}, "VS3-");
+    vs3 = status(vs3_active);
+    vs3_complete = ! isempty (vs3) && all ([vs3.milestone_pass]);
     selected_complete = ! isempty (status) && all ([status.pass]);
     if (isempty (status))
       overall_status = "NOT_APPLICABLE";
@@ -88,10 +107,12 @@ function result = mp_neig_verify_examples (profile, options)
                                           "vs1_job_count", numel (vs1), ...
                                           "vs1_complete", vs1_complete, ...
                                           "vs2_invariant_job_count", sum (vs2_active), ...
-                                          "vs2_invariant_complete", vs2_milestone_complete), ...
+                                          "vs2_invariant_complete", vs2_milestone_complete, ...
+                                          "vs3_job_count", sum (vs3_active), ...
+                                          "vs3_complete", vs3_complete), ...
                      "manifest", struct ("cases", bundle.cases_path, ...
                                          "verification_jobs", bundle.jobs_path), ...
-                     "options", opts, "source", "NEIGT16_VS2_CLUSTER_POWER_PROJECTOR_V1");
+                     "options", opts, "source", "NEIGT17_VS3_SVD_POLAR_WEYL_V1");
     if (added)
       rmpath (private_root);
     endif
@@ -109,6 +130,8 @@ function result = job_status_template ()
     "candidate_source", "", ...
     "candidate_bits", NaN, "evaluation_bits", NaN, "raw_V_hash", "", ...
     "raw_D_hash", "", "raw_W_hash", "", "certificate", [], ...
+    "raw_B_hash", "", "raw_U_hash", "", "raw_s_hash", "", ...
+    "input_hash", "", "source", "", "input_status", "", "target", "", ...
     "raw_V", [], "raw_D", [], "raw_W", [], "error_identifier", "", ...
     "error_message", "");
 endfunction
@@ -198,8 +221,12 @@ function result = starts_with (values, prefix)
 endfunction
 
 function result = active_vs2 (values)
+  result = active_prefix (values, "VS2-");
+endfunction
+
+function result = active_prefix (values, prefix)
   result = false (size (values));
   for index = 1:numel (values)
-    result(index) = strncmp (values{index}, "VS2-", 4);
+    result(index) = strncmp (values{index}, prefix, numel (prefix));
   endfor
 endfunction
