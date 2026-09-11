@@ -118,6 +118,8 @@ candidate schedule.  No generator basis is used as a certificate input, no
 public dependency/API was changed, and no binary64 numerical fallback was
 introduced.
 
+Corrective implementation commit: `e3b8bb8`.
+
 Branch: `topic/neigt-tier-sav-examples`
 Starting commit: `d5184c09c9ae22e8e0438e88e8db345f466856a5` (NEIGT18 report state)
 Final implementation commit: `2443dfc3e61c75e4ced61ccb8e0c69c7dc847240`.

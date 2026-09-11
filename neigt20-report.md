@@ -121,7 +121,7 @@ preparation already audited in V-S2.
 
 Branch: `topic/neigt-tier-sav-examples`
 Starting commit: `7c55588231f720ac27d6cc675f43043e87742cec` (NEIGT19 report state)
-Final implementation commit: pending report-record commit
+Final implementation commit: `e3b8bb8`
 Gate: PASS
 VA2: PASS, 3/3
 V-A integration: PASS for implemented VA1/VA2 (6/6); VA3 pending by milestone order

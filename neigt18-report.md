@@ -151,6 +151,9 @@ was required by k=1 Kronecker/graph proofs and is a proof-path robustness fix,
 not a numerical fallback.  No dependency headers, backend, installed API, or
 source implementation outside the NEIGT verification/example tree changed.
 
+Corrective implementation commit: `e3b8bb8` (VA1 fixture audit and subsequent
+NEIGT20 integration commit).
+
 Branch: `topic/neigt-tier-sav-examples`
 Starting commit: `689aea6c010369fb31a3851d3d40c49148fe5c62` (NEIGT17 report state)
 Final implementation commit: `f799487ec3f8512dee35d3ec69ed2427117c7abc`.
