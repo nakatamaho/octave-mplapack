@@ -18,21 +18,48 @@ function result = net_iv_cmatrix_mul (left, right, q)
     sum_ih = mp (zeros (1, n));
     for k = 1:inner
       [real_product_lo, real_product_hi] = complex_product_real_row ...
-        (left.rl(i,k), left.rh(i,k), left.il(i,k), left.ih(i,k), ...
-         right.rl(k,:), right.rh(k,:), right.il(k,:), right.ih(k,:), q);
+        (component (left.rl, i, k), component (left.rh, i, k), ...
+         component (left.il, i, k), component (left.ih, i, k), ...
+         row_component (right.rl, k), row_component (right.rh, k), ...
+         row_component (right.il, k), row_component (right.ih, k), q);
       [imag_product_lo, imag_product_hi] = complex_product_imag_row ...
-        (left.rl(i,k), left.rh(i,k), left.il(i,k), left.ih(i,k), ...
-         right.rl(k,:), right.rh(k,:), right.il(k,:), right.ih(k,:), q);
+        (component (left.rl, i, k), component (left.rh, i, k), ...
+         component (left.il, i, k), component (left.ih, i, k), ...
+         row_component (right.rl, k), row_component (right.rh, k), ...
+         row_component (right.il, k), row_component (right.ih, k), q);
       [sum_rl, sum_rh] = interval_add_row ...
         (sum_rl, sum_rh, real_product_lo, real_product_hi, q);
       [sum_il, sum_ih] = interval_add_row ...
         (sum_il, sum_ih, imag_product_lo, imag_product_hi, q);
     endfor
-    result.rl(i,:) = sum_rl;
-    result.rh(i,:) = sum_rh;
-    result.il(i,:) = sum_il;
-    result.ih(i,:) = sum_ih;
+    if (m == 1 && n == 1)
+      result.rl = sum_rl;
+      result.rh = sum_rh;
+      result.il = sum_il;
+      result.ih = sum_ih;
+    else
+      result.rl(i,:) = sum_rl;
+      result.rh(i,:) = sum_rh;
+      result.il(i,:) = sum_il;
+      result.ih(i,:) = sum_ih;
+    endif
   endfor
+endfunction
+
+function result = component (value, i, j)
+  if (isscalar (value))
+    result = value;
+  else
+    result = value(i,j);
+  endif
+endfunction
+
+function result = row_component (value, i)
+  if (isscalar (value))
+    result = value;
+  else
+    result = value(i,:);
+  endif
 endfunction
 
 function [lo, hi] = complex_product_real_row (arl, arh, ail, aih, ...

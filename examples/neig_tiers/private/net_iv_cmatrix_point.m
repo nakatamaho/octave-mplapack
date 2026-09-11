@@ -8,6 +8,14 @@ function result = net_iv_cmatrix_point (value, q)
   result = struct ("kind", "complex_matrix", ...
     "rl", mp (zeros (size (value))), "rh", mp (zeros (size (value))), ...
     "il", mp (zeros (size (value))), "ih", mp (zeros (size (value))));
+  if (isscalar (value))
+    box = net_iv_complex_point (value, q);
+    result.rl = box.rl;
+    result.rh = box.rh;
+    result.il = box.il;
+    result.ih = box.ih;
+    return;
+  endif
   for index = 1:numel (value)
     box = net_iv_complex_point (value(index), q);
     result.rl(index) = box.rl;

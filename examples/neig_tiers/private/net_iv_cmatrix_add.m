@@ -5,6 +5,15 @@ function result = net_iv_cmatrix_add (left, right, q)
     error ("mplapack:neigt:MatrixInterval", "incompatible interval matrices");
   endif
   result = left;
+  if (isscalar (left.rl))
+    box = net_iv_complex_add (entry_box_local (left, 1), ...
+                              entry_box_local (right, 1), q);
+    result.rl = box.rl;
+    result.rh = box.rh;
+    result.il = box.il;
+    result.ih = box.ih;
+    return;
+  endif
   for index = 1:numel (left.rl)
     box = net_iv_complex_add (entry_box_local (left, index), ...
                               entry_box_local (right, index), q);
@@ -22,6 +31,10 @@ function value = valid_matrix_local (matrix)
 endfunction
 
 function result = entry_box_local (matrix, index)
-  result = net_iv_complex (matrix.rl(index), matrix.rh(index), ...
-                           matrix.il(index), matrix.ih(index));
+  if (isscalar (matrix.rl))
+    result = net_iv_complex (matrix.rl, matrix.rh, matrix.il, matrix.ih);
+  else
+    result = net_iv_complex (matrix.rl(index), matrix.rh(index), ...
+                             matrix.il(index), matrix.ih(index));
+  endif
 endfunction

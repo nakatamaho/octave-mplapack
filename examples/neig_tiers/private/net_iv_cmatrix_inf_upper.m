@@ -24,6 +24,10 @@ function value = valid_matrix_norm (matrix)
 endfunction
 
 function result = entry_box_norm (matrix, i, j)
-  result = net_iv_complex (matrix.rl(i,j), matrix.rh(i,j), ...
-                           matrix.il(i,j), matrix.ih(i,j));
+  if (isscalar (matrix.rl))
+    result = net_iv_complex (matrix.rl, matrix.rh, matrix.il, matrix.ih);
+  else
+    result = net_iv_complex (matrix.rl(i,j), matrix.rh(i,j), ...
+                             matrix.il(i,j), matrix.ih(i,j));
+  endif
 endfunction

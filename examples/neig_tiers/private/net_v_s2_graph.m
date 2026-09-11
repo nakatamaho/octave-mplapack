@@ -288,8 +288,12 @@ function result = max_entry_modulus (matrix, q)
 endfunction
 
 function result = entry_box (matrix, index)
-  result = net_iv_complex (matrix.rl(index), matrix.rh(index), ...
-                           matrix.il(index), matrix.ih(index));
+  if (isscalar (matrix.rl))
+    result = net_iv_complex (matrix.rl, matrix.rh, matrix.il, matrix.ih);
+  else
+    result = net_iv_complex (matrix.rl(index), matrix.rh(index), ...
+                             matrix.il(index), matrix.ih(index));
+  endif
 endfunction
 
 function result = constant_rectangle (m, n, rl, rh, il, ih)
