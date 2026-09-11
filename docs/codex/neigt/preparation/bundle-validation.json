@@ -1,0 +1,77 @@
+{
+  "schema": "neigt-bundle-validation-v1",
+  "status": "PASS_BUNDLE_PREPARATION_ONLY",
+  "counts": {
+    "smoke": {
+      "cases": 20,
+      "measured_rows": 120,
+      "verification_jobs": 26
+    },
+    "demo": {
+      "cases": 21,
+      "measured_rows": 168,
+      "verification_jobs": 26
+    },
+    "stress": {
+      "cases": 8,
+      "measured_rows": 64
+    }
+  },
+  "milestones": 26,
+  "reduced_polynomial_gcd_checks": [
+    {
+      "n": 6,
+      "m": 3,
+      "degree": 2,
+      "square_free": true
+    },
+    {
+      "n": 12,
+      "m": 3,
+      "degree": 4,
+      "square_free": true
+    },
+    {
+      "n": 32,
+      "m": 3,
+      "degree": 11,
+      "square_free": true
+    },
+    {
+      "n": 64,
+      "m": 5,
+      "degree": 13,
+      "square_free": true
+    }
+  ],
+  "installer_tests": [
+    {
+      "arguments": [],
+      "returncode": 0
+    },
+    {
+      "arguments": [
+        "--apply"
+      ],
+      "returncode": 0
+    },
+    {
+      "arguments": [
+        "--apply"
+      ],
+      "returncode": 0
+    },
+    {
+      "arguments": [
+        "--apply"
+      ],
+      "returncode": 1
+    },
+    {
+      "case": "symlink_parent_rejection",
+      "returncode": 1
+    }
+  ],
+  "octave_executed": false,
+  "mplapack_executed": false
+}

@@ -1,0 +1,86 @@
+{
+  "graph_checks": {
+    "riccati_contraction_strict": true,
+    "riccati_self_map_strict": true,
+    "similarity_and_pencil_identities": true
+  },
+  "kind": "exact_rational_math_checks",
+  "markov_checks": [
+    {
+      "epsilon_exponent": 24,
+      "n": 8,
+      "row_stochastic_exactly": true,
+      "stationary_vector_nontrivial": true,
+      "strictly_positive": true
+    },
+    {
+      "epsilon_exponent": 80,
+      "n": 16,
+      "row_stochastic_exactly": true,
+      "stationary_vector_nontrivial": true,
+      "strictly_positive": true
+    }
+  ],
+  "mks_characteristic_evaluations": 168,
+  "mplapack_executed": false,
+  "octave_executed": false,
+  "oo_checks": [
+    {
+      "beta_gamma_theta_omega": "64",
+      "changed_entries": 8,
+      "exact_rational_matrix_sha256": "8b7aa86a78482202313daf120c9dd2ad193f474717f8226e9f89b988b8c22a13",
+      "generation_bits": 53,
+      "kind": "real",
+      "n": 8,
+      "sigma": "393216"
+    },
+    {
+      "beta_gamma_theta_omega": "64",
+      "changed_entries": 16,
+      "exact_rational_matrix_sha256": "6e1214a50b04e05f6c8c98157c61b0c96675789a8f69bfbcd20f43e3661a6a13",
+      "generation_bits": 53,
+      "kind": "pair",
+      "n": 8,
+      "sigma": "196608"
+    },
+    {
+      "beta_gamma_theta_omega": "64",
+      "changed_entries": 1,
+      "exact_rational_matrix_sha256": "60edd128663ad40a6df914393d6981bfe59604bf18a8fcbeaa3d92f2f1d5ba34",
+      "generation_bits": 128,
+      "kind": "close",
+      "n": 8,
+      "sigma": "98304"
+    },
+    {
+      "beta_gamma_theta_omega": "256",
+      "changed_entries": 16,
+      "exact_rational_matrix_sha256": "623c639547521ec295e4feb33f487448a158cfafad1600ab26859fc104e0450f",
+      "generation_bits": 53,
+      "kind": "real",
+      "n": 16,
+      "sigma": "3145728"
+    },
+    {
+      "beta_gamma_theta_omega": "256",
+      "changed_entries": 32,
+      "exact_rational_matrix_sha256": "920a19872914b5dc5b4eab9896746d20aec713054e902be54ef8f1e94e3d764d",
+      "generation_bits": 53,
+      "kind": "pair",
+      "n": 16,
+      "sigma": "3145728"
+    },
+    {
+      "beta_gamma_theta_omega": "256",
+      "changed_entries": 1,
+      "exact_rational_matrix_sha256": "265bf2e19de195163e6ec369ab0f57333593b844ababca60a3a04c6885338740",
+      "generation_bits": 128,
+      "kind": "close",
+      "n": 16,
+      "sigma": "1572864"
+    }
+  ],
+  "outward_primitive_checks": 11460,
+  "schema": "neigt-preparation-v1",
+  "status": "PASS_PREPARATION_ONLY"
+}

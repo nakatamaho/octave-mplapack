@@ -1,0 +1,520 @@
+{
+  "schema": "neigt-cases-v1",
+  "version": "1.0",
+  "prepared": "2026-09-10",
+  "standard_modes": [
+    "nobalance",
+    "balance"
+  ],
+  "outputs": 3,
+  "rules": {
+    "freeze_generation_model": true,
+    "round_model_once_per_component": true,
+    "require_exact_model_at_highest_smoke_demo_precision": true,
+    "permit_lower_precision_rounded_models": true,
+    "classify_any_native_underflow": true,
+    "stress_is_opt_in": true,
+    "lower_guard_rounding_note": "Do not falsely call a rounded work input exact. Stress SIM_SIMPLE, WILKINSON and MARKOV may be rounded at the lower work bits."
+  },
+  "profiles": {
+    "smoke": {
+      "cases": [
+        {
+          "id": "OO53_REAL",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "generation_bits": 53,
+            "standard_form": "real"
+          }
+        },
+        {
+          "id": "OO53_PAIR",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "generation_bits": 53,
+            "standard_form": "pair"
+          }
+        },
+        {
+          "id": "OO128_CLOSE",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "generation_bits": 128,
+            "standard_form": "close"
+          }
+        },
+        {
+          "id": "SIM_SIMPLE",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "gap_exponent": 24,
+            "regime": "simple",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "SIM_REPEAT",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "regime": "semisimple",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "SIM_JORDAN",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "regime": "jordan",
+            "kmax": 2
+          }
+        },
+        {
+          "id": "SIM_TWO_JORDAN",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "gap_exponent": 12,
+            "regime": "two_jordan",
+            "kmax": 2
+          }
+        },
+        {
+          "id": "TOEPLITZ",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "b": 4,
+            "representation": "original"
+          }
+        },
+        {
+          "id": "TOEPLITZ_SYM",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "b": 4,
+            "representation": "explicitly_symmetric"
+          }
+        },
+        {
+          "id": "FORSYTHE",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "a": 4,
+            "representation": "original",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "FORSYTHE_SCALED",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "a": 4,
+            "representation": "explicitly_scaled",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "FORSYTHE_ZERO",
+          "tier": "S",
+          "parameters": {
+            "n": 8,
+            "a": 4,
+            "representation": "zero_limit",
+            "kmax": 8
+          }
+        },
+        {
+          "id": "HAD_BIDIAG",
+          "tier": "A",
+          "parameters": {
+            "n": 8,
+            "s": 16
+          }
+        },
+        {
+          "id": "FRANK0",
+          "tier": "A",
+          "parameters": {
+            "n": 8,
+            "orientation": 0
+          }
+        },
+        {
+          "id": "FRANK1",
+          "tier": "A",
+          "parameters": {
+            "n": 8,
+            "orientation": 1
+          }
+        },
+        {
+          "id": "WILKINSON",
+          "tier": "A",
+          "parameters": {
+            "n": 10
+          }
+        },
+        {
+          "id": "GRCAR",
+          "tier": "A",
+          "parameters": {
+            "n": 12,
+            "upper_bandwidth": 3
+          }
+        },
+        {
+          "id": "MKS",
+          "tier": "A",
+          "parameters": {
+            "n": 12,
+            "m": 3,
+            "delta": "1/8",
+            "ell": 4,
+            "kmax": 4
+          }
+        },
+        {
+          "id": "MARKOV",
+          "tier": "A",
+          "parameters": {
+            "n": 8,
+            "epsilon_exponent": 24,
+            "representation": "stochastic"
+          }
+        },
+        {
+          "id": "PERRON_POS",
+          "tier": "A",
+          "parameters": {
+            "n": 8,
+            "epsilon_exponent": 24,
+            "representation": "positive_similarity",
+            "scale": "3/2"
+          }
+        }
+      ],
+      "native_baseline": true,
+      "work_bits": [
+        128,
+        256
+      ],
+      "reference_bits": [
+        512,
+        640
+      ],
+      "evaluation_bits": 768,
+      "expected_case_count": 20,
+      "expected_measured_eig_rows": 120,
+      "required_verification_profile": "smoke"
+    },
+    "demo": {
+      "cases": [
+        {
+          "id": "OO53_REAL",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "generation_bits": 53,
+            "standard_form": "real"
+          }
+        },
+        {
+          "id": "OO53_PAIR",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "generation_bits": 53,
+            "standard_form": "pair"
+          }
+        },
+        {
+          "id": "OO128_CLOSE",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "generation_bits": 128,
+            "standard_form": "close"
+          }
+        },
+        {
+          "id": "SIM_SIMPLE",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "gap_exponent": 80,
+            "regime": "simple",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "SIM_REPEAT",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "regime": "semisimple",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "SIM_JORDAN",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "regime": "jordan",
+            "kmax": 2
+          }
+        },
+        {
+          "id": "SIM_TWO_JORDAN",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "gap_exponent": 40,
+            "regime": "two_jordan",
+            "kmax": 2
+          }
+        },
+        {
+          "id": "TOEPLITZ",
+          "tier": "S",
+          "parameters": {
+            "n": 32,
+            "b": 4,
+            "representation": "original"
+          }
+        },
+        {
+          "id": "TOEPLITZ_SYM",
+          "tier": "S",
+          "parameters": {
+            "n": 32,
+            "b": 4,
+            "representation": "explicitly_symmetric"
+          }
+        },
+        {
+          "id": "FORSYTHE",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "a": 12,
+            "representation": "original",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "FORSYTHE_SCALED",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "a": 12,
+            "representation": "explicitly_scaled",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "FORSYTHE_ZERO",
+          "tier": "S",
+          "parameters": {
+            "n": 16,
+            "a": 12,
+            "representation": "zero_limit",
+            "kmax": 16
+          }
+        },
+        {
+          "id": "HAD_BIDIAG",
+          "tier": "A",
+          "parameters": {
+            "n": 16,
+            "s": 128
+          }
+        },
+        {
+          "id": "FRANK0",
+          "tier": "A",
+          "parameters": {
+            "n": 24,
+            "orientation": 0
+          }
+        },
+        {
+          "id": "FRANK1",
+          "tier": "A",
+          "parameters": {
+            "n": 24,
+            "orientation": 1
+          }
+        },
+        {
+          "id": "WILKINSON",
+          "tier": "A",
+          "parameters": {
+            "n": 20
+          }
+        },
+        {
+          "id": "GRCAR",
+          "tier": "A",
+          "parameters": {
+            "n": 24,
+            "upper_bandwidth": 3
+          }
+        },
+        {
+          "id": "MKS",
+          "tier": "A",
+          "parameters": {
+            "n": 32,
+            "m": 3,
+            "delta": "1/8",
+            "ell": 11,
+            "kmax": 11
+          }
+        },
+        {
+          "id": "MARKOV",
+          "tier": "A",
+          "parameters": {
+            "n": 16,
+            "epsilon_exponent": 80,
+            "representation": "stochastic"
+          }
+        },
+        {
+          "id": "PERRON_POS",
+          "tier": "A",
+          "parameters": {
+            "n": 16,
+            "epsilon_exponent": 80,
+            "representation": "positive_similarity",
+            "scale": "3/2"
+          }
+        },
+        {
+          "id": "HAD_COMPLEX",
+          "tier": "A",
+          "parameters": {
+            "n": 16,
+            "s": 128,
+            "phases": "quarter_turn_repeated"
+          }
+        }
+      ],
+      "native_baseline": true,
+      "work_bits": [
+        128,
+        256,
+        512
+      ],
+      "reference_bits": [
+        768,
+        896
+      ],
+      "evaluation_bits": 1024,
+      "expected_case_count": 21,
+      "expected_measured_eig_rows": 168,
+      "required_verification_profile": "demo"
+    },
+    "stress": {
+      "cases": [
+        {
+          "id": "OO53_REAL",
+          "tier": "S",
+          "parameters": {
+            "n": 32,
+            "generation_bits": 53,
+            "standard_form": "real"
+          }
+        },
+        {
+          "id": "SIM_SIMPLE",
+          "tier": "S",
+          "parameters": {
+            "n": 32,
+            "gap_exponent": 300,
+            "regime": "simple",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "TOEPLITZ",
+          "tier": "S",
+          "parameters": {
+            "n": 64,
+            "b": 4,
+            "representation": "original"
+          }
+        },
+        {
+          "id": "FORSYTHE",
+          "tier": "S",
+          "parameters": {
+            "n": 32,
+            "a": 40,
+            "representation": "original",
+            "kmax": 1
+          }
+        },
+        {
+          "id": "FRANK0",
+          "tier": "A",
+          "parameters": {
+            "n": 48,
+            "orientation": 0
+          }
+        },
+        {
+          "id": "WILKINSON",
+          "tier": "A",
+          "parameters": {
+            "n": 40
+          }
+        },
+        {
+          "id": "MKS",
+          "tier": "A",
+          "parameters": {
+            "n": 64,
+            "m": 5,
+            "delta": "1/8",
+            "ell": 13,
+            "kmax": 13
+          }
+        },
+        {
+          "id": "MARKOV",
+          "tier": "A",
+          "parameters": {
+            "n": 32,
+            "epsilon_exponent": 300,
+            "representation": "stochastic"
+          }
+        }
+      ],
+      "native_baseline": true,
+      "work_bits": [
+        256,
+        512,
+        1024
+      ],
+      "reference_bits": [
+        1536,
+        1664
+      ],
+      "evaluation_bits": 2048,
+      "expected_case_count": 8,
+      "expected_measured_eig_rows": 64,
+      "required_verification_profile": null
+    }
+  }
+}

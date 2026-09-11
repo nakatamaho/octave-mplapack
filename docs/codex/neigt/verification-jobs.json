@@ -1,0 +1,860 @@
+{
+  "schema": "neigt-verification-jobs-v1",
+  "version": "1.0",
+  "rules": {
+    "all_jobs_mandatory": true,
+    "checkers_cannot_trust_generator_roots": true,
+    "auxiliary_solves_counted_separately": true,
+    "no_stress_schedule": true,
+    "candidate_newton_steps_max": 4,
+    "contour_node_counts": [
+      16,
+      32,
+      64
+    ],
+    "completion_strategies_max": 2,
+    "radius_trials_max": 8
+  },
+  "profiles": {
+    "smoke": {
+      "source_bits": 256,
+      "reference_bits": [
+        512,
+        640
+      ],
+      "evaluation_bits": 768,
+      "expected_job_count": 26,
+      "jobs": [
+        {
+          "id": "VS1-01",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "OO53_REAL",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 256,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-02",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "OO53_PAIR",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 256,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-03",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "OO128_CLOSE",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 256,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-04",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "TOEPLITZ",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 256,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-05",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "HAD_BIDIAG",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 256,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-06",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "FRANK0",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 256,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-07",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "WILKINSON",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 256,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-08",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "GRCAR",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 256,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS2-01",
+          "tier": "V-S",
+          "kind": "cluster_graph",
+          "fixture": {
+            "n": 6,
+            "regime": "semisimple",
+            "query_center": "1",
+            "query_radius": "1/4"
+          },
+          "cluster_dimension": 2,
+          "candidate_source": "computed_subspace_bounded_schedule",
+          "expected": "CERTIFIED_CLUSTER",
+          "projector_required": true,
+          "full_space_triviality_allowed": false,
+          "centered_power_bound_required": false
+        },
+        {
+          "id": "VS2-02",
+          "tier": "V-S",
+          "kind": "cluster_graph",
+          "fixture": {
+            "n": 6,
+            "regime": "jordan",
+            "query_center": "1",
+            "query_radius": "1/4"
+          },
+          "cluster_dimension": 2,
+          "candidate_source": "computed_subspace_bounded_schedule",
+          "expected": "CERTIFIED_CLUSTER",
+          "projector_required": true,
+          "full_space_triviality_allowed": false,
+          "centered_power_bound_required": true
+        },
+        {
+          "id": "VS2-03",
+          "tier": "V-S",
+          "kind": "cluster_graph",
+          "fixture": {
+            "n": 8,
+            "regime": "two_jordan",
+            "gap_exponent": 12,
+            "query_center": "1+2^-13",
+            "query_radius": "1/4"
+          },
+          "cluster_dimension": 4,
+          "candidate_source": "computed_subspace_bounded_schedule",
+          "expected": "CERTIFIED_CLUSTER",
+          "projector_required": true,
+          "full_space_triviality_allowed": false,
+          "centered_power_bound_required": true
+        },
+        {
+          "id": "VS2-04",
+          "tier": "V-S",
+          "kind": "cluster_graph",
+          "fixture": {
+            "n": 6,
+            "regime": "mks_zero",
+            "m": 3,
+            "delta": "1/8",
+            "query_center": "0",
+            "query_radius": "1/8"
+          },
+          "cluster_dimension": 4,
+          "candidate_source": "computed_subspace_bounded_schedule",
+          "expected": "CERTIFIED_CLUSTER",
+          "projector_required": true,
+          "full_space_triviality_allowed": false,
+          "centered_power_bound_required": true
+        },
+        {
+          "id": "VS3-01",
+          "tier": "V-S",
+          "kind": "pseudospectrum_point",
+          "fixture": {
+            "family": "exact_similarity",
+            "n": 4,
+            "regime": "jordan"
+          },
+          "center": {
+            "real": "1",
+            "imag": "0"
+          },
+          "epsilon": "2^-12",
+          "expected": "CERTIFIED_INSIDE",
+          "target": "exact_expression_zI_minus_A",
+          "candidate_source": "svd_at_highest_work_bits"
+        },
+        {
+          "id": "VS3-02",
+          "tier": "V-S",
+          "kind": "pseudospectrum_point",
+          "fixture": {
+            "family": "grcar",
+            "n": 8,
+            "upper_bandwidth": 3
+          },
+          "center": {
+            "real": "16",
+            "imag": "16"
+          },
+          "epsilon": "2^-8",
+          "expected": "CERTIFIED_OUTSIDE",
+          "target": "exact_expression_zI_minus_A",
+          "candidate_source": "svd_at_highest_work_bits"
+        },
+        {
+          "id": "VS3-03",
+          "tier": "V-S",
+          "kind": "pseudospectrum_cell",
+          "fixture": {
+            "family": "exact_similarity",
+            "n": 4,
+            "regime": "jordan"
+          },
+          "center": {
+            "real": "1",
+            "imag": "0"
+          },
+          "epsilon": "2^-12",
+          "expected": "CERTIFIED_INSIDE",
+          "target": "exact_expression_zI_minus_A",
+          "candidate_source": "svd_at_highest_work_bits",
+          "halfwidths": {
+            "real": "2^-16",
+            "imag": "2^-16"
+          }
+        },
+        {
+          "id": "VS3-04",
+          "tier": "V-S",
+          "kind": "pseudospectrum_cell",
+          "fixture": {
+            "family": "grcar",
+            "n": 8,
+            "upper_bandwidth": 3
+          },
+          "center": {
+            "real": "16",
+            "imag": "16"
+          },
+          "epsilon": "2^-8",
+          "expected": "CERTIFIED_OUTSIDE",
+          "target": "exact_expression_zI_minus_A",
+          "candidate_source": "svd_at_highest_work_bits",
+          "halfwidths": {
+            "real": "1/8",
+            "imag": "1/8"
+          }
+        },
+        {
+          "id": "VA1-01",
+          "tier": "V-A",
+          "kind": "factor_boxes",
+          "fixture": {
+            "n": 4,
+            "regime": "real_simple"
+          },
+          "required_claims": [
+            "CERTIFIED_EIGENFACTORS",
+            "CERTIFIED_SCHUR_TRIANGULAR"
+          ],
+          "leading_invariant_dimension": null,
+          "candidate_source": "computed_eigen_or_cluster_data"
+        },
+        {
+          "id": "VA1-02",
+          "tier": "V-A",
+          "kind": "factor_boxes",
+          "fixture": {
+            "n": 4,
+            "regime": "complex_simple"
+          },
+          "required_claims": [
+            "CERTIFIED_EIGENFACTORS",
+            "CERTIFIED_SCHUR_TRIANGULAR"
+          ],
+          "leading_invariant_dimension": null,
+          "candidate_source": "computed_eigen_or_cluster_data"
+        },
+        {
+          "id": "VA1-03",
+          "tier": "V-A",
+          "kind": "factor_boxes",
+          "fixture": {
+            "n": 4,
+            "regime": "defective_block"
+          },
+          "required_claims": [
+            "CERTIFIED_CLUSTER",
+            "CERTIFIED_BLOCK_SCHUR"
+          ],
+          "leading_invariant_dimension": 2,
+          "candidate_source": "computed_eigen_or_cluster_data"
+        },
+        {
+          "id": "VA2-01",
+          "tier": "V-A",
+          "kind": "finite_pencil",
+          "fixture": {
+            "n": 6,
+            "regime": "real_simple",
+            "B_recipe": "I+N_with_coherent_phase_if_complex"
+          },
+          "candidate_source": "verified_solve_reduction",
+          "public_generalized_eig_required": false,
+          "required_claims": [
+            "CERTIFIED_ALL_FINITE"
+          ],
+          "leading_cluster_dimension": null
+        },
+        {
+          "id": "VA2-02",
+          "tier": "V-A",
+          "kind": "finite_pencil",
+          "fixture": {
+            "n": 6,
+            "regime": "complex_simple",
+            "B_recipe": "I+N_with_coherent_phase_if_complex"
+          },
+          "candidate_source": "verified_solve_reduction",
+          "public_generalized_eig_required": false,
+          "required_claims": [
+            "CERTIFIED_ALL_FINITE"
+          ],
+          "leading_cluster_dimension": null
+        },
+        {
+          "id": "VA2-03",
+          "tier": "V-A",
+          "kind": "finite_pencil",
+          "fixture": {
+            "n": 6,
+            "regime": "defective_cluster",
+            "B_recipe": "I+N_with_coherent_phase_if_complex"
+          },
+          "candidate_source": "verified_solve_reduction",
+          "public_generalized_eig_required": false,
+          "required_claims": [
+            "CERTIFIED_ALL_FINITE",
+            "CERTIFIED_CLUSTER"
+          ],
+          "leading_cluster_dimension": 2
+        },
+        {
+          "id": "VA3-01",
+          "tier": "V-A",
+          "kind": "perron_pair",
+          "fixture": {
+            "n": 8,
+            "epsilon_exponent": 24,
+            "representation": "stochastic",
+            "transpose": false,
+            "scale": "1"
+          },
+          "required_claims": [
+            "CERTIFIED_PERRON_ROOT",
+            "CERTIFIED_PERRON_PAIR"
+          ],
+          "normalization": "sum(x)=1",
+          "strict_component_positivity_required": true,
+          "candidate_source": "computed_normalized_positive_pair"
+        },
+        {
+          "id": "VA3-02",
+          "tier": "V-A",
+          "kind": "perron_pair",
+          "fixture": {
+            "n": 8,
+            "epsilon_exponent": 24,
+            "representation": "stochastic",
+            "transpose": true,
+            "scale": "1"
+          },
+          "required_claims": [
+            "CERTIFIED_PERRON_ROOT",
+            "CERTIFIED_PERRON_PAIR"
+          ],
+          "normalization": "sum(x)=1",
+          "strict_component_positivity_required": true,
+          "candidate_source": "computed_normalized_positive_pair"
+        },
+        {
+          "id": "VA3-03",
+          "tier": "V-A",
+          "kind": "perron_pair",
+          "fixture": {
+            "n": 8,
+            "epsilon_exponent": 24,
+            "representation": "positive_similarity",
+            "transpose": false,
+            "scale": "3/2"
+          },
+          "required_claims": [
+            "CERTIFIED_PERRON_ROOT",
+            "CERTIFIED_PERRON_PAIR"
+          ],
+          "normalization": "sum(x)=1",
+          "strict_component_positivity_required": true,
+          "candidate_source": "computed_normalized_positive_pair"
+        },
+        {
+          "id": "VA3-04",
+          "tier": "V-A",
+          "kind": "perron_pair",
+          "fixture": {
+            "n": 8,
+            "epsilon_exponent": 24,
+            "representation": "positive_similarity",
+            "transpose": true,
+            "scale": "3/2"
+          },
+          "required_claims": [
+            "CERTIFIED_PERRON_ROOT",
+            "CERTIFIED_PERRON_PAIR"
+          ],
+          "normalization": "sum(x)=1",
+          "strict_component_positivity_required": true,
+          "candidate_source": "computed_normalized_positive_pair"
+        }
+      ]
+    },
+    "demo": {
+      "source_bits": 512,
+      "reference_bits": [
+        768,
+        896
+      ],
+      "evaluation_bits": 1024,
+      "expected_job_count": 26,
+      "jobs": [
+        {
+          "id": "VS1-01",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "OO53_REAL",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 512,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-02",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "OO53_PAIR",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 512,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-03",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "OO128_CLOSE",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 512,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-04",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "TOEPLITZ",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 512,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-05",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "HAD_BIDIAG",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 512,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-06",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "FRANK0",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 512,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-07",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "WILKINSON",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 512,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS1-08",
+          "tier": "V-S",
+          "kind": "all_spectrum",
+          "core_case": "GRCAR",
+          "input_source": "highest_work_frozen_input",
+          "candidate_source": "raw_highest_work_nobalance_V_D",
+          "source_bits": 512,
+          "expected": "CERTIFIED_ALL",
+          "require_singletons": true
+        },
+        {
+          "id": "VS2-01",
+          "tier": "V-S",
+          "kind": "cluster_graph",
+          "fixture": {
+            "n": 6,
+            "regime": "semisimple",
+            "query_center": "1",
+            "query_radius": "1/4"
+          },
+          "cluster_dimension": 2,
+          "candidate_source": "computed_subspace_bounded_schedule",
+          "expected": "CERTIFIED_CLUSTER",
+          "projector_required": true,
+          "full_space_triviality_allowed": false,
+          "centered_power_bound_required": false
+        },
+        {
+          "id": "VS2-02",
+          "tier": "V-S",
+          "kind": "cluster_graph",
+          "fixture": {
+            "n": 6,
+            "regime": "jordan",
+            "query_center": "1",
+            "query_radius": "1/4"
+          },
+          "cluster_dimension": 2,
+          "candidate_source": "computed_subspace_bounded_schedule",
+          "expected": "CERTIFIED_CLUSTER",
+          "projector_required": true,
+          "full_space_triviality_allowed": false,
+          "centered_power_bound_required": true
+        },
+        {
+          "id": "VS2-03",
+          "tier": "V-S",
+          "kind": "cluster_graph",
+          "fixture": {
+            "n": 8,
+            "regime": "two_jordan",
+            "gap_exponent": 40,
+            "query_center": "1+2^-41",
+            "query_radius": "1/4"
+          },
+          "cluster_dimension": 4,
+          "candidate_source": "computed_subspace_bounded_schedule",
+          "expected": "CERTIFIED_CLUSTER",
+          "projector_required": true,
+          "full_space_triviality_allowed": false,
+          "centered_power_bound_required": true
+        },
+        {
+          "id": "VS2-04",
+          "tier": "V-S",
+          "kind": "cluster_graph",
+          "fixture": {
+            "n": 6,
+            "regime": "mks_zero",
+            "m": 3,
+            "delta": "1/8",
+            "query_center": "0",
+            "query_radius": "1/8"
+          },
+          "cluster_dimension": 4,
+          "candidate_source": "computed_subspace_bounded_schedule",
+          "expected": "CERTIFIED_CLUSTER",
+          "projector_required": true,
+          "full_space_triviality_allowed": false,
+          "centered_power_bound_required": true
+        },
+        {
+          "id": "VS3-01",
+          "tier": "V-S",
+          "kind": "pseudospectrum_point",
+          "fixture": {
+            "family": "exact_similarity",
+            "n": 4,
+            "regime": "jordan"
+          },
+          "center": {
+            "real": "1",
+            "imag": "0"
+          },
+          "epsilon": "2^-12",
+          "expected": "CERTIFIED_INSIDE",
+          "target": "exact_expression_zI_minus_A",
+          "candidate_source": "svd_at_highest_work_bits"
+        },
+        {
+          "id": "VS3-02",
+          "tier": "V-S",
+          "kind": "pseudospectrum_point",
+          "fixture": {
+            "family": "grcar",
+            "n": 8,
+            "upper_bandwidth": 3
+          },
+          "center": {
+            "real": "16",
+            "imag": "16"
+          },
+          "epsilon": "2^-8",
+          "expected": "CERTIFIED_OUTSIDE",
+          "target": "exact_expression_zI_minus_A",
+          "candidate_source": "svd_at_highest_work_bits"
+        },
+        {
+          "id": "VS3-03",
+          "tier": "V-S",
+          "kind": "pseudospectrum_cell",
+          "fixture": {
+            "family": "exact_similarity",
+            "n": 4,
+            "regime": "jordan"
+          },
+          "center": {
+            "real": "1",
+            "imag": "0"
+          },
+          "epsilon": "2^-12",
+          "expected": "CERTIFIED_INSIDE",
+          "target": "exact_expression_zI_minus_A",
+          "candidate_source": "svd_at_highest_work_bits",
+          "halfwidths": {
+            "real": "2^-16",
+            "imag": "2^-16"
+          }
+        },
+        {
+          "id": "VS3-04",
+          "tier": "V-S",
+          "kind": "pseudospectrum_cell",
+          "fixture": {
+            "family": "grcar",
+            "n": 8,
+            "upper_bandwidth": 3
+          },
+          "center": {
+            "real": "16",
+            "imag": "16"
+          },
+          "epsilon": "2^-8",
+          "expected": "CERTIFIED_OUTSIDE",
+          "target": "exact_expression_zI_minus_A",
+          "candidate_source": "svd_at_highest_work_bits",
+          "halfwidths": {
+            "real": "1/8",
+            "imag": "1/8"
+          }
+        },
+        {
+          "id": "VA1-01",
+          "tier": "V-A",
+          "kind": "factor_boxes",
+          "fixture": {
+            "n": 4,
+            "regime": "real_simple"
+          },
+          "required_claims": [
+            "CERTIFIED_EIGENFACTORS",
+            "CERTIFIED_SCHUR_TRIANGULAR"
+          ],
+          "leading_invariant_dimension": null,
+          "candidate_source": "computed_eigen_or_cluster_data"
+        },
+        {
+          "id": "VA1-02",
+          "tier": "V-A",
+          "kind": "factor_boxes",
+          "fixture": {
+            "n": 4,
+            "regime": "complex_simple"
+          },
+          "required_claims": [
+            "CERTIFIED_EIGENFACTORS",
+            "CERTIFIED_SCHUR_TRIANGULAR"
+          ],
+          "leading_invariant_dimension": null,
+          "candidate_source": "computed_eigen_or_cluster_data"
+        },
+        {
+          "id": "VA1-03",
+          "tier": "V-A",
+          "kind": "factor_boxes",
+          "fixture": {
+            "n": 4,
+            "regime": "defective_block"
+          },
+          "required_claims": [
+            "CERTIFIED_CLUSTER",
+            "CERTIFIED_BLOCK_SCHUR"
+          ],
+          "leading_invariant_dimension": 2,
+          "candidate_source": "computed_eigen_or_cluster_data"
+        },
+        {
+          "id": "VA2-01",
+          "tier": "V-A",
+          "kind": "finite_pencil",
+          "fixture": {
+            "n": 6,
+            "regime": "real_simple",
+            "B_recipe": "I+N_with_coherent_phase_if_complex"
+          },
+          "candidate_source": "verified_solve_reduction",
+          "public_generalized_eig_required": false,
+          "required_claims": [
+            "CERTIFIED_ALL_FINITE"
+          ],
+          "leading_cluster_dimension": null
+        },
+        {
+          "id": "VA2-02",
+          "tier": "V-A",
+          "kind": "finite_pencil",
+          "fixture": {
+            "n": 6,
+            "regime": "complex_simple",
+            "B_recipe": "I+N_with_coherent_phase_if_complex"
+          },
+          "candidate_source": "verified_solve_reduction",
+          "public_generalized_eig_required": false,
+          "required_claims": [
+            "CERTIFIED_ALL_FINITE"
+          ],
+          "leading_cluster_dimension": null
+        },
+        {
+          "id": "VA2-03",
+          "tier": "V-A",
+          "kind": "finite_pencil",
+          "fixture": {
+            "n": 6,
+            "regime": "defective_cluster",
+            "B_recipe": "I+N_with_coherent_phase_if_complex"
+          },
+          "candidate_source": "verified_solve_reduction",
+          "public_generalized_eig_required": false,
+          "required_claims": [
+            "CERTIFIED_ALL_FINITE",
+            "CERTIFIED_CLUSTER"
+          ],
+          "leading_cluster_dimension": 2
+        },
+        {
+          "id": "VA3-01",
+          "tier": "V-A",
+          "kind": "perron_pair",
+          "fixture": {
+            "n": 8,
+            "epsilon_exponent": 40,
+            "representation": "stochastic",
+            "transpose": false,
+            "scale": "1"
+          },
+          "required_claims": [
+            "CERTIFIED_PERRON_ROOT",
+            "CERTIFIED_PERRON_PAIR"
+          ],
+          "normalization": "sum(x)=1",
+          "strict_component_positivity_required": true,
+          "candidate_source": "computed_normalized_positive_pair"
+        },
+        {
+          "id": "VA3-02",
+          "tier": "V-A",
+          "kind": "perron_pair",
+          "fixture": {
+            "n": 8,
+            "epsilon_exponent": 40,
+            "representation": "stochastic",
+            "transpose": true,
+            "scale": "1"
+          },
+          "required_claims": [
+            "CERTIFIED_PERRON_ROOT",
+            "CERTIFIED_PERRON_PAIR"
+          ],
+          "normalization": "sum(x)=1",
+          "strict_component_positivity_required": true,
+          "candidate_source": "computed_normalized_positive_pair"
+        },
+        {
+          "id": "VA3-03",
+          "tier": "V-A",
+          "kind": "perron_pair",
+          "fixture": {
+            "n": 8,
+            "epsilon_exponent": 40,
+            "representation": "positive_similarity",
+            "transpose": false,
+            "scale": "3/2"
+          },
+          "required_claims": [
+            "CERTIFIED_PERRON_ROOT",
+            "CERTIFIED_PERRON_PAIR"
+          ],
+          "normalization": "sum(x)=1",
+          "strict_component_positivity_required": true,
+          "candidate_source": "computed_normalized_positive_pair"
+        },
+        {
+          "id": "VA3-04",
+          "tier": "V-A",
+          "kind": "perron_pair",
+          "fixture": {
+            "n": 8,
+            "epsilon_exponent": 40,
+            "representation": "positive_similarity",
+            "transpose": true,
+            "scale": "3/2"
+          },
+          "required_claims": [
+            "CERTIFIED_PERRON_ROOT",
+            "CERTIFIED_PERRON_PAIR"
+          ],
+          "normalization": "sum(x)=1",
+          "strict_component_positivity_required": true,
+          "candidate_source": "computed_normalized_positive_pair"
+        }
+      ]
+    }
+  }
+}

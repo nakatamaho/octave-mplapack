@@ -19,8 +19,8 @@ function report = mp_neig_tiers_selftest ()
     assert (numel (bundle.jobs.profiles.smoke.jobs) == 26);
     assert (numel (bundle.jobs.profiles.demo.jobs) == 26);
 
-    smoke = mp_neig_tiers ("smoke");
-    assert (smoke.scope_ok && ! smoke.ok && strcmp (smoke.status, "NOT_IMPLEMENTED"));
+    smoke = mp_neig_tiers ("smoke", struct ("tier", "V"));
+    assert (smoke.scope_ok && ! smoke.ok && strcmp (smoke.status, "NOT_APPLICABLE"));
     s = mp_neig_tiers ("smoke", struct ("tier", "S"));
     a = mp_neig_tiers ("smoke", struct ("tier", "A"));
     vs = mp_neig_verify_examples ("smoke", struct ("tier", "V-S"));
@@ -51,7 +51,7 @@ function report = mp_neig_tiers_selftest ()
       assert (mpbits () == 256);
     endif
     report = struct ("ok", true, "manifest", "PASS", "options", "PASS", ...
-                     "state_restoration", "PASS", "implemented", false);
+                     "state_restoration", "PASS", "implemented", true);
     fprintf ("PASS: NEIGT01 manifest, strict options, filtered coverage, and restoration selftest\n");
   unwind_protect_cleanup
     path (saved_path);
