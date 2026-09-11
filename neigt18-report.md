@@ -129,7 +129,7 @@ source implementation outside the NEIGT verification/example tree changed.
 
 Branch: `topic/neigt-tier-sav-examples`
 Starting commit: `689aea6c010369fb31a3851d3d40c49148fe5c62` (NEIGT17 report state)
-Final implementation commit: to be recorded after commit
+Final implementation commit: `f799487ec3f8512dee35d3ec69ed2427117c7abc`.
 Gate: PASS
 V-A1 simple portions: PASS, 2/2
 V-A1 defective individual claim: correctly refused; block Schur deferred to NEIGT19
