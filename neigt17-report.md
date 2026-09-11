@@ -136,7 +136,7 @@ or dependency was changed in that correction.
 
 Branch: `topic/neigt-tier-sav-examples`
 Starting commit: `5c2cf2aee8099f005a3bc710cf3ce53eb2015896` (NEIGT16 report state)
-Final implementation commit: to be recorded after commit
+Final implementation commit: `5d96d905eb6b07ffb953257991251a8e2ec257e5`.
 Gate: PASS
 V-S integration: PASS, 16/16
 NEIGT15/16 regression: PASS
