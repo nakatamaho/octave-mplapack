@@ -98,7 +98,7 @@ NOT_RUN.  Push, merge, tag, and publication: NOT_PERFORMED.
 
 Branch: `topic/neigt-tier-sav-examples`
 Starting commit: `423ab12` (NEIGT20 report-record state)
-Final implementation commit: pending report-record commit
+Final implementation commit: `69a10a6`
 Gate: PASS
 VA3: PASS, 4/4
 V-A integration: PASS, complete 10/10 jobs
