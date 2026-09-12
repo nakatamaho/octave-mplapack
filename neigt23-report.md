@@ -144,7 +144,9 @@ Branch: `topic/neigt-tier-sav-examples`
 
 Starting commit: `dea9d5c61d1443c65f78586f689c33c84340cdfb`
 
-Final commit: to be recorded by the NEIGT23 report-record commit.
+Final implementation commit: `d9a1553`.
+
+The final report-record commit is recorded after this report-only update.
 
 Files changed:
 
