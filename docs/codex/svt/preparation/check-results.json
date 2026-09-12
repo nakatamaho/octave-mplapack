@@ -1,0 +1,372 @@
+{
+  "status": "PASS",
+  "scope": "Exact Python mathematical preparation checks only",
+  "octave_executed": false,
+  "backend_rounding_contract_audited": false,
+  "paper_algorithm_reproduction": false,
+  "profile_counts": {
+    "smoke": {
+      "cases": 20,
+      "svd_rows": 120
+    },
+    "demo": {
+      "cases": 23,
+      "svd_rows": 184
+    },
+    "stress": {
+      "cases": 7,
+      "svd_rows": 56
+    }
+  },
+  "guard_checks": [
+    {
+      "profile": "smoke",
+      "case": "S1-NRO-TWO",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "S1-NRO-THREE",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "S1-NRO-GRADED",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "S2-JS",
+      "guard": 34,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "S3-LAH",
+      "guard": 27,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "S4-DD-SYM",
+      "guard": 34,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "S4-DD-NONSYM",
+      "guard": 34,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A1-PASCAL-LOWER",
+      "guard": 10,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A1-PASCAL-SYM",
+      "guard": 18,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A2-VAND",
+      "guard": 23,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A3-BDI-RAW",
+      "guard": 32,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A3-BDI-MIXED",
+      "guard": 32,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A4-LAU-TALL",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A4-LAU-WIDE",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A5-GEO",
+      "guard": 33,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A5-CLOSE",
+      "guard": 40,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A5-REPEAT",
+      "guard": 12,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A5-RANK4",
+      "guard": 12,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A5-RANK5",
+      "guard": 40,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "smoke",
+      "case": "A6-NRO-COMPANION",
+      "guard": 8,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "S1-NRO-TWO",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "S1-NRO-THREE",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "S1-NRO-GRADED",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "S2-JS",
+      "guard": 95,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "S3-LAH",
+      "guard": 91,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "S4-DD-SYM",
+      "guard": 162,
+      "intentional_below_guard_bits": [
+        128
+      ]
+    },
+    {
+      "profile": "demo",
+      "case": "S4-DD-NONSYM",
+      "guard": 162,
+      "intentional_below_guard_bits": [
+        128
+      ]
+    },
+    {
+      "profile": "demo",
+      "case": "A1-PASCAL-LOWER",
+      "guard": 26,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A1-PASCAL-SYM",
+      "guard": 50,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A2-VAND",
+      "guard": 62,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A3-BDI-RAW",
+      "guard": 124,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A3-BDI-MIXED",
+      "guard": 124,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A4-LAU-TALL",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A4-LAU-WIDE",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A5-GEO",
+      "guard": 126,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A5-CLOSE",
+      "guard": 108,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A5-REPEAT",
+      "guard": 12,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A5-RANK4",
+      "guard": 12,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A5-RANK5",
+      "guard": 108,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A6-NRO-COMPANION",
+      "guard": 12,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "A4-LAU-COMPLEX",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "S1-NRO-SCALE-UP",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "demo",
+      "case": "S1-NRO-SCALE-DOWN",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "stress",
+      "case": "ST-NRO",
+      "guard": 2,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "stress",
+      "case": "ST-JS",
+      "guard": 248,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "stress",
+      "case": "ST-LAH",
+      "guard": 163,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "stress",
+      "case": "ST-DD",
+      "guard": 602,
+      "intentional_below_guard_bits": [
+        256,
+        512
+      ]
+    },
+    {
+      "profile": "stress",
+      "case": "ST-VAND",
+      "guard": 157,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "stress",
+      "case": "ST-BDI",
+      "guard": 252,
+      "intentional_below_guard_bits": []
+    },
+    {
+      "profile": "stress",
+      "case": "ST-COMPANION",
+      "guard": 12,
+      "intentional_below_guard_bits": []
+    }
+  ],
+  "integer_bit_lengths": [
+    {
+      "n": 8,
+      "js_max_integer_bits": 16,
+      "lah_max_integer_bits": 18,
+      "pascal_symmetric_max_integer_bits": 12
+    },
+    {
+      "n": 16,
+      "js_max_integer_bits": 52,
+      "lah_max_integer_bits": 49,
+      "pascal_symmetric_max_integer_bits": 28
+    },
+    {
+      "n": 20,
+      "js_max_integer_bits": 74,
+      "lah_max_integer_bits": 67,
+      "pascal_symmetric_max_integer_bits": 36
+    },
+    {
+      "n": 24,
+      "js_max_integer_bits": 98,
+      "lah_max_integer_bits": 86,
+      "pascal_symmetric_max_integer_bits": 43
+    },
+    {
+      "n": 32,
+      "js_max_integer_bits": 150,
+      "lah_max_integer_bits": 126,
+      "pascal_symmetric_max_integer_bits": 59
+    }
+  ],
+  "nro_native_input_exact": true,
+  "published_inverse_identity_exact": true,
+  "dd_tau_loss_and_rank_checks": true,
+  "geometric_demo_actual_significand_bits": 121,
+  "toy_rn_enclosure_checks": 5184,
+  "notes": [
+    "Rational/integer identities are exact.",
+    "Toy RN checks corroborate the algebra; the general proof remains in VERIFICATION.md.",
+    "No tests here demonstrate actual Octave execution or library rounding behavior."
+  ]
+}

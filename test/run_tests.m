@@ -79,6 +79,8 @@ assert (test (fullfile (test_dir, "det_inv.tst"), "quiet", stdout));
 fprintf ("PASS: N01 determinant and inverse tests\n");
 assert (test (fullfile (test_dir, "svd.tst"), "quiet", stdout));
 fprintf ("PASS: N02 SVD tests\n");
+run (fullfile (test_dir, "test_svd_tiers.m"));
+run (fullfile (test_dir, "test_svd_verification.m"));
 assert (test (fullfile (test_dir, "rank_condition.tst"), "quiet", stdout));
 fprintf ("PASS: N03 rank and condition tests\n");
 assert (test (fullfile (test_dir, "eig_structured.tst"), "quiet", stdout));

@@ -53,7 +53,10 @@ for example in examples/01_scalar_precision.m \
               examples/14_neig_tier_s.m \
               examples/15_neig_tier_a.m \
               examples/16_neig_verified_vs.m \
-              examples/17_neig_verified_va.m; do
+              examples/17_neig_verified_va.m \
+              examples/14_svd_tier_s.m \
+              examples/15_svd_tier_a.m \
+              examples/16_svd_verified.m; do
   [[ -f "$example" ]] || { echo "ERROR: missing example: $example" >&2; exit 1; }
   echo "RUN: $example"
   run_octave --eval "$package_load run ('$repo_root/$example');"

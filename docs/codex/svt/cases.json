@@ -1,0 +1,561 @@
+{
+  "schema": "svt-case-manifest-v1",
+  "prepared": "2026-09-10",
+  "notes": [
+    "Parameters are suite selections, not claimed published experiment outcomes.",
+    "Only below-guard DD rows intentionally materialize a rounded recipe.",
+    "Measured SVD row counts exclude references, inverse solves, verification jobs and shape tests."
+  ],
+  "profiles": {
+    "smoke": {
+      "work_bits": [
+        128,
+        256
+      ],
+      "native": true,
+      "modes": [
+        "values",
+        "econ"
+      ],
+      "cases": [
+        {
+          "id": "S1-NRO-TWO",
+          "tier": "S",
+          "family": "nro_block",
+          "parameters": {
+            "m": 4,
+            "mode": "two",
+            "b": 12
+          }
+        },
+        {
+          "id": "S1-NRO-THREE",
+          "tier": "S",
+          "family": "nro_block",
+          "parameters": {
+            "m": 4,
+            "mode": "three",
+            "b": 12
+          }
+        },
+        {
+          "id": "S1-NRO-GRADED",
+          "tier": "S",
+          "family": "nro_block",
+          "parameters": {
+            "m": 4,
+            "mode": "graded",
+            "g": 4
+          }
+        },
+        {
+          "id": "S2-JS",
+          "tier": "S",
+          "family": "jacobi_stirling",
+          "parameters": {
+            "n": 8,
+            "z": 1
+          }
+        },
+        {
+          "id": "S3-LAH",
+          "tier": "S",
+          "family": "lah",
+          "parameters": {
+            "n": 8
+          }
+        },
+        {
+          "id": "S4-DD-SYM",
+          "tier": "S",
+          "family": "dd_path",
+          "parameters": {
+            "n": 8,
+            "b": 32,
+            "rho_num": 1,
+            "rho_den": 1,
+            "allow_below_guard": true
+          }
+        },
+        {
+          "id": "S4-DD-NONSYM",
+          "tier": "S",
+          "family": "dd_path",
+          "parameters": {
+            "n": 8,
+            "b": 32,
+            "rho_num": 1,
+            "rho_den": 2,
+            "allow_below_guard": true
+          }
+        },
+        {
+          "id": "A1-PASCAL-LOWER",
+          "tier": "A",
+          "family": "pascal",
+          "parameters": {
+            "n": 8,
+            "representation": "lower"
+          }
+        },
+        {
+          "id": "A1-PASCAL-SYM",
+          "tier": "A",
+          "family": "pascal",
+          "parameters": {
+            "n": 8,
+            "representation": "symmetric"
+          }
+        },
+        {
+          "id": "A2-VAND",
+          "tier": "A",
+          "family": "vandermonde",
+          "parameters": {
+            "n": 8,
+            "node_den_bits": 4
+          }
+        },
+        {
+          "id": "A3-BDI-RAW",
+          "tier": "A",
+          "family": "bidiagonal",
+          "parameters": {
+            "n": 8,
+            "a": 4,
+            "representation": "raw"
+          }
+        },
+        {
+          "id": "A3-BDI-MIXED",
+          "tier": "A",
+          "family": "bidiagonal",
+          "parameters": {
+            "n": 8,
+            "a": 4,
+            "representation": "mixed"
+          }
+        },
+        {
+          "id": "A4-LAU-TALL",
+          "tier": "A",
+          "family": "lauchli",
+          "parameters": {
+            "n": 4,
+            "b": 20,
+            "representation": "tall"
+          }
+        },
+        {
+          "id": "A4-LAU-WIDE",
+          "tier": "A",
+          "family": "lauchli",
+          "parameters": {
+            "n": 4,
+            "b": 20,
+            "representation": "wide"
+          }
+        },
+        {
+          "id": "A5-GEO",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 8,
+            "mode": "geometric",
+            "a": 4
+          }
+        },
+        {
+          "id": "A5-CLOSE",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 8,
+            "mode": "close",
+            "b": 32
+          }
+        },
+        {
+          "id": "A5-REPEAT",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 8,
+            "mode": "repeat"
+          }
+        },
+        {
+          "id": "A5-RANK4",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 8,
+            "mode": "rank4"
+          }
+        },
+        {
+          "id": "A5-RANK5",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 8,
+            "mode": "rank5",
+            "b": 32
+          }
+        },
+        {
+          "id": "A6-NRO-COMPANION",
+          "tier": "A",
+          "family": "nro_companion",
+          "parameters": {
+            "n": 8,
+            "nu": 16
+          }
+        }
+      ],
+      "expected_svd_rows": 120,
+      "reference_bits": [
+        512,
+        640
+      ],
+      "evaluation_bits": 768
+    },
+    "demo": {
+      "work_bits": [
+        128,
+        256,
+        512
+      ],
+      "native": true,
+      "modes": [
+        "values",
+        "econ"
+      ],
+      "cases": [
+        {
+          "id": "S1-NRO-TWO",
+          "tier": "S",
+          "family": "nro_block",
+          "parameters": {
+            "m": 16,
+            "mode": "two",
+            "b": 40
+          }
+        },
+        {
+          "id": "S1-NRO-THREE",
+          "tier": "S",
+          "family": "nro_block",
+          "parameters": {
+            "m": 16,
+            "mode": "three",
+            "b": 40
+          }
+        },
+        {
+          "id": "S1-NRO-GRADED",
+          "tier": "S",
+          "family": "nro_block",
+          "parameters": {
+            "m": 16,
+            "mode": "graded",
+            "g": 3
+          }
+        },
+        {
+          "id": "S2-JS",
+          "tier": "S",
+          "family": "jacobi_stirling",
+          "parameters": {
+            "n": 16,
+            "z": 1
+          }
+        },
+        {
+          "id": "S3-LAH",
+          "tier": "S",
+          "family": "lah",
+          "parameters": {
+            "n": 20
+          }
+        },
+        {
+          "id": "S4-DD-SYM",
+          "tier": "S",
+          "family": "dd_path",
+          "parameters": {
+            "n": 24,
+            "b": 160,
+            "rho_num": 1,
+            "rho_den": 1,
+            "allow_below_guard": true
+          }
+        },
+        {
+          "id": "S4-DD-NONSYM",
+          "tier": "S",
+          "family": "dd_path",
+          "parameters": {
+            "n": 24,
+            "b": 160,
+            "rho_num": 1,
+            "rho_den": 2,
+            "allow_below_guard": true
+          }
+        },
+        {
+          "id": "A1-PASCAL-LOWER",
+          "tier": "A",
+          "family": "pascal",
+          "parameters": {
+            "n": 24,
+            "representation": "lower"
+          }
+        },
+        {
+          "id": "A1-PASCAL-SYM",
+          "tier": "A",
+          "family": "pascal",
+          "parameters": {
+            "n": 24,
+            "representation": "symmetric"
+          }
+        },
+        {
+          "id": "A2-VAND",
+          "tier": "A",
+          "family": "vandermonde",
+          "parameters": {
+            "n": 16,
+            "node_den_bits": 5
+          }
+        },
+        {
+          "id": "A3-BDI-RAW",
+          "tier": "A",
+          "family": "bidiagonal",
+          "parameters": {
+            "n": 16,
+            "a": 8,
+            "representation": "raw"
+          }
+        },
+        {
+          "id": "A3-BDI-MIXED",
+          "tier": "A",
+          "family": "bidiagonal",
+          "parameters": {
+            "n": 16,
+            "a": 8,
+            "representation": "mixed"
+          }
+        },
+        {
+          "id": "A4-LAU-TALL",
+          "tier": "A",
+          "family": "lauchli",
+          "parameters": {
+            "n": 8,
+            "b": 100,
+            "representation": "tall"
+          }
+        },
+        {
+          "id": "A4-LAU-WIDE",
+          "tier": "A",
+          "family": "lauchli",
+          "parameters": {
+            "n": 8,
+            "b": 100,
+            "representation": "wide"
+          }
+        },
+        {
+          "id": "A5-GEO",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 16,
+            "mode": "geometric",
+            "a": 8
+          }
+        },
+        {
+          "id": "A5-CLOSE",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 8,
+            "mode": "close",
+            "b": 100
+          }
+        },
+        {
+          "id": "A5-REPEAT",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 8,
+            "mode": "repeat"
+          }
+        },
+        {
+          "id": "A5-RANK4",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 8,
+            "mode": "rank4"
+          }
+        },
+        {
+          "id": "A5-RANK5",
+          "tier": "A",
+          "family": "hadamard_spectrum",
+          "parameters": {
+            "n": 8,
+            "mode": "rank5",
+            "b": 100
+          }
+        },
+        {
+          "id": "A6-NRO-COMPANION",
+          "tier": "A",
+          "family": "nro_companion",
+          "parameters": {
+            "n": 16,
+            "nu": 256
+          }
+        },
+        {
+          "id": "A4-LAU-COMPLEX",
+          "tier": "A",
+          "family": "lauchli",
+          "parameters": {
+            "n": 8,
+            "b": 100,
+            "representation": "tall",
+            "quarter_turn_phases": true
+          }
+        },
+        {
+          "id": "S1-NRO-SCALE-UP",
+          "tier": "S",
+          "family": "nro_block",
+          "parameters": {
+            "m": 16,
+            "mode": "two",
+            "b": 40,
+            "scale_bits": 600
+          }
+        },
+        {
+          "id": "S1-NRO-SCALE-DOWN",
+          "tier": "S",
+          "family": "nro_block",
+          "parameters": {
+            "m": 16,
+            "mode": "two",
+            "b": 40,
+            "scale_bits": -600
+          }
+        }
+      ],
+      "expected_svd_rows": 184,
+      "reference_bits": [
+        768,
+        896
+      ],
+      "evaluation_bits": 1024
+    },
+    "stress": {
+      "work_bits": [
+        256,
+        512,
+        1024
+      ],
+      "native": true,
+      "modes": [
+        "values",
+        "econ"
+      ],
+      "cases": [
+        {
+          "id": "ST-NRO",
+          "tier": "S",
+          "family": "nro_block",
+          "parameters": {
+            "m": 16,
+            "mode": "two",
+            "b": 300
+          }
+        },
+        {
+          "id": "ST-JS",
+          "tier": "S",
+          "family": "jacobi_stirling",
+          "parameters": {
+            "n": 32,
+            "z": 1
+          }
+        },
+        {
+          "id": "ST-LAH",
+          "tier": "S",
+          "family": "lah",
+          "parameters": {
+            "n": 32
+          }
+        },
+        {
+          "id": "ST-DD",
+          "tier": "S",
+          "family": "dd_path",
+          "parameters": {
+            "n": 32,
+            "b": 600,
+            "rho_num": 1,
+            "rho_den": 2,
+            "allow_below_guard": true
+          }
+        },
+        {
+          "id": "ST-VAND",
+          "tier": "A",
+          "family": "vandermonde",
+          "parameters": {
+            "n": 32,
+            "node_den_bits": 6
+          }
+        },
+        {
+          "id": "ST-BDI",
+          "tier": "A",
+          "family": "bidiagonal",
+          "parameters": {
+            "n": 32,
+            "a": 8,
+            "representation": "mixed"
+          }
+        },
+        {
+          "id": "ST-COMPANION",
+          "tier": "A",
+          "family": "nro_companion",
+          "parameters": {
+            "n": 32,
+            "nu": 256
+          }
+        }
+      ],
+      "expected_svd_rows": 56,
+      "reference_bits": [
+        1536,
+        1664
+      ],
+      "evaluation_bits": 2048,
+      "opt_in": true
+    }
+  }
+}
