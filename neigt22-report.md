@@ -180,7 +180,8 @@ Branch: `topic/neigt-tier-sav-examples`
 
 Starting commit: `139ed7f186899600ca7ccc2f52ccb9b47b2f34a2`
 
-Final commit: to be recorded by the NEIGT22 report-record commit.
+Final commit: `cbcc3b317a1203c03cbb6391f2376fbe69666d0b` (implementation and
+report commit; the subsequent report-record commit records this SHA).
 
 Files changed:
 
