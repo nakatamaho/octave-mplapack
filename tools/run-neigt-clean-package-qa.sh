@@ -15,6 +15,7 @@ pkg_arch_prefix="$work_root/octave-arch"
 pkg_db="$work_root/octave_packages"
 source_checkout="$work_root/source-checkout"
 source_extract="$work_root/source-extract"
+proof_dir="$work_root/replayable-proof"
 mkdir -p "$qa_home" "$pkg_prefix" "$pkg_arch_prefix" \
          "$source_checkout" "$source_extract"
 trap 'rm -rf "$work_root"' EXIT
@@ -47,6 +48,7 @@ export NEIGT25_PKG_PREFIX="$pkg_prefix"
 export NEIGT25_PKG_ARCH_PREFIX="$pkg_arch_prefix"
 export NEIGT25_REPO_ROOT="$repo_root"
 export NEIGT25_SOURCE_ROOT="$source_root"
+export NEIGT25_PROOF_DIR="$proof_dir"
 
 export PKG_CONFIG_PATH="$mplapack_libdir/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 export LD_LIBRARY_PATH="$mplapack_libdir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
@@ -135,14 +137,18 @@ run_octave '
   pkg ("load", "mplapack-interop");
   A = mp ([1, 2; 3, 4]);
   b = mp ([1; 2]);
-  x = A \\ b;
+  x = A \ b;
   assert (norm (double (A * x - b)) < 1e-12);
   Z = mp ([1+2i, 2-1i; 3, 4+3i]);
   zb = mp ([1; 2i]);
-  z = Z \\ zb;
+  z = Z \ zb;
   assert (norm (double (Z * z - zb)) < 1e-12);
   assert (! isempty (strtrim (evalc ("help mp_neig_tiers"))));
   fprintf ("PASS: isolated package real/complex/help smoke\n");
+  bundle = mp_neig_write_outputs ("smoke", getenv ("NEIGT25_PROOF_DIR"), ...
+                                  struct ("tier", "all", "plot", false));
+  assert (bundle.replay.ok);
+  fprintf ("Replayable proof: %s\n", bundle.output.proof);
   pkg ("unload", "mplapack-interop");
   pkg ("uninstall", "-nodeps", "mplapack-interop");
 '
@@ -150,8 +156,11 @@ run_octave '
 run_octave '
   assert (isempty (which ("mp")));
   assert (isempty (which ("mpbits")));
-  assert (isempty (which ("mp_neig_tiers")));
-  fprintf ("PASS: isolated uninstall removes package paths\n");
+  helper_path = which ("mp_neig_tiers");
+  assert (! isempty (helper_path));
+  assert (strncmp (helper_path, getenv ("NEIGT25_SOURCE_ROOT"), ...
+                  length (getenv ("NEIGT25_SOURCE_ROOT"))));
+  fprintf ("PASS: isolated uninstall removes package paths; extracted helper remains\n");
 '
 
 install_package
@@ -161,15 +170,24 @@ run_octave '
   pkg ("prefix", getenv ("NEIGT25_PKG_PREFIX"), getenv ("NEIGT25_PKG_ARCH_PREFIX"));
   pkg ("load", "mplapack-interop");
   A = mp ([2, 1; 1, 3]);
-  assert (norm (double (A * (A \\ mp ([1; 2])) - mp ([1; 2]))) < 1e-12);
+  assert (norm (double (A * (A \ mp ([1; 2])) - mp ([1; 2]))) < 1e-12);
   Z = mp ([2+1i, 1; 1, 3-1i]);
-  assert (norm (double (Z * (Z \\ mp ([1; 2i])) - mp ([1; 2i]))) < 1e-12);
+  assert (norm (double (Z * (Z \ mp ([1; 2i])) - mp ([1; 2i]))) < 1e-12);
   fprintf ("PASS: isolated reinstall second real/complex smoke\n");
 '
 
 echo "PASS: NEIGT25 isolated clean-package QA"
 echo "Source revision: $(git rev-parse HEAD)"
 echo "Source archive: $package_dir.tar.gz"
+echo "Source archive size: $(stat -c '%s' "$archive")"
+echo "Source archive SHA256: $(sha256sum "$archive" | awk '{print $1}')"
 echo "MPLAPACK: $mplapack_version ($mplapack_prefix)"
 echo "Package prefix: $pkg_prefix"
 echo "Example source: $source_root"
+echo "Replayable proof: $proof_dir/proof-vs1-01.json"
+
+if [[ -n "${NEIGT25_ARTIFACT_DIR:-}" ]]; then
+  mkdir -p "$NEIGT25_ARTIFACT_DIR"
+  cp -a "$proof_dir" "$NEIGT25_ARTIFACT_DIR/"
+  echo "Exported proof artifacts: $NEIGT25_ARTIFACT_DIR/replayable-proof"
+fi
