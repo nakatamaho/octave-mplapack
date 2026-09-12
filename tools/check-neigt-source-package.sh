@@ -57,6 +57,7 @@ expected=(
   "docs/doxygen/mainpage.dox"
   "tools/test-doc-examples.sh"
   "tools/check-neigt-source-package.sh"
+  "tools/run-neigt-clean-package-qa.sh"
 )
 for path_name in "${expected[@]}"; do
   grep -Eq "^${package_dir}/${path_name}(\	|$)" "$listing" || {
