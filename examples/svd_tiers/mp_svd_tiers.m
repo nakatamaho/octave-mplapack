@@ -9,7 +9,8 @@ function results = mp_svd_tiers (profile, options)
   ## This facade owns option validation, manifest accounting, precision cleanup,
   ## and result-directory safety. Numerical constructors and verifiers are
   ## private example helpers; the public package API is not changed by this
-  ## example suite.
+  ## example suite. `options.case_id` optionally selects one manifest case for
+  ## a short worked example; the unfiltered profile remains the QA wall.
   ## @end deftypefn
 
   if (nargin < 1 || nargin > 2)
@@ -37,7 +38,7 @@ function results = mp_svd_tiers (profile, options)
   endif
 
   fields = fieldnames (options);
-  allowed = {"tier", "output_dir", "plot"};
+  allowed = {"tier", "output_dir", "plot", "case_id"};
   for index = 1:numel (fields)
     if (! any (strcmp (fields{index}, allowed)))
       error ("mplapack:svt:InvalidOptions", ...
@@ -88,13 +89,32 @@ function results = mp_svd_tiers (profile, options)
       error ("mplapack:svt:InvalidPlotOption", "plot must be a logical scalar");
     endif
   endif
+  case_id = "";
+  if (isfield (options, "case_id"))
+    if ((! ischar (options.case_id) && ! isstring (options.case_id)) ...
+        || (ischar (options.case_id) && rows (options.case_id) != 1) ...
+        || (isstring (options.case_id) && numel (options.case_id) != 1))
+      error ("mplapack:svt:InvalidCase", ...
+             "case_id must be a character vector or string scalar");
+    endif
+    case_id = char (options.case_id);
+  endif
 
   manifest = svt_load_manifest ();
   profile_data = svt_manifest_profile (manifest, profile);
+  manifest_case_count = numel (profile_data.cases);
   if (strcmp (tier, "all"))
     selected_cases = profile_data.cases;
   else
     selected_cases = profile_data.cases(strcmp ({profile_data.cases.tier}, tier));
+  endif
+  if (! isempty (case_id))
+    selected_cases = selected_cases(strcmp ({selected_cases.id}, case_id));
+    if (isempty (selected_cases))
+      error ("mplapack:svt:UnknownCase", ...
+             "case_id %s is not in the selected profile/tier", case_id);
+    endif
+    profile_data.cases = selected_cases;
   endif
 
   saved_bits = mpbits ();
@@ -103,7 +123,7 @@ function results = mp_svd_tiers (profile, options)
   results.output_dir = output_dir;
   results.manifest_schema = manifest.schema;
   results.case_count = numel (selected_cases);
-  results.manifest_case_count = numel (profile_data.cases);
+  results.manifest_case_count = manifest_case_count;
   results.cases = selected_cases;
   results.v_jobs = struct ("count", results.v_job_count, ...
                            "status", ternary_status (results.v_job_count > 0));

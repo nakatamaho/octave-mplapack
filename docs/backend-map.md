@@ -72,6 +72,9 @@ ordinary rows call the existing general `eig` path; the verification layer
 uses the existing MPFR/MPC `mp` arithmetic, `svd`, `qr`, and solve interfaces
 plus example-local outward interval/checker helpers. It does not introduce a
 new package-level backend or route real-only work through a complex kernel.
+The short one-case examples are listed in `docs/examples/tiered/README.md` and
+use the same `mp_neig_tiers`/`mp_svd_tiers` runners; they introduce no backend
+or installed API.
 
 | NEIGT surface | Existing public numerical source | Certificate boundary |
 |---|---|---|

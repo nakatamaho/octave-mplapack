@@ -18,6 +18,8 @@ required=(
   docs/doxygen/mainpage.dox
   tools/build-docs.sh
   tools/test-doc-examples.sh
+  docs/examples/tiered/README.md
+  docs/examples/tiered/MIGRATION.md
 )
 for path in "${required[@]}"; do
   if [[ ! -f "$path" ]]; then
@@ -27,6 +29,75 @@ for path in "${required[@]}"; do
 done
 
 manual=doc/mplapack-interop.texi
+tiered_root=docs/examples/tiered
+families="neig-tier-s neig-tier-a svd-tier-s svd-tier-a"
+for family in $families; do
+  family_readme="$tiered_root/$family/README.md"
+  if [[ ! -f "$family_readme" ]]; then
+    echo "FAIL: missing tiered family README: $family_readme" >&2
+    fail=1
+    continue
+  fi
+  while IFS= read -r example; do
+    stem=$(basename "$example" .m)
+    detail="$tiered_root/$family/$stem.md"
+    if [[ ! -f "$detail" ]]; then
+      echo "FAIL: split example has no matching detail document: $example" >&2
+      fail=1
+      continue
+    fi
+    count=$(find "$tiered_root/$family" -maxdepth 1 -type f -name "$stem.md" | wc -l)
+    if [[ "$count" -ne 1 ]]; then
+      echo "FAIL: expected exactly one detail document for $example, got $count" >&2
+      fail=1
+    fi
+    if ! grep -Fq "$example" "$detail"; then
+      echo "FAIL: detail document does not name its example: $detail" >&2
+      fail=1
+    fi
+    if ! grep -Fq "$stem.m" "$family_readme" || ! grep -Fq "$stem.md" "$family_readme"; then
+      echo "FAIL: family README omits split case: $example" >&2
+      fail=1
+    fi
+  done < <(find examples/tiered/"$family" -maxdepth 1 -type f -name '*.m' | LC_ALL=C sort)
+  while IFS= read -r detail; do
+    detail_example=$(grep -o 'examples/[A-Za-z0-9_./-]*\.m' "$detail" | head -1 || true)
+    if [[ -z "$detail_example" ]] || [[ ! -f "$detail_example" ]]; then
+      echo "FAIL: detail document has no existing corresponding example: $detail" >&2
+      fail=1
+    fi
+  done < <(find "$tiered_root/$family" -maxdepth 1 -type f -name '*.md' ! -name README.md | LC_ALL=C sort)
+done
+
+for family in $families; do
+  if ! grep -Fq "$family/README.md" "$tiered_root/README.md"; then
+    echo "FAIL: master tiered README omits family: $family" >&2
+    fail=1
+  fi
+done
+if ! grep -Fq '@section Tiered worked examples' "$manual" \
+   || ! grep -Fq 'docs/examples/tiered/README.md' "$manual"; then
+  echo "FAIL: manual does not point to the tiered worked-example section" >&2
+  fail=1
+fi
+
+# The four historical entry points remain indexes. Every split case must be
+# reachable from its original tier file, while the full runners retain QA.
+for family in $families; do
+  case "$family" in
+    neig-tier-s) index_file=examples/14_neig_tier_s.m ;;
+    neig-tier-a) index_file=examples/15_neig_tier_a.m ;;
+    svd-tier-s) index_file=examples/14_svd_tier_s.m ;;
+    svd-tier-a) index_file=examples/15_svd_tier_a.m ;;
+  esac
+  while IFS= read -r example; do
+    if ! grep -Fq "$example" "$index_file"; then
+      echo "FAIL: historical index omits split example: $example" >&2
+      fail=1
+    fi
+  done < <(find examples/tiered/"$family" -maxdepth 1 -type f -name '*.m' | LC_ALL=C sort)
+done
+
 inventory=docs/public-api-inventory.md
 
 for chapter in \

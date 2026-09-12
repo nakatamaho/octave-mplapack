@@ -70,6 +70,9 @@ The smoke profile contains 120 measured eig rows and the demo profile 168;
 each also contains 26 verification jobs. Stress is opt-in and does not count
 toward mandatory coverage. The complete manifest and theorem preconditions
 are in `docs/codex/neigt/ACCEPTANCE.md` and `docs/codex/neigt/CASES.md`.
+The pedagogical one-case files and their detailed explanations are indexed by
+`docs/examples/tiered/README.md`; they select existing manifest cases and do
+not replace the counted profile or V verification surfaces.
 
 ## Boundary and deferred surface
 

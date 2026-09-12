@@ -23,8 +23,14 @@ if [[ -z "$octave_bin" && -x "$repo_root/tools/dev-octave.sh" ]]; then
 fi
 if [[ -z "$octave_bin" && -x /home/docker/opt/octave-mplapack-stack/bin/octave-mplapack ]]; then
   octave_bin=/home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
+  stack_root=$(CDPATH= cd "$(dirname "$octave_bin")/.." && pwd)
+  package_load="pkg ('local_list', '$stack_root/octave_packages'); pkg load mplapack-interop;"
 fi
 octave_bin="${octave_bin:-octave}"
+if [[ "$octave_bin" == */octave-mplapack ]]; then
+  stack_root=$(CDPATH= cd "$(dirname "$octave_bin")/.." && pwd)
+  package_load="pkg ('local_list', '$stack_root/octave_packages'); pkg load mplapack-interop;"
+fi
 command -v "${octave_bin##*/}" >/dev/null 2>&1 || [[ -x "$octave_bin" ]] || {
   echo "ERROR: Octave executable not found: $octave_bin" >&2
   exit 1
@@ -52,8 +58,6 @@ for example in examples/01_scalar_precision.m \
               examples/13_nonsymmetric_eig_suite.m \
               examples/14_neig_tier_s.m \
               examples/15_neig_tier_a.m \
-              examples/16_neig_verified_vs.m \
-              examples/17_neig_verified_va.m \
               examples/14_svd_tier_s.m \
               examples/15_svd_tier_a.m \
               examples/16_svd_verified.m; do
@@ -61,6 +65,26 @@ for example in examples/01_scalar_precision.m \
   echo "RUN: $example"
   run_octave --eval "$package_load run ('$repo_root/$example');"
 done
+
+if [[ "${EXDOC01_SKIP_HEAVY_VERIFICATION:-0}" != "1" ]]; then
+  for example in examples/16_neig_verified_vs.m examples/17_neig_verified_va.m; do
+    [[ -f "$example" ]] || { echo "ERROR: missing example: $example" >&2; exit 1; }
+    echo "RUN: $example"
+    run_octave --eval "$package_load run ('$repo_root/$example');"
+  done
+else
+  echo "SKIP: NEIGT V-S/V-A heavy verification (EXDOC01_SKIP_HEAVY_VERIFICATION=1)"
+fi
+
+# EXDOC01 split examples are intentionally executed one file at a time. Each
+# selects one manifest case through the existing full runner, so this wall
+# checks the pedagogical entry points without replacing the counted profile
+# regression tests.
+while IFS= read -r example; do
+  [[ -f "$example" ]] || { echo "ERROR: missing split example: $example" >&2; exit 1; }
+  echo "RUN: $example"
+  run_octave --eval "$package_load run ('$repo_root/$example');"
+done < <(find examples/tiered -type f -name '*.m' | LC_ALL=C sort)
 
 help_list=(mp mpbits mpdigits mplapack_version \
   fminbnd fminsearch fsolve fzero integral interp1 interp2 mprand mprng \

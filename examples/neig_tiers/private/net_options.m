@@ -8,7 +8,8 @@ function options = net_options (profile, supplied)
     error ("mplapack:neigt:Options", ...
            "profile must be smoke, demo, or stress");
   endif
-  defaults = struct ("tier", "all", "output_dir", "", "plot", false);
+  defaults = struct ("tier", "all", "output_dir", "", "plot", false,
+                     "case_id", "");
   if (nargin == 1 || isempty (supplied))
     supplied = struct ();
   endif
@@ -42,5 +43,9 @@ function options = net_options (profile, supplied)
   if (! islogical (options.plot) || ! isscalar (options.plot))
     error ("mplapack:neigt:Options", "plot must be a logical scalar");
   endif
+  if (! (ischar (options.case_id) || isstring (options.case_id)))
+    error ("mplapack:neigt:Options", "case_id must be a character value");
+  endif
+  options.case_id = char (options.case_id);
   options.profile = profile;
 endfunction

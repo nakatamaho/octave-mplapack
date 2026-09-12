@@ -5,6 +5,8 @@
 ## @var{profile} is @code{"smoke"} or @code{"demo"}; @var{options.tier}
 ## selects @code{"S"}, @code{"A"}, or @code{"all"}.  The measured rows use
 ## the existing public @code{mp}, @code{mpbits}, and @code{eig} interfaces.
+## @var{options.case_id} optionally selects exactly one manifest case; this is
+## used by the short case examples and does not change profile coverage.
 ## MP rows keep their exact model, frozen input, work precision, and returned
 ## eigentriples distinct; native rows are explicit binary64 controls.  An
 ## @code{"all"} result reports @code{NUMERICS_ONLY_COMPLETE} until verification
@@ -31,6 +33,13 @@ function result = mp_neig_tiers (profile, options)
     bundle = net_manifest ();
     profile_data = bundle.cases.profiles.(opts.profile);
     selected = select_cases (profile_data.cases, opts.tier);
+    if (! isempty (opts.case_id))
+      selected = selected(strcmp ({selected.id}, opts.case_id));
+      if (isempty (selected))
+        error ("mplapack:neigt:UnknownCase", ...
+               "case_id %s is not in the selected profile/tier", opts.case_id);
+      endif
+    endif
     expected_rows = 2 * numel (selected) * (numel (profile_data.work_bits) + 1);
     if (any (strcmp (opts.tier, {"V-S", "V-A", "V"})))
       selected = selected([]);

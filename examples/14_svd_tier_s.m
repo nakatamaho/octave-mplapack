@@ -1,34 +1,71 @@
-% Small reproducible Tier S SVD example.
+% SVT Tier-S case index.
 %
-% The NRO two-level block is dense, integer-valued, and deliberately more
-% informative than a diagonal example.  The full 23-case measurement is
-% available with: mp_svd_tiers ("demo", struct ("tier", "S", ...)).
+% This short numbered entry point preserves the historical family entry.
+% It lists one runnable example per manifest case. The full measured wall is
+% run by mp_svd_tiers ("smoke"/"demo") and by the repository test suite.
+%
+% Question: Which singular-value cases belong to Tier-S, and where is the
+% detailed interpretation for each one?
+% Steps: inspect the list, then run any matching .m file directly.
+% Matching documentation: docs/examples/tiered/README.md
+
 if (exist ("mpbits", "file") != 2)
   pkg load mplapack-interop
 endif
-
 example_root = fileparts (mfilename ("fullpath"));
-private_root = fullfile (example_root, "svd_tiers", "private");
-addpath (private_root);
-cleanup_path = onCleanup (@() rmpath (private_root));
+suite_root = fullfile (example_root, "svd_tiers");
+addpath (suite_root);
+cleanup_path = onCleanup (@() rmpath (suite_root));
 
-saved_bits = mpbits ();
-cleanup_precision = onCleanup (@() mpbits (saved_bits));
-mpbits (256);
+repo_root = fileparts (fileparts (mfilename ("fullpath")));
+case_ids = {
+  "S1-NRO-TWO"; ...
+  "S1-NRO-THREE"; ...
+  "S1-NRO-GRADED"; ...
+  "S1-NRO-SCALE-UP"; ...
+  "S1-NRO-SCALE-DOWN"; ...
+  "S2-JS"; ...
+  "S3-LAH"; ...
+  "S4-DD-SYM"; ...
+  "S4-DD-NONSYM"
+};
+case_examples = {
+  "examples/tiered/svd-tier-s/nro_two.m"; ...
+  "examples/tiered/svd-tier-s/nro_three.m"; ...
+  "examples/tiered/svd-tier-s/nro_graded.m"; ...
+  "examples/tiered/svd-tier-s/nro_scale_up.m"; ...
+  "examples/tiered/svd-tier-s/nro_scale_down.m"; ...
+  "examples/tiered/svd-tier-s/jacobi_stirling.m"; ...
+  "examples/tiered/svd-tier-s/lah.m"; ...
+  "examples/tiered/svd-tier-s/dd_sym.m"; ...
+  "examples/tiered/svd-tier-s/dd_nonsym.m"
+};
+case_docs = {
+  "docs/examples/tiered/svd-tier-s/nro_two.md"; ...
+  "docs/examples/tiered/svd-tier-s/nro_three.md"; ...
+  "docs/examples/tiered/svd-tier-s/nro_graded.md"; ...
+  "docs/examples/tiered/svd-tier-s/nro_scale_up.md"; ...
+  "docs/examples/tiered/svd-tier-s/nro_scale_down.md"; ...
+  "docs/examples/tiered/svd-tier-s/jacobi_stirling.md"; ...
+  "docs/examples/tiered/svd-tier-s/lah.md"; ...
+  "docs/examples/tiered/svd-tier-s/dd_sym.md"; ...
+  "docs/examples/tiered/svd-tier-s/dd_nonsym.md"
+};
 
-identity = mp (eye (2));
-block = mp ({"1", "2"; "3", "4"});
-zero = mp (zeros (2, 2));
-A = [identity, block; zero, identity];
-[U, S, V] = svd (A, "econ");
-residual = norm (A - U * S * V', "fro") / norm (A, "fro");
+assert (numel (case_ids) == numel (case_examples));
+assert (numel (case_ids) == numel (case_docs));
+for index = 1:numel (case_ids)
+  assert (exist (fullfile (repo_root, case_examples{index}), "file") == 2);
+  assert (exist (fullfile (repo_root, case_docs{index}), "file") == 2);
+  fprintf ("%s\t%s\t%s\n", case_ids{index}, case_examples{index}, case_docs{index});
+endfor
+fprintf ("SVT Tier-S index: %d cases.\n", numel (case_ids));
 
-assert (residual < mp ("1e-60"));
-assert (all (diag (S) >= mp (0)));
-fprintf ("Tier S NRO SVD PASS: size=%dx%d, mpbits=%d\n", ...
-         rows (A), columns (A), mpbits ());
-fprintf ("  reconstruction residual = %s\n", char (residual));
-disp (diag (S));
-
-clear cleanup_precision;
+% Preserve the historical full-profile aggregator contract. The split files
+% above are the teaching surface; this call remains the counted regression.
+result = mp_svd_tiers ("smoke", struct ("tier", "S", "plot", false));
+assert (result.scope_ok);
+assert (strcmp (result.status, "PASS"));
+fprintf ("SVT Tier-S smoke PASS: %d measured rows.\n", ...
+         result.measured_svd_rows);
 clear cleanup_path;

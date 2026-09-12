@@ -173,6 +173,19 @@ For a durable result bundle, use a new output directory:
 
 The writer refuses an existing output path. It records measured rows, environment/provenance, a schema-versioned exact MP proof record, and a report. Replay verifies the content hash, decodes the recorded MP values at the stored precision, and reruns the recorded certificate without calling `eig` or reconstructing an ideal matrix. Plotting, when requested, is display-only; it cannot alter numerical rows or proof status. The detailed manifests, preconditions, limitations, and source attribution are in `docs/codex/neigt/NEIGT-LUNA-XHIGH.md` and `docs/codex/neigt/ACCEPTANCE.md`.
 
+### Tiered worked examples
+
+The difficult NEIGT and SVD fixtures have one short runnable example and one matching explanation per conceptual case. The master index is `docs/examples/tiered/README.md`; its four family pages are `docs/examples/tiered/neig-tier-s/README.md`, `docs/examples/tiered/neig-tier-a/README.md`, `docs/examples/tiered/svd-tier-s/README.md`, and `docs/examples/tiered/svd-tier-a/README.md`.
+
+The short files select one case from the existing manifest and call the existing public `mp_neig_tiers` or `mp_svd_tiers` runner with its `case_id`. For example:
+
+    run examples/tiered/neig-tier-s/sim_simple.m
+    run examples/tiered/svd-tier-a/hadamard_rank5.m
+
+The detailed Markdown files explain the matrix formula, provenance, intended difficulty, residual and conditioning diagnostics, precision behavior, and common interpretation mistakes. Tier S and Tier A are project-specific QA labels defined by the existing manifests; they are not universal numerical classifications. Repeated or defective eigenspaces and repeated singular subspaces must be interpreted as subspaces, not as canonical individual vectors. Complex cases use the conjugate-transpose convention.
+
+The historical numbered entry points remain deterministic family indexes: `examples/14_neig_tier_s.m`, `examples/15_neig_tier_a.m`, `examples/14_svd_tier_s.m`, and `examples/15_svd_tier_a.m`. They do not replace the complete measured profile walls. Those walls remain in `examples/neig_tiers/` and `examples/svd_tiers/`, and the migration map is `docs/examples/tiered/MIGRATION.md`.
+
 ### Generalized eigenproblems
 
 The generalized interface solves the pencil `A - lambda*B`:
@@ -241,11 +254,11 @@ Run the complete profile from a configured checkout as follows:
       "output_dir", fullfile (pwd (), "svt-demo"), "plot", false));
     assert (demo.ok);
 
-Three short top-level examples provide a small starting point:
+The numbered top-level files are family indexes and full smoke aggregators; the one-case worked examples are listed in `docs/examples/tiered/README.md`:
 
-- `examples/14_svd_tier_s.m` runs a dense NRO two-level block.
+- `examples/14_svd_tier_s.m` lists and runs the Tier-S smoke family.
 
-- `examples/15_svd_tier_a.m` runs a rectangular dyadic-node Vandermonde matrix.
+- `examples/15_svd_tier_a.m` lists and runs the Tier-A smoke family.
 
 - `examples/16_svd_verified.m` certifies singular values and an inverse using the Tier V baselines.
 

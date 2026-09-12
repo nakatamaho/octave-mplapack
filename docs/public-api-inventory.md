@@ -23,6 +23,8 @@ These names are intentionally not package-level `inst/` APIs. They are
 documented, runnable entry points for the NEIGT source-package QA harness and
 are included in the source archive together with their private helpers and
 JSON manifests.
+The one-case worked-example decomposition is indexed by
+`docs/examples/tiered/README.md`; it adds no package-level `inst/` entry.
 
 | Name | Kind | Status | Contract/example |
 |---|---|---|---|

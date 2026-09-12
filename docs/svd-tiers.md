@@ -39,17 +39,18 @@ demo profile contains 23 cases and exactly 184 measured rows. References,
 inverse solves, and V jobs are reported separately from these SVD rows. Stress
 is opt-in and is not part of the default acceptance wall.
 
-The three short top-level examples are:
+The numbered top-level files are family indexes and full smoke aggregators;
+the one-case worked examples are:
 
 ```text
-examples/14_svd_tier_s.m    small dense NRO two-level block
-examples/15_svd_tier_a.m    rectangular dyadic-node Vandermonde matrix
+examples/14_svd_tier_s.m    Tier-S case index plus full smoke aggregator
+examples/15_svd_tier_a.m    Tier-A case index plus full smoke aggregator
 examples/16_svd_verified.m  V1 singular-value and V3 inverse certificates
 ```
 
-Each has a small default problem that runs without an output directory. The
-full profile commands above are the authoritative way to obtain all rows and
-verification jobs.
+The one-case runnable files and matching detailed explanations are indexed by
+`docs/examples/tiered/README.md`. The full profile commands above remain the
+authoritative way to obtain all measured rows and verification jobs.
 
 ## Precision and input identity
 
