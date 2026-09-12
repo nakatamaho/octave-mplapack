@@ -92,7 +92,7 @@ help_list=(mp mpbits mpdigits mplapack_version \
   @mp/qr @mp/svd @mp/schur @mp/qz @mp/saveobj @mp/loadobj)
 for name in "${help_list[@]}"; do
   echo "HELP: $name"
-  output=$(run_octave --eval "txt = evalc ('help $name'); assert (! isempty (strtrim (txt)));" 2>&1) || {
+  output=$(run_octave --eval "$package_load txt = evalc ('help $name'); assert (! isempty (strtrim (txt)));" 2>&1) || {
     echo "$output" >&2
     echo "ERROR: help lookup failed: $name" >&2
     exit 1
