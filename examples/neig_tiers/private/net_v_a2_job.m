@@ -115,11 +115,20 @@ function result = net_v_a2_job (job, profile_data, profile)
         graph = [];
         cluster = [];
         selected_X = [];
+        newton_attempts = cell (0, 1);
         % Both bounded candidate strategies are candidate-only.  The proof
         % below decides which, if either, has a separated complement.
         for strategy = 1:min (2, numel (preparation.candidates))
           X_try = net_widen (preparation.candidates{strategy}, q, bits);
-          graph_try = net_v_s2_graph (C0, X_try, ...
+          newton = candidate_newton_for_basis (C0, X_try, ...
+            job.leading_cluster_dimension, q);
+          newton_attempts{end + 1} = newton;
+          corrected_X = X_try;
+          if (newton.success)
+            corrected_X = transform_basis (X_try, newton.final_Z, ...
+                                           job.leading_cluster_dimension, q);
+          endif
+          graph_try = net_v_s2_graph (C0, corrected_X, ...
             job.leading_cluster_dimension, q, struct ("A_box", C_box));
           if (graph_try.pass && graph_try.nontrivial)
             % VA2 uses a fixed 2^-16 cluster-radius target.  This is a
@@ -129,20 +138,22 @@ function result = net_v_a2_job (job, profile_data, profile)
               "query_radius", "1/4"), "cluster_dimension", ...
               job.leading_cluster_dimension, "cluster_radius_target_exponent", ...
               job.cluster_radius_target_exponent);
-            cluster_try = net_v_s2_cluster (graph_try, X_try, mp (1), ...
+            cluster_try = net_v_s2_cluster (graph_try, corrected_X, mp (1), ...
                                             cluster_job, profile, q);
           else
             cluster_try = [];
           endif
           graph = graph_try;
           cluster = cluster_try;
-          selected_X = X_try;
+          selected_X = corrected_X;
           if (! isempty (cluster_try) && cluster_try.pass)
             break;
           endif
         endfor
         result.graph = graph;
         result.cluster = cluster;
+        result.cluster_newton_attempts = newton_attempts;
+        result.selected_cluster_candidate = selected_X;
         if (graph.pass && graph.nontrivial && isstruct (cluster) ...
             && cluster.pass)
           Y1 = graph.Y1_box;
@@ -191,6 +202,34 @@ function result = net_v_a2_job (job, profile_data, profile)
   unwind_protect_cleanup
     mpbits (saved_bits);
   end_unwind_protect
+endfunction
+
+function result = candidate_newton_for_basis (A, X, k, q)
+  result = struct ("method", "neigt_candidate_graph_newton_v1", ...
+    "candidate_only", true, "success", false, "status", "NOT_RUN", ...
+    "initial_Z", [], "final_Z", [], "steps", struct ([]), ...
+    "steps_used", 0);
+  try
+    C0 = X \ (A * X);
+    h = rows (A) - k;
+    Z0 = -(C0((k + 1):rows(A), (k + 1):rows(A)) \ ...
+           C0((k + 1):rows(A), 1:k));
+    result = net_v_s2_newton (C0, k, Z0, q);
+  catch exception
+    result.status = "FAILED_PREPARATION";
+    result.error_identifier = exception.identifier;
+    result.error_message = exception.message;
+  end_try_catch
+endfunction
+
+function result = transform_basis (X, Z, k, q)
+  n = rows (X);
+  h = n - k;
+  transform = mp (zeros (n, n));
+  transform(1:k, 1:k) = mp (eye (k));
+  transform((k + 1):n, 1:k) = Z;
+  transform((k + 1):n, (k + 1):n) = mp (eye (h));
+  result = X * transform;
 endfunction
 
 function result = status_template (job, profile_data)

@@ -78,12 +78,29 @@ function result = net_v_s2_cluster (graph, X, center, job, profile, q)
                                                  "two_jordan") ...
                                       || strcmp (char (job.fixture.regime), ...
                                                  "mks_zero");
+    result.merged_polynomial = [];
+    result.spectral_region_method = "centered_power";
+    cluster_target = cluster_radius_target (job, profile, q);
 
     % A power disk contains every M eigenvalue.  For the complement use the
     % union of its interval Gershgorin disks, which is safe even when D2 is
     % nonnormal.  The selected query radius is only a quality target; it is
     % never used as a proof of the spectrum.
     region_radius = power_radius;
+    if (strcmp (char (job.fixture.regime), "two_jordan"))
+      % A centered raw power is deliberately retained above.  For two
+      % distinct size-two defective groups it can be dominated by the
+      % nilpotent term (M-cI)^16 even when the spectrum is much tighter.
+      % The following independently proves a sharper disk from a polynomial
+      % power of the computed M box; it does not consume known roots or a
+      % generator basis.
+      merged = merged_polynomial_certificate (M, center, cluster_target, q);
+      result.merged_polynomial = merged;
+      if (merged.pass)
+        region_radius = cluster_target;
+        result.spectral_region_method = "centered_polynomial_power";
+      endif
+    endif
     if (isfield (job, "adversarial_claimed_radius"))
       region_radius = job.adversarial_claimed_radius;
       result.adversarial_override = true;
@@ -113,13 +130,15 @@ function result = net_v_s2_cluster (graph, X, center, job, profile, q)
     result.counting_argument = "exact_graph_block_sizes_plus_strict_M_D2_separation";
 
     result.projector = raw_projector_bound (X, graph, k, q, profile);
-    result.cluster_radius_target = cluster_radius_target (job, profile, q);
+    result.cluster_radius_target = cluster_target;
     result.projector_target = projector_target (profile, q);
     result.cluster_radius_pass = region_radius <= result.cluster_radius_target;
     result.projector_pass = result.projector.pass ...
                             && result.projector.bound <= result.projector_target;
     result.centered_power_pass = (! result.centered_power_required ...
-                                  || power_radius <= result.cluster_radius_target);
+                                  || power_radius <= result.cluster_radius_target ...
+                                  || (isstruct (result.merged_polynomial) ...
+                                      && result.merged_polynomial.pass));
     result.root_count_pass = d2_separation && result.counted_total_roots == n;
     result.cluster_pass = result.root_count_pass ...
                           && result.cluster_radius_pass ...
@@ -318,6 +337,85 @@ function value = projector_target (profile, q)
   else
     value = net_pow2 (-40, q);
   endif
+endfunction
+
+function result = merged_polynomial_certificate (M, center, target, q)
+  result = struct ("method", "neigt_centered_polynomial_power_v1", ...
+    "paper_algorithm_reproduction", false, "pass", false, ...
+    "status", "INCONCLUSIVE", "center", [], "second_moment", [], ...
+    "polynomial_norm", mp ("NaN"), "local_radius", mp ("NaN"), ...
+    "polynomial_lower_bound", mp ("NaN"));
+  n = rows (M.rl);
+  trace_M = net_iv_complex (mp (0), mp (0), mp (0), mp (0));
+  for index = 1:n
+    trace_M = net_iv_complex_add (trace_M, entry (M, index, index), q);
+  endfor
+  mean_box = divide_complex_box (trace_M, n, q);
+  centered = net_iv_cmatrix_sub (M, scalar_interval_eye (mean_box, n, q), q);
+  centered_square = net_iv_cmatrix_mul (centered, centered, q);
+  trace_square = net_iv_complex (mp (0), mp (0), mp (0), mp (0));
+  for index = 1:n
+    trace_square = net_iv_complex_add (trace_square, ...
+      entry (centered_square, index, index), q);
+  endfor
+  second_moment = divide_complex_box (trace_square, n, q);
+  polynomial_base = net_iv_cmatrix_sub ...
+    (centered_square, scalar_interval_eye (second_moment, n, q), q);
+  polynomial_box = net_iv_cmatrix_mul (polynomial_base, polynomial_base, q);
+  polynomial_norm = net_iv_cmatrix_inf_upper (polynomial_box, q);
+  center_offset = net_iv_complex_abs (net_iv_complex_sub (mean_box, ...
+    net_iv_complex_point (center, q), q), q).hi;
+  local_radius_box = net_iv_primitive ("sub", target, center_offset, q);
+  result.center = mean_box;
+  result.second_moment = second_moment;
+  result.polynomial_box = polynomial_box;
+  result.polynomial_norm = polynomial_norm;
+  result.center_offset_upper = center_offset;
+  result.local_radius = local_radius_box.lo;
+  if (local_radius_box.lo <= mp (0))
+    result.status = "INCONCLUSIVE_CENTER_OFFSET";
+    return;
+  endif
+  second_moment_abs = net_iv_complex_abs (second_moment, q).hi;
+  local_square = net_iv_primitive ("mul", local_radius_box.lo, ...
+                                   local_radius_box.lo, q).lo;
+  radial_gap = net_iv_primitive ("sub", local_square, ...
+                                 second_moment_abs, q).lo;
+  if (radial_gap <= mp (0))
+    result.status = "INCONCLUSIVE_POLYNOMIAL_SEPARATION";
+    result.second_moment_abs_upper = second_moment_abs;
+    return;
+  endif
+  lower_bound = net_iv_primitive ("mul", radial_gap, radial_gap, q).lo;
+  result.second_moment_abs_upper = second_moment_abs;
+  result.radial_gap = radial_gap;
+  result.polynomial_lower_bound = lower_bound;
+  result.pass = polynomial_norm < lower_bound;
+  if (result.pass)
+    result.status = "CERTIFIED_MERGED_DISK";
+  else
+    result.status = "INCONCLUSIVE_POLYNOMIAL_RESIDUAL";
+  endif
+endfunction
+
+function result = divide_complex_box (box, denominator, q)
+  denominator_box = net_iv_real (mp (denominator), mp (denominator));
+  real_part = net_iv_real_div (net_iv_real (box.rl, box.rh), ...
+                               denominator_box, q);
+  imag_part = net_iv_real_div (net_iv_real (box.il, box.ih), ...
+                               denominator_box, q);
+  result = net_iv_complex (real_part.lo, real_part.hi, ...
+                           imag_part.lo, imag_part.hi);
+endfunction
+
+function result = scalar_interval_eye (box, n, q)
+  result = net_iv_cmatrix_point (mp (zeros (n, n)), q);
+  for index = 1:n
+    result.rl(index,index) = box.rl;
+    result.rh(index,index) = box.rh;
+    result.il(index,index) = box.il;
+    result.ih(index,index) = box.ih;
+  endfor
 endfunction
 
 function value = entry (matrix, i, j)
