@@ -61,4 +61,19 @@
  * preserves stored precision and ambient-default restoration; its native
  * double rows are explicit rounded-input controls. Result serialization
  * retains MP text, while the optional PNG is a display-only boundary.
+ *
+ * \section neigt_tiers NEIGT verified tiers
+ *
+ * The numbered examples examples/14_neig_tier_s.m through
+ * examples/17_neig_verified_va.m form the manifest-driven NEIGT Tier-S,
+ * Tier-A, V-S, and V-A QA surface. They use the existing public mp/eig/svd/
+ * qr/solve interfaces and example-local audited outward checkers; they do not
+ * add an installed numerical API. Generation precision, frozen inputs,
+ * candidates, and certificates are separate records. V proofs require their
+ * explicit preconditions, count all roots, preserve nontrivial defective
+ * clusters/block Schur claims, and never use residuals or precision agreement
+ * as a substitute for an enclosure. Exact proof bundles are written by
+ * mp_neig_write_outputs and replayed by mp_neig_replay without calling eig or
+ * reconstructing an ideal matrix. All MP arithmetic follows the operation
+ * precision and no implicit binary64 fallback is permitted.
  */

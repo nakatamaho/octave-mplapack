@@ -143,6 +143,36 @@ The harness constructs MP input matrices at the requested work precision, restor
 
 The result writer accepts an `output_dir` option and creates `summary.tsv`, `eigenvalues.tsv`, `environment.txt`, and `report.md`. Existing result files are rejected rather than overwritten. MP numerical fields are serialized with `char(mp)`. An optional `plot = true` output is a display-only conversion to a PNG and is not numerical evidence. Full construction details and limitations are in `docs/nonsymmetric-eig-suite.md`; the runnable package example is `examples/13_nonsymmetric_eig_suite.m`.
 
+### NEIGT verified eigensystem tiers
+
+The repository also contains a larger, manifest-driven nonsymmetric eigensystem example and verification suite. It is a repository-local example/QA surface, not an additional package-level numerical API. The four numbered entry points are:
+
+    run examples/14_neig_tier_s.m
+    run examples/15_neig_tier_a.m
+    run examples/16_neig_verified_vs.m
+    run examples/17_neig_verified_va.m
+
+The first two run the ordinary Tier-S and Tier-A model families. They use the existing public `mp`, `mpbits`, and `eig` interfaces and keep the exact generation model, frozen solver input, work precision, native control, reference values, and returned eigentriples separate. Tier-S includes the specified Ozaki–Ogita paired-block generator, exact simple, repeated, defective, and merged similarity models, Toeplitz/Forsythe controls, and the complex Hadamard control. Tier-A includes Hadamard-bidiagonal, Frank, Wilkinson, Grcar, MKS, and positive stochastic/Perron models.
+
+The latter two run the verified V-S and V-A jobs. They are conservative outward-safe finite-matrix proof baselines: counted Gershgorin coverage, invariant graph/projector bounds, pseudospectrum point/cell enclosures, compatible eigenfactor and Schur/block-Schur factors, finite-pencil reduction, and normalized positive Perron pairs. A broad residual or a numerical agreement between precisions is not a certificate. Defective cases are reported as clusters or block Schur factors; they are never labeled as a diagonalizable eigenbasis.
+
+The manifest profiles are `smoke` and `demo`. The mandatory ordinary profiles contain respectively 120 and 168 measured native/MP `eig` rows, and each profile has 26 separately counted verification jobs. Stress is opt-in and has no authority over the mandatory results. A direct API call is useful for selecting a tier:
+
+    S = mp_neig_tiers ("smoke", struct ("tier", "S", "plot", false));
+    A = mp_neig_tiers ("demo",  struct ("tier", "A", "plot", false));
+    VS = mp_neig_verify_examples ("smoke", struct ("tier", "V-S", "plot", false));
+    VA = mp_neig_verify_examples ("smoke", struct ("tier", "V-A", "plot", false));
+
+These helpers preserve the one-operation/one-precision contract. MP model construction and all certificate arithmetic use MPFR/MPC values; no supported proof path falls through builtin binary64 complex arithmetic. Each operation restores the caller’s `mpbits ()` default. Candidate solves are auxiliary and are recorded with their own precision and source; known roots, generator columns, and higher-precision replacements are not silently substituted into measured outputs.
+
+For a durable result bundle, use a new output directory:
+
+    bundle = mp_neig_write_outputs ("smoke", "/tmp/neigt-results", ...
+                                    struct ("tier", "all", "plot", false));
+    replay = mp_neig_replay ("/tmp/neigt-results/proof-vs1-01.json");
+
+The writer refuses an existing output path. It records measured rows, environment/provenance, a schema-versioned exact MP proof record, and a report. Replay verifies the content hash, decodes the recorded MP values at the stored precision, and reruns the recorded certificate without calling `eig` or reconstructing an ideal matrix. Plotting, when requested, is display-only; it cannot alter numerical rows or proof status. The detailed manifests, preconditions, limitations, and source attribution are in `docs/codex/neigt/NEIGT-LUNA-XHIGH.md` and `docs/codex/neigt/ACCEPTANCE.md`.
+
 ### Generalized eigenproblems
 
 The generalized interface solves the pencil `A - lambda*B`:

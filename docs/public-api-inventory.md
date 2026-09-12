@@ -17,6 +17,24 @@ from existing public APIs. It intentionally has no additional package-level
 API row; its runnable entry point and coverage are recorded in
 `docs/nonsymmetric-eig-suite.md` and the compatibility matrix.
 
+## Repository-local NEIGT example/QA interfaces
+
+These names are intentionally not package-level `inst/` APIs. They are
+documented, runnable entry points for the NEIGT source-package QA harness and
+are included in the source archive together with their private helpers and
+JSON manifests.
+
+| Name | Kind | Status | Contract/example |
+|---|---|---|---|
+| `mp_neig_tiers` | example runner | SUPPORTED-REPOSITORY | Ordinary Tier-S/Tier-A smoke/demo rows; `examples/14_neig_tier_s.m`, `examples/15_neig_tier_a.m` |
+| `mp_neig_verify_examples` | example runner | SUPPORTED-REPOSITORY | 26 manifest V-S/V-A jobs per profile; `examples/16_neig_verified_vs.m`, `examples/17_neig_verified_va.m` |
+| `mp_neig_write_outputs` | QA result writer | SUPPORTED-REPOSITORY | New-directory-only TSV/environment/exact-proof bundle; replayable with `mp_neig_replay` |
+| `mp_neig_replay` | QA proof replay | SUPPORTED-REPOSITORY | Hash-bound V-S1 replay without `eig` or ideal-model reconstruction |
+
+The helpers preserve stored MP precision and ambient-default restoration. The
+V results are conservative proof baselines, not a new interval or generalized
+eigenvalue API. Optional plots are display-only.
+
 | API | Kind | Status | Manual/MP notes | Help | Example | Backend/Doxygen |
 |---|---|---|---|---|---|---|
 | `mp` | @mp method/constructor | SUPPORTED | User manual § API quick reference; precision/compatibility notes | yes | `examples/01_scalar_precision.m` | `docs/backend-map.md`; Doxygen |

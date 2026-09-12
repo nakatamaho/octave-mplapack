@@ -1,4 +1,14 @@
-% Manifest/profile facade for the NEIGT V-S/V-A verification jobs.
+## -*- texinfo -*-
+## @deftypefn {} {@var{result} =} mp_neig_verify_examples (@var{profile})
+## @deftypefnx {} {@var{result} =} mp_neig_verify_examples (@var{profile}, @var{options})
+## Run the repository-local NEIGT verified V-S and V-A jobs.
+## @var{profile} is @code{"smoke"} or @code{"demo"}; @var{options.tier}
+## selects @code{"V-S"}, @code{"V-A"}, or @code{"V"}.  The checker uses
+## outward-safe MP arithmetic and records candidate provenance separately from
+## frozen targets.  A result is complete only when every selected manifest job
+## and its proof preconditions pass; no native binary64 numerical fallback is
+## used.  Use @code{mp_neig_write_outputs} for a replayable proof artifact.
+## @end deftypefn
 function result = mp_neig_verify_examples (profile, options)
   if (nargin < 1 || nargin > 2)
     error ("mplapack:neigt:Arguments", ...

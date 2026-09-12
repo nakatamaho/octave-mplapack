@@ -252,6 +252,7 @@ comparing vectors element by element.
 @menu
 * Standard eigenproblems::
 * Difficult nonsymmetric eigensystem suite::
+* NEIGT verified eigensystem tiers::
 * Generalized eigenproblems::
 * Singular value decomposition::
 * Schur Hessenberg and QZ decompositions::
@@ -353,6 +354,77 @@ MP numerical fields are serialized with @code{char(mp)}. An optional
 numerical evidence. Full construction details and limitations are in
 @file{docs/nonsymmetric-eig-suite.md}; the runnable package example is
 @file{examples/13_nonsymmetric_eig_suite.m}.
+
+@section NEIGT verified eigensystem tiers
+
+The repository also contains a larger, manifest-driven nonsymmetric
+eigensystem example and verification suite.  It is a repository-local
+example/QA surface, not an additional package-level numerical API.  The four
+numbered entry points are:
+
+@verbatim
+run examples/14_neig_tier_s.m
+run examples/15_neig_tier_a.m
+run examples/16_neig_verified_vs.m
+run examples/17_neig_verified_va.m
+@end verbatim
+
+The first two run the ordinary Tier-S and Tier-A model families.  They use the
+existing public @code{mp}, @code{mpbits}, and @code{eig} interfaces and keep
+the exact generation model, frozen solver input, work precision, native
+control, reference values, and returned eigentriples separate.  Tier-S
+includes the specified Ozaki--Ogita paired-block generator, exact simple,
+repeated, defective, and merged similarity models, Toeplitz/Forsythe controls,
+and the complex Hadamard control.  Tier-A includes Hadamard-bidiagonal, Frank,
+Wilkinson, Grcar, MKS, and positive stochastic/Perron models.
+
+The latter two run the verified V-S and V-A jobs.  They are conservative
+outward-safe finite-matrix proof baselines: counted Gershgorin coverage,
+invariant graph/projector bounds, pseudospectrum point/cell enclosures,
+compatible eigenfactor and Schur/block-Schur factors, finite-pencil reduction,
+and normalized positive Perron pairs.  A broad residual or a numerical
+agreement between precisions is not a certificate.  Defective cases are
+reported as clusters or block Schur factors; they are never labeled as a
+diagonalizable eigenbasis.
+
+The manifest profiles are @code{smoke} and @code{demo}.  The mandatory
+ordinary profiles contain respectively 120 and 168 measured native/MP
+@code{eig} rows, and each profile has 26 separately counted verification
+jobs.  Stress is opt-in and has no authority over the mandatory results.  A
+direct API call is useful for selecting a tier:
+
+@verbatim
+S = mp_neig_tiers ("smoke", struct ("tier", "S", "plot", false));
+A = mp_neig_tiers ("demo",  struct ("tier", "A", "plot", false));
+VS = mp_neig_verify_examples ("smoke", struct ("tier", "V-S", "plot", false));
+VA = mp_neig_verify_examples ("smoke", struct ("tier", "V-A", "plot", false));
+@end verbatim
+
+These helpers preserve the one-operation/one-precision contract.  MP model
+construction and all certificate arithmetic use MPFR/MPC values; no supported
+proof path falls through builtin binary64 complex arithmetic.  Each operation
+restores the caller's @code{mpbits ()} default.  Candidate solves are auxiliary
+and are recorded with their own precision and source; known roots, generator
+columns, and higher-precision replacements are not silently substituted into
+measured outputs.
+
+For a durable result bundle, use a new output directory:
+
+@verbatim
+bundle = mp_neig_write_outputs ("smoke", "/tmp/neigt-results", ...
+                                struct ("tier", "all", "plot", false));
+replay = mp_neig_replay ("/tmp/neigt-results/proof-vs1-01.json");
+@end verbatim
+
+The writer refuses an existing output path.  It records measured rows,
+environment/provenance, a schema-versioned exact MP proof record, and a report.
+Replay verifies the content hash, decodes the recorded MP values at the stored
+precision, and reruns the recorded certificate without calling @code{eig} or
+reconstructing an ideal matrix.  Plotting, when requested, is display-only;
+it cannot alter numerical rows or proof status.  The detailed manifests,
+preconditions, limitations, and source attribution are in
+@file{docs/codex/neigt/NEIGT-LUNA-XHIGH.md} and
+@file{docs/codex/neigt/ACCEPTANCE.md}.
 
 @section Generalized eigenproblems
 

@@ -38,6 +38,39 @@ uses operation-owned copies for destructive backend calls, and never silently
 routes numerical work through builtin binary64 or routes a real-only call
 through a complex kernel.
 
+## NEIGT Tier-S/Tier-A and verified V-S/V-A examples
+
+The NEIGT suite is a repository-local example and QA harness layered on the
+existing public `mp`, `mpbits`, `eig`, `svd`, `qr`, and solve interfaces. It
+does not add package-level numeric methods. The numbered entry points are
+`examples/14_neig_tier_s.m`, `examples/15_neig_tier_a.m`,
+`examples/16_neig_verified_vs.m`, and `examples/17_neig_verified_va.m`.
+
+Tier-S/Tier-A keeps generation precision, exact model, frozen input, work
+precision, native control, reference, and measured solver output distinct.
+The Tier-S Ozaki--Ogita generator is the specified paired-block construction,
+not a generic similarity surrogate. The V layer uses audited MPFR/MPC
+outward primitives and conservative proof checkers for all 26 manifest jobs:
+all-spectrum counts, invariant clusters, pseudospectrum points/cells,
+compatible factors and Schur/block-Schur, finite pencils, and normalized
+Perron pairs. Defective models remain cluster/block claims, never scalar
+diagonalization claims. Candidate-only solves and graph/Newton auxiliaries
+are separately labeled and cannot replace measured eig outputs.
+
+`mp_neig_tiers` returns `NUMERICS_ONLY_COMPLETE` for an unfiltered `all`
+ordinary run because V jobs are separate. `mp_neig_verify_examples` reports
+all selected verification jobs and proof status. `mp_neig_write_outputs`
+creates a new-only result directory with TSV rows, environment metadata, and an
+exact MP proof record; `mp_neig_replay` rechecks the hash-bound V-S1 proof in a
+fresh process without calling `eig` or reconstructing an ideal model. MP
+values retain stored precision and every public operation restores ambient
+`mpbits()`. Optional plots are display-only and are not numerical evidence.
+
+The smoke profile contains 120 measured eig rows and the demo profile 168;
+each also contains 26 verification jobs. Stress is opt-in and does not count
+toward mandatory coverage. The complete manifest and theorem preconditions
+are in `docs/codex/neigt/ACCEPTANCE.md` and `docs/codex/neigt/CASES.md`.
+
 ## Boundary and deferred surface
 
 The public type remains dense and two-dimensional. The following are

@@ -164,6 +164,27 @@ representations with both `balance` and `nobalance`; see
 [`docs/nonsymmetric-eig-suite.md`](docs/nonsymmetric-eig-suite.md) and run
 `tools/run-nonsymmetric-eig-suite.sh smoke` from a configured checkout.
 
+### Verified NEIGT tiers
+
+The manifest-driven Tier-S/Tier-A and verified V-S/V-A examples are available
+as [`examples/14_neig_tier_s.m`](examples/14_neig_tier_s.m),
+[`examples/15_neig_tier_a.m`](examples/15_neig_tier_a.m),
+[`examples/16_neig_verified_vs.m`](examples/16_neig_verified_vs.m), and
+[`examples/17_neig_verified_va.m`](examples/17_neig_verified_va.m). They are
+repository-local QA/example entry points built from the existing public
+`mp`/`mpbits`/`eig`/`svd`/`qr`/solve interfaces; they do not add package-level
+numeric methods. The ordinary smoke/demo profiles measure 120/168 eig rows,
+and each profile has 26 separately counted verification jobs.
+
+The V layer is a conservative outward-safe proof baseline. It records exact
+MP inputs, candidate provenance, proof preconditions, and certificate status;
+it does not turn residuals or precision agreement into a proof. Use
+`mp_neig_write_outputs` for a new-directory result bundle and
+`mp_neig_replay` to independently replay its hash-bound V-S1 artifact. The
+`plot=false` path is headless and all display conversion is kept at the final
+presentation boundary. See the [NEIGT compatibility notes](docs/advanced-numerics-compatibility.md)
+and the generated [user manual](docs/mplapack-interop.md).
+
 ## Initial backend
 
 The backend is MPLAPACK's MPFR/MPC implementation for real and complex values.

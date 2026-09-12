@@ -63,3 +63,21 @@ mode, compares both `balance` and `nobalance`, and reevaluates the actual
 returned eigentriples at a high MP precision. Its references and deterministic
 matching are described in `docs/nonsymmetric-eig-suite.md`; the optional plot
 is the only display-only `double` boundary.
+
+## NEIGT example and certificate boundary
+
+The numbered NEIGT examples under `examples/14_neig_tier_s.m` through
+`examples/17_neig_verified_va.m` are repository-local QA surfaces. Their
+ordinary rows call the existing general `eig` path; the verification layer
+uses the existing MPFR/MPC `mp` arithmetic, `svd`, `qr`, and solve interfaces
+plus example-local outward interval/checker helpers. It does not introduce a
+new package-level backend or route real-only work through a complex kernel.
+
+| NEIGT surface | Existing public numerical source | Certificate boundary |
+|---|---|---|
+| Tier-S/Tier-A ordinary rows | `mp_neig_tiers` -> `eig` | exact model/frozen input/work precision and native control are recorded separately |
+| V-S1 all-spectrum | `eig` candidate, MPFR/MPC residual and inverse checks | counted disks/singletons require the recorded similarity and nonsingularity proof |
+| V-S2/V-S3 | `qr`, solves, `svd`, MPFR/MPC outward primitives | invariant graph/projector and polar/Weyl point/cell bounds are finite-matrix proofs |
+| V-A1/V-A2 | `qr`, solves, and explicit finite-pencil reduction | compatible factors, Schur/block-Schur, and proved `B` inverse enclosure |
+| V-A3 | MPFR/MPC arithmetic and solve | Collatz--Wielandt plus positive normalized left/right pair existence |
+| exact output/replay | MP text serialization | content hash binds inputs, methods, targets, and proof fields; replay does not call `eig` |

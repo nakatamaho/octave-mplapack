@@ -1,4 +1,15 @@
-% Manifest/profile runner for the NEIGT ordinary S/A eigensystem suite.
+## -*- texinfo -*-
+## @deftypefn {} {@var{result} =} mp_neig_tiers (@var{profile})
+## @deftypefnx {} {@var{result} =} mp_neig_tiers (@var{profile}, @var{options})
+## Run the repository-local NEIGT ordinary Tier-S or Tier-A eigensystem suite.
+## @var{profile} is @code{"smoke"} or @code{"demo"}; @var{options.tier}
+## selects @code{"S"}, @code{"A"}, or @code{"all"}.  The measured rows use
+## the existing public @code{mp}, @code{mpbits}, and @code{eig} interfaces.
+## MP rows keep their exact model, frozen input, work precision, and returned
+## eigentriples distinct; native rows are explicit binary64 controls.  An
+## @code{"all"} result reports @code{NUMERICS_ONLY_COMPLETE} until verification
+## jobs are run by @code{mp_neig_verify_examples}.
+## @end deftypefn
 function result = mp_neig_tiers (profile, options)
   if (nargin < 1 || nargin > 2)
     error ("mplapack:neigt:Arguments", ...
