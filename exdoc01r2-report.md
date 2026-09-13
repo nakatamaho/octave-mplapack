@@ -231,7 +231,8 @@ precision semantics.
 ```text
 Branch: main
 Starting commit: 04647345895cf7c260157ca49532dbf748febb35
-Final commit: pending local commit at report creation; record exact SHA in handoff
+Final commit: cd568b2b2a6a0d511e2bf04b5c8b268c928a5b95 (implementation commit;
+  this report's status-only follow-up is the current final worktree commit)
 Files changed: listed in Actual changed paths above
 Commands run: listed in Documentation builds and gates above
 Tests: static documentation/build gates PASS; empirical QA NOT RUN by instruction
