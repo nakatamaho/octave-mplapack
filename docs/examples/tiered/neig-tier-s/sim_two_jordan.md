@@ -9,14 +9,16 @@ SIM_TWO_JORDAN isolates one mathematical reason a dense nonsymmetric eigensystem
 Smoke: n=8 and d=2^-12. Demo: n=16 and d=2^-40. The leading blocks are J_2(1) and J_2(1+d).
 
 Set
-$$
+
+```math
 J_{\mathrm{two}}=
 \begin{bmatrix}1&1\\0&1\end{bmatrix}
 \oplus
 \begin{bmatrix}1+d&1\\0&1+d\end{bmatrix}
 \oplus\operatorname{diag}(4,5,\ldots,n-1),
 \qquad d=2^{-a},
-$$
+```
+
 and $A=YJ_{\mathrm{two}}X$ with the exact inverse pair $X=LU$, $Y=U^{-1}L^{-1}$. The two clusters each have algebraic multiplicity 2 and geometric multiplicity 1; their union has dimension four.
 
 ## Why this problem is numerically difficult
@@ -40,14 +42,16 @@ The construction audit is intentionally independent of eig: it checks algebraic 
 ## Diagnostics
 
 For a computed $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal or block output $D$, and left vectors $W$, the primary residuals are
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 For a selected cluster $J$, use $A V_J-V_JD_J$ and a range/projector or principal-angle comparison; do not turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the normwise backward indicator against the correct input, the forward bottleneck against the exact/realized reference, and the left/right or subspace diagnostic appropriate to this case. Keep MP values until the final display. A residual is not a certificate that every eigenvalue digit is forward correct.

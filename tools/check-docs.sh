@@ -22,6 +22,7 @@ required=(
   docs/examples/tiered/MIGRATION.md
   docs/examples/tiered/GLOSSARY.md
   tools/check-tiered-math.sh
+  tools/check-github-math.sh
 )
 for path in "${required[@]}"; do
   if [[ ! -f "$path" ]]; then
@@ -190,6 +191,15 @@ if [[ -x tools/check-tiered-math.sh ]]; then
   fi
 else
   echo "FAIL: missing tools/check-tiered-math.sh" >&2
+  fail=1
+fi
+
+if [[ -x tools/check-github-math.sh ]]; then
+  if ! tools/check-github-math.sh; then
+    fail=1
+  fi
+else
+  echo "FAIL: missing tools/check-github-math.sh" >&2
   fail=1
 fi
 

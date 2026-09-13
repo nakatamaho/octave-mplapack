@@ -8,9 +8,10 @@ S1-NRO-TWO isolates The input is integer/dyadic and full rank, but the off-diago
 
 Smoke: m=4, b=12, giving a 2m=8 square matrix. Demo: m=16, b=40, giving a 32-by-32 matrix.
 
-$$
+```math
 B = H_m diag(w_1,...,w_m),    A = [ I_m  B ; 0  I_m ],    w_j=2^b.
-$$
+```
+
 With beta_j = sqrt(m) w_j, the two singular values contributed by each block are a_j = (sqrt(beta_j^2+4)+beta_j)/2 and b_j = 2/(sqrt(beta_j^2+4)+beta_j).
 
 ## Why this problem is numerically difficult
@@ -32,13 +33,15 @@ The source audit distinguishes exactness of the constructed matrix from agreemen
 ## Diagnostics
 
 For $A\in\mathbb{C}^{m\times n}$, $U$, $\Sigma$, and $V$, use
-$$
+
+```math
 A=U\Sigma V^{\mathsf H},\qquad
 r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 For repeated singular values compare the associated left/right subspaces, not individual columns.
 
 Also inspect the value-wise forward bottleneck against the exact or analytic reference, the rank/cluster diagnostic when applicable, and any inverse or projector check. Keep the residuals as MP values until display. A small reconstruction residual does not certify every singular value digit.

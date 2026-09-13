@@ -15,15 +15,19 @@ eigensolver routine implements the cited paper's algorithm.
 Smoke: n=8 and gap d=2^-24. Demo: n=16 and gap d=2^-80. The leading block is simple and diagonalizable.
 
 Let $N$ be the first-superdiagonal shift, $L=I+N^{\mathsf T}$, $U=I+N$, $X=LU$, $Y=U^{-1}L^{-1}$, and
-$$
+
+```math
 J_{\mathrm{simple}}=
 \begin{bmatrix}1&1\\0&1+d\end{bmatrix}\oplus\operatorname{diag}(4,5,\ldots,n),
 \qquad d=2^{-a}.
-$$
+```
+
 The dense test matrix is
-$$
+
+```math
 A=YJ_{\mathrm{simple}}X,\qquad X A=J_{\mathrm{simple}}X,\quad A Y=YJ_{\mathrm{simple}}.
-$$
+```
+
 Its spectrum is simple, but the first two roots are only d apart and the leading block has a large off-diagonal relative to that gap.
 
 ## Why this problem is numerically difficult
@@ -47,14 +51,16 @@ The construction audit is intentionally independent of eig: it checks algebraic 
 ## Diagnostics
 
 For a computed $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal or block output $D$, and left vectors $W$, the primary residuals are
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 For a selected cluster $J$, use $A V_J-V_JD_J$ and a range/projector or principal-angle comparison; do not turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the normwise backward indicator against the correct input, the forward bottleneck against the exact/realized reference, and the left/right or subspace diagnostic appropriate to this case. Keep MP values until the final display. A residual is not a certificate that every eigenvalue digit is forward correct.

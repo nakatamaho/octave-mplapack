@@ -9,23 +9,23 @@ PERRON_POS is a Tier A control. Positivity is preserved while a nonunitary diago
 Smoke: $n=8$, $\varepsilon=2^{-24}$, and scale $\alpha=3/2$. Demo: $n=16$,
 $\varepsilon=2^{-80}$, and $\alpha=3/2$.
 
-$$
+```math
 \alpha=\frac{3}{2},\qquad
 D=\operatorname{diag}(1,2,\ldots,2^{n-1}),\qquad
 A=\alpha D P D^{-1}.
-$$
+```
 
 Here $P$ is the MARKOV model from the companion page. It satisfies
 $P\mathbf{1}=\mathbf{1}$, but its stationary row is $\pi^{\mathsf T}$, not
 the teleportation target $r^{\mathsf T}$. Therefore
 
-$$
+```math
 v=D\mathbf{1},\qquad
 w=D^{-1}\pi,\qquad
 Av=\alpha v,\qquad
 w^{\mathsf T}A=\alpha w^{\mathsf T},\qquad
 \rho(A)=\alpha.
-$$
+```
 
 Both $v$ and $w$ are positive. The runner normalizes $v$ to have unit sum
 and then scales $w$ so that $w^{\mathsf T}v=1$. The vectors $r$ and $\pi$ are
@@ -64,10 +64,12 @@ Exactness means that declared integer/dyadic identities and their bit guards hav
 ## Diagnostics
 
 For A in C^(n x n), right vectors V, output D, and left vectors W, use
-$$
-r_{\mathrm{eig}} = ||A V - V D||_F / (||A||_F ||V||_F),
-\qquad r_{\mathrm{left}} = ||A^H W - W D^H||_F / (||A||_F ||W||_F).
-$$
+
+```math
+r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
+\qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
+```
+
 For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.

@@ -9,14 +9,18 @@ TOEPLITZ_SYM isolates one mathematical reason a dense nonsymmetric eigensystem c
 Smoke: n=16, b=4. Demo: n=32, b=4. This is B itself, with both off-diagonals equal to 2^-b.
 
 The control matrix is
-$$
+
+```math
 B=\operatorname{tridiag}(2^{-b},3,2^{-b}).
-$$
+```
+
 For $\theta_k=k\pi/(n+1)$, the exact real eigenpairs are
-$$
+
+```math
 \lambda_k=3+2^{1-b}\cos(\theta_k),\qquad
 q_{jk}=\sqrt{\frac{2}{n+1}}\sin(j\theta_k).
-$$
+```
+
 The dense nonsymmetric case satisfies $A=D B D^{-1}$ in the corresponding orientation, so B is the same spectrum in a symmetric coordinate system.
 
 ## Why this problem is numerically difficult
@@ -40,14 +44,16 @@ The construction audit is intentionally independent of eig: it checks algebraic 
 ## Diagnostics
 
 For a computed $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal or block output $D$, and left vectors $W$, the primary residuals are
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 For a selected cluster $J$, use $A V_J-V_JD_J$ and a range/projector or principal-angle comparison; do not turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the normwise backward indicator against the correct input, the forward bottleneck against the exact/realized reference, and the left/right or subspace diagnostic appropriate to this case. Keep MP values until the final display. A residual is not a certificate that every eigenvalue digit is forward correct.

@@ -9,19 +9,25 @@ TOEPLITZ isolates one mathematical reason a dense nonsymmetric eigensystem can b
 Smoke: n=16, b=4. Demo: n=32, b=4. The original coordinates have subdiagonal 1 and superdiagonal 2^-2b.
 
 Let
-$$
+
+```math
 A=\operatorname{tridiag}(1,3,2^{-2b}),\qquad
 B=\operatorname{tridiag}(2^{-b},3,2^{-b}),\qquad
 D=\operatorname{diag}(2^{b(j-1)})_{j=1}^n.
-$$
+```
+
 The exact identities are
-$$
+
+```math
 AD=DB,\qquad D^{-1}AD=B.
-$$
+```
+
 The eigenvalues are
-$$
+
+```math
 \lambda_k=3+2^{1-b}\cos\!\left(\frac{k\pi}{n+1}\right),\quad k=1,\ldots,n.
-$$
+```
+
 Right and left eigenvectors scale oppositely:
 $v_{jk}=2^{b(j-1)}\sin(j\theta_k)$ and
 $w_{jk}=2^{-b(j-1)}\sin(j\theta_k)$, with $\theta_k=k\pi/(n+1)$.
@@ -47,14 +53,16 @@ The construction audit is intentionally independent of eig: it checks algebraic 
 ## Diagnostics
 
 For a computed $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal or block output $D$, and left vectors $W$, the primary residuals are
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 For a selected cluster $J$, use $A V_J-V_JD_J$ and a range/projector or principal-angle comparison; do not turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the normwise backward indicator against the correct input, the forward bottleneck against the exact/realized reference, and the left/right or subspace diagnostic appropriate to this case. Keep MP values until the final display. A residual is not a certificate that every eigenvalue digit is forward correct.

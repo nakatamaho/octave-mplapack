@@ -8,10 +8,11 @@ S3-LAH isolates Lah entries grow rapidly down the triangle, producing a full-ran
 
 Smoke: n=8. Demo: n=20. The matrix is lower triangular with exact integer entries and unit diagonal.
 
-$$
+```math
 L_{ij}=binom(i-1,j-1) i!/j!  \quad (j<=i),
 \qquad L_{ij}=0 \quad (j>i).
-$$
+```
+
 Equivalently L(i,j)=L(i-1,j-1)+(i+j-1)L(i-1,j), with out-of-range entries zero. The first rows are [1], [2 1], [6 6 1], [24 36 12 1].
 
 ## Why this problem is numerically difficult
@@ -33,13 +34,15 @@ The source audit distinguishes exactness of the constructed matrix from agreemen
 ## Diagnostics
 
 For $A\in\mathbb{C}^{m\times n}$, $U$, $\Sigma$, and $V$, use
-$$
+
+```math
 A=U\Sigma V^{\mathsf H},\qquad
 r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 For repeated singular values compare the associated left/right subspaces, not individual columns.
 
 Also inspect the value-wise forward bottleneck against the exact or analytic reference, the rank/cluster diagnostic when applicable, and any inverse or projector check. Keep the residuals as MP values until display. A small reconstruction residual does not certify every singular value digit.

@@ -8,9 +8,10 @@ FRANK0 is a Tier A control. Frank matrices are integer and structured, but small
 
 Smoke: n=8. Demo: n=24. The matrix is an exact integer upper-Hessenberg Frank orientation.
 
-$$
+```math
 (F0)ij = n+1-max(i,j)  if  j >= i-1,     (F0)ij = 0 otherwise.
-$$
+```
+
 An independent symmetric Jacobi reference has off-diagonal entries sqrt(j). Its eigenvalue z is mapped stably to f(z) = ((z+sqrt(z^2+4))/2)^2 for z >= 0 and f(z) = (2/(sqrt(z^2+4)-z))^2 for z < 0.
 
 ## Why this problem is numerically difficult
@@ -32,10 +33,12 @@ Exactness means that declared integer/dyadic identities and their bit guards hav
 ## Diagnostics
 
 For A in C^(n x n), right vectors V, output D, and left vectors W, use
-$$
-r_{\mathrm{eig}} = ||A V - V D||_F / (||A||_F ||V||_F),
-\qquad r_{\mathrm{left}} = ||A^H W - W D^H||_F / (||A||_F ||W||_F).
-$$
+
+```math
+r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
+\qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
+```
+
 For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.

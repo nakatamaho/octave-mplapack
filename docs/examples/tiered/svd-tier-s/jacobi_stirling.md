@@ -8,9 +8,10 @@ S2-JS isolates The entries grow combinatorially while the diagonal remains one. 
 
 Smoke: n=8 and z=1. Demo: n=16 and z=1. Indices i,j are zero-based in the recurrence.
 
-$$
+```math
 J(0,0)=1,    J(i,j)=J(i-1,j-1)+j(j+1)J(i-1,j),    1<=j<=i.
-$$
+```
+
 The matrix is lower triangular with unit diagonal; its leading rows are [1], [0 1], [0 2 1], [0 4 8 1]. Therefore det(J)=1.
 
 ## Why this problem is numerically difficult
@@ -32,13 +33,15 @@ The source audit distinguishes exactness of the constructed matrix from agreemen
 ## Diagnostics
 
 For $A\in\mathbb{C}^{m\times n}$, $U$, $\Sigma$, and $V$, use
-$$
+
+```math
 A=U\Sigma V^{\mathsf H},\qquad
 r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 For repeated singular values compare the associated left/right subspaces, not individual columns.
 
 Also inspect the value-wise forward bottleneck against the exact or analytic reference, the rank/cluster diagnostic when applicable, and any inverse or projector check. Keep the residuals as MP values until display. A small reconstruction residual does not certify every singular value digit.

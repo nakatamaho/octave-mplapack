@@ -17,16 +17,19 @@ This glossary fixes the vocabulary used by the 44 one-case pages and their count
 ## Eigenproblem terms
 
 For $A\in\mathbb{C}^{n\times n}$, a right eigenpair satisfies $A v=\lambda v$. A left eigenvector is represented as a column satisfying $A^{\mathsf H}w=\overline{\lambda}w$. With $V,D,W$, the measured equations are
-$$
+
+```math
 A V=V D,\qquad A^{\mathsf H}W=W D^{\mathsf H}.
-$$
+```
 
 **Eigen residual** is the normalized equation defect
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert A V-V D\rVert_F}
 {\lVert A\rVert_F\lVert V\rVert_F}.
-$$
+```
+
 It is a backward-style diagnostic. It does not by itself bound forward eigenvalue error.
 
 **Backward error** asks how much the input must be perturbed for the computed output to satisfy the stated relation. **Forward error** asks how far the computed output is from the mathematical output of the stored input. A small backward error can yield a large forward error for an ill-conditioned problem.
@@ -44,10 +47,12 @@ It is a backward-style diagnostic. It does not by itself bound forward eigenvalu
 **Spectral projector** can mean an orthogonal projector onto a numerical range or an oblique algebraic projector such as $Y_{:,J}X_{J,:}$. These are different objects and must be labelled separately.
 
 **Pseudospectrum** at level $\varepsilon$ for the unstructured 2-norm is
-$$
+
+```math
 \Lambda_\varepsilon(A)=
 \{z\in\mathbb C:\sigma_{\min}(zI-A)\le\varepsilon\}.
-$$
+```
+
 A pseudospectral point is not necessarily an eigenvalue. A plotted contour is not a verified enclosure unless outward bounds and a declared inside/outside convention support it.
 
 **Balancing** is a representation transformation intended to reduce scale disparities. It is a solver control, not a guaranteed improvement for every eigenvalue or vector. Balance and nobalance rows must retain the same input identity.
@@ -55,17 +60,20 @@ A pseudospectral point is not necessarily an eigenvalue. A plotted contour is no
 ## SVD terms
 
 For $A\in\mathbb{C}^{m\times n}$, an SVD is
-$$
+
+```math
 A=U\Sigma V^{\mathsf H}.
-$$
+```
+
 The reconstruction and factor orthogonality diagnostics are
-$$
+
+```math
 r_{\mathrm{svd}}=
 \frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\qquad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
 
 **Singular-value forward error** compares a returned $\widehat\sigma_i$ with the mathematical singular value $\sigma_i(A)$ of the stored A. It is different from reconstruction error.
 

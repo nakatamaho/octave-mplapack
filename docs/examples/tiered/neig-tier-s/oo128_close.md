@@ -9,13 +9,17 @@ OO128_CLOSE isolates one mathematical reason a dense nonsymmetric eigensystem ca
 Smoke: n=8, generation precision g=128 bits. Demo: n=16, g=128 bits. The first two requested diagonal entries differ by a deliberately unrepresentable tail.
 
 The real requested standard form is upper bidiagonal. Its first diagonal entries are
-$$
+
+```math
 s_1=1,\qquad s_2=1+2^{-80}+2^{-120},
-$$
+```
+
 the remaining diagonal entries are $3,4,\ldots,n$, and every first-superdiagonal entry is 1. The fixed 128-bit generator rounds the shifted expression at $g=128$, producing $S'$ and then
-$$
+
+```math
 A=\operatorname{RN}_{128}\!\left(Y\,\operatorname{RN}_{128}(S'X)\right).
-$$
+```
+
 The required realized gap is $s'_2-s'_1=2^{-80}$: the $2^{-120}$ requested increment is intentionally removed and must remain visible in the metadata.
 
 ## Why this problem is numerically difficult
@@ -39,14 +43,16 @@ The construction audit is intentionally independent of eig: it checks algebraic 
 ## Diagnostics
 
 For a computed $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal or block output $D$, and left vectors $W$, the primary residuals are
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 For a selected cluster $J$, use $A V_J-V_JD_J$ and a range/projector or principal-angle comparison; do not turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the normwise backward indicator against the correct input, the forward bottleneck against the exact/realized reference, and the left/right or subspace diagnostic appropriate to this case. Keep MP values until the final display. A residual is not a certificate that every eigenvalue digit is forward correct.

@@ -8,11 +8,12 @@ MKS is a Tier A control. The matrix combines a large defective zero part with a 
 
 Smoke: n=12, m=3, delta=1/8, ell=4. Demo: n=32, m=3, delta=1/8, ell=11.
 
-$$
+```math
 A = N^m + delta 1 1^T,
 \qquad det(z I-A) = z^(n-ell) q(z),
 \qquad q(z)=z^ell-delta sum_{j=0}^{ell-1}(n-mj)z^(ell-1-j).
-$$
+```
+
 The nonzero constant term of q proves exact algebraic zero multiplicity n-ell.
 
 ## Why this problem is numerically difficult
@@ -34,10 +35,12 @@ Exactness means that declared integer/dyadic identities and their bit guards hav
 ## Diagnostics
 
 For A in C^(n x n), right vectors V, output D, and left vectors W, use
-$$
-r_{\mathrm{eig}} = ||A V - V D||_F / (||A||_F ||V||_F),
-\qquad r_{\mathrm{left}} = ||A^H W - W D^H||_F / (||A||_F ||W||_F).
-$$
+
+```math
+r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
+\qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
+```
+
 For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.

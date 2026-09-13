@@ -9,10 +9,12 @@ SIM_REPEAT isolates one mathematical reason a dense nonsymmetric eigensystem can
 Smoke: n=8 and demo: n=16. The leading block is I_2, so lambda=1 has algebraic and geometric multiplicity 2.
 
 With the same exact triangular inverse pair $X=LU$ and $Y=X^{-1}$ used by the neighboring similarity cases, set
-$$
+
+```math
 J_{\mathrm{repeat}}=I_2\oplus\operatorname{diag}(4,5,\ldots,n),\qquad
 A=YJ_{\mathrm{repeat}}X.
-$$
+```
+
 The eigenvalue 1 has algebraic multiplicity two and geometric multiplicity two. Its invariant right subspace is $\mathcal{R}(Y_{:,1:2})$, while the corresponding left subspace is represented by the columns of $X^{\mathsf T}$ selected by the same coordinates.
 
 ## Why this problem is numerically difficult
@@ -36,14 +38,16 @@ The construction audit is intentionally independent of eig: it checks algebraic 
 ## Diagnostics
 
 For a computed $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal or block output $D$, and left vectors $W$, the primary residuals are
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 For a selected cluster $J$, use $A V_J-V_JD_J$ and a range/projector or principal-angle comparison; do not turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the normwise backward indicator against the correct input, the forward bottleneck against the exact/realized reference, and the left/right or subspace diagnostic appropriate to this case. Keep MP values until the final display. A residual is not a certificate that every eigenvalue digit is forward correct.

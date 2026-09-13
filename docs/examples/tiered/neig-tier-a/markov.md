@@ -10,7 +10,7 @@ Smoke: $n=8$ and $\varepsilon=2^{-24}$. Demo: $n=16$ and
 $\varepsilon=2^{-80}$. The matrix is row-stochastic with a nonuniform
 stationary left vector.
 
-$$
+```math
 \begin{gathered}
 h=n/2,\qquad
 C\in\mathbb{R}^{h\times h},\quad
@@ -22,17 +22,17 @@ r_i=2^{-i}\ (1\leq i<n),\qquad r_n=2^{-(n-1)},
 P=(1-\varepsilon)Q+\varepsilon\mathbf{1}r^{\mathsf T},
 \qquad \varepsilon=2^{-e},\qquad P\mathbf{1}=\mathbf{1}.
 \end{gathered}
-$$
+```
 
 The vector $r$ is the teleportation target, not generally the stationary
 vector. The stationary row is
 
-$$
+```math
 \pi^{\mathsf T}=\varepsilon r^{\mathsf T}
 \left[I-(1-\varepsilon)Q\right]^{-1},
 \qquad \pi^{\mathsf T}P=\pi^{\mathsf T},
 \qquad \pi^{\mathsf T}\mathbf{1}=1.
-$$
+```
 
 Thus the right Perron vector of $P$ is $\mathbf{1}$, whereas its left
 stationary vector is the nonuniform $\pi$.
@@ -71,10 +71,12 @@ Exactness means that declared integer/dyadic identities and their bit guards hav
 ## Diagnostics
 
 For A in C^(n x n), right vectors V, output D, and left vectors W, use
-$$
-r_{\mathrm{eig}} = ||A V - V D||_F / (||A||_F ||V||_F),
-\qquad r_{\mathrm{left}} = ||A^H W - W D^H||_F / (||A||_F ||W||_F).
-$$
+
+```math
+r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
+\qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
+```
+
 For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.

@@ -162,6 +162,25 @@ explicitly and must not be implemented through a builtin binary64 fallback.
 66. Nondegenerate dense matrix `*` must use MPLAPACK MPFR `Rgemm` under one
     uniform operation precision; dense square `\` uses `Rgesv` in M09.
 
+## GitHub Markdown mathematical expressions
+
+GitHub Markdown is the source of truth for mathematical documentation.
+
+* Use GitHub-supported `$...$` or `$`...`$` syntax for inline expressions.
+* Use fenced math blocks (an opening line of three backticks followed by
+  `math`) for matrices, multiline/aligned formulas, complex displays, large
+  fractions, condition formulas, and other nontrivial mathematics.
+* Do not use raw `\[...\]` or `\(...\)` delimiters as project-standard
+  Markdown syntax.
+* Do not put display mathematics inside Markdown table cells, HTML tables,
+  blockquotes, or `<details>` blocks.
+* Do not rely on custom MathJax/LaTeX preamble macros; use standard explicit
+  commands supported by GitHub MathJax.
+
+A documentation change is incomplete if its equations do not render correctly
+on GitHub. The GitHub-math checker is `tools/check-github-math.sh`, and it is
+part of the documentation consistency gate.
+
 ## Required final milestone report
 
 End every milestone report with:

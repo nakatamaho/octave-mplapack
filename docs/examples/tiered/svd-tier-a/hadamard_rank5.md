@@ -8,11 +8,12 @@ A5-RANK5 is a Tier A control. The fifth value sits next to a null space and can 
 
 Smoke: n=8 with eta=2^-32. Demo: n=8 with eta=2^-100. Five positive source values are followed by three zeros.
 
-$$
+```math
 d=[1,1/2,1/4,1/8,eta,0,0,0],
 \qquad eta=2^{-b},
 \qquad rank(A)=5.
-$$
+```
+
 The fifth singular value is eta exactly in the model, while the last three are exact zeros.
 
 ## Why this problem is numerically difficult
@@ -34,13 +35,15 @@ Exactness is proved from the declared integer/dyadic construction and guard. Two
 ## Diagnostics
 
 For $A\in\mathbb{C}^{m\times n}$, use
-$$
+
+```math
 A=U\Sigma V^{\mathsf H},\qquad
 r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 For a repeated or rank cluster compare the associated left/right projectors or ranges; individual factors are not canonical.
 
 Also inspect the value-wise forward bottleneck, rank/cluster metric, and any model-specific identity. Keep residuals as MP values until display. A small reconstruction residual alone does not certify each singular value digit.

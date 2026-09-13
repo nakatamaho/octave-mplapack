@@ -8,10 +8,11 @@ A5-GEO is a Tier A control. This is a dense matrix with a known geometrically de
 
 Smoke: n=8, a=4. Demo: n=16, a=8. The exact diagonal values are d_j=2^(-a(j-1)).
 
-$$
+```math
 A=H diag(d_1,...,d_n) G^T/n,
 \qquad d_j=2^{-a(j-1)}.
-$$
+```
+
 Orthogonal equivalence gives singular values exactly d_1,...,d_n.
 
 ## Why this problem is numerically difficult
@@ -33,13 +34,15 @@ Exactness is proved from the declared integer/dyadic construction and guard. Two
 ## Diagnostics
 
 For $A\in\mathbb{C}^{m\times n}$, use
-$$
+
+```math
 A=U\Sigma V^{\mathsf H},\qquad
 r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 For a repeated or rank cluster compare the associated left/right projectors or ranges; individual factors are not canonical.
 
 Also inspect the value-wise forward bottleneck, rank/cluster metric, and any model-specific identity. Keep residuals as MP values until display. A small reconstruction residual alone does not certify each singular value digit.

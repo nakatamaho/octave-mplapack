@@ -9,13 +9,17 @@ FORSYTHE_SCALED isolates one mathematical reason a dense nonsymmetric eigensyste
 Smoke: n=8, a=4, r=2^-a. Demo: n=16, a=12. The matrix is I+rP, where P is the cyclic permutation.
 
 Let $P$ be the cyclic permutation matrix with $P_{i,i+1}=1$ and $P_{n,1}=1$. The control is
-$$
+
+```math
 F_{\mathrm{scaled}}=I+rP,\qquad r=2^{-a},\qquad P^{\mathsf H}P=I.
-$$
+```
+
 Because P is unitary, its eigenvalues are $\zeta_k=\exp(2\pi i k/n)$ and
-$$
+
+```math
 \lambda_k=1+r\zeta_k.
-$$
+```
+
 This matrix is unitarily diagonalizable and is related to the original Forsythe form by $FD=DF_{\mathrm{scaled}}$.
 
 ## Why this problem is numerically difficult
@@ -39,14 +43,16 @@ The construction audit is intentionally independent of eig: it checks algebraic 
 ## Diagnostics
 
 For a computed $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal or block output $D$, and left vectors $W$, the primary residuals are
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 For a selected cluster $J$, use $A V_J-V_JD_J$ and a range/projector or principal-angle comparison; do not turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the normwise backward indicator against the correct input, the forward bottleneck against the exact/realized reference, and the left/right or subspace diagnostic appropriate to this case. Keep MP values until the final display. A residual is not a certificate that every eigenvalue digit is forward correct.

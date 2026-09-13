@@ -9,17 +9,22 @@ FORSYTHE isolates one mathematical reason a dense nonsymmetric eigensystem can b
 Smoke: n=8, a=4, r=2^-a and epsilon=r^n. Demo: n=16, a=12. The original matrix has a tiny lower-left corner.
 
 Let $N$ be the first-superdiagonal shift, $r=2^{-a}$, and $\varepsilon=r^n$. The original matrix is
-$$
+
+```math
 F=I+N+\varepsilon e_ne_1^{\mathsf T}.
-$$
+```
+
 Writing $P=N+e_ne_1^{\mathsf T}$, the exact scaled control is $F_{\mathrm{scaled}}=I+rP$, and with $D=\operatorname{diag}(1,r,\ldots,r^{n-1})$,
-$$
+
+```math
 FD=D F_{\mathrm{scaled}}.
-$$
+```
+
 The roots are the circle
-$$
+
+```math
 \lambda_k=1+r\exp(2\pi i k/n),\qquad k=0,\ldots,n-1.
-$$
+```
 
 ## Why this problem is numerically difficult
 
@@ -42,14 +47,16 @@ The construction audit is intentionally independent of eig: it checks algebraic 
 ## Diagnostics
 
 For a computed $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal or block output $D$, and left vectors $W$, the primary residuals are
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 For a selected cluster $J$, use $A V_J-V_JD_J$ and a range/projector or principal-angle comparison; do not turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the normwise backward indicator against the correct input, the forward bottleneck against the exact/realized reference, and the left/right or subspace diagnostic appropriate to this case. Keep MP values until the final display. A residual is not a certificate that every eigenvalue digit is forward correct.

@@ -8,10 +8,11 @@ A4-LAU-WIDE is a Tier A control. The wide form checks shape-aware SVD semantics 
 
 Smoke: n=4, b=20. Demo: n=8, b=100. W=T^T has shape n-by-(n+1).
 
-$$
+```math
 W=T^T=\begin{bmatrix}1^T&\mu I_n\end{bmatrix},
 \qquad W W^T=1 1^T+\mu^2 I_n.
-$$
+```
+
 The nonzero singular values are the same as for T, but left and right singular subspaces exchange roles.
 
 ## Why this problem is numerically difficult
@@ -33,13 +34,15 @@ Exactness is proved from the declared integer/dyadic construction and guard. Two
 ## Diagnostics
 
 For $A\in\mathbb{C}^{m\times n}$, use
-$$
+
+```math
 A=U\Sigma V^{\mathsf H},\qquad
 r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 For a repeated or rank cluster compare the associated left/right projectors or ranges; individual factors are not canonical.
 
 Also inspect the value-wise forward bottleneck, rank/cluster metric, and any model-specific identity. Keep residuals as MP values until display. A small reconstruction residual alone does not certify each singular value digit.

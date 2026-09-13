@@ -8,10 +8,11 @@ S1-NRO-THREE isolates This variant adds a true unit group to the extreme recipro
 
 Smoke: m=4, b=12. Demo: m=16, b=40. The first half of the weights are 2^b and the second half are zero.
 
-$$
+```math
 B = H_m diag(2^b,...,2^b,0,...,0),
 \qquad A=[I_m\ B;0\ I_m].
-$$
+```
+
 For a nonzero weight the pair is (a,b) above; for w_j=0, beta_j=0 and both singular values are exactly 1.
 
 ## Why this problem is numerically difficult
@@ -33,13 +34,15 @@ The source audit distinguishes exactness of the constructed matrix from agreemen
 ## Diagnostics
 
 For $A\in\mathbb{C}^{m\times n}$, $U$, $\Sigma$, and $V$, use
-$$
+
+```math
 A=U\Sigma V^{\mathsf H},\qquad
 r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 For repeated singular values compare the associated left/right subspaces, not individual columns.
 
 Also inspect the value-wise forward bottleneck against the exact or analytic reference, the rank/cluster diagnostic when applicable, and any inverse or projector check. Keep the residuals as MP values until display. A small reconstruction residual does not certify every singular value digit.

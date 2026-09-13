@@ -8,10 +8,11 @@ A3-BDI-RAW is a Tier A control. Bidiagonal structure is the natural setting for 
 
 Smoke: n=8, a=4. Demo: n=16, a=8. The diagonal and superdiagonal are dyadic and geometrically graded.
 
-$$
+```math
 B_{ii}=2^{-a(i-1)},
 \qquad B_{i,i+1}=2^{-a(i-1)-1},\quad i<n.
-$$
+```
+
 Every nonzero entry has a one-bit significand; the raw matrix is upper bidiagonal and full rank.
 
 ## Why this problem is numerically difficult
@@ -33,13 +34,15 @@ Exactness is proved from the declared integer/dyadic construction and guard. Two
 ## Diagnostics
 
 For $A\in\mathbb{C}^{m\times n}$, use
-$$
+
+```math
 A=U\Sigma V^{\mathsf H},\qquad
 r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 For a repeated or rank cluster compare the associated left/right projectors or ranges; individual factors are not canonical.
 
 Also inspect the value-wise forward bottleneck, rank/cluster metric, and any model-specific identity. Keep residuals as MP values until display. A small reconstruction residual alone does not certify each singular value digit.

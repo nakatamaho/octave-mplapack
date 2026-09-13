@@ -5,28 +5,32 @@ Tier S is the SVD learning path for matrices whose singular values, subspaces, o
 ## Core equation
 
 For $A\in\mathbb{C}^{m\times n}$, the measured factorization is
-$$
+
+```math
 A=U\Sigma V^{\mathsf H}.
-$$
+```
+
 Use
-$$
+
+```math
 r_{\mathrm{svd}}=
 \frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\qquad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 A small reconstruction residual is a backward-style factorization check. Forward singular-value error depends on scale and gaps; repeated groups require subspace/projector comparisons.
 
 ## Learning map
 
 | Case | Mathematical object | Main question | Start here | Detailed page | External primary context |
 |---|---|---|---|---|---|
-| S1-NRO-TWO | [I B;0 I] with all w=2^b | reciprocal extreme values | [nro_two.m](../../../../examples/tiered/svd-tier-s/nro_two.m) | [nro_two.md](./nro_two.md) | [Nishi–Rump–Oishi (2011)](https://doi.org/10.1587/nolta.2.226) |
+| S1-NRO-TWO | NRO block with all weights $w=2^b$ | reciprocal extreme values | [nro_two.m](../../../../examples/tiered/svd-tier-s/nro_two.m) | [nro_two.md](./nro_two.md) | [Nishi–Rump–Oishi (2011)](https://doi.org/10.1587/nolta.2.226) |
 | S1-NRO-THREE | same block with zero-weight half | unit and reciprocal groups | [nro_three.m](../../../../examples/tiered/svd-tier-s/nro_three.m) | [nro_three.md](./nro_three.md) | [Nishi–Rump–Oishi (2011)](https://doi.org/10.1587/nolta.2.226) |
 | S1-NRO-GRADED | powers-of-two graded w_j | several singular scales | [nro_graded.m](../../../../examples/tiered/svd-tier-s/nro_graded.m) | [nro_graded.md](./nro_graded.md) | [Nishi–Rump–Oishi (2011)](https://doi.org/10.1587/nolta.2.226) |
-| S1-NRO-SCALE-UP | 2^600 times NRO block | large exponent range | [nro_scale_up.m](../../../../examples/tiered/svd-tier-s/nro_scale_up.m) | [nro_scale_up.md](./nro_scale_up.md) | [MPFR manual](https://www.mpfr.org/mpfr-current/mpfr.html) |
-| S1-NRO-SCALE-DOWN | 2^-600 times NRO block | small exponent range | [nro_scale_down.m](../../../../examples/tiered/svd-tier-s/nro_scale_down.m) | [nro_scale_down.md](./nro_scale_down.md) | [MPFR manual](https://www.mpfr.org/mpfr-current/mpfr.html) |
+| S1-NRO-SCALE-UP | $2^{600}$ times NRO block | large exponent range | [nro_scale_up.m](../../../../examples/tiered/svd-tier-s/nro_scale_up.m) | [nro_scale_up.md](./nro_scale_up.md) | [MPFR manual](https://www.mpfr.org/mpfr-current/mpfr.html) |
+| S1-NRO-SCALE-DOWN | $2^{-600}$ times NRO block | small exponent range | [nro_scale_down.m](../../../../examples/tiered/svd-tier-s/nro_scale_down.m) | [nro_scale_down.md](./nro_scale_down.md) | [MPFR manual](https://www.mpfr.org/mpfr-current/mpfr.html) |
 | S2-JS | Jacobi–Stirling unit lower triangle | combinatorial growth | [jacobi_stirling.m](../../../../examples/tiered/svd-tier-s/jacobi_stirling.m) | [jacobi_stirling.md](./jacobi_stirling.md) | [Delgado–Peña (2014)](https://doi.org/10.1016/j.amc.2014.03.047) |
 | S3-LAH | unsigned Lah lower triangle | growth and small tail | [lah.m](../../../../examples/tiered/svd-tier-s/lah.m) | [lah.md](./lah.md) | [Delgado–Orera–Peña (2019)](https://doi.org/10.1002/nla.2217) |
 | S4-DD-SYM | symmetric shifted path | exact tiny sigma_min | [dd_sym.m](../../../../examples/tiered/svd-tier-s/dd_sym.m) | [dd_sym.md](./dd_sym.md) | [Dopico–Koev (2011)](https://doi.org/10.1007/s00211-011-0382-3) |

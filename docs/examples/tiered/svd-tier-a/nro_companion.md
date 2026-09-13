@@ -8,10 +8,11 @@ A6-NRO-COMPANION is a Tier A control. This is a nonsymmetric bounded-integer con
 
 Smoke: n=8, nu=16. Demo: n=16, nu=256. The first row is generated from an alternating sign sequence k_i.
 
-$$
+```math
 k_i=(-1)^{i-1}\quad (k_n=1),
 \qquad a_1=k_1,\quad a_i=k_i-nu k_{i-1}.
-$$
+```
+
 The matrix has first row a, subdiagonal ones, and diagonal -nu as specified by the companion-like construction. Horner recurrence preserves the target k sequence and det(A)=(-1)^(n-1).
 
 ## Why this problem is numerically difficult
@@ -33,13 +34,15 @@ Exactness is proved from the declared integer/dyadic construction and guard. Two
 ## Diagnostics
 
 For $A\in\mathbb{C}^{m\times n}$, use
-$$
+
+```math
 A=U\Sigma V^{\mathsf H},\qquad
 r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
 \qquad
 r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
 r_V=\lVert V^{\mathsf H}V-I\rVert_F.
-$$
+```
+
 For a repeated or rank cluster compare the associated left/right projectors or ranges; individual factors are not canonical.
 
 Also inspect the value-wise forward bottleneck, rank/cluster metric, and any model-specific identity. Keep residuals as MP values until display. A small reconstruction residual alone does not certify each singular value digit.

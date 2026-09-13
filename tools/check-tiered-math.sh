@@ -61,9 +61,13 @@ for file in "${details[@]}"; do
     fi
   done
 
-  dollar_count=$(rg -o '\$\$' "$file" | wc -l)
-  if [[ "$dollar_count" -eq 0 || $((dollar_count % 2)) -ne 0 ]]; then
-    echo "FAIL: unbalanced or absent $$ math delimiters: $file" >&2
+  dollar_count=$(rg -o '\$\$' "$file" | wc -l || true)
+  math_fence_count=$(rg -c '^```math[[:space:]]*$' "$file" || true)
+  if [[ "$dollar_count" -eq 0 && "${math_fence_count:-0}" -eq 0 ]]; then
+    echo "FAIL: absent display math delimiters: $file" >&2
+    fail=1
+  elif [[ $((dollar_count % 2)) -ne 0 ]]; then
+    echo "FAIL: unbalanced $$ math delimiters: $file" >&2
     fail=1
   fi
 
@@ -82,13 +86,11 @@ for file in "${details[@]}"; do
     /^## / && inside { exit }
     inside { print }
   ' "$file")
-  if [[ -z "$math_problem" ]] || ! printf '%s\n' "$math_problem" | rg -F -q '$$'; then
+  if [[ -z "$math_problem" ]] || {
+    ! printf '%s\n' "$math_problem" | rg -F -q '$$' &&
+    ! printf '%s\n' "$math_problem" | rg -F -q '```math';
+  }; then
     echo "FAIL: Mathematical problem section lacks a display equation: $file" >&2
-    fail=1
-  fi
-
-  if awk 'index($0, sprintf("%c", 96)) == 1 { found=1 } END { exit !found }' "$file"; then
-    echo "FAIL: fenced blocks are not allowed in detailed math pages: $file" >&2
     fail=1
   fi
 

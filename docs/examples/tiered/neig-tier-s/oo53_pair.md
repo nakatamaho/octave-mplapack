@@ -9,14 +9,18 @@ OO53_PAIR isolates one mathematical reason a dense nonsymmetric eigensystem can 
 Smoke: n=8, g=53 bits. Demo: n=16, g=53 bits. The dimension is even and S is block upper triangular with 2-by-2 real blocks.
 
 For block index $j=0,\ldots,n/2-1$, define
-$$
+
+```math
 a_j=2j+1+2^{-45},\qquad b_j=(2j+1)/8+2^{-45},\qquad
 B_j=\begin{bmatrix}a_j&b_j\\-b_j&a_j\end{bmatrix}.
-$$
+```
+
 The requested $S_{\mathrm{req}}$ places $B_j$ on the diagonal and $8I_2$ on each first block superdiagonal. The same fixed Ozaki–Ogita triple product as in OO53_REAL is then applied. The roots of the realized standard form are the exact complex pair
-$$
+
+```math
 \lambda_{j,\pm}=a'_j\mathbin{\pm} i b'_j,
-$$
+```
+
 where $a'_j,b'_j$ are the realized, once-quantized entries.
 
 ## Why this problem is numerically difficult
@@ -40,14 +44,16 @@ The construction audit is intentionally independent of eig: it checks algebraic 
 ## Diagnostics
 
 For a computed $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal or block output $D$, and left vectors $W$, the primary residuals are
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 For a selected cluster $J$, use $A V_J-V_JD_J$ and a range/projector or principal-angle comparison; do not turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the normwise backward indicator against the correct input, the forward bottleneck against the exact/realized reference, and the left/right or subspace diagnostic appropriate to this case. Keep MP values until the final display. A residual is not a certificate that every eigenvalue digit is forward correct.

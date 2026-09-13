@@ -8,9 +8,10 @@ HAD_BIDIAG is a Tier A control. The spectrum is well separated while the eigenve
 
 Smoke: n=8 and s=16. Demo: n=16 and s=128. n is a power of two and H is the Sylvester Hadamard matrix.
 
-$$
+```math
 T = diag(1,2,...,n) + s N,    A = (1/n) H T H^T,    H H^T = n I.
-$$
+```
+
 The orthogonal similarity preserves the exact eigenvalues 1,2,...,n. For root k, the triangular reference vectors use v_i = s^(k-i)/(k-i)! for i <= k and w_i = (-s)^(i-k)/(i-k)! for i >= k.
 
 ## Why this problem is numerically difficult
@@ -32,10 +33,12 @@ Exactness means that declared integer/dyadic identities and their bit guards hav
 ## Diagnostics
 
 For A in C^(n x n), right vectors V, output D, and left vectors W, use
-$$
-r_{\mathrm{eig}} = ||A V - V D||_F / (||A||_F ||V||_F),
-\qquad r_{\mathrm{left}} = ||A^H W - W D^H||_F / (||A||_F ||W||_F).
-$$
+
+```math
+r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
+\qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
+```
+
 For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.

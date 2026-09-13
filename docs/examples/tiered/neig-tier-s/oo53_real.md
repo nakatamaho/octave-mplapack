@@ -7,18 +7,24 @@ OO53_REAL is the smallest complete example of a fixed-precision eigenvalue gener
 ## Mathematical problem
 
 Smoke uses n=8 and generation precision g=53 bits; demo uses n=16 and the same g. Let N have ones on the first superdiagonal, let L=I+N^T and U=I+N, and define X=LU and Y=U^(-1)L^(-1). The requested standard form is upper bidiagonal:
-$$
+
+```math
 (S_{\mathrm{req}})_{ii}=i+2^{-45},\qquad
 (S_{\mathrm{req}})_{i,i+1}=32.
-$$
+```
+
 The specified generator applies the two rounded shifted additions and then the two matrix products at exactly g:
-$$
+
+```math
 \sigma=12\alpha P,\qquad
 S'_{ij}=\operatorname{RN}_{g}\left(\operatorname{RN}_{g}(\sigma+(S_{\mathrm{req}})_{ij})-\sigma\right),
-$$
-$$
+```
+
+
+```math
 A=\operatorname{RN}_{g}\left(Y\,\operatorname{RN}_{g}(S'X)\right).
-$$
+```
+
 The roots of the realized triangular standard form are diag(S'), not the requested diagonal.
 
 ## Why this problem is numerically difficult
@@ -36,9 +42,11 @@ Before reading the root comparison, inspect the generator record: X and Y must b
 ## Construction and exactness
 
 The independent audit verifies XY=YX=I using finite nilpotent series, not an unverified numerical inverse. It calculates a sufficient dyadic bit guard for both matrix-product stages and checks the Ozaki–Ogita inequality
-$$
+
+```math
 4 n_Y n' 2^{-g}P\le 1.
-$$
+```
+
 Every rounded scalar sum and every final matrix entry is compared with an exact dyadic numerator/denominator evaluation. The realized standard form and the final A are serialized separately. Agreement between two MP runs is a useful regression check but cannot replace this exactness proof.
 
 The g=53 generator is the explicitly allowed fixed-precision generator. It must not be silently changed to 64, 128, or the eigensolver precision. The construction is also not a license to route later dense operations through builtin binary64 complex arithmetic.
@@ -46,14 +54,16 @@ The g=53 generator is the explicitly allowed fixed-precision generator. It must 
 ## Diagnostics
 
 For A in C^(n x n), right vectors V, diagonal output D, and left vectors W, use
-$$
+
+```math
 r_{\mathrm{eig}}=
 \frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad
 r_{\mathrm{left}}=
 \frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
 {\lVert A\rVert_F\lVert W\rVert_F}.
-$$
+```
+
 Match measured eigenvalues bijectively with diag(S') and separately with diag(S_req). Keep a requested-versus-realized forward bottleneck, a model hash, and the generation exactness status. A real model has no mathematical imaginary parts; a displayed imaginary component is a solver/conditioning diagnostic.
 
 ## Backward error versus forward error
