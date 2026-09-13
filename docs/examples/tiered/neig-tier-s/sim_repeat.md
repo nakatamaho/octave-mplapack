@@ -6,7 +6,8 @@ SIM_REPEAT isolates one mathematical reason a dense nonsymmetric eigensystem can
 
 ## Mathematical problem
 
-Smoke: n=8 and demo: n=16. The leading block is I_2, so lambda=1 has algebraic and geometric multiplicity 2.
+Smoke: $n=8$ and demo: $n=16$. The leading block is $I_2$, so $\lambda=1$
+has algebraic and geometric multiplicity 2.
 
 With the same exact triangular inverse pair $X=LU$ and $Y=X^{-1}$ used by the neighboring similarity cases, set
 

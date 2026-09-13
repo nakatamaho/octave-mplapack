@@ -25,24 +25,27 @@ The exact model, any transformed control, and measured solver output remain sepa
 
 ## What the Octave example computes
 
-The matching [frank1.m](../../../../examples/tiered/neig-tier-a/frank1.m) selects only FRANK1 from the fixed manifest and calls the public eig interface. The matching frank1.m constructs F0, R, and F1 in MP, verifies the exact relation, and calls eig on F1. It uses the independent Jacobi reference from FRANK0, but measures F1 residuals and left/right diagnostics independently. It does not reuse F0's measured vectors as an answer. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
+The matching [frank1.m](../../../../examples/tiered/neig-tier-a/frank1.m) selects only FRANK1 from the fixed manifest and calls the public `eig` interface. The matching `frank1.m` constructs $F_0$, $R$, and $F_1$ in MP, verifies the exact relation, and calls `eig` on $F_1$. It uses the independent Jacobi reference from FRANK0, but measures $F_1$ residuals and left/right diagnostics independently. It does not reuse $F_0$'s measured vectors as an answer. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
 
 ## Construction and exactness
 
-The exact check verifies R^2 = I, the reflected-transpose identity, the integer Hessenberg pattern, and small characteristic-polynomial identities. Any vector correspondence is tested through the correct transpose/reversal relation only after normalization.
+The exact check verifies $R^2=I$, the reflected-transpose identity, the integer Hessenberg pattern, and small characteristic-polynomial identities. Any vector correspondence is tested through the correct transpose/reversal relation only after normalization.
 
 Exactness means that declared integer/dyadic identities and their bit guards have been checked independently. Agreement between two MP runs is useful evidence but is not an exactness proof.
 
 ## Diagnostics
 
-For A in C^(n x n), right vectors V, output D, and left vectors W, use
+For $A\in\mathbb{C}^{n\times n}$, right vectors $V$, output $D$, and left
+vectors $W$, use
 
 ```math
 r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
 ```
 
-For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
+For a selected cluster $J$, use the block residual $A V_J-V_JD_J$ and compare
+ranges or projectors; never turn a repeated or defective cluster into an
+individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.
 
@@ -58,13 +61,13 @@ Input/source precision is the precision and exactness of the stored model. Arith
 
 ## Reading the output
 
-Equal spectra are expected; equal vector entries are not. The left residual uses the adjoint equation A^H W - W D^H. Relative error remains important for small roots. This is a controlled transformation experiment, not evidence that orientation is numerically irrelevant.
+Equal spectra are expected; equal vector entries are not. The left residual uses the adjoint equation $A^{\mathsf H}W-WD^{\mathsf H}$. Relative error remains important for small roots. This is a controlled transformation experiment, not evidence that orientation is numerically irrelevant.
 
 A PASS line is scoped to the declared case gates and profile. Compare only rows with the same parameters and model hash. If a certificate field is absent, do not infer it from a small residual or a stable display.
 
 ## Common mistakes
 
-Do not compare F1 and F0 without the R/F transpose identity, use a transpose-only left residual, or claim that same eigenvalues imply same right eigenvectors.
+Do not compare $F_1$ and $F_0$ without the $R/F$ transpose identity, use a transpose-only left residual, or claim that same eigenvalues imply same right eigenvectors.
 
 For diagnosis, verify case ID and dimensions, then model hash and input precision, then residual, then the appropriate forward, cluster, or structural metric. Never change the fixture after observing a failure and report it as the original case.
 

@@ -66,7 +66,8 @@ The g=53 generator is the explicitly allowed fixed-precision generator. It must 
 
 ## Diagnostics
 
-For A in C^(n x n), right vectors V, diagonal output D, and left vectors W, use
+For $A\in\mathbb{C}^{n\times n}$, right vectors $V$, diagonal output $D$, and
+left vectors $W$, use
 
 ```math
 r_{\mathrm{eig}}=

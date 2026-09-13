@@ -6,7 +6,8 @@ A4-LAU-COMPLEX is a Tier A control. This is a complex SVD interface control: the
 
 ## Mathematical problem
 
-Demo only: n=8, b=100, tall T. Quarter-turn diagonal phases are applied on the left and right.
+Demo only: $n=8$, $b=100$, tall $T$. Quarter-turn diagonal phases are applied
+on the left and right.
 
 ```math
 T_c=D_L T D_R,

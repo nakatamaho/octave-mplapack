@@ -2,7 +2,11 @@
 
 ## Quick idea
 
-S1-NRO-SCALE-UP is the range stress companion to the NRO two-level matrix. It keeps the exact block construction and makes the entire matrix larger by a dyadic factor 2^600. The question is whether a genuine MP path preserves scale and factor identities without silently converting the result to binary64.
+S1-NRO-SCALE-UP is the range stress companion to the NRO two-level matrix. It
+keeps the exact block construction and makes the entire matrix larger by a
+dyadic factor $2^{600}$. The question is whether a genuine MP path preserves
+scale and factor identities without silently converting the result to
+binary64.
 
 ## Mathematical problem
 
@@ -37,7 +41,7 @@ The Hadamard entries, 2^b block, and 2^600 scale are exact dyadics in the intend
 
 ## Diagnostics
 
-For the measured A=UΣV^H, use
+For the measured $A=U\Sigma V^{\mathsf H}$, use
 
 ```math
 A=U\Sigma V^{\mathsf H},\qquad

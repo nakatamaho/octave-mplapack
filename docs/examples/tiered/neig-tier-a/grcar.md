@@ -33,7 +33,7 @@ The exact model, any transformed control, and measured solver output remain sepa
 
 ## What the Octave example computes
 
-The matching [grcar.m](../../../../examples/tiered/neig-tier-a/grcar.m) selects only GRCAR from the fixed manifest and calls the public eig interface. The matching grcar.m builds the exact band pattern, measures eig at selected precisions, and probes complex shifts through the public singular-value path. It reports r_eig, shift singular values, and an explicit closed-set inside/outside convention. Optional plots are presentation only and never a certificate. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
+The matching [grcar.m](../../../../examples/tiered/neig-tier-a/grcar.m) selects only GRCAR from the fixed manifest and calls the public `eig` interface. The matching `grcar.m` builds the exact band pattern, measures `eig` at selected precisions, and probes complex shifts through the public singular-value path. It reports $r_{\mathrm{eig}}$, shift singular values, and an explicit closed-set inside/outside convention. Optional plots are presentation only and never a certificate. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
 
 ## Construction and exactness
 
@@ -43,14 +43,17 @@ Exactness means that declared integer/dyadic identities and their bit guards hav
 
 ## Diagnostics
 
-For A in C^(n x n), right vectors V, output D, and left vectors W, use
+For $A\in\mathbb{C}^{n\times n}$, right vectors $V$, output $D$, and left
+vectors $W$, use
 
 ```math
 r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
 ```
 
-For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
+For a selected cluster $J$, use the block residual $A V_J-V_JD_J$ and compare
+ranges or projectors; never turn a repeated or defective cluster into an
+individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.
 
@@ -66,7 +69,7 @@ Input/source precision is the precision and exactness of the stored model. Arith
 
 ## Reading the output
 
-A point with small sigma_min(z I-G) is near the closed pseudospectrum; it is not necessarily an eigenvalue. Read eigen residuals and shift singular values separately. Precision-dependent contours can reflect arithmetic or unresolved boundary geometry. No balancing improvement is required.
+A point with small $\sigma_{\min}(zI-G)$ is near the closed pseudospectrum; it is not necessarily an eigenvalue. Read eigen residuals and shift singular values separately. Precision-dependent contours can reflect arithmetic or unresolved boundary geometry. No balancing improvement is required.
 
 A PASS line is scoped to the declared case gates and profile. Compare only rows with the same parameters and model hash. If a certificate field is absent, do not infer it from a small residual or a stable display.
 

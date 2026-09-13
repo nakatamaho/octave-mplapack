@@ -6,7 +6,8 @@ WILKINSON is a Tier A control. The roots are simple integers, but the coefficien
 
 ## Mathematical problem
 
-Smoke: n=10. Demo: n=20. The target polynomial has exact roots 1,2,...,n.
+Smoke: $n=10$. Demo: $n=20$. The target polynomial has exact roots
+$1,2,\ldots,n$.
 
 ```math
 p_n(z)=\prod_{j=1}^{n}(z-j)=z^n+c_1z^{n-1}+\cdots+c_n.
@@ -40,14 +41,17 @@ Exactness means that declared integer/dyadic identities and their bit guards hav
 
 ## Diagnostics
 
-For A in C^(n x n), right vectors V, output D, and left vectors W, use
+For $A\in\mathbb{C}^{n\times n}$, right vectors $V$, output $D$, and left
+vectors $W$, use
 
 ```math
 r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
 ```
 
-For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
+For a selected cluster $J$, use the block residual $A V_J-V_JD_J$ and compare
+ranges or projectors; never turn a repeated or defective cluster into an
+individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.
 

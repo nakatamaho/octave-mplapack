@@ -25,24 +25,27 @@ The exact model, any transformed control, and measured solver output remain sepa
 
 ## What the Octave example computes
 
-The matching [had_complex.m](../../../../examples/tiered/neig-tier-a/had_complex.m) selects only HAD_COMPLEX from the fixed manifest and calls the public eig interface. The matching had_complex.m runs the demo case through the public complex eig path, checks the unitary similarity, and compares its spectrum with the real control. It measures A_C V - V D and A_C^H W - W D^H, then compares transformed subspaces after phase matching. It remains a separate complex input. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
+The matching [had_complex.m](../../../../examples/tiered/neig-tier-a/had_complex.m) selects only HAD_COMPLEX from the fixed manifest and calls the public `eig` interface. The matching `had_complex.m` runs the demo case through the public complex eig path, checks the unitary similarity, and compares its spectrum with the real control. It measures $A_{\mathbb C}V-VD$ and $A_{\mathbb C}^{\mathsf H}W-WD^{\mathsf H}$, then compares transformed subspaces after phase matching. It remains a separate complex input. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
 
 ## Construction and exactness
 
-The constructor checks Z^H Z = I, exact quarter-turn entries, and the similarity identity. The real model reference is reused only as a mathematical control; the complex eig call consumes A_C. Exactness is checked before and after phase application.
+The constructor checks $Z^{\mathsf H}Z=I$, exact quarter-turn entries, and the similarity identity. The real model reference is reused only as a mathematical control; the complex `eig` call consumes $A_{\mathbb C}$. Exactness is checked before and after phase application.
 
 Exactness means that declared integer/dyadic identities and their bit guards have been checked independently. Agreement between two MP runs is useful evidence but is not an exactness proof.
 
 ## Diagnostics
 
-For A in C^(n x n), right vectors V, output D, and left vectors W, use
+For $A\in\mathbb{C}^{n\times n}$, right vectors $V$, output $D$, and left
+vectors $W$, use
 
 ```math
 r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
 ```
 
-For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
+For a selected cluster $J$, use the block residual $A V_J-V_JD_J$ and compare
+ranges or projectors; never turn a repeated or defective cluster into an
+individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.
 
@@ -64,7 +67,7 @@ A PASS line is scoped to the declared case gates and profile. Compare only rows 
 
 ## Common mistakes
 
-Do not use A instead of A_C, compare vectors without phase normalization, use a transpose-only left identity, or claim an optimized backend that was not validated.
+Do not use $A$ instead of $A_{\mathbb C}$, compare vectors without phase normalization, use a transpose-only left identity, or claim an optimized backend that was not validated.
 
 For diagnosis, verify case ID and dimensions, then model hash and input precision, then residual, then the appropriate forward, cluster, or structural metric. Never change the fixture after observing a failure and report it as the original case.
 

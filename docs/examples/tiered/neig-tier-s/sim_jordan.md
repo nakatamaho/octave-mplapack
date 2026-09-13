@@ -6,7 +6,8 @@ SIM_JORDAN isolates one mathematical reason a dense nonsymmetric eigensystem can
 
 ## Mathematical problem
 
-Smoke: n=8 and demo: n=16. The leading block is J_2(1), with algebraic multiplicity 2 and geometric multiplicity 1.
+Smoke: $n=8$ and demo: $n=16$. The leading block is $J_2(1)$, with
+algebraic multiplicity 2 and geometric multiplicity 1.
 
 Define
 

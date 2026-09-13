@@ -6,7 +6,8 @@ A3-BDI-RAW is a Tier A control. Bidiagonal structure is the natural setting for 
 
 ## Mathematical problem
 
-Smoke: n=8, a=4. Demo: n=16, a=8. The diagonal and superdiagonal are dyadic and geometrically graded.
+Smoke: $n=8$, $a=4$. Demo: $n=16$, $a=8$. The diagonal and superdiagonal
+are dyadic and geometrically graded.
 
 ```math
 B_{ii}=2^{-a(i-1)},

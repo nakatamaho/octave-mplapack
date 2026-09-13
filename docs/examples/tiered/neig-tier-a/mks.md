@@ -6,7 +6,8 @@ MKS is a Tier A control. The matrix combines a large defective zero part with a 
 
 ## Mathematical problem
 
-Smoke: n=12, m=3, delta=1/8, ell=4. Demo: n=32, m=3, delta=1/8, ell=11.
+Smoke: $n=12$, $m=3$, $\delta=1/8$, $\ell=4$. Demo: $n=32$, $m=3$,
+$\delta=1/8$, $\ell=11$.
 
 ```math
 A=N^m+\delta\mathbf{1}\mathbf{1}^{\mathsf T},
@@ -35,14 +36,17 @@ Exactness means that declared integer/dyadic identities and their bit guards hav
 
 ## Diagnostics
 
-For A in C^(n x n), right vectors V, output D, and left vectors W, use
+For $A\in\mathbb{C}^{n\times n}$, right vectors $V$, output $D$, and left
+vectors $W$, use
 
 ```math
 r_{\mathrm{eig}} = \frac{\lVert A V - V D\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
 \qquad r_{\mathrm{left}} = \frac{\lVert A^{\mathsf H} W - W D^{\mathsf H}\rVert_F}{\lVert A\rVert_F\lVert W\rVert_F}.
 ```
 
-For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
+For a selected cluster $J$, use the block residual $A V_J-V_JD_J$ and compare
+ranges or projectors; never turn a repeated or defective cluster into an
+individual-vector claim.
 
 Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.
 
