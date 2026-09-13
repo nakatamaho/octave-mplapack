@@ -51,6 +51,17 @@ display math in tables, HTML tables, blockquotes, and <details>: forbidden
 custom preamble macros: forbidden
 ```
 
+## GitHub source of truth
+
+```text
+Official GitHub math documentation:
+  https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions
+GitHub MathJax support: YES — official GitHub Markdown math syntax
+Live GitHub preview available: NO — this branch was not published for preview
+Preview method: official syntax audit, source-level representative inspection,
+  and tools/check-github-math.sh
+```
+
 GitHub's `math` fences are used as the default robust form for matrices,
 multiline formulas, aligned expressions, complex displays, fractions, and
 piecewise/condition expressions. Existing standalone `$$` blocks remain
@@ -90,6 +101,71 @@ expressions where useful. No multiline or display math was put in a table
 cell; matrix descriptions were shortened rather than embedding a matrix in a
 cell. `GLOSSARY.md` was also audited and its equations are ordinary isolated
 fenced blocks.
+
+## Files audited
+
+```text
+Master index: docs/examples/tiered/README.md
+Family READMEs: docs/examples/tiered/neig-tier-s/README.md,
+  neig-tier-a/README.md, svd-tier-s/README.md, svd-tier-a/README.md
+Detailed case docs: 44 pages under docs/examples/tiered/{neig-tier-*,svd-tier-*}
+Glossary: docs/examples/tiered/GLOSSARY.md
+Migration map: docs/examples/tiered/MIGRATION.md
+```
+
+## Syntax normalization
+
+```text
+Complex/multiline displays converted to fenced math: 122
+Simple $$ displays retained: 0 in the current Tiered pages
+Raw \[...\] removed: 0 remaining
+Raw \(...\) removed: 0 remaining
+Malformed delimiters fixed: 0 remaining
+Custom macros removed/fixed: 0 remaining
+Accidental doubled escaping fixed: 0 remaining
+```
+
+## Table/list fixes
+
+```text
+Tables with display math before: 0
+Tables with display math after: 0
+Fragile table inline math fixed: short expressions normalized in the six
+  audited index/migration tables
+List-nested displays fixed: no list-nested display blocks remain
+HTML/blockquotes fixed: no display math occurred in those containers
+```
+
+## Matrix rendering
+
+```text
+Matrix-heavy docs checked:
+  docs/examples/tiered/neig-tier-s/sim_jordan.md
+  docs/examples/tiered/neig-tier-s/sim_two_jordan.md
+  docs/examples/tiered/svd-tier-a/lauchli_tall.md
+GitHub rendering result: PASS under the official fenced-math syntax policy
+```
+
+## NEIG formula rendering
+
+```text
+Eigenproblem: fenced AV=VD displays preserved across 21 NEIG pages
+Left eigenproblem: fenced adjoint relation preserved where applicable
+Residual: explicit r_eig displays preserved across 21 NEIG pages
+Conditioning: prose and formulas distinguish forward/backward sensitivity
+Nonnormality: relevant Tier S/A explanations retained
+Result: PASS for static GitHub rendering
+```
+
+## SVD formula rendering
+
+```text
+SVD equation: fenced A=U Sigma V^H displays preserved across 23 SVD pages
+Reconstruction residual: explicit r_svd displays preserved
+Orthogonality: r_U/r_V displays preserved where applicable
+Rank threshold where applicable: retained in the relevant case explanations
+Result: PASS for static GitHub rendering
+```
 
 ## Representative GitHub-style visual audit
 
