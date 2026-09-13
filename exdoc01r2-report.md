@@ -14,13 +14,23 @@ required, so no unexecuted numerical or package test is reported as PASS.
 The final `EXDOC01R2 PASS — GITHUB MATH RENDERING CLOSED` and `D04-READY`
 conclusions remain intentionally unclaimed until that deferred wall is run.
 
-## Baseline and scope
+## Baseline
 
 ```text
+EXDOC01R1:
+  implementation commit: f6188394095cc30394239a75c06ccf2fbeb14400
+  prior report: exdoc01r1-report.md
+
+DOC00:
+  implementation freeze: 8f8bbdc0d75ccf4bc572ba843ad6b1ebf4ae0f75
+  report: reports/DOC00-report.md
+  status: DOC00 PASS — USER/DEVELOPER DOCUMENTATION CLOSED
+
 Working repository: octave-mplapack
 Working branch: main
 Starting commit: 04647345895cf7c260157ca49532dbf748febb35
 Development version: mplapack-interop 0.5.0-dev
+Permanent documentation rule: AGENTS.md, "Documentation is part of Definition of Done"
 
 Numerical source changes: none
 Dependency changes: none
@@ -167,7 +177,7 @@ Rank threshold where applicable: retained in the relevant case explanations
 Result: PASS for static GitHub rendering
 ```
 
-## Representative GitHub-style visual audit
+## Visual audit
 
 Direct authenticated GitHub UI preview was unavailable for this unpushed
 worktree. The official GitHub syntax, source-level visual inspection, and the
@@ -197,7 +207,24 @@ Literal norm bars in the remaining displayed residuals were changed to
 being used as mathematical notation. No literal pipe was introduced into a
 table-cell expression.
 
-## Static checker changes
+## Pedagogy preserved
+
+```text
+Mathematical definitions: 44/44
+MP-specific explanations: 44/44
+External literature links: retained on all 44 detailed pages
+Project provenance separation: PASS
+Numerical semantics and accepted case depth: preserved
+```
+
+The rendering conversion did not replace mathematical definitions with raw
+code, remove conditioning explanations, or collapse source precision,
+work/operation precision, and mathematical conditioning into one concept.
+The external references and project-provenance links remain separate, and
+the pages continue to distinguish measured solver output from independent
+model facts.
+
+## Static checker
 
 `tools/check-github-math.sh` now checks, without attempting to parse TeX:
 
@@ -217,6 +244,10 @@ displays and no longer rejects the selected GitHub-safe form. Its display
 equation test was also corrected to recognize either form. The new checker is
 required and executed by `tools/check-docs.sh`.
 
+```text
+Violations remaining in scoped Tier Markdown: 0
+```
+
 ## Documentation builds and gates
 
 ```text
@@ -233,13 +264,15 @@ modify the tracked Texinfo or generated Markdown manual. No TeX PDF toolchain
 was available, but the required Info/plaintext manual artifact, HTML manual,
 generated Markdown comparison, and Doxygen HTML all built successfully.
 
-## Deferred empirical validation
+## CI
 
-The following were deliberately not run in this continuation, per the
-explicit user instruction that measured QA is unnecessary here. They are
-`NOT RUN`, not PASS:
+Static documentation gates were run. The following measured/empirical checks
+were deliberately not run in this continuation, per the explicit user
+instruction that measured QA is unnecessary here. They are `NOT RUN`, not
+PASS:
 
 ```text
+Tier standalone examples: NOT RUN
 tools/test-doc-examples.sh: NOT RUN
 44 standalone Tier example scripts: NOT RUN
 120 smoke eig rows: NOT RUN
@@ -248,6 +281,8 @@ NEIG/SVD V-S/V-A verification jobs: NOT RUN
 focused eig/SVD regression: NOT RUN
 Grcar regression: NOT RUN
 package lifecycle smoke: NOT RUN
+manual build: PASS — tools/build-docs.sh
+package lifecycle: NOT RUN
 sanitizer rerun: NOT REQUIRED for this docs-only change
 ```
 
@@ -292,6 +327,7 @@ The brace groups are literal path lists, not new directory names. Generated
 
 ```text
 EXDOC01R2 rendering scope: PASS
+EXDOC01R2 PASS: NOT CLAIMED
 EXDOC01R2 full milestone: NOT COMPLETE — empirical QA deferred
 D04-READY: NOT CLAIMED
 No D04 operation started.
@@ -301,6 +337,15 @@ When the deferred empirical wall is eventually run, it must use the existing
 frozen D00/D04 dependency provenance. This rendering change does not alter
 MPLAPACK, gmpfrxx_mkII, numerical source, package version, or accepted
 precision semantics.
+
+## Numerical source changes
+
+```text
+None.
+```
+
+No numerical algorithm, matrix definition, tolerance, precision contract,
+dependency header, public API, or accepted numerical result was changed.
 
 ## Final milestone record
 
@@ -315,3 +360,11 @@ Tests: static documentation/build gates PASS; empirical QA NOT RUN by instructio
 Gate: rendering scope PASS; full EXDOC01R2 gate deferred
 Known limitations: no authenticated GitHub UI preview; no empirical numerical/package QA
 ```
+
+## Next
+
+The rendering scope is ready for the deferred empirical validation wall.
+Resume `tools/test-doc-examples.sh`, the standalone Tier examples, focused
+eig/SVD and Grcar checks, and package lifecycle QA before claiming the full
+milestone or `D04-READY`. If the complete gate later passes, the next
+milestone is D04; do not begin D04 automatically from this report.
