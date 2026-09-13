@@ -6,13 +6,21 @@ HAD_BIDIAG is a Tier A control. The spectrum is well separated while the eigenve
 
 ## Mathematical problem
 
-Smoke: n=8 and s=16. Demo: n=16 and s=128. n is a power of two and H is the Sylvester Hadamard matrix.
+Smoke: $n=8$ and $s=16$. Demo: $n=16$ and $s=128$. $n$ is a power of two
+and $H$ is the Sylvester Hadamard matrix.
 
 ```math
-T = diag(1,2,...,n) + s N,    A = (1/n) H T H^T,    H H^T = n I.
+T=\operatorname{diag}(1,2,\ldots,n)+sN,\qquad
+A=\frac{1}{n}HTH^{\mathsf T},\qquad HH^{\mathsf T}=nI.
 ```
 
-The orthogonal similarity preserves the exact eigenvalues 1,2,...,n. For root k, the triangular reference vectors use v_i = s^(k-i)/(k-i)! for i <= k and w_i = (-s)^(i-k)/(i-k)! for i >= k.
+The orthogonal similarity preserves the exact eigenvalues $1,2,\ldots,n$.
+For root $k$, the triangular reference vectors use
+
+```math
+v_i=\frac{s^{k-i}}{(k-i)!}\quad (i\le k),\qquad
+w_i=\frac{(-s)^{i-k}}{(i-k)!}\quad (i\ge k).
+```
 
 ## Why this problem is numerically difficult
 

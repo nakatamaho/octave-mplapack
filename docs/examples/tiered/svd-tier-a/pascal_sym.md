@@ -6,15 +6,17 @@ A1-PASCAL-SYM is a Tier A control. The dense symmetric product has exact combina
 
 ## Mathematical problem
 
-Smoke: n=8. Demo: n=24. P is the dense symmetric product Q Q^T.
+Smoke: $n=8$. Demo: $n=24$. $P$ is the dense symmetric product
+$QQ^{\mathsf T}$.
 
 ```math
-P=Q Q^T,
-\qquad P_{ij}=binom(i+j-2,i-1),
-\qquad P=P^T \succ 0.
+P=QQ^{\mathsf T},
+\qquad P_{ij}=\binom{i+j-2}{i-1},
+\qquad P=P^{\mathsf T}\succ0.
 ```
 
-Because Q is unit lower triangular, P is positive definite and det(P)=1.
+Because $Q$ is unit lower triangular, $P$ is positive definite and
+$\det(P)=1$.
 
 ## Why this problem is numerically difficult
 

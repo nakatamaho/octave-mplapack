@@ -6,12 +6,13 @@ A5-RANK5 is a Tier A control. The fifth value sits next to a null space and can 
 
 ## Mathematical problem
 
-Smoke: n=8 with eta=2^-32. Demo: n=8 with eta=2^-100. Five positive source values are followed by three zeros.
+Smoke: $n=8$ with $\eta=2^{-32}$. Demo: $n=8$ with
+$\eta=2^{-100}$. Five positive source values are followed by three zeros.
 
 ```math
-d=[1,1/2,1/4,1/8,eta,0,0,0],
-\qquad eta=2^{-b},
-\qquad rank(A)=5.
+d=[1,1/2,1/4,1/8,\eta,0,0,0],
+\qquad \eta=2^{-b},
+\qquad \operatorname{rank}(A)=5.
 ```
 
 The fifth singular value is eta exactly in the model, while the last three are exact zeros.

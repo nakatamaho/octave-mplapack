@@ -6,13 +6,16 @@ FRANK1 is a Tier A control. It is easy to turn two orientation IDs into aliases 
 
 ## Mathematical problem
 
-Smoke: n=8. Demo: n=24. The matrix is F1 = R F0^T R, with R the reversal permutation.
+Smoke: $n=8$. Demo: $n=24$. The matrix is $F_1=RF_0^{\mathsf T}R$, with
+$R$ the reversal permutation.
 
 ```math
-F1 = R F0^T R,    R^2 = I.
+F_1=R F_0^{\mathsf T}R,\qquad R^2=I.
 ```
 
-Transpose and permutation similarity preserve the characteristic polynomial, so F1 and F0 have the same eigenvalues while their coordinate vectors and left/right roles differ.
+Transpose and permutation similarity preserve the characteristic polynomial, so
+$F_1$ and $F_0$ have the same eigenvalues while their coordinate vectors and
+left/right roles differ.
 
 ## Why this problem is numerically difficult
 

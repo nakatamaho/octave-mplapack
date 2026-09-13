@@ -6,11 +6,12 @@ S3-LAH isolates Lah entries grow rapidly down the triangle, producing a full-ran
 
 ## Mathematical problem
 
-Smoke: n=8. Demo: n=20. The matrix is lower triangular with exact integer entries and unit diagonal.
+Smoke: $n=8$. Demo: $n=20$. The matrix is lower triangular with exact
+integer entries and unit diagonal.
 
 ```math
-L_{ij}=binom(i-1,j-1) i!/j!  \quad (j<=i),
-\qquad L_{ij}=0 \quad (j>i).
+L_{ij}=\binom{i-1}{j-1}\frac{i!}{j!}\quad (j\le i),
+\qquad L_{ij}=0\quad (j>i).
 ```
 
 Equivalently L(i,j)=L(i-1,j-1)+(i+j-1)L(i-1,j), with out-of-range entries zero. The first rows are [1], [2 1], [6 6 1], [24 36 12 1].

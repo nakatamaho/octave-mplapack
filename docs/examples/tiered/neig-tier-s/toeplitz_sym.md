@@ -6,7 +6,8 @@ TOEPLITZ_SYM isolates one mathematical reason a dense nonsymmetric eigensystem c
 
 ## Mathematical problem
 
-Smoke: n=16, b=4. Demo: n=32, b=4. This is B itself, with both off-diagonals equal to 2^-b.
+Smoke: $n=16$, $b=4$. Demo: $n=32$, $b=4$. This is $B$ itself, with both
+off-diagonals equal to $2^{-b}$.
 
 The control matrix is
 

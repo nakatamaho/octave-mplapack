@@ -6,13 +6,17 @@ S1-NRO-GRADED isolates The graded weights test a spectrum with several scales ra
 
 ## Mathematical problem
 
-Smoke: m=4, g=4. Demo: m=16, g=3. The weights are w_j=2^(g(j-1)).
+Smoke: $m=4$, $g=4$. Demo: $m=16$, $g=3$. The weights are
+$w_j=2^{g(j-1)}$.
 
 ```math
-B=H_m diag(2^{g(j-1)}),    A=[I_m\ B;0\ I_m].
+B=H_m\operatorname{diag}\!\left(2^{g(j-1)}\right),\qquad
+A=\begin{bmatrix}I_m&B\\0&I_m\end{bmatrix}.
 ```
 
-Each beta_j=sqrt(m)2^(g(j-1)) produces a reciprocal pair a_j and b_j, so the singular values span multiple exact powers of two before the square-root transformation.
+Each $\beta_j=\sqrt{m}\,2^{g(j-1)}$ produces a reciprocal pair $a_j$ and
+$b_j$, so the singular values span multiple exact powers of two before the
+square-root transformation.
 
 ## Why this problem is numerically difficult
 

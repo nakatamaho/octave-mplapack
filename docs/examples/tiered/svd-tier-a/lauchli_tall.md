@@ -6,14 +6,15 @@ A4-LAU-TALL is a Tier A control. The small singular group is controlled by μ wh
 
 ## Mathematical problem
 
-Smoke: n=4, b=20, mu=2^-20. Demo: n=8, b=100, mu=2^-100. T has shape (n+1)-by-n.
+Smoke: $n=4$, $b=20$, $\mu=2^{-20}$. Demo: $n=8$, $b=100$,
+$\mu=2^{-100}$. $T$ has shape $(n+1)$-by-$n$.
 
 ```math
-T=\begin{bmatrix}1&1&\cdots&1\\ \mu I_n\end{bmatrix},
-\qquad T^T T=1 1^T+\mu^2 I.
+T=\begin{bmatrix}\mathbf{1}^{\mathsf T}\\ \mu I_n\end{bmatrix},
+\qquad T^{\mathsf T}T=\mathbf{1}\mathbf{1}^{\mathsf T}+\mu^2 I_n.
 ```
 
-The singular values are sqrt(n+mu^2), followed by n-1 copies of mu.
+The singular values are $\sqrt{n+\mu^2}$, followed by $n-1$ copies of $\mu$.
 
 ## Why this problem is numerically difficult
 

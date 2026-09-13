@@ -9,10 +9,18 @@ WILKINSON is a Tier A control. The roots are simple integers, but the coefficien
 Smoke: n=10. Demo: n=20. The target polynomial has exact roots 1,2,...,n.
 
 ```math
-p_n(z) = product_{j=1}^n (z-j) = z^n+c_1 z^(n-1)+...+c_n.
+p_n(z)=\prod_{j=1}^{n}(z-j)=z^n+c_1z^{n-1}+\cdots+c_n.
 ```
 
-The Frobenius companion has first row -[c_1,...,c_n] and ones on the first subdiagonal. The complex coefficientwise indicator is eta_poly(z) = |p_n(z)| / sum_{j=0}^n |c_j| |z|^(n-j), with c_0=1.
+The Frobenius companion has first row $-(c_1,\ldots,c_n)$ and ones on the
+first subdiagonal. The complex coefficientwise indicator is
+
+```math
+\eta_{\mathrm{poly}}(z)=
+\frac{\lvert p_n(z)\rvert}
+{\displaystyle\sum_{j=0}^{n}\lvert c_j\rvert\lvert z\rvert^{n-j}},
+\qquad c_0=1.
+```
 
 ## Why this problem is numerically difficult
 

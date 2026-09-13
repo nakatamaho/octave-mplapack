@@ -6,7 +6,8 @@ TOEPLITZ isolates one mathematical reason a dense nonsymmetric eigensystem can b
 
 ## Mathematical problem
 
-Smoke: n=16, b=4. Demo: n=32, b=4. The original coordinates have subdiagonal 1 and superdiagonal 2^-2b.
+Smoke: $n=16$, $b=4$. Demo: $n=32$, $b=4$. The original coordinates have
+subdiagonal 1 and superdiagonal $2^{-2b}$.
 
 Let
 

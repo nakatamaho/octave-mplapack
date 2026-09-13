@@ -6,7 +6,8 @@ FORSYTHE_ZERO isolates one mathematical reason a dense nonsymmetric eigensystem 
 
 ## Mathematical problem
 
-Smoke: n=8, a=4 metadata retained. Demo: n=16, a=12 metadata retained. The lower-left perturbation is exactly epsilon=0.
+Smoke: $n=8$, $a=4$ metadata retained. Demo: $n=16$, $a=12$ metadata
+retained. The lower-left perturbation is exactly $\varepsilon=0$.
 
 The zero-limit case is the genuine Jordan matrix
 

@@ -6,7 +6,8 @@ SIM_TWO_JORDAN isolates one mathematical reason a dense nonsymmetric eigensystem
 
 ## Mathematical problem
 
-Smoke: n=8 and d=2^-12. Demo: n=16 and d=2^-40. The leading blocks are J_2(1) and J_2(1+d).
+Smoke: $n=8$ and $d=2^{-12}$. Demo: $n=16$ and $d=2^{-40}$. The leading
+blocks are $J_2(1)$ and $J_2(1+d)$.
 
 Set
 

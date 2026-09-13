@@ -9,12 +9,13 @@ MKS is a Tier A control. The matrix combines a large defective zero part with a 
 Smoke: n=12, m=3, delta=1/8, ell=4. Demo: n=32, m=3, delta=1/8, ell=11.
 
 ```math
-A = N^m + delta 1 1^T,
-\qquad det(z I-A) = z^(n-ell) q(z),
-\qquad q(z)=z^ell-delta sum_{j=0}^{ell-1}(n-mj)z^(ell-1-j).
+A=N^m+\delta\mathbf{1}\mathbf{1}^{\mathsf T},
+\qquad \det(zI-A)=z^{n-\ell}q(z),
+\qquad q(z)=z^\ell-\delta\sum_{j=0}^{\ell-1}(n-mj)z^{\ell-1-j}.
 ```
 
-The nonzero constant term of q proves exact algebraic zero multiplicity n-ell.
+The nonzero constant term of $q$ proves exact algebraic zero multiplicity
+$n-\ell$.
 
 ## Why this problem is numerically difficult
 

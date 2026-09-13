@@ -6,11 +6,12 @@ A4-LAU-WIDE is a Tier A control. The wide form checks shape-aware SVD semantics 
 
 ## Mathematical problem
 
-Smoke: n=4, b=20. Demo: n=8, b=100. W=T^T has shape n-by-(n+1).
+Smoke: $n=4$, $b=20$. Demo: $n=8$, $b=100$. $W=T^{\mathsf T}$ has shape
+$n$-by-$(n+1)$.
 
 ```math
-W=T^T=\begin{bmatrix}1^T&\mu I_n\end{bmatrix},
-\qquad W W^T=1 1^T+\mu^2 I_n.
+W=T^{\mathsf T}=\begin{bmatrix}\mathbf{1}&\mu I_n\end{bmatrix},
+\qquad WW^{\mathsf T}=\mathbf{1}\mathbf{1}^{\mathsf T}+\mu^2 I_n.
 ```
 
 The nonzero singular values are the same as for T, but left and right singular subspaces exchange roles.

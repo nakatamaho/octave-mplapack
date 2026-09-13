@@ -6,11 +6,12 @@ A6-NRO-COMPANION is a Tier A control. This is a nonsymmetric bounded-integer con
 
 ## Mathematical problem
 
-Smoke: n=8, nu=16. Demo: n=16, nu=256. The first row is generated from an alternating sign sequence k_i.
+Smoke: $n=8$, $\nu=16$. Demo: $n=16$, $\nu=256$. The first row is
+generated from an alternating sign sequence $k_i$.
 
 ```math
 k_i=(-1)^{i-1}\quad (k_n=1),
-\qquad a_1=k_1,\quad a_i=k_i-nu k_{i-1}.
+\qquad a_1=k_1,\quad a_i=k_i-\nu k_{i-1}.
 ```
 
 The matrix has first row a, subdiagonal ones, and diagonal -nu as specified by the companion-like construction. Horner recurrence preserves the target k sequence and det(A)=(-1)^(n-1).

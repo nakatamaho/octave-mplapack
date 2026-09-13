@@ -12,7 +12,8 @@ eigensolver routine implements the cited paper's algorithm.
 
 ## Mathematical problem
 
-Smoke: n=8 and gap d=2^-24. Demo: n=16 and gap d=2^-80. The leading block is simple and diagonalizable.
+Smoke: $n=8$ and gap $d=2^{-24}$. Demo: $n=16$ and gap $d=2^{-80}$. The
+leading block is simple and diagonalizable.
 
 Let $N$ be the first-superdiagonal shift, $L=I+N^{\mathsf T}$, $U=I+N$, $X=LU$, $Y=U^{-1}L^{-1}$, and
 

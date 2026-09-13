@@ -6,10 +6,12 @@ S2-JS isolates The entries grow combinatorially while the diagonal remains one. 
 
 ## Mathematical problem
 
-Smoke: n=8 and z=1. Demo: n=16 and z=1. Indices i,j are zero-based in the recurrence.
+Smoke: $n=8$ and $z=1$. Demo: $n=16$ and $z=1$. Indices $i,j$ are
+zero-based in the recurrence.
 
 ```math
-J(0,0)=1,    J(i,j)=J(i-1,j-1)+j(j+1)J(i-1,j),    1<=j<=i.
+J(0,0)=1,\qquad
+J(i,j)=J(i-1,j-1)+j(j+1)J(i-1,j),\qquad 1\le j\le i.
 ```
 
 The matrix is lower triangular with unit diagonal; its leading rows are [1], [0 1], [0 2 1], [0 4 8 1]. Therefore det(J)=1.

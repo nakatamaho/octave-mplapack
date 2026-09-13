@@ -6,7 +6,8 @@ OO53_PAIR isolates one mathematical reason a dense nonsymmetric eigensystem can 
 
 ## Mathematical problem
 
-Smoke: n=8, g=53 bits. Demo: n=16, g=53 bits. The dimension is even and S is block upper triangular with 2-by-2 real blocks.
+Smoke: $n=8$, $g=53$ bits. Demo: $n=16$, $g=53$ bits. The dimension is even
+and $S$ is block upper triangular with 2-by-2 real blocks.
 
 For block index $j=0,\ldots,n/2-1$, define
 

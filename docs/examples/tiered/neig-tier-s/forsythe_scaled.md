@@ -6,7 +6,8 @@ FORSYTHE_SCALED isolates one mathematical reason a dense nonsymmetric eigensyste
 
 ## Mathematical problem
 
-Smoke: n=8, a=4, r=2^-a. Demo: n=16, a=12. The matrix is I+rP, where P is the cyclic permutation.
+Smoke: $n=8$, $a=4$, $r=2^{-a}$. Demo: $n=16$, $a=12$. The matrix is
+$I+rP$, where $P$ is the cyclic permutation.
 
 Let $P$ be the cyclic permutation matrix with $P_{i,i+1}=1$ and $P_{n,1}=1$. The control is
 

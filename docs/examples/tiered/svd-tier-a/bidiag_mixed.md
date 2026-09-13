@@ -6,11 +6,12 @@ A3-BDI-MIXED is a Tier A control. The mixed matrix has the same singular spectru
 
 ## Mathematical problem
 
-Smoke: n=8, a=4. Demo: n=16, a=8. A is H B G^T / n, with G a cyclic row-shift of H.
+Smoke: $n=8$, $a=4$. Demo: $n=16$, $a=8$. $A=HBG^{\mathsf T}/n$, with
+$G$ a cyclic row-shift of $H$.
 
 ```math
-A=H B G^T/n,
-\qquad H H^T=G G^T=nI.
+A=\frac{1}{n}HBG^{\mathsf T},
+\qquad HH^{\mathsf T}=GG^{\mathsf T}=nI.
 ```
 
 The two-sided orthogonal equivalence preserves singular values exactly, but it is not an eigenvalue similarity.

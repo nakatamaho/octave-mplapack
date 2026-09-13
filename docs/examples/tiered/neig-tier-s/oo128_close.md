@@ -2,11 +2,19 @@
 
 ## Quick idea
 
-OO128_CLOSE isolates one mathematical reason a dense nonsymmetric eigensystem can be misleading: The key reading is a three-way comparison: requested roots contain 2^-80+2^-120, realized roots contain only 2^-80, and measured roots approximate the realized values. The case is intentionally small enough to inspect and is paired with a deterministic runner. Its tier is a statement about pedagogical difficulty and verification depth, not a claim that the public eig routine implements the cited paper's algorithm.
+OO128_CLOSE isolates one mathematical reason a dense nonsymmetric eigensystem
+can be misleading: the key reading is a three-way comparison. Requested roots
+contain $2^{-80}+2^{-120}$, realized roots contain only $2^{-80}$, and
+measured roots approximate the realized values. The case is intentionally
+small enough to inspect and is paired with a deterministic runner. Its tier is
+a statement about pedagogical difficulty and verification depth, not a claim
+that the public eig routine implements the cited paper's algorithm.
 
 ## Mathematical problem
 
-Smoke: n=8, generation precision g=128 bits. Demo: n=16, g=128 bits. The first two requested diagonal entries differ by a deliberately unrepresentable tail.
+Smoke: $n=8$, generation precision $g=128$ bits. Demo: $n=16$, $g=128$ bits.
+The first two requested diagonal entries differ by a deliberately
+unrepresentable tail.
 
 The real requested standard form is upper bidiagonal. Its first diagonal entries are
 

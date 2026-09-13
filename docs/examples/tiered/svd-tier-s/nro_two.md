@@ -6,13 +6,21 @@ S1-NRO-TWO isolates The input is integer/dyadic and full rank, but the off-diago
 
 ## Mathematical problem
 
-Smoke: m=4, b=12, giving a 2m=8 square matrix. Demo: m=16, b=40, giving a 32-by-32 matrix.
+Smoke: $m=4$, $b=12$, giving a $2m=8$ square matrix. Demo: $m=16$,
+$b=40$, giving a 32-by-32 matrix.
 
 ```math
-B = H_m diag(w_1,...,w_m),    A = [ I_m  B ; 0  I_m ],    w_j=2^b.
+B=H_m\operatorname{diag}(w_1,\ldots,w_m),\qquad
+A=\begin{bmatrix}I_m&B\\0&I_m\end{bmatrix},\qquad w_j=2^b.
 ```
 
-With beta_j = sqrt(m) w_j, the two singular values contributed by each block are a_j = (sqrt(beta_j^2+4)+beta_j)/2 and b_j = 2/(sqrt(beta_j^2+4)+beta_j).
+With $\beta_j=\sqrt{m}\,w_j$, the two singular values contributed by each
+block are
+
+```math
+a_j=\frac{\sqrt{\beta_j^2+4}+\beta_j}{2},\qquad
+b_j=\frac{2}{\sqrt{\beta_j^2+4}+\beta_j}.
+```
 
 ## Why this problem is numerically difficult
 

@@ -6,14 +6,15 @@ A2-VAND is a Tier A control. Vandermonde powers amplify small node errors and pr
 
 ## Mathematical problem
 
-Smoke: n=8 and node denominator 2^4. Demo: n=16 and node denominator 2^5. Nodes are x_i=i/2^d.
+Smoke: $n=8$ and node denominator $2^4$. Demo: $n=16$ and node denominator
+$2^5$. Nodes are $x_i=i/2^d$.
 
 ```math
 V_{ij}=x_i^{j-1},\qquad x_i=i/2^d,
-\qquad det(V)=\prod_{1<=i<j<=n}(x_j-x_i)>0.
+\qquad \det(V)=\prod_{1\le i<j\le n}(x_j-x_i)>0.
 ```
 
-The nodes are distinct because n<2^d in the selected profiles.
+The nodes are distinct because $n<2^d$ in the selected profiles.
 
 ## Why this problem is numerically difficult
 

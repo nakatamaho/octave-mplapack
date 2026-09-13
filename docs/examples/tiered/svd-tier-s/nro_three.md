@@ -6,14 +6,16 @@ S1-NRO-THREE isolates This variant adds a true unit group to the extreme recipro
 
 ## Mathematical problem
 
-Smoke: m=4, b=12. Demo: m=16, b=40. The first half of the weights are 2^b and the second half are zero.
+Smoke: $m=4$, $b=12$. Demo: $m=16$, $b=40$. The first half of the weights
+are $2^b$ and the second half are zero.
 
 ```math
-B = H_m diag(2^b,...,2^b,0,...,0),
-\qquad A=[I_m\ B;0\ I_m].
+B=H_m\operatorname{diag}(2^b,\ldots,2^b,0,\ldots,0),
+\qquad A=\begin{bmatrix}I_m&B\\0&I_m\end{bmatrix}.
 ```
 
-For a nonzero weight the pair is (a,b) above; for w_j=0, beta_j=0 and both singular values are exactly 1.
+For a nonzero weight the pair is $(a_j,b_j)$ above; for $w_j=0$,
+$\beta_j=0$ and both singular values are exactly 1.
 
 ## Why this problem is numerically difficult
 

@@ -6,15 +6,16 @@ S4-DD-NONSYM isolates Biasing the subdiagonal destroys symmetry while retaining 
 
 ## Mathematical problem
 
-Smoke: n=8, b=32, rho=1/2. Demo: n=24, b=160, rho=1/2. The same tau=2^-b margin is used.
+Smoke: $n=8$, $b=32$, $\rho=1/2$. Demo: $n=24$, $b=160$, $\rho=1/2$.
+The same $\tau=2^{-b}$ margin is used.
 
 ```math
-A_{11}=1+tau,\ A_{12}=-1;
+A_{11}=1+\tau,\quad A_{12}=-1;
 ```
 
 
 ```math
-A_{i,i-1}=-rho,\ A_{ii}=1+rho+tau,\ A_{i,i+1}=-1,
+A_{i,i-1}=-\rho,\quad A_{ii}=1+\rho+\tau,\quad A_{i,i+1}=-1,
 ```
 
 with A_{n,n-1}=-rho and A_{nn}=rho+tau. The row sums show A 1 = tau 1, which is an eigenvalue relation, not a singular-value formula.

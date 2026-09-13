@@ -6,12 +6,13 @@ A5-RANK4 is a Tier A control. This is an exact rank-deficiency control. It is on
 
 ## Mathematical problem
 
-Smoke and demo: n=8. The diagonal source has four positive values and four exact zeros.
+Smoke and demo: $n=8$. The diagonal source has four positive values and four
+exact zeros.
 
 ```math
 d=[1,1/2,1/4,1/8,0,0,0,0],
-\qquad A=H diag(d) G^T/n,
-\qquad rank(A)=4.
+\qquad A=\frac{1}{n}H\operatorname{diag}(d)G^{\mathsf T},
+\qquad \operatorname{rank}(A)=4.
 ```
 
 ## Why this problem is numerically difficult

@@ -6,7 +6,10 @@ OO53_REAL is the smallest complete example of a fixed-precision eigenvalue gener
 
 ## Mathematical problem
 
-Smoke uses n=8 and generation precision g=53 bits; demo uses n=16 and the same g. Let N have ones on the first superdiagonal, let L=I+N^T and U=I+N, and define X=LU and Y=U^(-1)L^(-1). The requested standard form is upper bidiagonal:
+Smoke uses $n=8$ and generation precision $g=53$ bits; demo uses $n=16$ and
+the same $g$. Let $N$ have ones on the first superdiagonal, let
+$L=I+N^{\mathsf T}$ and $U=I+N$, and define $X=LU$ and
+$Y=U^{-1}L^{-1}$. The requested standard form is upper bidiagonal:
 
 ```math
 (S_{\mathrm{req}})_{ii}=i+2^{-45},\qquad
@@ -29,9 +32,19 @@ The roots of the realized triangular standard form are diag(S'), not the request
 
 ## Why this problem is numerically difficult
 
-The difficulty is in the construction as well as in the eigensolve. X and Y are triangular inverse factors with different dyadic scales. The Ozaki–Ogita theorem uses those scales, the unit roundoff u=2^-g, the nonzero-count parameters, and the exact bound P=beta gamma theta omega to make the two products error-free at the selected generation precision. A generic similarity generator would not test that contract.
+The difficulty is in the construction as well as in the eigensolve. $X$ and $Y$
+are triangular inverse factors with different dyadic scales. The Ozaki–Ogita
+theorem uses those scales, the unit roundoff $u=2^{-g}$, the nonzero-count
+parameters, and the exact bound $P=\beta\gamma\theta\omega$ to make the two
+products error-free at the selected generation precision. A generic similarity
+generator would not test that contract.
 
-The requested diagonal contains a small 2^-45 increment. The shift expression can quantize it, and the realized matrix must preserve that fact in its metadata. A later 256-bit eig call cannot restore a bit removed at g=53. Conversely, if a low work precision corrupts S'X or Y(S'X), that is a product failure, not an intended quantization effect. Exactness and solver accuracy are therefore separate gates.
+The requested diagonal contains a small $2^{-45}$ increment. The shift
+expression can quantize it, and the realized matrix must preserve that fact in
+its metadata. A later 256-bit eig call cannot restore a bit removed at $g=53$.
+Conversely, if a low work precision corrupts $S'X$ or $Y(S'X)$, that is a
+product failure, not an intended quantization effect. Exactness and solver
+accuracy are therefore separate gates.
 
 ## What the Octave example computes
 

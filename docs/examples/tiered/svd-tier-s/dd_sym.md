@@ -6,18 +6,25 @@ S4-DD-SYM isolates The smallest singular value is the tiny diagonal-dominance ma
 
 ## Mathematical problem
 
-Smoke: n=8, b=32, rho=1. Demo: n=24, b=160, rho=1. The positive shift is tau=2^-b.
+Smoke: $n=8$, $b=32$, $\rho=1$. Demo: $n=24$, $b=160$, $\rho=1$. The
+positive shift is $\tau=2^{-b}$.
 
 ```math
-A_{11}=1+tau,\quad A_{12}=-1;
+A_{11}=1+\tau,\quad A_{12}=-1;
 ```
 
 
 ```math
-A_{i,i-1}=-1,\ A_{ii}=2+tau,\ A_{i,i+1}=-1,\ A_{n,n-1}=-1,\ A_{nn}=1+tau.
+A_{i,i-1}=-1,\quad A_{ii}=2+\tau,\quad A_{i,i+1}=-1,\\
+A_{n,n-1}=-1,\quad A_{nn}=1+\tau.
 ```
 
-The exact ascending singular values are sigma_k=tau+4 sin^2(k pi/(2n)), k=0,...,n-1.
+The exact ascending singular values are
+
+```math
+\sigma_k=\tau+4\sin^2\!\left(\frac{k\pi}{2n}\right),
+\qquad k=0,\ldots,n-1.
+```
 
 ## Why this problem is numerically difficult
 

@@ -6,13 +6,16 @@ HAD_COMPLEX is a Tier A control. This is a complex API and conjugation control, 
 
 ## Mathematical problem
 
-Demo only: n=16 and s=128. The phase diagonal repeats 1, i, -1, i and is applied by unitary similarity.
+Demo only: $n=16$ and $s=128$. The phase diagonal repeats $1$, $i$, $-1$, $i$
+and is applied by unitary similarity.
 
 ```math
-Z=diag(1,i,-1,-i,...),    A_C = Z A Z^H.
+Z=\operatorname{diag}(1,i,-1,-i,\ldots),\qquad
+A_{\mathbb C}=ZAZ^{\mathsf H}.
 ```
 
-Z^H Z=I, so A_C and A have the same eigenvalues; right and left vectors transform with the corresponding conjugate phases.
+$Z^{\mathsf H}Z=I$, so $A_{\mathbb C}$ and $A$ have the same eigenvalues;
+right and left vectors transform with the corresponding conjugate phases.
 
 ## Why this problem is numerically difficult
 

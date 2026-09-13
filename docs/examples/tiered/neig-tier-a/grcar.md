@@ -6,13 +6,24 @@ GRCAR is a Tier A control. Grcar shows that an eigenvalue list does not describe
 
 ## Mathematical problem
 
-Smoke: n=12 and upper bandwidth 3. Demo: n=24 and upper bandwidth 3. Entries are exactly 0, +1, or -1.
+Smoke: $n=12$ and upper bandwidth 3. Demo: $n=24$ and upper bandwidth 3.
+Entries are exactly $0$, $+1$, or $-1$.
 
 ```math
-Gij = 1  if 0 <= j-i <= 3;    Gij = -1 if i-j=1;    Gij=0 otherwise.
+G_{ij}=
+\begin{cases}
+1, & 0\le j-i\le 3,\\
+-1, & i-j=1,\\
+0, & \text{otherwise}.
+\end{cases}
 ```
 
-The unstructured complex 2-norm pseudospectrum is Lambda_epsilon(G) = {z : sigma_min(z I - G) <= epsilon}.
+The unstructured complex 2-norm pseudospectrum is
+
+```math
+\Lambda_\varepsilon(G)=
+\{z:\sigma_{\min}(zI-G)\le\varepsilon\}.
+```
 
 ## Why this problem is numerically difficult
 

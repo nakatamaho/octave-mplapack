@@ -6,12 +6,13 @@ FORSYTHE isolates one mathematical reason a dense nonsymmetric eigensystem can b
 
 ## Mathematical problem
 
-Smoke: n=8, a=4, r=2^-a and epsilon=r^n. Demo: n=16, a=12. The original matrix has a tiny lower-left corner.
+Smoke: $n=8$, $a=4$, $r=2^{-a}$, and $\varepsilon=r^n$. Demo: $n=16$,
+$a=12$. The original matrix has a tiny lower-left corner.
 
 Let $N$ be the first-superdiagonal shift, $r=2^{-a}$, and $\varepsilon=r^n$. The original matrix is
 
 ```math
-F=I+N+\varepsilon e_ne_1^{\mathsf T}.
+F=I+N+\varepsilon e_n e_1^{\mathsf T}.
 ```
 
 Writing $P=N+e_ne_1^{\mathsf T}$, the exact scaled control is $F_{\mathrm{scaled}}=I+rP$, and with $D=\operatorname{diag}(1,r,\ldots,r^{n-1})$,
