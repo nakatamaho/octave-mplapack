@@ -1,70 +1,69 @@
-# Tiered example migration
+# Tiered example migration and documentation map
 
-EXDOC01 decomposes the four original numbered Tier S/A surfaces without changing their numerical fixtures or deleting their regression runners. The numbered files now act as deterministic indexes.
+This map records the migration from the four historical numbered entry points to the 44 one-case examples. The original files remain compatibility indexes and counted profile surfaces. Each row below must keep one case ID, one runnable example, one detailed mathematical page, one explicit definition/equation review, and one external primary-context link.
 
-| Original entry point | New family index | Split cases | Regression authority |
+## Map
+
+| Case ID | Layer | Runnable .m | Detailed .md | Definition and equations | External reference | Depth review |
+|---|---|---|---|---|---|---|
+| OO53_REAL | NEIG S1 | [oo53_real.m](../../../examples/tiered/neig-tier-s/oo53_real.m) | [oo53_real.md](./neig-tier-s/oo53_real.md) | Ozaki–Ogita g=53 real triple product; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/s11075-021-01186-7) | reviewed: definition, precision roles, errors, limitations |
+| OO53_PAIR | NEIG S1 | [oo53_pair.m](../../../examples/tiered/neig-tier-s/oo53_pair.m) | [oo53_pair.md](./neig-tier-s/oo53_pair.md) | paired 2-by-2 standard blocks and sign-copy rule; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/s11075-021-01186-7) | reviewed: definition, precision roles, errors, limitations |
+| OO128_CLOSE | NEIG S1 | [oo128_close.m](../../../examples/tiered/neig-tier-s/oo128_close.m) | [oo128_close.md](./neig-tier-s/oo128_close.md) | g=128 requested/realized close spectrum; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/s11075-021-01186-7) | reviewed: definition, precision roles, errors, limitations |
+| SIM_SIMPLE | NEIG S2 | [sim_simple.m](../../../examples/tiered/neig-tier-s/sim_simple.m) | [sim_simple.md](./neig-tier-s/sim_simple.md) | dense similarity with simple gap d; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/21M1451440) | reviewed: definition, precision roles, errors, limitations |
+| SIM_REPEAT | NEIG S2 | [sim_repeat.m](../../../examples/tiered/neig-tier-s/sim_repeat.m) | [sim_repeat.md](./neig-tier-s/sim_repeat.md) | semisimple repeated invariant subspace; rendered model and diagnostics present | [primary source](https://doi.org/10.1016/S0024-3795(00)00279-2) | reviewed: definition, precision roles, errors, limitations |
+| SIM_JORDAN | NEIG S2 | [sim_jordan.m](../../../examples/tiered/neig-tier-s/sim_jordan.m) | [sim_jordan.md](./neig-tier-s/sim_jordan.md) | genuine J2 block and nilpotency; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/21M1451440) | reviewed: definition, precision roles, errors, limitations |
+| SIM_TWO_JORDAN | NEIG S2 | [sim_two_jordan.m](../../../examples/tiered/neig-tier-s/sim_two_jordan.m) | [sim_two_jordan.md](./neig-tier-s/sim_two_jordan.md) | two defective clusters and merge; rendered model and diagnostics present | [primary source](https://doi.org/10.1016/S0024-3795(00)00279-2) | reviewed: definition, precision roles, errors, limitations |
+| TOEPLITZ | NEIG S3 | [toeplitz.m](../../../examples/tiered/neig-tier-s/toeplitz.m) | [toeplitz.md](./neig-tier-s/toeplitz.md) | diagonal-scaled tridiagonal Toeplitz; rendered model and diagnostics present | [primary source](https://doi.org/10.1002/nla.1811) | reviewed: definition, precision roles, errors, limitations |
+| TOEPLITZ_SYM | NEIG S3 | [toeplitz_sym.m](../../../examples/tiered/neig-tier-s/toeplitz_sym.m) | [toeplitz_sym.md](./neig-tier-s/toeplitz_sym.md) | symmetric Toeplitz control; rendered model and diagnostics present | [primary source](https://doi.org/10.1002/nla.1811) | reviewed: definition, precision roles, errors, limitations |
+| FORSYTHE | NEIG S4 | [forsythe.m](../../../examples/tiered/neig-tier-s/forsythe.m) | [forsythe.md](./neig-tier-s/forsythe.md) | cyclic perturbation of Jordan block; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/1.9780898718027) | reviewed: definition, precision roles, errors, limitations |
+| FORSYTHE_SCALED | NEIG S4 | [forsythe_scaled.m](../../../examples/tiered/neig-tier-s/forsythe_scaled.m) | [forsythe_scaled.md](./neig-tier-s/forsythe_scaled.md) | normal cyclic control; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/1.9780898718027) | reviewed: definition, precision roles, errors, limitations |
+| FORSYTHE_ZERO | NEIG S4 | [forsythe_zero.m](../../../examples/tiered/neig-tier-s/forsythe_zero.m) | [forsythe_zero.md](./neig-tier-s/forsythe_zero.md) | exact Jordan zero limit; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/21M1451440) | reviewed: definition, precision roles, errors, limitations |
+| HAD_BIDIAG | NEIG A1 | [had_bidiag.m](../../../examples/tiered/neig-tier-a/had_bidiag.m) | [had_bidiag.md](./neig-tier-a/had_bidiag.md) | Hadamard similarity of upper bidiagonal; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/21M1451440) | reviewed: definition, precision roles, errors, limitations |
+| FRANK0 | NEIG A2 | [frank0.m](../../../examples/tiered/neig-tier-a/frank0.m) | [frank0.md](./neig-tier-a/frank0.md) | explicit integer Frank orientation; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/1.9780898718027) | reviewed: definition, precision roles, errors, limitations |
+| FRANK1 | NEIG A2 | [frank1.m](../../../examples/tiered/neig-tier-a/frank1.m) | [frank1.md](./neig-tier-a/frank1.md) | reflected Frank orientation; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/1.9780898718027) | reviewed: definition, precision roles, errors, limitations |
+| WILKINSON | NEIG A3 | [wilkinson.m](../../../examples/tiered/neig-tier-a/wilkinson.m) | [wilkinson.md](./neig-tier-a/wilkinson.md) | integer companion and polynomial backward error; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/17M1152802) | reviewed: definition, precision roles, errors, limitations |
+| GRCAR | NEIG A4 | [grcar.m](../../../examples/tiered/neig-tier-a/grcar.m) | [grcar.md](./neig-tier-a/grcar.md) | 0/±1 Grcar and pseudospectrum; rendered model and diagnostics present | [primary source](https://doi.org/10.1016/j.laa.2005.06.009) | reviewed: definition, precision roles, errors, limitations |
+| MKS | NEIG A5 | [mks.m](../../../examples/tiered/neig-tier-a/mks.m) | [mks.md](./neig-tier-a/mks.md) | nilpotent shift plus rank one; rendered model and diagnostics present | [primary source](https://doi.org/10.1142/S2661335225500133) | reviewed: definition, precision roles, errors, limitations |
+| MARKOV | NEIG A6 | [markov.m](../../../examples/tiered/neig-tier-a/markov.m) | [markov.md](./neig-tier-a/markov.md) | dyadic Markov matrix and stationary vector; rendered model and diagnostics present | [primary source](https://doi.org/10.13001/ela.2021.5181) | reviewed: definition, precision roles, errors, limitations |
+| PERRON_POS | NEIG A6 | [perron_pos.m](../../../examples/tiered/neig-tier-a/perron_pos.m) | [perron_pos.md](./neig-tier-a/perron_pos.md) | positive diagonal Perron similarity; rendered model and diagnostics present | [primary source](https://doi.org/10.13001/ela.2021.5181) | reviewed: definition, precision roles, errors, limitations |
+| HAD_COMPLEX | NEIG A1 | [had_complex.m](../../../examples/tiered/neig-tier-a/had_complex.m) | [had_complex.md](./neig-tier-a/had_complex.md) | quarter-turn complex phase control; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/21M1451440) | reviewed: definition, precision roles, errors, limitations |
+| S1-NRO-TWO | SVD S1 | [nro_two.m](../../../examples/tiered/svd-tier-s/nro_two.m) | [nro_two.md](./svd-tier-s/nro_two.md) | NRO block reciprocal singular pairs; rendered model and diagnostics present | [primary source](https://doi.org/10.1587/nolta.2.226) | reviewed: definition, precision roles, errors, limitations |
+| S1-NRO-THREE | SVD S1 | [nro_three.m](../../../examples/tiered/svd-tier-s/nro_three.m) | [nro_three.md](./svd-tier-s/nro_three.md) | NRO unit plus reciprocal groups; rendered model and diagnostics present | [primary source](https://doi.org/10.1587/nolta.2.226) | reviewed: definition, precision roles, errors, limitations |
+| S1-NRO-GRADED | SVD S1 | [nro_graded.m](../../../examples/tiered/svd-tier-s/nro_graded.m) | [nro_graded.md](./svd-tier-s/nro_graded.md) | graded NRO singular scales; rendered model and diagnostics present | [primary source](https://doi.org/10.1587/nolta.2.226) | reviewed: definition, precision roles, errors, limitations |
+| S1-NRO-SCALE-UP | SVD S1 | [nro_scale_up.m](../../../examples/tiered/svd-tier-s/nro_scale_up.m) | [nro_scale_up.md](./svd-tier-s/nro_scale_up.md) | large exponent range control; rendered model and diagnostics present | [primary source](https://www.mpfr.org/mpfr-current/mpfr.html) | reviewed: definition, precision roles, errors, limitations |
+| S1-NRO-SCALE-DOWN | SVD S1 | [nro_scale_down.m](../../../examples/tiered/svd-tier-s/nro_scale_down.m) | [nro_scale_down.md](./svd-tier-s/nro_scale_down.md) | small exponent range control; rendered model and diagnostics present | [primary source](https://www.mpfr.org/mpfr-current/mpfr.html) | reviewed: definition, precision roles, errors, limitations |
+| S2-JS | SVD S2 | [jacobi_stirling.m](../../../examples/tiered/svd-tier-s/jacobi_stirling.m) | [jacobi_stirling.md](./svd-tier-s/jacobi_stirling.md) | Jacobi–Stirling integer recurrence; rendered model and diagnostics present | [primary source](https://doi.org/10.1016/j.amc.2014.03.047) | reviewed: definition, precision roles, errors, limitations |
+| S3-LAH | SVD S3 | [lah.m](../../../examples/tiered/svd-tier-s/lah.m) | [lah.md](./svd-tier-s/lah.md) | unsigned Lah recurrence; rendered model and diagnostics present | [primary source](https://doi.org/10.1002/nla.2217) | reviewed: definition, precision roles, errors, limitations |
+| S4-DD-SYM | SVD S4 | [dd_sym.m](../../../examples/tiered/svd-tier-s/dd_sym.m) | [dd_sym.md](./svd-tier-s/dd_sym.md) | symmetric shifted path and tiny sigma; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/s00211-011-0382-3) | reviewed: definition, precision roles, errors, limitations |
+| S4-DD-NONSYM | SVD S4 | [dd_nonsym.m](../../../examples/tiered/svd-tier-s/dd_nonsym.m) | [dd_nonsym.md](./svd-tier-s/dd_nonsym.md) | biased path; eigenvalue not sigma_min; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/s00211-011-0382-3) | reviewed: definition, precision roles, errors, limitations |
+| A1-PASCAL-LOWER | SVD A1 | [pascal_lower.m](../../../examples/tiered/svd-tier-a/pascal_lower.m) | [pascal_lower.md](./svd-tier-a/pascal_lower.md) | lower Pascal binomial recurrence; rendered model and diagnostics present | [primary source](https://doi.org/10.1016/j.cam.2011.12.007) | reviewed: definition, precision roles, errors, limitations |
+| A1-PASCAL-SYM | SVD A1 | [pascal_sym.m](../../../examples/tiered/svd-tier-a/pascal_sym.m) | [pascal_sym.md](./svd-tier-a/pascal_sym.md) | symmetric Pascal product; rendered model and diagnostics present | [primary source](https://doi.org/10.1016/j.cam.2011.12.007) | reviewed: definition, precision roles, errors, limitations |
+| A2-VAND | SVD A2 | [vandermonde.m](../../../examples/tiered/svd-tier-a/vandermonde.m) | [vandermonde.md](./svd-tier-a/vandermonde.md) | dyadic-node Vandermonde powers; rendered model and diagnostics present | [primary source](https://doi.org/10.1137/S0895479803438225) | reviewed: definition, precision roles, errors, limitations |
+| A3-BDI-RAW | SVD A3 | [bidiag_raw.m](../../../examples/tiered/svd-tier-a/bidiag_raw.m) | [bidiag_raw.md](./svd-tier-a/bidiag_raw.md) | graded raw bidiagonal; rendered model and diagnostics present | [primary source](https://www.netlib.org/lapack/explore-html/d5/dce/group__lasq1_ga5a8c1474ef61ff7c59c17412ae456ca6.html) | reviewed: definition, precision roles, errors, limitations |
+| A3-BDI-MIXED | SVD A3 | [bidiag_mixed.m](../../../examples/tiered/svd-tier-a/bidiag_mixed.m) | [bidiag_mixed.md](./svd-tier-a/bidiag_mixed.md) | two-sided Hadamard mix; rendered model and diagnostics present | [primary source](https://www.netlib.org/lapack/explore-html/d5/dce/group__lasq1_ga5a8c1474ef61ff7c59c17412ae456ca6.html) | reviewed: definition, precision roles, errors, limitations |
+| A4-LAU-TALL | SVD A4 | [lauchli_tall.m](../../../examples/tiered/svd-tier-a/lauchli_tall.m) | [lauchli_tall.md](./svd-tier-a/lauchli_tall.md) | tall Läuchli repeated small group; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/BF01386022) | reviewed: definition, precision roles, errors, limitations |
+| A4-LAU-WIDE | SVD A4 | [lauchli_wide.m](../../../examples/tiered/svd-tier-a/lauchli_wide.m) | [lauchli_wide.md](./svd-tier-a/lauchli_wide.md) | wide transpose and side exchange; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/BF01386022) | reviewed: definition, precision roles, errors, limitations |
+| A4-LAU-COMPLEX | SVD A4 | [lauchli_complex.m](../../../examples/tiered/svd-tier-a/lauchli_complex.m) | [lauchli_complex.md](./svd-tier-a/lauchli_complex.md) | complex phased Läuchli; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/BF01386022) | reviewed: definition, precision roles, errors, limitations |
+| A5-GEO | SVD A5 | [hadamard_geometric.m](../../../examples/tiered/svd-tier-a/hadamard_geometric.m) | [hadamard_geometric.md](./svd-tier-a/hadamard_geometric.md) | Hadamard-mixed geometric spectrum; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/BF01932678) | reviewed: definition, precision roles, errors, limitations |
+| A5-CLOSE | SVD A5 | [hadamard_close.m](../../../examples/tiered/svd-tier-a/hadamard_close.m) | [hadamard_close.md](./svd-tier-a/hadamard_close.md) | close singular pair; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/BF01932678) | reviewed: definition, precision roles, errors, limitations |
+| A5-REPEAT | SVD A5 | [hadamard_repeat.m](../../../examples/tiered/svd-tier-a/hadamard_repeat.m) | [hadamard_repeat.md](./svd-tier-a/hadamard_repeat.md) | repeated singular subspace; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/BF01932678) | reviewed: definition, precision roles, errors, limitations |
+| A5-RANK4 | SVD A5 | [hadamard_rank4.m](../../../examples/tiered/svd-tier-a/hadamard_rank4.m) | [hadamard_rank4.md](./svd-tier-a/hadamard_rank4.md) | exact rank four; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/BF01932678) | reviewed: definition, precision roles, errors, limitations |
+| A5-RANK5 | SVD A5 | [hadamard_rank5.m](../../../examples/tiered/svd-tier-a/hadamard_rank5.m) | [hadamard_rank5.md](./svd-tier-a/hadamard_rank5.md) | near-rank fifth value; rendered model and diagnostics present | [primary source](https://doi.org/10.1007/BF01932678) | reviewed: definition, precision roles, errors, limitations |
+| A6-NRO-COMPANION | SVD A6 | [nro_companion.m](../../../examples/tiered/svd-tier-a/nro_companion.m) | [nro_companion.md](./svd-tier-a/nro_companion.md) | bounded-integer companion-like matrix; rendered model and diagnostics present | [primary source](https://doi.org/10.1587/nolta.2.226) | reviewed: definition, precision roles, errors, limitations |
+
+## Historical entry points
+
+| Historical file | New family guide | Cases | Regression authority |
 |---|---|---:|---|
-| `examples/14_neig_tier_s.m` | [`neig-tier-s/README.md`](neig-tier-s/README.md) | 12 | `examples/neig_tiers/mp_neig_tiers.m` + `test_neigt*` |
-| `examples/15_neig_tier_a.m` | [`neig-tier-a/README.md`](neig-tier-a/README.md) | 9 | `examples/neig_tiers/mp_neig_tiers.m` + `test_neigt*` |
-| `examples/14_svd_tier_s.m` | [`svd-tier-s/README.md`](svd-tier-s/README.md) | 9 | `examples/svd_tiers/mp_svd_tiers.m` + `test_svd_tiers` |
-| `examples/15_svd_tier_a.m` | [`svd-tier-a/README.md`](svd-tier-a/README.md) | 14 | `examples/svd_tiers/mp_svd_tiers.m` + `test_svd_tiers` |
+| [examples/14_neig_tier_s.m](../../../examples/14_neig_tier_s.m) | [neig-tier-s/README.md](neig-tier-s/README.md) | 12 | examples/neig_tiers/mp_neig_tiers.m |
+| [examples/15_neig_tier_a.m](../../../examples/15_neig_tier_a.m) | [neig-tier-a/README.md](neig-tier-a/README.md) | 9 | examples/neig_tiers/mp_neig_tiers.m |
+| [examples/14_svd_tier_s.m](../../../examples/14_svd_tier_s.m) | [svd-tier-s/README.md](svd-tier-s/README.md) | 9 | examples/svd_tiers/mp_svd_tiers.m |
+| [examples/15_svd_tier_a.m](../../../examples/15_svd_tier_a.m) | [svd-tier-a/README.md](svd-tier-a/README.md) | 14 | examples/svd_tiers/mp_svd_tiers.m |
 
-## Nonsymmetric eigensystem — Tier S
+## Review rules
 
-- `OO53_REAL` → [`examples/tiered/neig-tier-s/oo53_real.m`](../../../examples/tiered/neig-tier-s/oo53_real.m) + [`oo53_real.md`](./neig-tier-s/oo53_real.md)
-- `OO53_PAIR` → [`examples/tiered/neig-tier-s/oo53_pair.m`](../../../examples/tiered/neig-tier-s/oo53_pair.m) + [`oo53_pair.md`](./neig-tier-s/oo53_pair.md)
-- `OO128_CLOSE` → [`examples/tiered/neig-tier-s/oo128_close.m`](../../../examples/tiered/neig-tier-s/oo128_close.m) + [`oo128_close.md`](./neig-tier-s/oo128_close.md)
-- `SIM_SIMPLE` → [`examples/tiered/neig-tier-s/sim_simple.m`](../../../examples/tiered/neig-tier-s/sim_simple.m) + [`sim_simple.md`](./neig-tier-s/sim_simple.md)
-- `SIM_REPEAT` → [`examples/tiered/neig-tier-s/sim_repeat.m`](../../../examples/tiered/neig-tier-s/sim_repeat.m) + [`sim_repeat.md`](./neig-tier-s/sim_repeat.md)
-- `SIM_JORDAN` → [`examples/tiered/neig-tier-s/sim_jordan.m`](../../../examples/tiered/neig-tier-s/sim_jordan.m) + [`sim_jordan.md`](./neig-tier-s/sim_jordan.md)
-- `SIM_TWO_JORDAN` → [`examples/tiered/neig-tier-s/sim_two_jordan.m`](../../../examples/tiered/neig-tier-s/sim_two_jordan.m) + [`sim_two_jordan.md`](./neig-tier-s/sim_two_jordan.md)
-- `TOEPLITZ` → [`examples/tiered/neig-tier-s/toeplitz.m`](../../../examples/tiered/neig-tier-s/toeplitz.m) + [`toeplitz.md`](./neig-tier-s/toeplitz.md)
-- `TOEPLITZ_SYM` → [`examples/tiered/neig-tier-s/toeplitz_sym.m`](../../../examples/tiered/neig-tier-s/toeplitz_sym.m) + [`toeplitz_sym.md`](./neig-tier-s/toeplitz_sym.md)
-- `FORSYTHE` → [`examples/tiered/neig-tier-s/forsythe.m`](../../../examples/tiered/neig-tier-s/forsythe.m) + [`forsythe.md`](./neig-tier-s/forsythe.md)
-- `FORSYTHE_SCALED` → [`examples/tiered/neig-tier-s/forsythe_scaled.m`](../../../examples/tiered/neig-tier-s/forsythe_scaled.m) + [`forsythe_scaled.md`](./neig-tier-s/forsythe_scaled.md)
-- `FORSYTHE_ZERO` → [`examples/tiered/neig-tier-s/forsythe_zero.m`](../../../examples/tiered/neig-tier-s/forsythe_zero.m) + [`forsythe_zero.md`](./neig-tier-s/forsythe_zero.md)
+Definition and equations mean the page states dimensions, index ranges, parameters, construction, and the exact mathematical identity or reference used by the runner. The diagnostics section must name reconstruction/eigen residuals and the appropriate forward, subspace, rank, or cluster interpretation. References must identify authors, title, publication/year, DOI or stable URL, and relevance. Depth review also checks source precision, arithmetic precision, mathematical conditioning, common mistakes, and the exact boundary between a measured result and an independent reference.
 
-## Nonsymmetric eigensystem — Tier A
+The one-case scripts intentionally remain thin. Full 120 smoke eig rows, 168 demo eig rows, the SVD profile rows, NEIG/SVT V jobs, replay/adversarial checks, and isolated package QA remain in their existing harnesses. The migration does not claim that a short page replaces those gates.
 
-- `HAD_BIDIAG` → [`examples/tiered/neig-tier-a/had_bidiag.m`](../../../examples/tiered/neig-tier-a/had_bidiag.m) + [`had_bidiag.md`](./neig-tier-a/had_bidiag.md)
-- `FRANK0` → [`examples/tiered/neig-tier-a/frank0.m`](../../../examples/tiered/neig-tier-a/frank0.m) + [`frank0.md`](./neig-tier-a/frank0.md)
-- `FRANK1` → [`examples/tiered/neig-tier-a/frank1.m`](../../../examples/tiered/neig-tier-a/frank1.m) + [`frank1.md`](./neig-tier-a/frank1.md)
-- `WILKINSON` → [`examples/tiered/neig-tier-a/wilkinson.m`](../../../examples/tiered/neig-tier-a/wilkinson.m) + [`wilkinson.md`](./neig-tier-a/wilkinson.md)
-- `GRCAR` → [`examples/tiered/neig-tier-a/grcar.m`](../../../examples/tiered/neig-tier-a/grcar.m) + [`grcar.md`](./neig-tier-a/grcar.md)
-- `MKS` → [`examples/tiered/neig-tier-a/mks.m`](../../../examples/tiered/neig-tier-a/mks.m) + [`mks.md`](./neig-tier-a/mks.md)
-- `MARKOV` → [`examples/tiered/neig-tier-a/markov.m`](../../../examples/tiered/neig-tier-a/markov.m) + [`markov.md`](./neig-tier-a/markov.md)
-- `PERRON_POS` → [`examples/tiered/neig-tier-a/perron_pos.m`](../../../examples/tiered/neig-tier-a/perron_pos.m) + [`perron_pos.md`](./neig-tier-a/perron_pos.md)
-- `HAD_COMPLEX` → [`examples/tiered/neig-tier-a/had_complex.m`](../../../examples/tiered/neig-tier-a/had_complex.m) + [`had_complex.md`](./neig-tier-a/had_complex.md)
-
-## Singular value decomposition — Tier S
-
-- `S1-NRO-TWO` → [`examples/tiered/svd-tier-s/nro_two.m`](../../../examples/tiered/svd-tier-s/nro_two.m) + [`nro_two.md`](./svd-tier-s/nro_two.md)
-- `S1-NRO-THREE` → [`examples/tiered/svd-tier-s/nro_three.m`](../../../examples/tiered/svd-tier-s/nro_three.m) + [`nro_three.md`](./svd-tier-s/nro_three.md)
-- `S1-NRO-GRADED` → [`examples/tiered/svd-tier-s/nro_graded.m`](../../../examples/tiered/svd-tier-s/nro_graded.m) + [`nro_graded.md`](./svd-tier-s/nro_graded.md)
-- `S1-NRO-SCALE-UP` → [`examples/tiered/svd-tier-s/nro_scale_up.m`](../../../examples/tiered/svd-tier-s/nro_scale_up.m) + [`nro_scale_up.md`](./svd-tier-s/nro_scale_up.md)
-- `S1-NRO-SCALE-DOWN` → [`examples/tiered/svd-tier-s/nro_scale_down.m`](../../../examples/tiered/svd-tier-s/nro_scale_down.m) + [`nro_scale_down.md`](./svd-tier-s/nro_scale_down.md)
-- `S2-JS` → [`examples/tiered/svd-tier-s/jacobi_stirling.m`](../../../examples/tiered/svd-tier-s/jacobi_stirling.m) + [`jacobi_stirling.md`](./svd-tier-s/jacobi_stirling.md)
-- `S3-LAH` → [`examples/tiered/svd-tier-s/lah.m`](../../../examples/tiered/svd-tier-s/lah.m) + [`lah.md`](./svd-tier-s/lah.md)
-- `S4-DD-SYM` → [`examples/tiered/svd-tier-s/dd_sym.m`](../../../examples/tiered/svd-tier-s/dd_sym.m) + [`dd_sym.md`](./svd-tier-s/dd_sym.md)
-- `S4-DD-NONSYM` → [`examples/tiered/svd-tier-s/dd_nonsym.m`](../../../examples/tiered/svd-tier-s/dd_nonsym.m) + [`dd_nonsym.md`](./svd-tier-s/dd_nonsym.md)
-
-## Singular value decomposition — Tier A
-
-- `A1-PASCAL-LOWER` → [`examples/tiered/svd-tier-a/pascal_lower.m`](../../../examples/tiered/svd-tier-a/pascal_lower.m) + [`pascal_lower.md`](./svd-tier-a/pascal_lower.md)
-- `A1-PASCAL-SYM` → [`examples/tiered/svd-tier-a/pascal_sym.m`](../../../examples/tiered/svd-tier-a/pascal_sym.m) + [`pascal_sym.md`](./svd-tier-a/pascal_sym.md)
-- `A2-VAND` → [`examples/tiered/svd-tier-a/vandermonde.m`](../../../examples/tiered/svd-tier-a/vandermonde.m) + [`vandermonde.md`](./svd-tier-a/vandermonde.md)
-- `A3-BDI-RAW` → [`examples/tiered/svd-tier-a/bidiag_raw.m`](../../../examples/tiered/svd-tier-a/bidiag_raw.m) + [`bidiag_raw.md`](./svd-tier-a/bidiag_raw.md)
-- `A3-BDI-MIXED` → [`examples/tiered/svd-tier-a/bidiag_mixed.m`](../../../examples/tiered/svd-tier-a/bidiag_mixed.m) + [`bidiag_mixed.md`](./svd-tier-a/bidiag_mixed.md)
-- `A4-LAU-TALL` → [`examples/tiered/svd-tier-a/lauchli_tall.m`](../../../examples/tiered/svd-tier-a/lauchli_tall.m) + [`lauchli_tall.md`](./svd-tier-a/lauchli_tall.md)
-- `A4-LAU-WIDE` → [`examples/tiered/svd-tier-a/lauchli_wide.m`](../../../examples/tiered/svd-tier-a/lauchli_wide.m) + [`lauchli_wide.md`](./svd-tier-a/lauchli_wide.md)
-- `A4-LAU-COMPLEX` → [`examples/tiered/svd-tier-a/lauchli_complex.m`](../../../examples/tiered/svd-tier-a/lauchli_complex.m) + [`lauchli_complex.md`](./svd-tier-a/lauchli_complex.md)
-- `A5-GEO` → [`examples/tiered/svd-tier-a/hadamard_geometric.m`](../../../examples/tiered/svd-tier-a/hadamard_geometric.m) + [`hadamard_geometric.md`](./svd-tier-a/hadamard_geometric.md)
-- `A5-CLOSE` → [`examples/tiered/svd-tier-a/hadamard_close.m`](../../../examples/tiered/svd-tier-a/hadamard_close.m) + [`hadamard_close.md`](./svd-tier-a/hadamard_close.md)
-- `A5-REPEAT` → [`examples/tiered/svd-tier-a/hadamard_repeat.m`](../../../examples/tiered/svd-tier-a/hadamard_repeat.m) + [`hadamard_repeat.md`](./svd-tier-a/hadamard_repeat.md)
-- `A5-RANK4` → [`examples/tiered/svd-tier-a/hadamard_rank4.m`](../../../examples/tiered/svd-tier-a/hadamard_rank4.m) + [`hadamard_rank4.md`](./svd-tier-a/hadamard_rank4.md)
-- `A5-RANK5` → [`examples/tiered/svd-tier-a/hadamard_rank5.m`](../../../examples/tiered/svd-tier-a/hadamard_rank5.m) + [`hadamard_rank5.md`](./svd-tier-a/hadamard_rank5.md)
-- `A6-NRO-COMPANION` → [`examples/tiered/svd-tier-a/nro_companion.m`](../../../examples/tiered/svd-tier-a/nro_companion.m) + [`nro_companion.md`](./svd-tier-a/nro_companion.md)
-
-## Coverage boundary
-
-The split files are intentionally pedagogical and one-case. Full smoke/demo measured rows, V verification jobs, exact replay, adversarial checks, native controls, and package QA remain in the original harnesses and test runner. The `case_id` option only selects a manifest case; it does not replace or reduce the profile definitions.
+See [GLOSSARY.md](GLOSSARY.md) for shared terms and [master README](README.md) for the learning order.

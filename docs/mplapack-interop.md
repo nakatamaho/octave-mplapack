@@ -182,7 +182,23 @@ The short files select one case from the existing manifest and call the existing
     run examples/tiered/neig-tier-s/sim_simple.m
     run examples/tiered/svd-tier-a/hadamard_rank5.m
 
-The detailed Markdown files explain the matrix formula, provenance, intended difficulty, residual and conditioning diagnostics, precision behavior, and common interpretation mistakes. Tier S and Tier A are project-specific QA labels defined by the existing manifests; they are not universal numerical classifications. Repeated or defective eigenspaces and repeated singular subspaces must be interpreted as subspaces, not as canonical individual vectors. Complex cases use the conjugate-transpose convention.
+The detailed Markdown files explain the matrix formula, provenance, intended difficulty, residual and conditioning diagnostics, precision behavior, and common interpretation mistakes. Tier S and Tier A are project-specific QA labels defined by the existing manifests; they are not universal numerical classifications. The split is deliberately explicit: NEIG has 12 Tier S and 9 Tier A cases, while SVD has 9 Tier S and 14 Tier A cases. Tier S contains the fixed-precision generator, near/repeated/defective eigensystem cases, non-normal reciprocal singular groups, combinatorial growth, exponent-range controls, and diagonal-dominance cases. Tier A broadens coverage with Hadamard, Frank, companion, Grcar, MKS, Markov/Perron, Pascal, Vandermonde, bidiagonal, Läuchli, known-rank, and complex controls.
+
+The common equations should be read before any individual page. For a nonsymmetric eigensystem, $`V`$ and $`W`$ are right and left factors:
+
+$`A V = V D`$,  $`A^H W = W D^H`$<!-- -->
+
+For an SVD, the measured factorization is:
+
+$`A = U \Sigma V^H`$<!-- -->
+
+The corresponding normalized equation diagnostics are:
+
+$`r_e = ||A V - V D||_F/(||A||_F ||V||_F)`$,  $`r_s = ||A-U \Sigma V^H||_F/||A||_F`$<!-- -->
+
+These are backward-error-style diagnostics. Forward error also depends on conditioning, scale, separation, multiplicity, and the exact represented input. Repeated or defective eigenspaces and repeated or null singular groups must be interpreted as subspaces, not as canonical individual vectors. Complex cases use the conjugate-transpose convention. The mathematical background includes Higham’s [Accuracy and Stability of Numerical Algorithms](https://doi.org/10.1137/1.9780898718027), Rump’s [verified all-spectrum eigenvalue and eigenvector bounds](https://doi.org/10.1137/21M1451440), and Wedin’s [SVD perturbation bounds](https://doi.org/10.1007/BF01932678); the case-specific attributions and adaptation boundaries are recorded in each Markdown page.
+
+The master Markdown page is a learning map rather than a second measurement implementation. Its table names every case ID, its one runnable file, its one detailed explanation, the defining equation or phenomenon, and an external reference. Use `docs/examples/tiered/GLOSSARY.md` for the symbols and diagnostics, and `docs/examples/tiered/MIGRATION.md` to audit the one-case/one-example/one-document correspondence. This separation keeps the explanatory material detailed without changing the existing counted QA runners.
 
 The historical numbered entry points remain deterministic family indexes: `examples/14_neig_tier_s.m`, `examples/15_neig_tier_a.m`, `examples/14_svd_tier_s.m`, and `examples/15_svd_tier_a.m`. They do not replace the complete measured profile walls. Those walls remain in `examples/neig_tiers/` and `examples/svd_tiers/`, and the migration map is `docs/examples/tiered/MIGRATION.md`.
 

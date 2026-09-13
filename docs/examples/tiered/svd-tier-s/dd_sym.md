@@ -1,57 +1,89 @@
-# Symmetric diagonally dominant path
+# Symmetric diagonally dominant path (Tier S4)
 
-**Corresponding example:** `examples/tiered/svd-tier-s/dd_sym.m`
+## Quick idea
 
-**Original tier/source:** The selected path formula and below-guard policy are in `docs/codex/svt/CASES.md` Section S4.
+S4-DD-SYM isolates The smallest singular value is the tiny diagonal-dominance margin tau, while neighboring values are controlled by a path Laplacian. It is a one-case, deterministic Tier S example: the matrix is small enough to inspect, but the singular spectrum or factors expose a failure mode that a generic smoke matrix would hide. Tier S describes the requested mathematical depth; it does not claim that the public dense svd call implements the cited structured algorithm.
 
-## Question
+## Mathematical problem
 
-A nearly singular symmetric tridiagonal path. This is a one-case view of the repository's S tier; the complete profile remains the regression authority.
+Smoke: n=8, b=32, rho=1. Demo: n=24, b=160, rho=1. The positive shift is tau=2^-b.
 
-## Matrix or problem
+$$
+A_{11}=1+tau,\quad A_{12}=-1;
+$$
+$$
+A_{i,i-1}=-1,\ A_{ii}=2+tau,\ A_{i,i+1}=-1,\ A_{n,n-1}=-1,\ A_{nn}=1+tau.
+$$
+The exact ascending singular values are sigma_k=tau+4 sin^2(k pi/(2n)), k=0,...,n-1.
 
-S4 symmetric diagonally dominant path with n=8, tau=`2^-32`, rho=1.
+## Why this problem is numerically difficult
 
-The case ID, profile membership, dimensions, and parameters come from `docs/codex/svt/cases.json`. The short example does not silently replace the frozen represented input with a textbook proxy.
+The smallest singular value is the tiny diagonal-dominance margin tau, while neighboring values are controlled by a path Laplacian. This makes loss of tau in a low-precision or native construction immediately visible. The symmetric case has an analytic positive-term formula, but its trigonometric evaluation is not itself an outward interval proof.
 
-## Why it is difficult
+The exact model, any analytic/reference construction, and measured SVD output are separate records. A convenient formula is a reference or invariant check; it is never silently substituted for the matrix sent to the public solver.
 
-The smallest singular value is close to the diagonal-dominance margin, so cancellation and rank thresholds matter.
+## What the Octave example computes
 
-The tier label is project-specific QA terminology, not a universal mathematical classification. A small residual is evidence that the computed factors satisfy an equation; it is not by itself a forward-error, conditioning, or stability certificate.
+The matching [dd_sym.m](../../../../examples/tiered/svd-tier-s/dd_sym.m) selects only S4-DD-SYM from the fixed manifest. The matching dd_sym.m constructs the path directly, runs public svd, and compares with the MP formula after setting sigma_0=tau exactly. It reports the explicit model, any below-guard rounded input, reconstruction, orthogonality, and the smallest-value error. The demo deliberately records when p=128 is below the exact construction guard for b=160. The runner records dimensions, case parameters, input/model identity, work/reference precision, measured rows, and any native control.
 
-## What the example calls
+## Construction and exactness
 
-`mp_svd_tiers` with `tier="S"`, `case_id="S4-DD-SYM"`, and the public `svd` path. The operation restores the caller's ambient `mpbits()` default after the run. Native controls, work-precision results, reference values, and diagnostics are separate records.
+Each row has dominance margin tau and the dyadic inputs are checked. For rho=1, SPD and the path eigenvalue formula provide independent checks; pi and sine are evaluated in MP. A separate V1 certificate is required for rigorous enclosures. Native tau loss is logged as an altered input, not called an MP failure.
 
-## What to inspect
+The source audit distinguishes exactness of the constructed matrix from agreement between two floating computations. All arithmetic on the model and measured path remains MPFR/MPC; conversion to binary64 is limited to explicitly labelled presentation controls.
 
-The case runner records reconstruction, orthogonality/unitarity, ordered nonnegative singular values, input identity, and precision roles. Inspect reconstruction, orthogonality, ordered values, and compare `rank(A,tol)` with the smallest value.
+## Diagnostics
 
-For SVD, inspect `A-U*S*V'`, `U'*U`/`V'*V` (or complex unitarity), descending nonnegative `diag(S)`, economy/full shapes, and rank/tolerance behavior where relevant. Factor signs and complex phases are not canonical.
+For $A\in\mathbb{C}^{m\times n}$, $U$, $\Sigma$, and $V$, use
+$$
+A=U\Sigma V^{\mathsf H},\qquad
+r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
+\qquad
+r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
+r_V=\lVert V^{\mathsf H}V-I\rVert_F.
+$$
+For repeated singular values compare the associated left/right subspaces, not individual columns.
 
-## Expected qualitative behavior
+Also inspect the value-wise forward bottleneck against the exact or analytic reference, the rank/cluster diagnostic when applicable, and any inverse or projector check. Keep the residuals as MP values until display. A small reconstruction residual does not certify every singular value digit.
 
-MP helps preserve tau; it cannot make a near-singular problem well-conditioned.
+## Backward error versus forward error
 
-## Why multiple precision helps—and does not
+The reconstruction residual is a backward-error style measure for the factorization equation: the returned factors nearly explain A. Forward singular-value error compares each returned value with the mathematical value of the stored model and depends on gaps, scaling, and conditioning. For a repeated group, the stable forward object is a subspace/projector. For rank-deficient data, an exact model rank proof is distinct from thresholding tiny measured values.
 
-The `mp` input is constructed and solved at the manifest's stored MPFR/MPC precision; the runner never routes a measured row through builtin binary64 complex arithmetic. Higher precision can preserve dyadic/decimal input data, reduce rounding error, and reveal smaller residuals or tail values. It cannot remove intrinsic eigenvalue/eigenvector conditioning, nonnormality, repeated-subspace nonuniqueness, rank thresholds, or a defective Jordan structure.
+## What arbitrary precision changes
 
-## Try changing this
+Input/source precision determines whether tau is present; arithmetic precision controls construction, SVD, and formula. Mathematical conditioning is severe at the small end even in the symmetric case. More bits preserve tau and reduce solver error but cannot recover it from a pre-rounded zero.
 
-Run the matching file after changing `mpbits()` before the input is created, then compare the recorded work and reference roles. For sensitive cases, vary the case parameter in a copied experiment and label the result as a new represented input. Do not edit the manifest fixture while interpreting the original case.
+Input/source precision identifies the stored matrix and any deliberate once-rounded model. Arithmetic/work precision is the MPFR/MPC precision used by the constructor, SVD, and references. Mathematical conditioning belongs to the model and can remain severe at arbitrary precision. Raising mpbits reduces arithmetic error but does not restore a singular-value tail lost in the input or make repeated factors unique. Ambient-precision and restoration tests ensure operation precision is owned by the stored operands.
+
+## Reading the output
+
+The first singular value should equal tau in the exact model. Read its absolute and relative errors separately, because tau is tiny. A good reconstruction and orthogonality result does not compensate for a rounded input with tau=0. The sorted values are the measured spectrum, not an insertion of the formula.
+
+A PASS line is scoped to the named case and profile. Compare only rows with identical parameters and model identity. If a cluster, rank, or exactness field is not claimed, do not infer it from a stable display.
 
 ## Common mistakes
 
-Do not compare repeated singular vectors column by column; do not use `U*S*V.'` for a complex case; do not infer rank without stating a tolerance; and do not treat a broad valid interval or a failed sufficient condition as a singularity proof.
+Do not use 2-2cos as the small-value formula, call tau loss a solver failure, use native trigonometric constants for MP reference, or claim the formula alone is a certified interval.
 
+For diagnosis, first verify case ID and shape, then model hash and input precision, then reconstruction/orthogonality, then the appropriate value or subspace metric. Do not alter parameters after seeing a failure and report the changed matrix as the original case.
+
+## Scope of the claim
+
+This page explains one fixed SVD model and the precise object that the runner measures. Changing a dimension, dyadic exponent, scale, phase, gap, or zero entry changes the source matrix and requires a new case identity. That is especially important for repeated and rank-deficient examples: a zero gap is not a tiny gap, and an exact zero is not merely a small positive singular value.
+
+The analytic spectrum or projector is an independent model check. It is not inserted into the measured factorization, and the public dense SVD is not silently replaced by a structured bidiagonal or totally-nonnegative algorithm. Reconstruction, unitarity, value-wise forward error, and subspace comparisons answer different questions. The runner records all of them with the input and arithmetic precision roles. Binary64 is permitted only at an explicitly declared presentation boundary; it is never an unreported numerical fallback.
 ## References
 
-- `docs/codex/svt/cases.json` — exact case identity and profile parameters.
-- `docs/codex/svt/CASES.md` — matrix formula, exactness rules, and interpretation.
-- `docs/codex/svt/SOURCES.md` — source attribution and adaptation boundary.
+- [Froilán M. Dopico and Plamen Koev, Perturbation theory for the LDU factorization and accurate computations for diagonally dominant matrices. Numerische Mathematik 119 (2011), 337–371. DOI: 10.1007/s00211-011-0382-3](https://doi.org/10.1007/s00211-011-0382-3) — Diagonal-dominance representation context; the path formulas here are suite adaptations.
+- [Netlib LAPACK, DLASQ1 documentation, current reference page](https://www.netlib.org/lapack/explore-html/d5/dce/group__lasq1_ga5a8c1474ef61ff7c59c17412ae456ca6.html) — A relative-accuracy bidiagonal comparator; it is not the dense SVD implementation used by this case.
+- [GNU MPFR project, MPFR 4.2 manual, floating-point numbers and rounding](https://www.mpfr.org/mpfr-current/mpfr.html) — Correct-rounding and exponent-range terminology used when discussing exact dyadic inputs.
 
-## Implementation note
+The cited works provide external mathematical context. The dimensions, powers of two, acceptance thresholds, and executable implementation are suite-specific adaptations unless explicitly identified as a formula above.
 
-This file is a pedagogical front door only. The full SVT runner, manifest coverage, references, and verification jobs remain in `examples/svd_tiers/`. No package numerical implementation is duplicated here, and no new installed API is introduced.
+## Project provenance
+
+- Runnable case: [dd_sym.m](../../../../examples/tiered/svd-tier-s/dd_sym.m).
+- Case manifest: [SVT cases.json](../../../../docs/codex/svt/cases.json).
+- Certificate scope and conservative baselines: [SVT VERIFICATION.md](../../../../docs/codex/svt/VERIFICATION.md) and [SVT SOURCES.md](../../../../docs/codex/svt/SOURCES.md).
+- The detailed page explains the model; the family runner remains the measurement authority.

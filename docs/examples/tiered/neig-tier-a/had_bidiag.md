@@ -1,57 +1,82 @@
-# Hadamard-similar upper bidiagonal
+# Hadamard-similar upper bidiagonal matrix (Tier A1)
 
-**Corresponding example:** `examples/tiered/neig-tier-a/had_bidiag.m`
+## Quick idea
 
-**Original tier/source:** The construction and eigenvalue-condition formula are in `docs/codex/neigt/CASES.md` Section 5.
+HAD_BIDIAG is a Tier A control. The spectrum is well separated while the eigenvectors are not. It is small, deterministic, and intended to be read with its one-case Octave runner. Tier A identifies an advanced example; it does not claim that the public eig routine implements the cited paper's specialized algorithm.
 
-## Question
+## Mathematical problem
 
-An upper bidiagonal matrix with separated integer eigenvalues after a Hadamard similarity. This is a one-case view of the repository's A tier; the complete profile remains the regression authority.
+Smoke: n=8 and s=16. Demo: n=16 and s=128. n is a power of two and H is the Sylvester Hadamard matrix.
 
-## Matrix or problem
+$$
+T = diag(1,2,...,n) + s N,    A = (1/n) H T H^T,    H H^T = n I.
+$$
+The orthogonal similarity preserves the exact eigenvalues 1,2,...,n. For root k, the triangular reference vectors use v_i = s^(k-i)/(k-i)! for i <= k and w_i = (-s)^(i-k)/(i-k)! for i >= k.
 
-A1 `A=(H*T*H')/n` with n=8, `T(i,i)=i`, and `T(i,i+1)=16`; exact eigenvalues are 1 through 8.
+## Why this problem is numerically difficult
 
-The case ID, profile membership, dimensions, and parameters come from `docs/codex/neigt/cases.json`. The short example does not silently replace the frozen represented input with a textbook proxy.
+The spectrum is well separated while the eigenvectors are not. A dense orthogonal similarity hides the triangular structure, so the eigensolver must work in dense coordinates. Factorial recurrences create large and small components at once, and the left/right overlap determines individual eigenvalue sensitivity. Exact integer and dyadic entries make the input auditable, but an integer spectrum does not make every computed digit forward accurate.
 
-## Why it is difficult
+The exact model, any transformed control, and measured solver output remain separate. A related matrix with a convenient analytic answer is never silently substituted for the matrix named by the case ID.
 
-The orthogonal similarity makes the input dense while preserving highly nonnormal eigenvector geometry.
+## What the Octave example computes
 
-The tier label is project-specific QA terminology, not a universal mathematical classification. A small residual is evidence that the computed factors satisfy an equation; it is not by itself a forward-error, conditioning, or stability certificate.
+The matching [had_bidiag.m](../../../../examples/tiered/neig-tier-a/had_bidiag.m) selects only HAD_BIDIAG from the fixed manifest and calls the public eig interface. The matching had_bidiag.m selects only HAD_BIDIAG from the frozen manifest, constructs T and A directly, checks Hadamard orthogonality, and calls the public eig path on A. It compares measured roots with 1:n, reports residuals and matched forward error, and evaluates the condition reference κ_k = sqrt(sum s^(2j)/(j!)^2) times sqrt(sum s^(2j)/(j!)^2). It never solves T instead of A. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
 
-## What the example calls
+## Construction and exactness
 
-`mp_neig_tiers` with `tier="A"`, `case_id="HAD_BIDIAG"`, and the public `eig` path. The operation restores the caller's ambient `mpbits()` default after the run. Native controls, work-precision results, reference values, and diagnostics are separate records.
+The audit checks H H^T = n I, both dense product stages, the dyadic bit guard, and the exact spectrum independently. Factorial terms are evaluated by MP multiplicative recurrences rather than native factorials. Vector comparisons use normalization and sign matching. Agreement between two MP runs is corroborating evidence, not an exactness proof.
 
-## What to inspect
+Exactness means that declared integer/dyadic identities and their bit guards have been checked independently. Agreement between two MP runs is useful evidence but is not an exactness proof.
 
-Inspect matched eigenvalues, left/right residuals, conditions, and balance controls; do not solve T instead of A.
+## Diagnostics
 
-For a general eigensystem, inspect `A*V-V*D` and `W'*A-D*W'`. Match eigenvalues bijectively rather than by returned position; account for eigenvector phase and scale. Compare `balance` and `nobalance` only as explicitly labeled solver modes.
+For A in C^(n x n), right vectors V, output D, and left vectors W, use
+$$
+r_{\mathrm{eig}} = ||A V - V D||_F / (||A||_F ||V||_F),
+\qquad r_{\mathrm{left}} = ||A^H W - W D^H||_F / (||A||_F ||W||_F).
+$$
+For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
 
-## Expected qualitative behavior
+Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.
 
-Exact integer eigenvalues do not imply accurate computed eigenvalues when eigenvalue conditioning is large.
+## Backward error versus forward error
 
-## Why multiple precision helps—and does not
+The eigen residual measures the equation defect and can support a backward-error interpretation after normalization. Forward eigenvalue error additionally depends on spectral separation and left/right eigenvector conditioning. For repeated or defective objects, the forward target is an invariant subspace or block relation. For a polynomial companion, coefficientwise backward error is a different perturbation model. The report keeps these meanings distinct.
 
-The `mp` input is constructed and solved at the manifest's stored MPFR/MPC precision; the runner never routes a measured row through builtin binary64 complex arithmetic. Higher precision can preserve dyadic/decimal input data, reduce rounding error, and reveal smaller residuals or tail values. It cannot remove intrinsic eigenvalue/eigenvector conditioning, nonnormality, repeated-subspace nonuniqueness, rank thresholds, or a defective Jordan structure.
+## What arbitrary precision changes
 
-## Try changing this
+The source model is exact at the stated n and s. Arithmetic precision controls the dense products and eig call, while mathematical conditioning is reflected by the factorial norm products and grows with s. More bits reduce arithmetic error but do not make a sensitive eigenvalue insensitive. Input precision and work precision are recorded separately.
 
-Run the matching file after changing `mpbits()` before the input is created, then compare the recorded work and reference roles. For sensitive cases, vary the case parameter in a copied experiment and label the result as a new represented input. Do not edit the manifest fixture while interpreting the original case.
+Input/source precision is the precision and exactness of the stored model. Arithmetic/work precision is the MPFR/MPC precision selected for this operation. Mathematical conditioning is a property of the model. Raising mpbits addresses the second item only; it does not restore bits lost in a separately rounded input or alter a defective structure. Ambient-precision and restoration rows protect this distinction.
+
+## Reading the output
+
+The integer-root bottleneck is a forward diagnostic; r_eig is an eigen-equation diagnostic. A small residual with a larger root error is consistent with a large κ_k. The Hadamard transform is an orthogonal similarity, not the two-sided equivalence used by SVD cases.
+
+A PASS line is scoped to the declared case gates and profile. Compare only rows with the same parameters and model hash. If a certificate field is absent, do not infer it from a small residual or a stable display.
 
 ## Common mistakes
 
-Do not compare eigenvalue vectors by index; do not call a repeated or defective cluster a set of simple roots; do not confuse an invariant-subspace certificate with an isolated spectral cluster; and do not use a transpose in place of the complex left-vector convention.
+Do not replace A with T, compute factorials in binary64, call κ_k a measured error, or infer good eigenvectors from separated eigenvalues. Do not confuse eigenvalue similarity with singular-value mixing.
 
+For diagnosis, verify case ID and dimensions, then model hash and input precision, then residual, then the appropriate forward, cluster, or structural metric. Never change the fixture after observing a failure and report it as the original case.
+
+## Scope of the claim
+
+This page is a worked mathematical explanation, not a promise about every matrix that happens to resemble this family. The named case ID fixes the construction, profile, precision roles, comparison convention, and status vocabulary. A reader who changes n, an exponent, an orientation, a phase, or a representation has created a new represented input and must record it as such. That discipline matters because a harmless-looking change can alter rank, multiplicity, cluster separation, exponent range, or the left/right conditioning.
+
+The dense output is always interpreted in the coordinates of the named model. Analytic roots, transformed controls, and exact identities are used as independent checks. They are not spliced into measured output, and a high-precision reference is not treated as a formal proof unless the page names the additional proof. For nonsymmetric problems, keep right and left equations distinct and use conjugation for complex data. The family runner supplies counted coverage; this page supplies the meaning of one row.
 ## References
 
-- `docs/codex/neigt/cases.json` — exact case identity and profile parameters.
-- `docs/codex/neigt/CASES.md` — matrix formula, exactness rules, and interpretation.
-- `docs/codex/neigt/SOURCES.md` — source attribution and adaptation boundary.
+- [Siegfried M. Rump, Verified Error Bounds for All Eigenvalues and Eigenvectors of a Matrix. SIAM Journal on Matrix Analysis and Applications 43(4) (2022), 1736–1754. DOI: 10.1137/21M1451440](https://doi.org/10.1137/21M1451440) — The all-spectrum and rigorous eigensystem context; these are independent dense controls.
+- [Nicholas J. Higham, Accuracy and Stability of Numerical Algorithms, 2nd ed. SIAM (2002). DOI: 10.1137/1.9780898718027](https://doi.org/10.1137/1.9780898718027) — The backward/forward-error framework and companion/nonnormal conditioning language used here.
 
-## Implementation note
+These references establish the external mathematical context. The selected dimensions, dyadic constants, runner, and acceptance thresholds are explicit project adaptations unless this page states otherwise.
 
-This file is a pedagogical front door only. The full NEIGT runner, manifest coverage, references, and verification jobs remain in `examples/neig_tiers/`. No package numerical implementation is duplicated here, and no new installed API is introduced.
+## Project provenance
+
+- Runnable case: [had_bidiag.m](../../../../examples/tiered/neig-tier-a/had_bidiag.m).
+- Case manifest: [NEIG cases.json](../../../../docs/codex/neigt/cases.json).
+- Verification scope: [NEIG verification-jobs.json](../../../../docs/codex/neigt/verification-jobs.json) and [CERTIFICATES.md](../../../../docs/codex/neigt/CERTIFICATES.md).
+- This page explains the named model; the family runner and milestone logs remain the measurement authority.

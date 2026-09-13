@@ -20,6 +20,8 @@ required=(
   tools/test-doc-examples.sh
   docs/examples/tiered/README.md
   docs/examples/tiered/MIGRATION.md
+  docs/examples/tiered/GLOSSARY.md
+  tools/check-tiered-math.sh
 )
 for path in "${required[@]}"; do
   if [[ ! -f "$path" ]]; then
@@ -179,6 +181,15 @@ if ! grep -Fq 'MPLAPACK 3.0.1 release candidate' NEWS.md; then
 fi
 if ! grep -Fq 'D04' NEWS.md; then
   echo "FAIL: NEWS lacks D04 release context" >&2
+  fail=1
+fi
+
+if [[ -x tools/check-tiered-math.sh ]]; then
+  if ! tools/check-tiered-math.sh; then
+    fail=1
+  fi
+else
+  echo "FAIL: missing tools/check-tiered-math.sh" >&2
   fail=1
 fi
 

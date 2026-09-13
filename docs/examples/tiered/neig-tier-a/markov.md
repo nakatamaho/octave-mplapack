@@ -1,57 +1,121 @@
-# Stochastic Markov matrix
+# Dyadic irreducible Markov matrix (Tier A6)
 
-**Corresponding example:** `examples/tiered/neig-tier-a/markov.m`
+## Quick idea
 
-**Original tier/source:** The block formula and positive-row construction are recorded in the NEIG case sources.
+MARKOV is a Tier A control. The Perron root is known, but the stationary vector is a nontrivial left eigenvector. It is small, deterministic, and intended to be read with its one-case Octave runner. Tier A identifies an advanced example; it does not claim that the public eig routine implements the cited paper's specialized algorithm.
 
-## Question
+## Mathematical problem
 
-A positive stochastic matrix with a controlled spectral scale. This is a one-case view of the repository's A tier; the complete profile remains the regression authority.
+Smoke: $n=8$ and $\varepsilon=2^{-24}$. Demo: $n=16$ and
+$\varepsilon=2^{-80}$. The matrix is row-stochastic with a nonuniform
+stationary left vector.
 
-## Matrix or problem
+$$
+\begin{gathered}
+h=n/2,\qquad
+C\in\mathbb{R}^{h\times h},\quad
+C_{i,i+1}=1\ (1\leq i<h),\quad C_{h,1}=1,\\
+Q=\operatorname{blockdiag}\left(\frac{3}{4}I_h+\frac{1}{4}C,
+\frac{7}{8}I_h+\frac{1}{8}C\right),\\
+r_i=2^{-i}\ (1\leq i<n),\qquad r_n=2^{-(n-1)},
+\qquad \mathbf{1}^{\mathsf T}r=1,\\
+P=(1-\varepsilon)Q+\varepsilon\mathbf{1}r^{\mathsf T},
+\qquad \varepsilon=2^{-e},\qquad P\mathbf{1}=\mathbf{1}.
+\end{gathered}
+$$
 
-A2 stochastic Markov matrix with n=8 and epsilon=`2^-24`, assembled from the two cycle blocks and stationary row.
+The vector $r$ is the teleportation target, not generally the stationary
+vector. The stationary row is
 
-The case ID, profile membership, dimensions, and parameters come from `docs/codex/neigt/cases.json`. The short example does not silently replace the frozen represented input with a textbook proxy.
+$$
+\pi^{\mathsf T}=\varepsilon r^{\mathsf T}
+\left[I-(1-\varepsilon)Q\right]^{-1},
+\qquad \pi^{\mathsf T}P=\pi^{\mathsf T},
+\qquad \pi^{\mathsf T}\mathbf{1}=1.
+$$
 
-## Why it is difficult
+Thus the right Perron vector of $P$ is $\mathbf{1}$, whereas its left
+stationary vector is the nonuniform $\pi$.
 
-Stochastic structure gives a meaningful Perron eigenvalue, while nonnormality can affect the other eigenvectors.
+## Why this problem is numerically difficult
 
-The tier label is project-specific QA terminology, not a universal mathematical classification. A small residual is evidence that the computed factors satisfy an equation; it is not by itself a forward-error, conditioning, or stability certificate.
+The Perron root is known, but the stationary vector is a nontrivial left eigenvector. Rank-one dyadic mixing makes the chain irreducible while preserving an exact model. A row-sum check tests only the right vector and can miss a broken left convention. Non-Perron roots are outside the Perron certificate.
 
-## What the example calls
+The exact model, any transformed control, and measured solver output remain separate. A related matrix with a convenient analytic answer is never silently substituted for the matrix named by the case ID.
 
-`mp_neig_tiers` with `tier="A"`, `case_id="MARKOV"`, and the public `eig` path. The operation restores the caller's ambient `mpbits()` default after the run. Native controls, work-precision results, reference values, and diagnostics are separate records.
+## What the Octave example computes
 
-## What to inspect
+The matching [markov.m](../../../../examples/tiered/neig-tier-a/markov.m) selects
+only MARKOV from the fixed manifest and calls the public eig interface. The
+underlying `net_markov_model` constructs $C$, $Q$, $r$, and $P$ in MP. The
+reference path evaluates the formula for $\pi$ and also solves the normalized
+linear system obtained from $P^{\mathsf T}\pi=\pi$. The runner compares those
+two independently prepared stationary rows, checks row sums, and keeps the
+teleportation target $r$ separate from the stationary vector $\pi$. It also
+runs the V-A3 Perron checker on $P$ and $P^{\mathsf T}$. The output separates
+root, right vector, left vector, normalization, and non-Perron diagnostics.
+The runner records the case ID, profile, dimensions, input identity, and
+operation precision, and keeps MP values until presentation.
 
-Inspect row sums, the positive stationary/Perron pair, left convention, and matched eigenvalues.
+## Construction and exactness
 
-For a general eigensystem, inspect `A*V-V*D` and `W'*A-D*W'`. Match eigenvalues bijectively rather than by returned position; account for eigenvector phase and scale. Compare `balance` and `nobalance` only as explicitly labeled solver modes.
+The audit verifies nonnegative dyadic entries, $P\mathbf{1}=\mathbf{1}$, the
+rank-one formula, and the irreducibility assumptions. It checks both the
+analytic formula and the independent normalized solve for $\pi$, including
+$\pi^{\mathsf T}P=\pi^{\mathsf T}$ and $\pi^{\mathsf T}\mathbf{1}=1$. The
+stationary vector has a declared normalization and is not supplied to the
+eigensolver as its answer.
 
-## Expected qualitative behavior
+Exactness means that declared integer/dyadic identities and their bit guards have been checked independently. Agreement between two MP runs is useful evidence but is not an exactness proof.
 
-A unit row sum is an invariant check, not a proof that all eigenvectors are well conditioned.
+## Diagnostics
 
-## Why multiple precision helps—and does not
+For A in C^(n x n), right vectors V, output D, and left vectors W, use
+$$
+r_{\mathrm{eig}} = ||A V - V D||_F / (||A||_F ||V||_F),
+\qquad r_{\mathrm{left}} = ||A^H W - W D^H||_F / (||A||_F ||W||_F).
+$$
+For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
 
-The `mp` input is constructed and solved at the manifest's stored MPFR/MPC precision; the runner never routes a measured row through builtin binary64 complex arithmetic. Higher precision can preserve dyadic/decimal input data, reduce rounding error, and reveal smaller residuals or tail values. It cannot remove intrinsic eigenvalue/eigenvector conditioning, nonnormality, repeated-subspace nonuniqueness, rank thresholds, or a defective Jordan structure.
+Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.
 
-## Try changing this
+## Backward error versus forward error
 
-Run the matching file after changing `mpbits()` before the input is created, then compare the recorded work and reference roles. For sensitive cases, vary the case parameter in a copied experiment and label the result as a new represented input. Do not edit the manifest fixture while interpreting the original case.
+The eigen residual measures the equation defect and can support a backward-error interpretation after normalization. Forward eigenvalue error additionally depends on spectral separation and left/right eigenvector conditioning. For repeated or defective objects, the forward target is an invariant subspace or block relation. For a polynomial companion, coefficientwise backward error is a different perturbation model. The report keeps these meanings distinct.
+
+## What arbitrary precision changes
+
+The source is exact dyadic and includes epsilon. Arithmetic precision controls positivity, eig, and normalization. Mathematical conditioning depends on mixing and Perron separation. More bits preserve a small mixing term but do not prove a spectral gap.
+
+Input/source precision is the precision and exactness of the stored model. Arithmetic/work precision is the MPFR/MPC precision selected for this operation. Mathematical conditioning is a property of the model. Raising mpbits addresses the second item only; it does not restore bits lost in a separately rounded input or alter a defective structure. Ambient-precision and restoration rows protect this distinction.
+
+## Reading the output
+
+A valid Perron result requires a positive root enclosure, both vector residuals, and a contraction or Collatz–Wielandt uniqueness check. Row-stochasticity alone is insufficient. The second eigenvalue and a mixing-time theorem are not claimed.
+
+A PASS line is scoped to the declared case gates and profile. Compare only rows with the same parameters and model hash. If a certificate field is absent, do not infer it from a small residual or a stable display.
 
 ## Common mistakes
 
-Do not compare eigenvalue vectors by index; do not call a repeated or defective cluster a set of simple roots; do not confuse an invariant-subspace certificate with an isolated spectral cluster; and do not use a transpose in place of the complex left-vector convention.
+Do not call the stationary vector uniform, verify only P*1=1, claim the Perron test certifies all eigenvalues, or use a rounded native stochastic matrix as the exact model.
 
+For diagnosis, verify case ID and dimensions, then model hash and input precision, then residual, then the appropriate forward, cluster, or structural metric. Never change the fixture after observing a failure and report it as the original case.
+
+## Scope of the claim
+
+This page is a worked mathematical explanation, not a promise about every matrix that happens to resemble this family. The named case ID fixes the construction, profile, precision roles, comparison convention, and status vocabulary. A reader who changes n, an exponent, an orientation, a phase, or a representation has created a new represented input and must record it as such. That discipline matters because a harmless-looking change can alter rank, multiplicity, cluster separation, exponent range, or the left/right conditioning.
+
+The dense output is always interpreted in the coordinates of the named model. Analytic roots, transformed controls, and exact identities are used as independent checks. They are not spliced into measured output, and a high-precision reference is not treated as a formal proof unless the page names the additional proof. For nonsymmetric problems, keep right and left equations distinct and use conjugation for complex data. The family runner supplies counted coverage; this page supplies the meaning of one row.
 ## References
 
-- `docs/codex/neigt/cases.json` — exact case identity and profile parameters.
-- `docs/codex/neigt/CASES.md` — matrix formula, exactness rules, and interpretation.
-- `docs/codex/neigt/SOURCES.md` — source attribution and adaptation boundary.
+- [Shinya Miyajima, Fast verification for the Perron pair of an irreducible nonnegative matrix. Electronic Journal of Linear Algebra 37 (2021), 402–415. DOI: 10.13001/ela.2021.5181](https://doi.org/10.13001/ela.2021.5181) — The positive Perron root/vector target; the checker here is an independent conservative baseline.
+- [Siegfried M. Rump, Verified Error Bounds for All Eigenvalues and Eigenvectors of a Matrix. SIAM Journal on Matrix Analysis and Applications 43(4) (2022), 1736–1754. DOI: 10.1137/21M1451440](https://doi.org/10.1137/21M1451440) — The all-spectrum and rigorous eigensystem context; these are independent dense controls.
 
-## Implementation note
+These references establish the external mathematical context. The selected dimensions, dyadic constants, runner, and acceptance thresholds are explicit project adaptations unless this page states otherwise.
 
-This file is a pedagogical front door only. The full NEIGT runner, manifest coverage, references, and verification jobs remain in `examples/neig_tiers/`. No package numerical implementation is duplicated here, and no new installed API is introduced.
+## Project provenance
+
+- Runnable case: [markov.m](../../../../examples/tiered/neig-tier-a/markov.m).
+- Case manifest: [NEIG cases.json](../../../../docs/codex/neigt/cases.json).
+- Verification scope: [NEIG verification-jobs.json](../../../../docs/codex/neigt/verification-jobs.json) and [CERTIFICATES.md](../../../../docs/codex/neigt/CERTIFICATES.md).
+- This page explains the named model; the family runner and milestone logs remain the measurement authority.

@@ -1,57 +1,85 @@
-# NRO graded block
+# NRO graded block: geometric singular scales (Tier S1)
 
-**Corresponding example:** `examples/tiered/svd-tier-s/nro_graded.m`
+## Quick idea
 
-**Original tier/source:** The graded construction is the manifest S1 fixture; its algebraic block reduction is documented in `docs/codex/svt/CASES.md`.
+S1-NRO-GRADED isolates The graded weights test a spectrum with several scales rather than only one extreme. It is a one-case, deterministic Tier S example: the matrix is small enough to inspect, but the singular spectrum or factors expose a failure mode that a generic smoke matrix would hide. Tier S describes the requested mathematical depth; it does not claim that the public dense svd call implements the cited structured algorithm.
 
-## Question
+## Mathematical problem
 
-A block matrix with geometrically graded off-diagonal weights. This is a one-case view of the repository's S tier; the complete profile remains the regression authority.
+Smoke: m=4, g=4. Demo: m=16, g=3. The weights are w_j=2^(g(j-1)).
 
-## Matrix or problem
+$$
+B=H_m diag(2^{g(j-1)}),    A=[I_m\ B;0\ I_m].
+$$
+Each beta_j=sqrt(m)2^(g(j-1)) produces a reciprocal pair a_j and b_j, so the singular values span multiple exact powers of two before the square-root transformation.
 
-S1 NRO block with weights `2^(4*(j-1))`, m=4.
+## Why this problem is numerically difficult
 
-The case ID, profile membership, dimensions, and parameters come from `docs/codex/svt/cases.json`. The short example does not silently replace the frozen represented input with a textbook proxy.
+The graded weights test a spectrum with several scales rather than only one extreme. The matrix entries remain powers of two, but the singular values are algebraic expressions with different magnitudes, making sorting and relative comparisons important. A single normwise reconstruction residual can hide one lost small group. The chosen m is a power of four so the Sylvester Hadamard construction is exact and deterministic.
 
-## Why it is difficult
+The exact model, any analytic/reference construction, and measured SVD output are separate records. A convenient formula is a reference or invariant check; it is never silently substituted for the matrix sent to the public solver.
 
-Geometric grading spreads singular values and stresses scale across the block.
+## What the Octave example computes
 
-The tier label is project-specific QA terminology, not a universal mathematical classification. A small residual is evidence that the computed factors satisfy an equation; it is not by itself a forward-error, conditioning, or stability certificate.
+The matching [nro_graded.m](../../../../examples/tiered/svd-tier-s/nro_graded.m) selects only S1-NRO-GRADED from the fixed manifest. The matching nro_graded.m builds the graded B and dense A, runs public svd, and reports all pairs after a bijective MP match. It checks the inverse identity, the sorted reference spectrum, reconstruction, and factor unitarity. The demo is the broad dynamic-range control; it is not a claim that the source paper’s published table is reproduced. The runner records dimensions, case parameters, input/model identity, work/reference precision, measured rows, and any native control.
 
-## What the example calls
+## Construction and exactness
 
-`mp_svd_tiers` with `tier="S"`, `case_id="S1-NRO-GRADED"`, and the public `svd` path. The operation restores the caller's ambient `mpbits()` default after the run. Native controls, work-precision results, reference values, and diagnostics are separate records.
+Weights and Hadamard entries are exact under the declared guard. The reference uses beta_j and the cancellation-safe reciprocal expression independently for each j. The block inverse and determinant are checked before SVD. Cross-precision equality does not replace the exact power-of-two audit.
 
-## What to inspect
+The source audit distinguishes exactness of the constructed matrix from agreement between two floating computations. All arithmetic on the model and measured path remains MPFR/MPC; conversion to binary64 is limited to explicitly labelled presentation controls.
 
-The case runner records reconstruction, orthogonality/unitarity, ordered nonnegative singular values, input identity, and precision roles. Inspect reconstruction, orthogonality, nonnegative descending values, and condition/rank diagnostics.
+## Diagnostics
 
-For SVD, inspect `A-U*S*V'`, `U'*U`/`V'*V` (or complex unitarity), descending nonnegative `diag(S)`, economy/full shapes, and rank/tolerance behavior where relevant. Factor signs and complex phases are not canonical.
+For $A\in\mathbb{C}^{m\times n}$, $U$, $\Sigma$, and $V$, use
+$$
+A=U\Sigma V^{\mathsf H},\qquad
+r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
+\qquad
+r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
+r_V=\lVert V^{\mathsf H}V-I\rVert_F.
+$$
+For repeated singular values compare the associated left/right subspaces, not individual columns.
 
-## Expected qualitative behavior
+Also inspect the value-wise forward bottleneck against the exact or analytic reference, the rank/cluster diagnostic when applicable, and any inverse or projector check. Keep the residuals as MP values until display. A small reconstruction residual does not certify every singular value digit.
 
-A reference formula is an independent check, not a replacement for the measured SVD.
+## Backward error versus forward error
 
-## Why multiple precision helps—and does not
+The reconstruction residual is a backward-error style measure for the factorization equation: the returned factors nearly explain A. Forward singular-value error compares each returned value with the mathematical value of the stored model and depends on gaps, scaling, and conditioning. For a repeated group, the stable forward object is a subspace/projector. For rank-deficient data, an exact model rank proof is distinct from thresholding tiny measured values.
 
-The `mp` input is constructed and solved at the manifest's stored MPFR/MPC precision; the runner never routes a measured row through builtin binary64 complex arithmetic. Higher precision can preserve dyadic/decimal input data, reduce rounding error, and reveal smaller residuals or tail values. It cannot remove intrinsic eigenvalue/eigenvector conditioning, nonnormality, repeated-subspace nonuniqueness, rank thresholds, or a defective Jordan structure.
+## What arbitrary precision changes
 
-## Try changing this
+Input/source precision is exact dyadic. Work precision controls each pair and the dense SVD; mathematical conditioning varies geometrically with j and g. More bits improve the smallest groups only if the input and reference remain unchanged. The generator is not regenerated from the solve precision.
 
-Run the matching file after changing `mpbits()` before the input is created, then compare the recorded work and reference roles. For sensitive cases, vary the case parameter in a copied experiment and label the result as a new represented input. Do not edit the manifest fixture while interpreting the original case.
+Input/source precision identifies the stored matrix and any deliberate once-rounded model. Arithmetic/work precision is the MPFR/MPC precision used by the constructor, SVD, and references. Mathematical conditioning belongs to the model and can remain severe at arbitrary precision. Raising mpbits reduces arithmetic error but does not restore a singular-value tail lost in the input or make repeated factors unique. Ambient-precision and restoration tests ensure operation precision is owned by the stored operands.
+
+## Reading the output
+
+Inspect pairwise reciprocal structure, per-value relative error, r_svd, and the count of all 2m values. A stable global residual does not prove the smallest group has the requested relative digits. Factor phases and order are arbitrary.
+
+A PASS line is scoped to the named case and profile. Compare only rows with identical parameters and model identity. If a cluster, rank, or exactness field is not claimed, do not infer it from a stable display.
 
 ## Common mistakes
 
-Do not compare repeated singular vectors column by column; do not use `U*S*V.'` for a complex case; do not infer rank without stating a tolerance; and do not treat a broad valid interval or a failed sufficient condition as a singularity proof.
+Do not use one absolute tolerance for every scale, sort factors by raw columns, form A^H A, or assume a geometric input makes geometric singular values. Do not claim dense SVD has become a structured bidiagonal algorithm.
 
+For diagnosis, first verify case ID and shape, then model hash and input precision, then reconstruction/orthogonality, then the appropriate value or subspace metric. Do not alter parameters after seeing a failure and report the changed matrix as the original case.
+
+## Scope of the claim
+
+This page explains one fixed SVD model and the precise object that the runner measures. Changing a dimension, dyadic exponent, scale, phase, gap, or zero entry changes the source matrix and requires a new case identity. That is especially important for repeated and rank-deficient examples: a zero gap is not a tiny gap, and an exact zero is not merely a small positive singular value.
+
+The analytic spectrum or projector is an independent model check. It is not inserted into the measured factorization, and the public dense SVD is not silently replaced by a structured bidiagonal or totally-nonnegative algorithm. Reconstruction, unitarity, value-wise forward error, and subspace comparisons answer different questions. The runner records all of them with the input and arithmetic precision roles. Binary64 is permitted only at an explicitly declared presentation boundary; it is never an unreported numerical fallback.
 ## References
 
-- `docs/codex/svt/cases.json` — exact case identity and profile parameters.
-- `docs/codex/svt/CASES.md` — matrix formula, exactness rules, and interpretation.
-- `docs/codex/svt/SOURCES.md` — source attribution and adaptation boundary.
+- [Tetsuo Nishi, Siegfried M. Rump, and Shin'ichi Oishi, On the generation of very ill-conditioned integer matrices. Nonlinear Theory and Its Applications, IEICE 2(2) (2011), 226–245. DOI: 10.1587/nolta.2.226](https://doi.org/10.1587/nolta.2.226) — The block family and bounded-integer motivation; the chosen dimensions are suite fixtures.
+- [GNU MPFR project, MPFR 4.2 manual, floating-point numbers and rounding](https://www.mpfr.org/mpfr-current/mpfr.html) — Correct-rounding and exponent-range terminology used when discussing exact dyadic inputs.
 
-## Implementation note
+The cited works provide external mathematical context. The dimensions, powers of two, acceptance thresholds, and executable implementation are suite-specific adaptations unless explicitly identified as a formula above.
 
-This file is a pedagogical front door only. The full SVT runner, manifest coverage, references, and verification jobs remain in `examples/svd_tiers/`. No package numerical implementation is duplicated here, and no new installed API is introduced.
+## Project provenance
+
+- Runnable case: [nro_graded.m](../../../../examples/tiered/svd-tier-s/nro_graded.m).
+- Case manifest: [SVT cases.json](../../../../docs/codex/svt/cases.json).
+- Certificate scope and conservative baselines: [SVT VERIFICATION.md](../../../../docs/codex/svt/VERIFICATION.md) and [SVT SOURCES.md](../../../../docs/codex/svt/SOURCES.md).
+- The detailed page explains the model; the family runner remains the measurement authority.

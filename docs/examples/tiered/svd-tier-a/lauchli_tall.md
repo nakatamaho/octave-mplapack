@@ -1,57 +1,92 @@
-# Tall Lauchli matrix
+# Tall Läuchli matrix (Tier A4)
 
-**Corresponding example:** `examples/tiered/svd-tier-a/lauchli_tall.m`
+## Quick idea
 
-**Original tier/source:** The tall/wide and complex variants are defined in the Lauchli case source.
+A4-LAU-TALL is a Tier A control. The small singular group is controlled by μ while the normal-equation matrix contains μ^2, which is much easier to lose. It is one fixed matrix with one matching runnable example. The tier identifies the verification question, not a claim that public dense svd implements any cited structured algorithm.
 
-## Question
+## Mathematical problem
 
-A tall rank-sensitive Lauchli matrix. This is a one-case view of the repository's A tier; the complete profile remains the regression authority.
+Smoke: n=4, b=20, mu=2^-20. Demo: n=8, b=100, mu=2^-100. T has shape (n+1)-by-n.
 
-## Matrix or problem
+$$
+T=\begin{bmatrix}1&1&\cdots&1\\ \mu I_n\end{bmatrix},
+\qquad T^T T=1 1^T+\mu^2 I.
+$$
+The singular values are sqrt(n+mu^2), followed by n-1 copies of mu.
 
-A4 tall Lauchli matrix `[ones(1,n); mu*eye(n)]`, n=4 and mu=`2^-20`.
+## Why this problem is numerically difficult
 
-The case ID, profile membership, dimensions, and parameters come from `docs/codex/svt/cases.json`. The short example does not silently replace the frozen represented input with a textbook proxy.
+The small singular group is controlled by μ while the normal-equation matrix contains μ^2, which is much easier to lose. This is a rank-sensitive example with a repeated small singular value; individual small singular vectors are not identifiable. The exact Gram identity is a control, not a replacement for measuring T with svd.
 
-## Why it is difficult
+The exact model, any analytic or structural reference, and measured SVD output are kept separate. A convenient identity is a check on the named matrix, never a silent replacement for it.
 
-A small row scale creates a rank-sensitive rectangular problem.
+## What the Octave example computes
 
-The tier label is project-specific QA terminology, not a universal mathematical classification. A small residual is evidence that the computed factors satisfy an equation; it is not by itself a forward-error, conditioning, or stability certificate.
+The matching [lauchli_tall.m](../../../../examples/tiered/svd-tier-a/lauchli_tall.m) selects only A4-LAU-TALL from the fixed manifest. The matching lauchli_tall.m builds T in MP, runs public svd, and compares the values with the analytic spectrum. It checks the repeated right subspace I-11^T/n, the left subspace, reconstruction, and factor orthogonality. A native T^T T calculation is logged only as a negative control. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
 
-## What the example calls
+## Construction and exactness
 
-`mp_svd_tiers` with `tier="A"`, `case_id="A4-LAU-TALL"`, and the public `svd` path. The operation restores the caller's ambient `mpbits()` default after the run. Native controls, work-precision results, reference values, and diagnostics are separate records.
+The row of ones and dyadic μ are exact within the selected input guard. The Gram identity is checked entrywise, and the repeated projector is generated exactly. The null direction in a full SVD is not counted as an additional economy singular value.
 
-## What to inspect
+Exactness is proved from the declared integer/dyadic construction and guard. Two agreeing MP computations are useful corroboration but are not an exactness proof. Binary64 conversion is allowed only at an explicitly labelled presentation boundary.
 
-The case runner records reconstruction, orthogonality/unitarity, ordered nonnegative singular values, input identity, and precision roles. Inspect economy shape, reconstruction, smallest value, and tolerance-dependent rank.
+## Diagnostics
 
-For SVD, inspect `A-U*S*V'`, `U'*U`/`V'*V` (or complex unitarity), descending nonnegative `diag(S)`, economy/full shapes, and rank/tolerance behavior where relevant. Factor signs and complex phases are not canonical.
+For $A\in\mathbb{C}^{m\times n}$, use
+$$
+A=U\Sigma V^{\mathsf H},\qquad
+r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
+\qquad
+r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
+r_V=\lVert V^{\mathsf H}V-I\rVert_F.
+$$
+For a repeated or rank cluster compare the associated left/right projectors or ranges; individual factors are not canonical.
 
-## Expected qualitative behavior
+Also inspect the value-wise forward bottleneck, rank/cluster metric, and any model-specific identity. Keep residuals as MP values until display. A small reconstruction residual alone does not certify each singular value digit.
 
-The economy factor is the natural shape here; full factors add null directions.
+## Backward error versus forward error
 
-## Why multiple precision helps—and does not
+The reconstruction residual is a backward-error style measure for the factorization equation: the returned factors nearly explain the stored A. Forward singular-value error compares values with the mathematical spectrum of that exact stored model and depends on gaps, scales, and conditioning. For repeated values the forward object is a subspace; for rank-deficient data exact model rank is separate from thresholding measured values.
 
-The `mp` input is constructed and solved at the manifest's stored MPFR/MPC precision; the runner never routes a measured row through builtin binary64 complex arithmetic. Higher precision can preserve dyadic/decimal input data, reduce rounding error, and reveal smaller residuals or tail values. It cannot remove intrinsic eigenvalue/eigenvector conditioning, nonnormality, repeated-subspace nonuniqueness, rank thresholds, or a defective Jordan structure.
+## What arbitrary precision changes
 
-## Try changing this
+Input precision controls μ itself; arithmetic precision controls T, svd, and analytic sqrt(n+μ^2). Mathematical sensitivity is concentrated in the small repeated group and in the squaring of μ under normal equations. More bits preserve μ but do not select a unique small basis.
 
-Run the matching file after changing `mpbits()` before the input is created, then compare the recorded work and reference roles. For sensitive cases, vary the case parameter in a copied experiment and label the result as a new represented input. Do not edit the manifest fixture while interpreting the original case.
+Input/source precision identifies the stored matrix and deliberate once-rounded variants. Arithmetic/work precision is the MPFR/MPC precision used by construction, SVD, and references. Mathematical conditioning belongs to the model and can remain severe at arbitrary precision. Raising mpbits reduces arithmetic error but does not restore a tail lost in the input or make a repeated basis unique. Ambient-precision and restoration tests protect operation ownership.
+
+## Reading the output
+
+Expect one large value and a repeated μ group. Read the repeated-group projector rather than individual columns, and compare σ_min to μ with an absolute metric. A reconstruction pass does not establish that a native normal-equation path retained μ.
+
+A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 
 ## Common mistakes
 
-Do not compare repeated singular vectors column by column; do not use `U*S*V.'` for a complex case; do not infer rank without stating a tolerance; and do not treat a broad valid interval or a failed sufficient condition as a singularity proof.
+Do not compute the main answer from T^T T, take sqrt(abs(eig(...))) as an oracle, compare repeated columns individually, or claim the full-SVD null direction is a listed singular value.
 
+For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
+
+## Parameter boundary and comparison protocol
+
+The parameter in this page is part of the case identity, not a tuning knob. Record n, the dyadic exponents, the representation (raw, mixed, tall, wide, complex, repeated, or rank-deficient), and the source/model hash before comparing outputs. A reference generated from a neighboring case can be mathematically related and still be the wrong target. This is especially important for a close pair, where replacing a nonzero gap by zero changes the forward problem, and for a rank case, where replacing an exact zero by a tiny positive number changes the rank.
+
+Use a bijective matching for values and a phase-aware or subspace-aware comparison for factors. The matching is performed in MP arithmetic and is a diagnostic, not a way to hide an unmatched value. If the output shape is rectangular, state which economy/full convention is being used. If a factor is not identifiable because of a repeated singular value or a null space, report the projector or range and do not manufacture an individual-vector error. These rules make the short runner reproducible and keep its PASS result scoped to the named model.
+## Scope of the claim
+
+This page explains one fixed SVD model and the precise object that the runner measures. Changing a dimension, dyadic exponent, scale, phase, gap, or zero entry changes the source matrix and requires a new case identity. That is especially important for repeated and rank-deficient examples: a zero gap is not a tiny gap, and an exact zero is not merely a small positive singular value.
+
+The analytic spectrum or projector is an independent model check. It is not inserted into the measured factorization, and the public dense SVD is not silently replaced by a structured bidiagonal or totally-nonnegative algorithm. Reconstruction, unitarity, value-wise forward error, and subspace comparisons answer different questions. The runner records all of them with the input and arithmetic precision roles. Binary64 is permitted only at an explicitly declared presentation boundary; it is never an unreported numerical fallback.
 ## References
 
-- `docs/codex/svt/cases.json` — exact case identity and profile parameters.
-- `docs/codex/svt/CASES.md` — matrix formula, exactness rules, and interpretation.
-- `docs/codex/svt/SOURCES.md` — source attribution and adaptation boundary.
+- [Peter Läuchli, Jordan-Elimination und Ausgleichung nach kleinsten Quadraten. Numerische Mathematik 3 (1961), 226–240. DOI: 10.1007/BF01386022](https://doi.org/10.1007/BF01386022) — Historical source for the Läuchli matrix convention; the exact spectrum here follows directly from its Gram matrix.
+- [Per-Åke Wedin, Perturbation bounds in connection with singular value decomposition. BIT 12 (1972), 99–111. DOI: 10.1007/BF01932678](https://doi.org/10.1007/BF01932678) — Separates individual singular-vector claims from separated-subspace claims.
+- [GNU MPFR project, MPFR 4.2 manual, floating-point numbers and rounding](https://www.mpfr.org/mpfr-current/mpfr.html) — Correct-rounding and exponent-range terminology for dyadic input audits.
 
-## Implementation note
+These sources establish external mathematical context. The selected dimensions, dyadic values, acceptance thresholds, and executable implementation are project-specific adaptations unless explicitly stated above.
 
-This file is a pedagogical front door only. The full SVT runner, manifest coverage, references, and verification jobs remain in `examples/svd_tiers/`. No package numerical implementation is duplicated here, and no new installed API is introduced.
+## Project provenance
+
+- Runnable case: [lauchli_tall.m](../../../../examples/tiered/svd-tier-a/lauchli_tall.m).
+- Case manifest: [SVT cases.json](../../../../docs/codex/svt/cases.json).
+- Certificate scope: [SVT VERIFICATION.md](../../../../docs/codex/svt/VERIFICATION.md) and [SVT SOURCES.md](../../../../docs/codex/svt/SOURCES.md).
+- This page explains the model; the family runner and milestone logs remain the measurement authority.

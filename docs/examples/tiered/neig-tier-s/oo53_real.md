@@ -1,57 +1,92 @@
-# Ozaki--Ogita real standard form
+# Ozaki–Ogita real standard form (Tier S1)
 
-**Corresponding example:** `examples/tiered/neig-tier-s/oo53_real.m`
+## Quick idea
 
-**Original tier/source:** The source is the manifest entry plus `docs/codex/neigt/GENERATOR-OO.md`; its requested and realized standard forms remain separate.
+OO53_REAL is the smallest complete example of a fixed-precision eigenvalue generator followed by a dense nonsymmetric eigensolve. Its purpose is to make a distinction visible: a requested matrix, the once-rounded standard form, the generated dense matrix, and the measured eigensolver output are four different objects. The case uses the real form of the Ozaki–Ogita construction and is intentionally deterministic.
 
-## Question
+## Mathematical problem
 
-The fixed-precision error-free triple-product generator in real standard form. This is a one-case view of the repository's S tier; the complete profile remains the regression authority.
+Smoke uses n=8 and generation precision g=53 bits; demo uses n=16 and the same g. Let N have ones on the first superdiagonal, let L=I+N^T and U=I+N, and define X=LU and Y=U^(-1)L^(-1). The requested standard form is upper bidiagonal:
+$$
+(S_{\mathrm{req}})_{ii}=i+2^{-45},\qquad
+(S_{\mathrm{req}})_{i,i+1}=32.
+$$
+The specified generator applies the two rounded shifted additions and then the two matrix products at exactly g:
+$$
+\sigma=12\alpha P,\qquad
+S'_{ij}=\operatorname{RN}_{g}\left(\operatorname{RN}_{g}(\sigma+(S_{\mathrm{req}})_{ij})-\sigma\right),
+$$
+$$
+A=\operatorname{RN}_{g}\left(Y\,\operatorname{RN}_{g}(S'X)\right).
+$$
+The roots of the realized triangular standard form are diag(S'), not the requested diagonal.
 
-## Matrix or problem
+## Why this problem is numerically difficult
 
-S1 Ozaki--Ogita exact triple-product generator in real standard form, with n=8 and generation precision 53 bits.
+The difficulty is in the construction as well as in the eigensolve. X and Y are triangular inverse factors with different dyadic scales. The Ozaki–Ogita theorem uses those scales, the unit roundoff u=2^-g, the nonzero-count parameters, and the exact bound P=beta gamma theta omega to make the two products error-free at the selected generation precision. A generic similarity generator would not test that contract.
 
-The case ID, profile membership, dimensions, and parameters come from `docs/codex/neigt/cases.json`. The short example does not silently replace the frozen represented input with a textbook proxy.
+The requested diagonal contains a small 2^-45 increment. The shift expression can quantize it, and the realized matrix must preserve that fact in its metadata. A later 256-bit eig call cannot restore a bit removed at g=53. Conversely, if a low work precision corrupts S'X or Y(S'X), that is a product failure, not an intended quantization effect. Exactness and solver accuracy are therefore separate gates.
 
-## Why it is difficult
+## What the Octave example computes
 
-Fixed generation precision and paired-block arithmetic make a residual-only reading unsafe; a requested spectrum is not silently substituted.
+The matching [oo53_real.m](../../../../examples/tiered/neig-tier-s/oo53_real.m) selects only OO53_REAL from the fixed NEIG manifest and invokes the public mp_neig_tiers smoke path. The family runner uses n=8 for smoke and n=16 for demo, runs both balance modes, and records generation precision, requested/realized spectra, model hashes, operation precision, measured roots, and left/right diagnostics. It sends the generated dense A to eig; it does not solve the easier triangular S' problem in its place.
 
-The tier label is project-specific QA terminology, not a universal mathematical classification. A small residual is evidence that the computed factors satisfy an equation; it is not by itself a forward-error, conditioning, or stability certificate.
+Before reading the root comparison, inspect the generator record: X and Y must be inverse pairs, the theorem inequality must hold, the rounded products must equal the independently evaluated exact products, and at least one requested entry must be quantized. Repeating generation at g=53 must be bit-identical, regardless of later eig precision.
 
-## What the example calls
+## Construction and exactness
 
-`mp_neig_tiers` with `tier="S"`, `case_id="OO53_REAL"`, and the public `eig` path. The operation restores the caller's ambient `mpbits()` default after the run. Native controls, work-precision results, reference values, and diagnostics are separate records.
+The independent audit verifies XY=YX=I using finite nilpotent series, not an unverified numerical inverse. It calculates a sufficient dyadic bit guard for both matrix-product stages and checks the Ozaki–Ogita inequality
+$$
+4 n_Y n' 2^{-g}P\le 1.
+$$
+Every rounded scalar sum and every final matrix entry is compared with an exact dyadic numerator/denominator evaluation. The realized standard form and the final A are serialized separately. Agreement between two MP runs is a useful regression check but cannot replace this exactness proof.
 
-## What to inspect
+The g=53 generator is the explicitly allowed fixed-precision generator. It must not be silently changed to 64, 128, or the eigensolver precision. The construction is also not a license to route later dense operations through builtin binary64 complex arithmetic.
 
-Inspect `A*V-V*D`, `W'*A-D*W'`, one-to-one eigenvalue matching, and the recorded generation/solver/reference precisions.
+## Diagnostics
 
-For a general eigensystem, inspect `A*V-V*D` and `W'*A-D*W'`. Match eigenvalues bijectively rather than by returned position; account for eigenvector phase and scale. Compare `balance` and `nobalance` only as explicitly labeled solver modes.
+For A in C^(n x n), right vectors V, diagonal output D, and left vectors W, use
+$$
+r_{\mathrm{eig}}=
+\frac{\lVert AV-VD\rVert_F}{\lVert A\rVert_F\lVert V\rVert_F},
+\qquad
+r_{\mathrm{left}}=
+\frac{\lVert A^{\mathsf H}W-WD^{\mathsf H}\rVert_F}
+{\lVert A\rVert_F\lVert W\rVert_F}.
+$$
+Match measured eigenvalues bijectively with diag(S') and separately with diag(S_req). Keep a requested-versus-realized forward bottleneck, a model hash, and the generation exactness status. A real model has no mathematical imaginary parts; a displayed imaginary component is a solver/conditioning diagnostic.
 
-## Expected qualitative behavior
+## Backward error versus forward error
 
-The actual runner preserves the realized spectrum and exactness checks; the short script is only a one-case view.
+The eigen residual is a backward-style equation defect. It says that the returned factors nearly satisfy an eigen-equation for the stored A. It does not say that each root is close to the requested root: forward error is affected by the realized/requested difference and by the left/right eigenvalue condition. A small residual can therefore coexist with a visible difference at the 2^-45 scale, while a large residual means the measured solve itself needs investigation.
 
-## Why multiple precision helps—and does not
+## What arbitrary precision changes
 
-The `mp` input is constructed and solved at the manifest's stored MPFR/MPC precision; the runner never routes a measured row through builtin binary64 complex arithmetic. Higher precision can preserve dyadic/decimal input data, reduce rounding error, and reveal smaller residuals or tail values. It cannot remove intrinsic eigenvalue/eigenvector conditioning, nonnormality, repeated-subspace nonuniqueness, rank thresholds, or a defective Jordan structure.
+The input/source precision is g=53 for the frozen generator output. Arithmetic/work precision is 128 or 256 bits in the smoke rows, with higher reference/evaluation rows. Mathematical conditioning is determined by the triangular factors and the eigenvector geometry. More work precision reduces rounding in the dense eigensolve and diagnostics, but it does not regenerate S' or restore a discarded requested bit. The operation must still use the input-owned MPFR/MPC precision and restore the caller’s ambient precision.
 
-## Try changing this
+## Reading the output
 
-Run the matching file after changing `mpbits()` before the input is created, then compare the recorded work and reference roles. For sensitive cases, vary the case parameter in a copied experiment and label the result as a new represented input. Do not edit the manifest fixture while interpreting the original case.
+First confirm that the case ID, n, g, and requested/realized hashes are correct. Next confirm the theorem audit and product exactness. Then read r_eig and the matched forward errors. If the measured result follows diag(S') rather than diag(S_req), that is expected when the generator removed a requested increment. A PASS line is only a pass for these declared gates; it is not a claim that the requested unrounded spectrum was computed.
 
 ## Common mistakes
 
-Do not compare eigenvalue vectors by index; do not call a repeated or defective cluster a set of simple roots; do not confuse an invariant-subspace certificate with an isolated spectral cluster; and do not use a transpose in place of the complex left-vector convention.
+Do not use mp(S_req) as the measured A, compare only with the requested diagonal, regenerate the standard form for each eig precision, or call the construction a generic similarity recipe. Do not infer forward accuracy from r_eig alone. Do not use an ordinary inverse to establish XY=I. Do not silently change g or label a native binary64 control as the MP result.
 
+## Scope of the claim
+
+This page is a worked mathematical explanation, not a promise about every matrix that happens to resemble this family. The named case ID fixes the construction, profile, precision roles, comparison convention, and status vocabulary. A reader who changes n, an exponent, an orientation, a phase, or a representation has created a new represented input and must record it as such. That discipline matters because a harmless-looking change can alter rank, multiplicity, cluster separation, exponent range, or the left/right conditioning.
+
+The dense output is always interpreted in the coordinates of the named model. Analytic roots, transformed controls, and exact identities are used as independent checks. They are not spliced into measured output, and a high-precision reference is not treated as a formal proof unless the page names the additional proof. For nonsymmetric problems, keep right and left equations distinct and use conjugation for complex data. The family runner supplies counted coverage; this page supplies the meaning of one row.
 ## References
 
-- `docs/codex/neigt/cases.json` — exact case identity and profile parameters.
-- `docs/codex/neigt/CASES.md` — matrix formula, exactness rules, and interpretation.
-- `docs/codex/neigt/SOURCES.md` — source attribution and adaptation boundary.
+- [Katsuhisa Ozaki and Takeshi Ogita, “Generation of test matrices with specified eigenvalues using floating-point arithmetic.” Numerical Algorithms 90 (2022), 241–262. DOI: 10.1007/s11075-021-01186-7](https://doi.org/10.1007/s11075-021-01186-7) — Theorem 1 and the paired standard-form construction motivate the fixed-precision generator and the requested/realized distinction.
+- [Siegfried M. Rump, “Verified Error Bounds for All Eigenvalues and Eigenvectors of a Matrix.” SIAM Journal on Matrix Analysis and Applications 43(4) (2022), 1736–1754. DOI: 10.1137/21M1451440](https://doi.org/10.1137/21M1451440) — General all-eigenvalue error-bound context; this page does not claim that the project implements that paper.
 
-## Implementation note
+The selected dimensions, dyadic parameters, acceptance thresholds, and executable implementation are project-specific adaptations.
 
-This file is a pedagogical front door only. The full NEIGT runner, manifest coverage, references, and verification jobs remain in `examples/neig_tiers/`. No package numerical implementation is duplicated here, and no new installed API is introduced.
+## Project provenance
+
+- Runnable case: [oo53_real.m](../../../../examples/tiered/neig-tier-s/oo53_real.m).
+- Case manifest: [NEIG cases.json](../../../../docs/codex/neigt/cases.json).
+- Generator specification: [GENERATOR-OO.md](../../../../docs/codex/neigt/GENERATOR-OO.md).
+- The detailed page explains the model; the family runner remains the measurement authority.

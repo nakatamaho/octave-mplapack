@@ -1,57 +1,82 @@
-# Frank matrix orientation 0
+# Frank matrix, orientation 0 (Tier A2)
 
-**Corresponding example:** `examples/tiered/neig-tier-a/frank0.m`
+## Quick idea
 
-**Original tier/source:** The orientation formula is fixed in `docs/codex/neigt/CASES.md` Section 6.
+FRANK0 is a Tier A control. Frank matrices are integer and structured, but small positive eigenvalues and reciprocal pairing make relative accuracy important. It is small, deterministic, and intended to be read with its one-case Octave runner. Tier A identifies an advanced example; it does not claim that the public eig routine implements the cited paper's specialized algorithm.
 
-## Question
+## Mathematical problem
 
-The standard upper-Hessenberg Frank matrix. This is a one-case view of the repository's A tier; the complete profile remains the regression authority.
+Smoke: n=8. Demo: n=24. The matrix is an exact integer upper-Hessenberg Frank orientation.
 
-## Matrix or problem
+$$
+(F0)ij = n+1-max(i,j)  if  j >= i-1,     (F0)ij = 0 otherwise.
+$$
+An independent symmetric Jacobi reference has off-diagonal entries sqrt(j). Its eigenvalue z is mapped stably to f(z) = ((z+sqrt(z^2+4))/2)^2 for z >= 0 and f(z) = (2/(sqrt(z^2+4)-z))^2 for z < 0.
 
-A2 Frank matrix F0 with `F(i,j)=n+1-max(i,j)` when `j>=i-1`, n=8.
+## Why this problem is numerically difficult
 
-The case ID, profile membership, dimensions, and parameters come from `docs/codex/neigt/cases.json`. The short example does not silently replace the frozen represented input with a textbook proxy.
+Frank matrices are integer and structured, but small positive eigenvalues and reciprocal pairing make relative accuracy important. The orientation convention is part of the case: a reflected gallery matrix with a different flag is not silently substituted. The Jacobi map provides an independent reference and a cancellation-safe formula for the small branch.
 
-## Why it is difficult
+The exact model, any transformed control, and measured solver output remain separate. A related matrix with a convenient analytic answer is never silently substituted for the matrix named by the case ID.
 
-A named dense upper-Hessenberg fixture is a useful nonnormal benchmark with positive, unequal eigenvalues.
+## What the Octave example computes
 
-The tier label is project-specific QA terminology, not a universal mathematical classification. A small residual is evidence that the computed factors satisfy an equation; it is not by itself a forward-error, conditioning, or stability certificate.
+The matching [frank0.m](../../../../examples/tiered/neig-tier-a/frank0.m) selects only FRANK0 from the fixed manifest and calls the public eig interface. The matching frank0.m builds F0 from the explicit index rule, runs public eig, and compares sorted roots with the MP Jacobi-derived reference. It checks positivity, reciprocal pairing, the odd-order central root when applicable, and absolute and relative bottlenecks. FRANK1 is a separate orientation control, not a second arbitrary spectrum. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
 
-## What the example calls
+## Construction and exactness
 
-`mp_neig_tiers` with `tier="A"`, `case_id="FRANK0"`, and the public `eig` path. The operation restores the caller's ambient `mpbits()` default after the run. Native controls, work-precision results, reference values, and diagnostics are separate records.
+The constructor checks the integer Hessenberg pattern. The Jacobi reference uses MP square roots and the branch-stable map above. Small characteristic polynomials are checked by an independent recurrence for n=2 through 5. The reference is never formed from measured roots.
 
-## What to inspect
+Exactness means that declared integer/dyadic identities and their bit guards have been checked independently. Agreement between two MP runs is useful evidence but is not an exactness proof.
 
-Inspect residuals, eigenvalue matching, and vector phase/scale normalization.
+## Diagnostics
 
-For a general eigensystem, inspect `A*V-V*D` and `W'*A-D*W'`. Match eigenvalues bijectively rather than by returned position; account for eigenvector phase and scale. Compare `balance` and `nobalance` only as explicitly labeled solver modes.
+For A in C^(n x n), right vectors V, output D, and left vectors W, use
+$$
+r_{\mathrm{eig}} = ||A V - V D||_F / (||A||_F ||V||_F),
+\qquad r_{\mathrm{left}} = ||A^H W - W D^H||_F / (||A||_F ||W||_F).
+$$
+For a selected cluster J, use the block residual A V_J - V_J D_J and compare ranges or projectors; never turn a repeated or defective cluster into an individual-vector claim.
 
-## Expected qualitative behavior
+Also inspect the case-specific forward reference, the normwise backward indicator, and any positivity, polynomial, similarity, or pseudospectrum diagnostic. A residual alone does not establish forward accuracy of every eigenvalue or vector component.
 
-Gallery conventions vary; this example uses the manifest formula, not an unverified gallery substitute.
+## Backward error versus forward error
 
-## Why multiple precision helps—and does not
+The eigen residual measures the equation defect and can support a backward-error interpretation after normalization. Forward eigenvalue error additionally depends on spectral separation and left/right eigenvector conditioning. For repeated or defective objects, the forward target is an invariant subspace or block relation. For a polynomial companion, coefficientwise backward error is a different perturbation model. The report keeps these meanings distinct.
 
-The `mp` input is constructed and solved at the manifest's stored MPFR/MPC precision; the runner never routes a measured row through builtin binary64 complex arithmetic. Higher precision can preserve dyadic/decimal input data, reduce rounding error, and reveal smaller residuals or tail values. It cannot remove intrinsic eigenvalue/eigenvector conditioning, nonnormality, repeated-subspace nonuniqueness, rank thresholds, or a defective Jordan structure.
+## What arbitrary precision changes
 
-## Try changing this
+The source is exact integer MP data. Arithmetic precision controls the dense eigensolver and Jacobi reference; mathematical conditioning of small paired roots remains. Raising precision helps only if the exact integer model is preserved.
 
-Run the matching file after changing `mpbits()` before the input is created, then compare the recorded work and reference roles. For sensitive cases, vary the case parameter in a copied experiment and label the result as a new represented input. Do not edit the manifest fixture while interpreting the original case.
+Input/source precision is the precision and exactness of the stored model. Arithmetic/work precision is the MPFR/MPC precision selected for this operation. Mathematical conditioning is a property of the model. Raising mpbits addresses the second item only; it does not restore bits lost in a separately rounded input or alter a defective structure. Ambient-precision and restoration rows protect this distinction.
+
+## Reading the output
+
+Use relative error for small nonzero roots and absolute error near zero. Reciprocal pairing is a structural check, not an eigenvector certificate. A small r_eig can coexist with a large relative error in a small root. Compare orientation labels before comparing rows.
+
+A PASS line is scoped to the declared case gates and profile. Compare only rows with the same parameters and model hash. If a certificate field is absent, do not infer it from a small residual or a stable display.
 
 ## Common mistakes
 
-Do not compare eigenvalue vectors by index; do not call a repeated or defective cluster a set of simple roots; do not confuse an invariant-subspace certificate with an isolated spectral cluster; and do not use a transpose in place of the complex left-vector convention.
+Do not use a different Frank orientation, use only absolute error, calculate the reference from eig(F0), evaluate the small branch by cancellation, or infer pairing from a display-only sorted list.
 
+For diagnosis, verify case ID and dimensions, then model hash and input precision, then residual, then the appropriate forward, cluster, or structural metric. Never change the fixture after observing a failure and report it as the original case.
+
+## Scope of the claim
+
+This page is a worked mathematical explanation, not a promise about every matrix that happens to resemble this family. The named case ID fixes the construction, profile, precision roles, comparison convention, and status vocabulary. A reader who changes n, an exponent, an orientation, a phase, or a representation has created a new represented input and must record it as such. That discipline matters because a harmless-looking change can alter rank, multiplicity, cluster separation, exponent range, or the left/right conditioning.
+
+The dense output is always interpreted in the coordinates of the named model. Analytic roots, transformed controls, and exact identities are used as independent checks. They are not spliced into measured output, and a high-precision reference is not treated as a formal proof unless the page names the additional proof. For nonsymmetric problems, keep right and left equations distinct and use conjugation for complex data. The family runner supplies counted coverage; this page supplies the meaning of one row.
 ## References
 
-- `docs/codex/neigt/cases.json` — exact case identity and profile parameters.
-- `docs/codex/neigt/CASES.md` — matrix formula, exactness rules, and interpretation.
-- `docs/codex/neigt/SOURCES.md` — source attribution and adaptation boundary.
+- [Nicholas J. Higham, Accuracy and Stability of Numerical Algorithms, 2nd ed. SIAM (2002). DOI: 10.1137/1.9780898718027](https://doi.org/10.1137/1.9780898718027) — The backward/forward-error framework and companion/nonnormal conditioning language used here.
+- [Siegfried M. Rump, Verified Error Bounds for All Eigenvalues and Eigenvectors of a Matrix. SIAM Journal on Matrix Analysis and Applications 43(4) (2022), 1736–1754. DOI: 10.1137/21M1451440](https://doi.org/10.1137/21M1451440) — The all-spectrum and rigorous eigensystem context; these are independent dense controls.
 
-## Implementation note
+These references establish the external mathematical context. The selected dimensions, dyadic constants, runner, and acceptance thresholds are explicit project adaptations unless this page states otherwise.
 
-This file is a pedagogical front door only. The full NEIGT runner, manifest coverage, references, and verification jobs remain in `examples/neig_tiers/`. No package numerical implementation is duplicated here, and no new installed API is introduced.
+## Project provenance
+
+- Runnable case: [frank0.m](../../../../examples/tiered/neig-tier-a/frank0.m).
+- Case manifest: [NEIG cases.json](../../../../docs/codex/neigt/cases.json).
+- Verification scope: [NEIG verification-jobs.json](../../../../docs/codex/neigt/verification-jobs.json) and [CERTIFICATES.md](../../../../docs/codex/neigt/CERTIFICATES.md).
+- This page explains the named model; the family runner and milestone logs remain the measurement authority.

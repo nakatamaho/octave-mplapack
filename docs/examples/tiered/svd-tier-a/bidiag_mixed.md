@@ -1,57 +1,94 @@
-# Orthogonally mixed bidiagonal
+# Two-sided Hadamard-mixed bidiagonal (Tier A3)
 
-**Corresponding example:** `examples/tiered/svd-tier-a/bidiag_mixed.m`
+## Quick idea
 
-**Original tier/source:** The manifest distinguishes the mixed representation; its transform is retained by the full runner.
+A3-BDI-MIXED is a Tier A control. The mixed matrix has the same singular spectrum as the raw bidiagonal but dense signed entries and a different reduction path. It is one fixed matrix with one matching runnable example. The tier identifies the verification question, not a claim that public dense svd implements any cited structured algorithm.
 
-## Question
+## Mathematical problem
 
-A sign-mixed bidiagonal control with the same singular geometry. This is a one-case view of the repository's A tier; the complete profile remains the regression authority.
+Smoke: n=8, a=4. Demo: n=16, a=8. A is H B G^T / n, with G a cyclic row-shift of H.
 
-## Matrix or problem
+$$
+A=H B G^T/n,
+\qquad H H^T=G G^T=nI.
+$$
+The two-sided orthogonal equivalence preserves singular values exactly, but it is not an eigenvalue similarity.
 
-A3 mixed bidiagonal representation of the same source family.
+## Why this problem is numerically difficult
 
-The case ID, profile membership, dimensions, and parameters come from `docs/codex/svt/cases.json`. The short example does not silently replace the frozen represented input with a textbook proxy.
+The mixed matrix has the same singular spectrum as the raw bidiagonal but dense signed entries and a different reduction path. It tests whether the public SVD handles a dense representation without confusing orthogonal equivalence with similarity. The product is a finite sum of dyadic terms and must be constructed at a declared precision.
 
-## Why it is difficult
+The exact model, any analytic or structural reference, and measured SVD output are kept separate. A convenient identity is a check on the named matrix, never a silent replacement for it.
 
-Mixing tests input identity and factor robustness without changing the public SVD call.
+## What the Octave example computes
 
-The tier label is project-specific QA terminology, not a universal mathematical classification. A small residual is evidence that the computed factors satisfy an equation; it is not by itself a forward-error, conditioning, or stability certificate.
+The matching [bidiag_mixed.m](../../../../examples/tiered/svd-tier-a/bidiag_mixed.m) selects only A3-BDI-MIXED from the fixed manifest. The matching bidiag_mixed.m constructs raw B and dense A separately, verifies the Hadamard identities, runs svd(A), and compares its spectrum with raw B and an independent MP reference. It reports the mixed input hash and keeps the raw run as a control. No measured output is replaced by the raw singular values. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
 
-## What the example calls
+## Construction and exactness
 
-`mp_svd_tiers` with `tier="A"`, `case_id="A3-BDI-MIXED"`, and the public `svd` path. The operation restores the caller's ambient `mpbits()` default after the run. Native controls, work-precision results, reference values, and diagnostics are separate records.
+The Hadamard matrices are integer and the common denominator bound covers both product stages and division by n. Exact equality of spectra is a model theorem; measured agreement is checked separately. A binary64 plotting or display conversion is not part of construction.
 
-## What to inspect
+Exactness is proved from the declared integer/dyadic construction and guard. Two agreeing MP computations are useful corroboration but are not an exactness proof. Binary64 conversion is allowed only at an explicitly labelled presentation boundary.
 
-The case runner records reconstruction, orthogonality/unitarity, ordered nonnegative singular values, input identity, and precision roles. Inspect reconstruction and compare singular values, while treating factor signs/phases as noncanonical.
+## Diagnostics
 
-For SVD, inspect `A-U*S*V'`, `U'*U`/`V'*V` (or complex unitarity), descending nonnegative `diag(S)`, economy/full shapes, and rank/tolerance behavior where relevant. Factor signs and complex phases are not canonical.
+For $A\in\mathbb{C}^{m\times n}$, use
+$$
+A=U\Sigma V^{\mathsf H},\qquad
+r_{\mathrm{svd}}=\frac{\lVert A-U\Sigma V^{\mathsf H}\rVert_F}{\lVert A\rVert_F},
+\qquad
+r_U=\lVert U^{\mathsf H}U-I\rVert_F,\quad
+r_V=\lVert V^{\mathsf H}V-I\rVert_F.
+$$
+For a repeated or rank cluster compare the associated left/right projectors or ranges; individual factors are not canonical.
 
-## Expected qualitative behavior
+Also inspect the value-wise forward bottleneck, rank/cluster metric, and any model-specific identity. Keep residuals as MP values until display. A small reconstruction residual alone does not certify each singular value digit.
 
-Do not claim equality of factor entries across an orthogonal mix.
+## Backward error versus forward error
 
-## Why multiple precision helps—and does not
+The reconstruction residual is a backward-error style measure for the factorization equation: the returned factors nearly explain the stored A. Forward singular-value error compares values with the mathematical spectrum of that exact stored model and depends on gaps, scales, and conditioning. For repeated values the forward object is a subspace; for rank-deficient data exact model rank is separate from thresholding measured values.
 
-The `mp` input is constructed and solved at the manifest's stored MPFR/MPC precision; the runner never routes a measured row through builtin binary64 complex arithmetic. Higher precision can preserve dyadic/decimal input data, reduce rounding error, and reveal smaller residuals or tail values. It cannot remove intrinsic eigenvalue/eigenvector conditioning, nonnormality, repeated-subspace nonuniqueness, rank thresholds, or a defective Jordan structure.
+## What arbitrary precision changes
 
-## Try changing this
+The raw and mixed source models are exact dyadic when the guard is met. Arithmetic precision controls the mixed products and SVD. Mathematical singular-value conditioning is inherited from B, while representation affects backward errors and factor geometry. More bits cannot repair an incorrectly rounded mixed input.
 
-Run the matching file after changing `mpbits()` before the input is created, then compare the recorded work and reference roles. For sensitive cases, vary the case parameter in a copied experiment and label the result as a new represented input. Do not edit the manifest fixture while interpreting the original case.
+Input/source precision identifies the stored matrix and deliberate once-rounded variants. Arithmetic/work precision is the MPFR/MPC precision used by construction, SVD, and references. Mathematical conditioning belongs to the model and can remain severe at arbitrary precision. Raising mpbits reduces arithmetic error but does not restore a tail lost in the input or make a repeated basis unique. Ambient-precision and restoration tests protect operation ownership.
+
+## Reading the output
+
+Read the spectrum identity, r_svd, and both factor orthogonality residuals. Dense mixing can change factor vectors even when singular values agree. For repeated values compare left/right subspaces, not H or G columns individually.
+
+A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 
 ## Common mistakes
 
-Do not compare repeated singular vectors column by column; do not use `U*S*V.'` for a complex case; do not infer rank without stating a tolerance; and do not treat a broad valid interval or a failed sufficient condition as a singularity proof.
+Do not use H B G^T as an eigenvalue similarity, solve the raw B in place of A, compare factor columns without phases, or claim a dense HRA algorithm.
 
+For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
+
+## Parameter boundary and comparison protocol
+
+The parameter in this page is part of the case identity, not a tuning knob. Record n, the dyadic exponents, the representation (raw, mixed, tall, wide, complex, repeated, or rank-deficient), and the source/model hash before comparing outputs. A reference generated from a neighboring case can be mathematically related and still be the wrong target. This is especially important for a close pair, where replacing a nonzero gap by zero changes the forward problem, and for a rank case, where replacing an exact zero by a tiny positive number changes the rank.
+
+Use a bijective matching for values and a phase-aware or subspace-aware comparison for factors. The matching is performed in MP arithmetic and is a diagnostic, not a way to hide an unmatched value. If the output shape is rectangular, state which economy/full convention is being used. If a factor is not identifiable because of a repeated singular value or a null space, report the projector or range and do not manufacture an individual-vector error. These rules make the short runner reproducible and keep its PASS result scoped to the named model.
+## Scope of the claim
+
+This page explains one fixed SVD model and the precise object that the runner measures. Changing a dimension, dyadic exponent, scale, phase, gap, or zero entry changes the source matrix and requires a new case identity. That is especially important for repeated and rank-deficient examples: a zero gap is not a tiny gap, and an exact zero is not merely a small positive singular value.
+
+The analytic spectrum or projector is an independent model check. It is not inserted into the measured factorization, and the public dense SVD is not silently replaced by a structured bidiagonal or totally-nonnegative algorithm. Reconstruction, unitarity, value-wise forward error, and subspace comparisons answer different questions. The runner records all of them with the input and arithmetic precision roles. Binary64 is permitted only at an explicitly declared presentation boundary; it is never an unreported numerical fallback.
 ## References
 
-- `docs/codex/svt/cases.json` — exact case identity and profile parameters.
-- `docs/codex/svt/CASES.md` — matrix formula, exactness rules, and interpretation.
-- `docs/codex/svt/SOURCES.md` — source attribution and adaptation boundary.
+- [LAPACK Working Group, “DLASQ1: Compute the singular values of a real
+  bidiagonal matrix,” LAPACK online documentation (current).](https://www.netlib.org/lapack/explore-html/d5/dce/group__lasq1_ga5a8c1474ef61ff7c59c17412ae456ca6.html)
+  — The official bidiagonal singular-value reference; this case measures the
+  public dense SVD interface and does not claim to call DLASQ1.
+- [GNU MPFR project, MPFR 4.2 manual, floating-point numbers and rounding](https://www.mpfr.org/mpfr-current/mpfr.html) — Correct-rounding and exponent-range terminology for dyadic input audits.
 
-## Implementation note
+These sources establish external mathematical context. The selected dimensions, dyadic values, acceptance thresholds, and executable implementation are project-specific adaptations unless explicitly stated above.
 
-This file is a pedagogical front door only. The full SVT runner, manifest coverage, references, and verification jobs remain in `examples/svd_tiers/`. No package numerical implementation is duplicated here, and no new installed API is introduced.
+## Project provenance
+
+- Runnable case: [bidiag_mixed.m](../../../../examples/tiered/svd-tier-a/bidiag_mixed.m).
+- Case manifest: [SVT cases.json](../../../../docs/codex/svt/cases.json).
+- Certificate scope: [SVT VERIFICATION.md](../../../../docs/codex/svt/VERIFICATION.md) and [SVT SOURCES.md](../../../../docs/codex/svt/SOURCES.md).
+- This page explains the model; the family runner and milestone logs remain the measurement authority.
