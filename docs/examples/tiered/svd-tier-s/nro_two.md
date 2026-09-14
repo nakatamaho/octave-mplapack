@@ -34,7 +34,16 @@ The matching [nro_two.m](../../../../examples/tiered/svd-tier-s/nro_two.m) selec
 
 ## Construction and exactness
 
-H_m is generated with integer entries and the block inverse is [I,-B;0,I]. The generator records the significand/range guard and verifies det(A)=1 and every dyadic entry. The singular reference follows from applying orthogonal factors to B, not from forming A^H A. Exactness is checked independently of the returned factors.
+$H_m$ is generated with integer entries and the block inverse is
+
+```math
+\begin{bmatrix}
+I & -B\\
+0 & I
+\end{bmatrix}.
+```
+
+The generator records the significand/range guard and verifies $\det(A)=1$ and every dyadic entry. The singular reference follows from applying orthogonal factors to $B$, not from forming $A^{\mathsf H}A$. Exactness is checked independently of the returned factors.
 
 The source audit distinguishes exactness of the constructed matrix from agreement between two floating computations. All arithmetic on the model and measured path remains MPFR/MPC; conversion to binary64 is limited to explicitly labelled presentation controls.
 
@@ -66,13 +75,13 @@ Input/source precision identifies the stored matrix and any deliberate once-roun
 
 ## Reading the output
 
-Read the largest and smallest singular values as a reciprocal pair, then inspect r_svd and the two orthogonality residuals. A good reconstruction can coexist with a poor relative error in the smallest value when its condition is extreme. The factor columns are not required to match a particular Hadamard basis when values are repeated.
+Read the largest and smallest singular values as a reciprocal pair, then inspect $r_{\mathrm{svd}}$ and the two orthogonality residuals. A good reconstruction can coexist with a poor relative error in the smallest value when its condition is extreme. The factor columns are not required to match a particular Hadamard basis when values are repeated.
 
 A PASS line is scoped to the named case and profile. Compare only rows with identical parameters and model identity. If a cluster, rank, or exactness field is not claimed, do not infer it from a stable display.
 
 ## Common mistakes
 
-Do not form A^H A as the primary SVD algorithm, use cancellation for the small value, compare individual repeated vectors, or claim native failure is required. Do not turn the inverse invariant into a measured SVD result.
+Do not form $A^{\mathsf H}A$ as the primary SVD algorithm, use cancellation for the small value, compare individual repeated vectors, or claim native failure is required. Do not turn the inverse invariant into a measured SVD result.
 
 For diagnosis, first verify case ID and shape, then model hash and input precision, then reconstruction/orthogonality, then the appropriate value or subspace metric. Do not alter parameters after seeing a failure and report the changed matrix as the original case.
 

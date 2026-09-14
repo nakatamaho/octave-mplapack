@@ -32,7 +32,7 @@ The matching [dd_nonsym.m](../../../../examples/tiered/svd-tier-s/dd_nonsym.m) s
 
 ## Construction and exactness
 
-The dyadic rows and dominance margins are audited. For tau=0, principal determinant recurrence explains rank n-1 for this path; for tau>0, strict dominance proves nonsingularity. These are model facts, not replacements for measured SVD. Any p=128 below-guard demo input is stored and labelled as rounded.
+The dyadic rows and dominance margins are audited. For $\tau=0$, principal determinant recurrence explains rank $n-1$ for this path; for $\tau>0$, strict dominance proves nonsingularity. These are model facts, not replacements for measured SVD. Any $p=128$ below-guard demo input is stored and labelled as rounded.
 
 The source audit distinguishes exactness of the constructed matrix from agreement between two floating computations. All arithmetic on the model and measured path remains MPFR/MPC; conversion to binary64 is limited to explicitly labelled presentation controls.
 
@@ -64,13 +64,13 @@ Input/source precision identifies the stored matrix and any deliberate once-roun
 
 ## Reading the output
 
-Do not expect the first singular value to equal tau. Read the row-sum eigen residual separately from r_svd and the smallest measured singular value. A numerical zero in a rounded input is not the exact tau>0 model. Factor vectors remain phase ambiguous.
+Do not expect the first singular value to equal $\tau$. Read the row-sum eigen residual separately from $r_{\mathrm{svd}}$ and the smallest measured singular value. A numerical zero in a rounded input is not the exact $\tau>0$ model. Factor vectors remain phase ambiguous.
 
 A PASS line is scoped to the named case and profile. Compare only rows with identical parameters and model identity. If a cluster, rank, or exactness field is not claimed, do not infer it from a stable display.
 
 ## Common mistakes
 
-Do not assert sigma_min=tau, replace svd with eig, borrow the symmetric formula, or hide a below-guard rounded input. Do not infer nonsymmetric singular values from row sums.
+Do not assert $\sigma_{\min}=\tau$, replace svd with eig, borrow the symmetric formula, or hide a below-guard rounded input. Do not infer nonsymmetric singular values from row sums.
 
 For diagnosis, first verify case ID and shape, then model hash and input precision, then reconstruction/orthogonality, then the appropriate value or subspace metric. Do not alter parameters after seeing a failure and report the changed matrix as the original case.
 

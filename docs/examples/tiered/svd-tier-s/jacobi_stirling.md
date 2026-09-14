@@ -28,7 +28,7 @@ The matching [jacobi_stirling.m](../../../../examples/tiered/svd-tier-s/jacobi_s
 
 ## Construction and exactness
 
-The recurrence is evaluated with an explicit conservative bit budget and row-sum bound. n=1 and small rows are checked independently. The exact matrix is serialized before the SVD and reconstructed at a wider precision to distinguish source exactness from solver agreement.
+The recurrence is evaluated with an explicit conservative bit budget and row-sum bound. $n=1$ and small rows are checked independently. The exact matrix is serialized before the SVD and reconstructed at a wider precision to distinguish source exactness from solver agreement.
 
 The source audit distinguishes exactness of the constructed matrix from agreement between two floating computations. All arithmetic on the model and measured path remains MPFR/MPC; conversion to binary64 is limited to explicitly labelled presentation controls.
 
@@ -66,7 +66,7 @@ A PASS line is scoped to the named case and profile. Compare only rows with iden
 
 ## Common mistakes
 
-Do not compute entries with binary64 factorials, infer SVD accuracy from det=1, claim every minor is strictly positive, or call the dense run a structured TN/Jacobi–Stirling algorithm.
+Do not compute entries with binary64 factorials, infer SVD accuracy from $\det(A)=1$, claim every minor is strictly positive, or call the dense run a structured TN/Jacobi–Stirling algorithm.
 
 For diagnosis, first verify case ID and shape, then model hash and input precision, then reconstruction/orthogonality, then the appropriate value or subspace metric. Do not alter parameters after seeing a failure and report the changed matrix as the original case.
 

@@ -60,13 +60,13 @@ Input/source precision identifies the stored matrix and deliberate once-rounded 
 
 ## Reading the output
 
-Use relative error across the geometric scale and r_svd together. The singular-value order is canonical mathematically, but factor signs/phases are not. A good largest value is not evidence for the smallest.
+Use relative error across the geometric scale and $r_{\mathrm{svd}}$ together. The singular-value order is canonical mathematically, but factor signs/phases are not. A good largest value is not evidence for the smallest.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 
 ## Common mistakes
 
-Do not use H A H^T as the inverse operation, compare one absolute tolerance for all values, form A^T A, or treat the diagonal source as the measured dense input.
+Do not use $HAH^{\mathsf T}$ as the inverse operation, compare one absolute tolerance for all values, form $A^{\mathsf T}A$, or treat the diagonal source as the measured dense input.
 
 For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
 

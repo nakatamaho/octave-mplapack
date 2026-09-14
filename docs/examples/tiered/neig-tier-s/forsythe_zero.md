@@ -2,7 +2,7 @@
 
 ## Quick idea
 
-FORSYTHE_ZERO isolates one mathematical reason a dense nonsymmetric eigensystem can be misleading: A small r_eig for a returned diagonal D is not a diagonalizability result. The case is intentionally small enough to inspect and is paired with a deterministic runner. Its tier is a statement about pedagogical difficulty and verification depth, not a claim that the public eig routine implements the cited paper's algorithm.
+FORSYTHE_ZERO isolates one mathematical reason a dense nonsymmetric eigensystem can be misleading: A small $r_{\mathrm{eig}}$ for a returned diagonal $D$ is not a diagonalizability result. The case is intentionally small enough to inspect and is paired with a deterministic runner. Its tier is a statement about pedagogical difficulty and verification depth, not a claim that the public eig routine implements the cited paper's algorithm.
 
 ## Mathematical problem
 
@@ -58,7 +58,7 @@ Also inspect the normwise backward indicator against the correct input, the forw
 
 ## Backward error versus forward error
 
-The residual (r_{\mathrm{eig}}) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
+The residual ($r_{\mathrm{eig}}$) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
 
 ## What arbitrary precision changes
 
@@ -68,7 +68,7 @@ Three precision roles must be distinguished. **Input/source precision** describe
 
 ## Reading the output
 
-A small r_eig for a returned diagonal D is not a diagonalizability result. Read the algebraic count, geometric dimension, nilpotency order, and block residual. If native or low-precision output splits the repeated root, that is expected numerical representation behavior. No individual-vector matching target is reported.
+A small $r_{\mathrm{eig}}$ for a returned diagonal $D$ is not a diagonalizability result. Read the algebraic count, geometric dimension, nilpotency order, and block residual. If native or low-precision output splits the repeated root, that is expected numerical representation behavior. No individual-vector matching target is reported.
 
 A PASS line means the declared case-level gates passed; it does not erase the limitations stated above. Compare rows only within the same model identity and profile. If an exactness, coverage, cluster, or precision-contract field is missing, the honest status is incomplete rather than inferred from a pretty display.
 

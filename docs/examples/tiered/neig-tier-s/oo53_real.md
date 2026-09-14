@@ -28,7 +28,7 @@ S'_{ij}=\operatorname{RN}_{g}\left(\operatorname{RN}_{g}(\sigma+(S_{\mathrm{req}
 A=\operatorname{RN}_{g}\left(Y\,\operatorname{RN}_{g}(S'X)\right).
 ```
 
-The roots of the realized triangular standard form are diag(S'), not the requested diagonal.
+The roots of the realized triangular standard form are $\operatorname{diag}(S')$, not the requested diagonal.
 
 ## Why this problem is numerically difficult
 
@@ -48,13 +48,13 @@ accuracy are therefore separate gates.
 
 ## What the Octave example computes
 
-The matching [oo53_real.m](../../../../examples/tiered/neig-tier-s/oo53_real.m) selects only OO53_REAL from the fixed NEIG manifest and invokes the public mp_neig_tiers smoke path. The family runner uses n=8 for smoke and n=16 for demo, runs both balance modes, and records generation precision, requested/realized spectra, model hashes, operation precision, measured roots, and left/right diagnostics. It sends the generated dense A to eig; it does not solve the easier triangular S' problem in its place.
+The matching [oo53_real.m](../../../../examples/tiered/neig-tier-s/oo53_real.m) selects only OO53_REAL from the fixed NEIG manifest and invokes the public mp_neig_tiers smoke path. The family runner uses $n=8$ for smoke and $n=16$ for demo, runs both balance modes, and records generation precision, requested/realized spectra, model hashes, operation precision, measured roots, and left/right diagnostics. It sends the generated dense $A$ to eig; it does not solve the easier triangular $S'$ problem in its place.
 
-Before reading the root comparison, inspect the generator record: X and Y must be inverse pairs, the theorem inequality must hold, the rounded products must equal the independently evaluated exact products, and at least one requested entry must be quantized. Repeating generation at g=53 must be bit-identical, regardless of later eig precision.
+Before reading the root comparison, inspect the generator record: $X$ and $Y$ must be inverse pairs, the theorem inequality must hold, the rounded products must equal the independently evaluated exact products, and at least one requested entry must be quantized. Repeating generation at $g=53$ must be bit-identical, regardless of later eig precision.
 
 ## Construction and exactness
 
-The independent audit verifies XY=YX=I using finite nilpotent series, not an unverified numerical inverse. It calculates a sufficient dyadic bit guard for both matrix-product stages and checks the Ozaki–Ogita inequality
+The independent audit verifies $XY=YX=I$ using finite nilpotent series, not an unverified numerical inverse. It calculates a sufficient dyadic bit guard for both matrix-product stages and checks the Ozaki–Ogita inequality
 
 ```math
 4 n_Y n' 2^{-g}P\le 1.
@@ -62,7 +62,7 @@ The independent audit verifies XY=YX=I using finite nilpotent series, not an unv
 
 Every rounded scalar sum and every final matrix entry is compared with an exact dyadic numerator/denominator evaluation. The realized standard form and the final A are serialized separately. Agreement between two MP runs is a useful regression check but cannot replace this exactness proof.
 
-The g=53 generator is the explicitly allowed fixed-precision generator. It must not be silently changed to 64, 128, or the eigensolver precision. The construction is also not a license to route later dense operations through builtin binary64 complex arithmetic.
+The $g=53$ generator is the explicitly allowed fixed-precision generator. It must not be silently changed to 64, 128, or the eigensolver precision. The construction is also not a license to route later dense operations through builtin binary64 complex arithmetic.
 
 ## Diagnostics
 
@@ -82,19 +82,19 @@ Match measured eigenvalues bijectively with diag(S') and separately with diag(S_
 
 ## Backward error versus forward error
 
-The eigen residual is a backward-style equation defect. It says that the returned factors nearly satisfy an eigen-equation for the stored A. It does not say that each root is close to the requested root: forward error is affected by the realized/requested difference and by the left/right eigenvalue condition. A small residual can therefore coexist with a visible difference at the 2^-45 scale, while a large residual means the measured solve itself needs investigation.
+The eigen residual is a backward-style equation defect. It says that the returned factors nearly satisfy an eigen-equation for the stored $A$. It does not say that each root is close to the requested root: forward error is affected by the realized/requested difference and by the left/right eigenvalue condition. A small residual can therefore coexist with a visible difference at the $2^{-45}$ scale, while a large residual means the measured solve itself needs investigation.
 
 ## What arbitrary precision changes
 
-The input/source precision is g=53 for the frozen generator output. Arithmetic/work precision is 128 or 256 bits in the smoke rows, with higher reference/evaluation rows. Mathematical conditioning is determined by the triangular factors and the eigenvector geometry. More work precision reduces rounding in the dense eigensolve and diagnostics, but it does not regenerate S' or restore a discarded requested bit. The operation must still use the input-owned MPFR/MPC precision and restore the caller’s ambient precision.
+The input/source precision is $g=53$ for the frozen generator output. Arithmetic/work precision is 128 or 256 bits in the smoke rows, with higher reference/evaluation rows. Mathematical conditioning is determined by the triangular factors and the eigenvector geometry. More work precision reduces rounding in the dense eigensolve and diagnostics, but it does not regenerate $S'$ or restore a discarded requested bit. The operation must still use the input-owned MPFR/MPC precision and restore the caller’s ambient precision.
 
 ## Reading the output
 
-First confirm that the case ID, n, g, and requested/realized hashes are correct. Next confirm the theorem audit and product exactness. Then read r_eig and the matched forward errors. If the measured result follows diag(S') rather than diag(S_req), that is expected when the generator removed a requested increment. A PASS line is only a pass for these declared gates; it is not a claim that the requested unrounded spectrum was computed.
+First confirm that the case ID, $n$, $g$, and requested/realized hashes are correct. Next confirm the theorem audit and product exactness. Then read $r_{\mathrm{eig}}$ and the matched forward errors. If the measured result follows $\operatorname{diag}(S')$ rather than $\operatorname{diag}(S_{\mathrm{req}})$, that is expected when the generator removed a requested increment. A PASS line is only a pass for these declared gates; it is not a claim that the requested unrounded spectrum was computed.
 
 ## Common mistakes
 
-Do not use mp(S_req) as the measured A, compare only with the requested diagonal, regenerate the standard form for each eig precision, or call the construction a generic similarity recipe. Do not infer forward accuracy from r_eig alone. Do not use an ordinary inverse to establish XY=I. Do not silently change g or label a native binary64 control as the MP result.
+Do not use $mp(S_{\mathrm{req}})$ as the measured $A$, compare only with the requested diagonal, regenerate the standard form for each eig precision, or call the construction a generic similarity recipe. Do not infer forward accuracy from $r_{\mathrm{eig}}$ alone. Do not use an ordinary inverse to establish $XY=I$. Do not silently change $g$ or label a native binary64 control as the MP result.
 
 ## Scope of the claim
 

@@ -26,13 +26,13 @@ The matrix is never replaced by a different representation merely because a rela
 
 ## What the Octave example computes
 
-The matching [sim_repeat.m](../../../../examples/tiered/neig-tier-s/sim_repeat.m) runs the public eig call and compares the matched lambda=1 cluster as a two-dimensional invariant subspace. It records the algebraic/geometric model multiplicities, projector or basis-angle diagnostics, and the ordinary all-spectrum residual. It also runs the neighboring distinct and Jordan fixtures so that the report cannot silently reinterpret a repeated case as either simple or defective.
+The matching [sim_repeat.m](../../../../examples/tiered/neig-tier-s/sim_repeat.m) runs the public eig call and compares the matched $\lambda=1$ cluster as a two-dimensional invariant subspace. It records the algebraic/geometric model multiplicities, projector or basis-angle diagnostics, and the ordinary all-spectrum residual. It also runs the neighboring distinct and Jordan fixtures so that the report cannot silently reinterpret a repeated case as either simple or defective.
 
 The example reports the selected case ID, profile, dimensions, input/model identity, and measured rows. Run it from a loaded mplapack-interop package; the package's mp values remain MPFR/MPC values throughout the numerical path.
 
 ## Construction and exactness
 
-Exact verification checks XY=YX=I, the intertwining equations, the characteristic polynomial (z-1)^2 product from 4 through n, and the rank of the model eigenspace. The nontrivial cluster certificate uses the range of the selected Y columns; the oblique spectral projector Y(:,1:2)X(1:2,:) is recorded separately from an orthogonal projector. The proof does not rely on two high-precision runs agreeing.
+Exact verification checks $XY=YX=I$, the intertwining equations, the characteristic polynomial $(z-1)^2$ product from 4 through $n$, and the rank of the model eigenspace. The nontrivial cluster certificate uses the range of the selected $Y$ columns; the oblique spectral projector $Y_{:,1:2}X_{1:2,:}$ is recorded separately from an orthogonal projector. The proof does not rely on two high-precision runs agreeing.
 
 The construction audit is intentionally independent of eig: it checks algebraic identities, dyadic serialization, and declared generation guards before using a solver result. A cross-precision match is useful evidence, but it is not an exactness proof.
 
@@ -55,7 +55,7 @@ Also inspect the normwise backward indicator against the correct input, the forw
 
 ## Backward error versus forward error
 
-The residual (r_{\mathrm{eig}}) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
+The residual ($r_{\mathrm{eig}}$) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
 
 ## What arbitrary precision changes
 
@@ -65,7 +65,7 @@ Three precision roles must be distinguished. **Input/source precision** describe
 
 ## Reading the output
 
-Read the root count and the subspace metric together. A correct result may list two nearly identical lambda values with two arbitrary vectors. The meaningful residual is r_eig for the block A V_J-V_JD_J, plus a principal-angle or projector comparison for the entire range. There is no unique first and second eigenvector at lambda=1, and no forward error for an individual basis direction is canonical.
+Read the root count and the subspace metric together. A correct result may list two nearly identical $\lambda$ values with two arbitrary vectors. The meaningful residual is $r_{\mathrm{eig}}$ for the block $A V_J-V_JD_J$, plus a principal-angle or projector comparison for the entire range. There is no unique first and second eigenvector at $\lambda=1$, and no forward error for an individual basis direction is canonical.
 
 A PASS line means the declared case-level gates passed; it does not erase the limitations stated above. Compare rows only within the same model identity and profile. If an exactness, coverage, cluster, or precision-contract field is missing, the honest status is incomplete rather than inferred from a pretty display.
 

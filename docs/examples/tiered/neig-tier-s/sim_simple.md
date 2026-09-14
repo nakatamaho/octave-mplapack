@@ -45,7 +45,7 @@ The example reports the selected case ID, profile, dimensions, input/model ident
 
 ## Construction and exactness
 
-The model is exact because X and Y are finite nilpotent series with dyadic/integer entries and the product guard is recorded. The checker independently confirms X A=JX and A Y=YJ, then checks the two-by-two characteristic factor (z-1)(z-1-d). It does not use the solver’s eigenvalues to construct J or to prove simplicity. The simple model is separate from SIM_REPEAT and SIM_JORDAN even when d is small.
+The model is exact because $X$ and $Y$ are finite nilpotent series with dyadic/integer entries and the product guard is recorded. The checker independently confirms $XA=JX$ and $AY=YJ$, then checks the two-by-two characteristic factor $(z-1)(z-1-d)$. It does not use the solver’s eigenvalues to construct $J$ or to prove simplicity. The simple model is separate from SIM_REPEAT and SIM_JORDAN even when $d$ is small.
 
 The construction audit is intentionally independent of eig: it checks algebraic identities, dyadic serialization, and declared generation guards before using a solver result. A cross-precision match is useful evidence, but it is not an exactness proof.
 
@@ -68,7 +68,7 @@ Also inspect the normwise backward indicator against the correct input, the forw
 
 ## Backward error versus forward error
 
-The residual (r_{\mathrm{eig}}) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
+The residual ($r_{\mathrm{eig}}$) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
 
 ## What arbitrary precision changes
 

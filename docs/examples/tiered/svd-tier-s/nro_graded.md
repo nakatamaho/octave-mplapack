@@ -62,13 +62,13 @@ Input/source precision identifies the stored matrix and any deliberate once-roun
 
 ## Reading the output
 
-Inspect pairwise reciprocal structure, per-value relative error, r_svd, and the count of all 2m values. A stable global residual does not prove the smallest group has the requested relative digits. Factor phases and order are arbitrary.
+Inspect pairwise reciprocal structure, per-value relative error, $r_{\mathrm{svd}}$, and the count of all $2m$ values. A stable global residual does not prove the smallest group has the requested relative digits. Factor phases and order are arbitrary.
 
 A PASS line is scoped to the named case and profile. Compare only rows with identical parameters and model identity. If a cluster, rank, or exactness field is not claimed, do not infer it from a stable display.
 
 ## Common mistakes
 
-Do not use one absolute tolerance for every scale, sort factors by raw columns, form A^H A, or assume a geometric input makes geometric singular values. Do not claim dense SVD has become a structured bidiagonal algorithm.
+Do not use one absolute tolerance for every scale, sort factors by raw columns, form $A^{\mathsf H}A$, or assume a geometric input makes geometric singular values. Do not claim dense SVD has become a structured bidiagonal algorithm.
 
 For diagnosis, first verify case ID and shape, then model hash and input precision, then reconstruction/orthogonality, then the appropriate value or subspace metric. Do not alter parameters after seeing a failure and report the changed matrix as the original case.
 

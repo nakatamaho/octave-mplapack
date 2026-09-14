@@ -2,7 +2,7 @@
 
 ## Quick idea
 
-SIM_JORDAN isolates one mathematical reason a dense nonsymmetric eigensystem can be misleading: A small r_eig for two columns does not mean those columns form a diagonalization. The case is intentionally small enough to inspect and is paired with a deterministic runner. Its tier is a statement about pedagogical difficulty and verification depth, not a claim that the public eig routine implements the cited paper's algorithm.
+SIM_JORDAN isolates one mathematical reason a dense nonsymmetric eigensystem can be misleading: A small $r_{\mathrm{eig}}$ for two columns does not mean those columns form a diagonalization. The case is intentionally small enough to inspect and is paired with a deterministic runner. Its tier is a statement about pedagogical difficulty and verification depth, not a claim that the public eig routine implements the cited paper's algorithm.
 
 ## Mathematical problem
 
@@ -37,7 +37,7 @@ The example reports the selected case ID, profile, dimensions, input/model ident
 
 ## Construction and exactness
 
-The exact checks are XY=YX=I, XA=JX, AY=YJ, (J-I)^2=0 on the leading block, and (J-I) not equal to zero. A characteristic polynomial check confirms (z-1)^2, but that check alone does not establish the geometric multiplicity; the rank of J-I supplies the latter. The dense certificate does not pretend to certify a Jordan chain from a rounded eig output.
+The exact checks are $XY=YX=I$, $XA=JX$, $AY=YJ$, $(J-I)^2=0$ on the leading block, and $(J-I)\ne0$. A characteristic polynomial check confirms $(z-1)^2$, but that check alone does not establish the geometric multiplicity; the rank of $J-I$ supplies the latter. The dense certificate does not pretend to certify a Jordan chain from a rounded eig output.
 
 The construction audit is intentionally independent of eig: it checks algebraic identities, dyadic serialization, and declared generation guards before using a solver result. A cross-precision match is useful evidence, but it is not an exactness proof.
 
@@ -60,7 +60,7 @@ Also inspect the normwise backward indicator against the correct input, the forw
 
 ## Backward error versus forward error
 
-The residual (r_{\mathrm{eig}}) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
+The residual ($r_{\mathrm{eig}}$) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
 
 ## What arbitrary precision changes
 
@@ -70,7 +70,7 @@ Three precision roles must be distinguished. **Input/source precision** describe
 
 ## Reading the output
 
-A small r_eig for two columns does not mean those columns form a diagonalization. The relevant output is a block residual A V_J-V_J T_J, where T_J is allowed to be a nontrivial 2-by-2 triangular/block factor, and a rank/subspace check. A solver may split the repeated root in its scalar D output; that is a diagnostic of representation sensitivity, not a change in the exact model.
+A small $r_{\mathrm{eig}}$ for two columns does not mean those columns form a diagonalization. The relevant output is a block residual $A V_J-V_JT_J$, where $T_J$ is allowed to be a nontrivial $2$-by-$2$ triangular/block factor, and a rank/subspace check. A solver may split the repeated root in its scalar $D$ output; that is a diagnostic of representation sensitivity, not a change in the exact model.
 
 A PASS line means the declared case-level gates passed; it does not erase the limitations stated above. Compare rows only within the same model identity and profile. If an exactness, coverage, cluster, or precision-contract field is missing, the honest status is incomplete rather than inferred from a pretty display.
 

@@ -29,7 +29,7 @@ The matching [nro_three.m](../../../../examples/tiered/svd-tier-s/nro_three.m) s
 
 ## Construction and exactness
 
-The zero weights are represented exactly, the Hadamard entries are integer, and the inverse identity is checked directly. The stable two-by-two formula gives a=b=1 when beta=0; this is an analytic reference, not an SVD shortcut. The exact rank of B and full rank of A are checked separately.
+The zero weights are represented exactly, the Hadamard entries are integer, and the inverse identity is checked directly. The stable two-by-two formula gives $a=b=1$ when $\beta=0$; this is an analytic reference, not an SVD shortcut. The exact rank of $B$ and full rank of $A$ are checked separately.
 
 The source audit distinguishes exactness of the constructed matrix from agreement between two floating computations. All arithmetic on the model and measured path remains MPFR/MPC; conversion to binary64 is limited to explicitly labelled presentation controls.
 
@@ -61,7 +61,7 @@ Input/source precision identifies the stored matrix and any deliberate once-roun
 
 ## Reading the output
 
-Expect a reciprocal extreme group plus a repeated unit group. r_svd and factor orthogonality describe the computed factors; a projector or subspace metric describes the repeated unit group. Sorting is done only in the reference and does not impose a basis order on the returned factors.
+Expect a reciprocal extreme group plus a repeated unit group. $r_{\mathrm{svd}}$ and factor orthogonality describe the computed factors; a projector or subspace metric describes the repeated unit group. Sorting is done only in the reference and does not impose a basis order on the returned factors.
 
 A PASS line is scoped to the named case and profile. Compare only rows with identical parameters and model identity. If a cluster, rank, or exactness field is not claimed, do not infer it from a stable display.
 

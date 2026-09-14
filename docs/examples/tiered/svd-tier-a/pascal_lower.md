@@ -64,13 +64,13 @@ Input/source precision identifies the stored matrix and deliberate once-rounded 
 
 ## Reading the output
 
-Inspect the full sorted spectrum, especially the smallest values, together with r_svd, r_U, and r_V. The determinant is not a spectral accuracy certificate. If a singular value is repeated or close, compare its subspace rather than individual factor columns.
+Inspect the full sorted spectrum, especially the smallest values, together with $r_{\mathrm{svd}}$, $r_U$, and $r_V$. The determinant is not a spectral accuracy certificate. If a singular value is repeated or close, compare its subspace rather than individual factor columns.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 
 ## Common mistakes
 
-Do not form Q with binary64 nchoosek, infer SVD accuracy from det=1, use Q^T Q as the solver path, or compare repeated factor columns by entry.
+Do not form $Q$ with binary64 nchoosek, infer SVD accuracy from $\det(Q)=1$, use $Q^{\mathsf T}Q$ as the solver path, or compare repeated factor columns by entry.
 
 For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
 

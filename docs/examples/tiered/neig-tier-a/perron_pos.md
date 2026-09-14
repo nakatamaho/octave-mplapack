@@ -89,7 +89,7 @@ Input/source precision is the precision and exactness of the stored model. Arith
 
 ## Reading the output
 
-Read root error, right residual, left residual, positivity margin, and contraction fields together. A positive matrix need not have a well-conditioned eigenvector pair in these coordinates. A small r_eig does not prove that the Perron vector has all correct digits.
+Read root error, right residual, left residual, positivity margin, and contraction fields together. A positive matrix need not have a well-conditioned eigenvector pair in these coordinates. A small $r_{\mathrm{eig}}$ does not prove that the Perron vector has all correct digits.
 
 A PASS line is scoped to the declared case gates and profile. Compare only rows with the same parameters and model hash. If a certificate field is absent, do not infer it from a small residual or a stable display.
 

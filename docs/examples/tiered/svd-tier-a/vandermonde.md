@@ -60,13 +60,13 @@ Input/source precision identifies the stored matrix and deliberate once-rounded 
 
 ## Reading the output
 
-Use value-wise relative error where σ_i is nonzero, plus r_svd and factor orthogonality. A stable largest singular value says little about the small tail. The node and dimension fields are essential when comparing runs; changing d changes the model.
+Use value-wise relative error where $\sigma_i$ is nonzero, plus $r_{\mathrm{svd}}$ and factor orthogonality. A stable largest singular value says little about the small tail. The node and dimension fields are essential when comparing runs; changing $d$ changes the model.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 
 ## Common mistakes
 
-Do not use native powers for the MP input, infer rank from determinant magnitude, form V^T V as the solver, or call a structured TN result a generic dense result.
+Do not use native powers for the MP input, infer rank from determinant magnitude, form $V^{\mathsf T}V$ as the solver, or call a structured TN result a generic dense result.
 
 For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
 

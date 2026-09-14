@@ -59,7 +59,7 @@ Input/source precision identifies the stored matrix and deliberate once-rounded 
 
 ## Reading the output
 
-Expect two singular values equal to one within arithmetic error and arbitrary bases for their subspaces. Read projector/angle residuals, r_svd, r_U, and r_V. Individual phase/sign or column-order comparisons are intentionally not used.
+Expect two singular values equal to one within arithmetic error and arbitrary bases for their subspaces. Read projector/angle residuals, $r_{\mathrm{svd}}$, $r_U$, and $r_V$. Individual phase/sign or column-order comparisons are intentionally not used.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 

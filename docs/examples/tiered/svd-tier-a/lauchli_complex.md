@@ -24,7 +24,7 @@ The exact model, any analytic or structural reference, and measured SVD output a
 
 ## What the Octave example computes
 
-The matching [lauchli_complex.m](../../../../examples/tiered/svd-tier-a/lauchli_complex.m) selects only A4-LAU-COMPLEX from the fixed manifest. The matching lauchli_complex.m builds the tall complex phase variant in MPC, runs public svd, and compares singular values with the real tall control. It checks complex reconstruction, U^H U, V^H V, and the transformed repeated projectors. The base T is not substituted for the complex input. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
+The matching [lauchli_complex.m](../../../../examples/tiered/svd-tier-a/lauchli_complex.m) selects only A4-LAU-COMPLEX from the fixed manifest. The matching lauchli_complex.m builds the tall complex phase variant in MPC, runs public svd, and compares singular values with the real tall control. It checks complex reconstruction, $U^{\mathsf H}U$, $V^{\mathsf H}V$, and the transformed repeated projectors. The base $T$ is not substituted for the complex input. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
 
 ## Construction and exactness
 

@@ -15,17 +15,17 @@ d=[1,1/2,1/4,1/8,\eta,0,0,0],
 \qquad \operatorname{rank}(A)=5.
 ```
 
-The fifth singular value is eta exactly in the model, while the last three are exact zeros.
+The fifth singular value is $\eta$ exactly in the model, while the last three are exact zeros.
 
 ## Why this problem is numerically difficult
 
-The fifth value sits next to a null space and can be confused with zero by a low-precision or threshold-only test. The five-dimensional range is the stable rank target; the individual vector associated with eta can be sensitive to the gap from zero. The exact dyadic eta must be kept separate from any native rounded input.
+The fifth value sits next to a null space and can be confused with zero by a low-precision or threshold-only test. The five-dimensional range is the stable rank target; the individual vector associated with $\eta$ can be sensitive to the gap from zero. The exact dyadic $\eta$ must be kept separate from any native rounded input.
 
 The exact model, any analytic or structural reference, and measured SVD output are kept separate. A convenient identity is a check on the named matrix, never a silent replacement for it.
 
 ## What the Octave example computes
 
-The matching [hadamard_rank5.m](../../../../examples/tiered/svd-tier-a/hadamard_rank5.m) selects only A5-RANK5 from the fixed manifest. The matching hadamard_rank5.m measures the dense SVD, checks the five-dimensional positive range and three-dimensional null space, and reports eta with absolute and relative errors. It uses projectors for the grouped spaces and does not append eta or zeros to measured output. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
+The matching [hadamard_rank5.m](../../../../examples/tiered/svd-tier-a/hadamard_rank5.m) selects only A5-RANK5 from the fixed manifest. The matching hadamard_rank5.m measures the dense SVD, checks the five-dimensional positive range and three-dimensional null space, and reports $\eta$ with absolute and relative errors. It uses projectors for the grouped spaces and does not append $\eta$ or zeros to measured output. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
 
 ## Construction and exactness
 
@@ -55,19 +55,19 @@ The reconstruction residual is a backward-error style measure for the factorizat
 
 ## What arbitrary precision changes
 
-Input precision preserves eta and exact zeros; arithmetic precision controls construction and SVD. Mathematical conditioning is near-rank sensitivity at the fifth value. More bits resolve eta but do not make the null-space basis unique.
+Input precision preserves $\eta$ and exact zeros; arithmetic precision controls construction and SVD. Mathematical conditioning is near-rank sensitivity at the fifth value. More bits resolve $\eta$ but do not make the null-space basis unique.
 
 Input/source precision identifies the stored matrix and deliberate once-rounded variants. Arithmetic/work precision is the MPFR/MPC precision used by construction, SVD, and references. Mathematical conditioning belongs to the model and can remain severe at arbitrary precision. Raising mpbits reduces arithmetic error but does not restore a tail lost in the input or make a repeated basis unique. Ambient-precision and restoration tests protect operation ownership.
 
 ## Reading the output
 
-Read eta’s value error, the positive-range projector, and null-space projector independently. A small r_svd can coexist with loss of relative accuracy in eta. If eta is rounded to zero, report changed input provenance rather than a failed exact model.
+Read $\eta$'s value error, the positive-range projector, and null-space projector independently. A small $r_{\mathrm{svd}}$ can coexist with loss of relative accuracy in $\eta$. If $\eta$ is rounded to zero, report changed input provenance rather than a failed exact model.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 
 ## Common mistakes
 
-Do not classify eta using only a binary64 threshold, compare null columns individually, or call a rounded rank-four input the exact rank-five case.
+Do not classify $\eta$ using only a binary64 threshold, compare null columns individually, or call a rounded rank-four input the exact rank-five case.
 
 For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
 

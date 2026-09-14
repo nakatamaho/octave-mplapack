@@ -32,7 +32,7 @@ The required realized gap is $s'_2-s'_1=2^{-80}$: the $2^{-120}$ requested incre
 
 ## Why this problem is numerically difficult
 
-This case separates source/model fidelity from eigensolver precision. The target roots are close relative to their magnitude, and the requested form includes a tail below the selected generation lattice. If a reader sees a 256-bit eig run and assumes all requested bits are present, the experiment has been misread. Conversely, if the dense products are evaluated at insufficient precision, a product error can be mistaken for the intended quantization. The test therefore has two distinct questions: did the prescribed g=128 generator realize exactly the documented S', and can later MP arithmetic recover the spectrum of that realized dense matrix?
+This case separates source/model fidelity from eigensolver precision. The target roots are close relative to their magnitude, and the requested form includes a tail below the selected generation lattice. If a reader sees a 256-bit eig run and assumes all requested bits are present, the experiment has been misread. Conversely, if the dense products are evaluated at insufficient precision, a product error can be mistaken for the intended quantization. The test therefore has two distinct questions: did the prescribed $g=128$ generator realize exactly the documented $S'$, and can later MP arithmetic recover the spectrum of that realized dense matrix?
 
 The matrix is never replaced by a different representation merely because a related control has a convenient spectrum. Exact model facts, generated-input facts, and measured solver output are kept in separate records.
 
@@ -44,7 +44,7 @@ The example reports the selected case ID, profile, dimensions, input/model ident
 
 ## Construction and exactness
 
-Exactness is checked at the dyadic level for the shifted quantization, S'X, Y(S'X), and the final A. The guard calculation records P, alpha, nY, n' and verifies the theorem inequality. The 2^-120 loss is checked by decoding the stored dyadic entries, not by decimal formatting. Repeating the generator at g=128 must produce identical hashes; raising the eig precision must leave those hashes unchanged.
+Exactness is checked at the dyadic level for the shifted quantization, $S'X$, $Y(S'X)$, and the final $A$. The guard calculation records $P$, $\alpha$, $n_Y$, and $n'$ and verifies the theorem inequality. The $2^{-120}$ loss is checked by decoding the stored dyadic entries, not by decimal formatting. Repeating the generator at $g=128$ must produce identical hashes; raising the eig precision must leave those hashes unchanged.
 
 The construction audit is intentionally independent of eig: it checks algebraic identities, dyadic serialization, and declared generation guards before using a solver result. A cross-precision match is useful evidence, but it is not an exactness proof.
 
@@ -67,17 +67,17 @@ Also inspect the normwise backward indicator against the correct input, the forw
 
 ## Backward error versus forward error
 
-The residual (r_{\mathrm{eig}}) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
+The residual ($r_{\mathrm{eig}}$) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
 
 ## What arbitrary precision changes
 
-The input/source precision is the frozen 128-bit standard form; work precision is 128/256-bit in smoke and higher in reference rows. The mathematical gap is 2^-80 after realization, while the discarded tail is not part of the model. Higher arithmetic precision improves the solve and dense products but cannot recreate the discarded tail. This is why the document names the realized matrix explicitly.
+The input/source precision is the frozen 128-bit standard form; work precision is 128/256-bit in smoke and higher in reference rows. The mathematical gap is $2^{-80}$ after realization, while the discarded tail is not part of the model. Higher arithmetic precision improves the solve and dense products but cannot recreate the discarded tail. This is why the document names the realized matrix explicitly.
 
 Three precision roles must be distinguished. **Input/source precision** describes the stored model and any fixed generator rounding. **Arithmetic/work precision** is the one-operation MPFR/MPC precision used to construct, factor, and inspect that stored value. **Mathematical conditioning** describes sensitivity of the problem and is not repaired merely by printing more digits. The runner also tests low/high ambient defaults and restoration so an unrelated caller setting cannot silently choose the operation precision. No builtin binary64 complex fallback is part of this example.
 
 ## Reading the output
 
-The key reading is a three-way comparison: requested roots contain 2^-80+2^-120, realized roots contain only 2^-80, and measured roots approximate the realized values. A high residual means the eigensolver failed; a small residual with a 2^-120 difference from the requested root is expected. Use absolute error for this local gap and a scaled bottleneck metric for the full spectrum.
+The key reading is a three-way comparison: requested roots contain $2^{-80}+2^{-120}$, realized roots contain only $2^{-80}$, and measured roots approximate the realized values. A high residual means the eigensolver failed; a small residual with a $2^{-120}$ difference from the requested root is expected. Use absolute error for this local gap and a scaled bottleneck metric for the full spectrum.
 
 A PASS line means the declared case-level gates passed; it does not erase the limitations stated above. Compare rows only within the same model identity and profile. If an exactness, coverage, cluster, or precision-contract field is missing, the honest status is incomplete rather than inferred from a pretty display.
 

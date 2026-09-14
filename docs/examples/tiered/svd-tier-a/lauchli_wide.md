@@ -60,7 +60,7 @@ Input/source precision identifies the stored matrix and deliberate once-rounded 
 
 ## Reading the output
 
-Read dimensions before interpreting U and V. Compare the repeated right/left subspaces on the correct side and do not expect a column-by-column match with T. r_svd remains the reconstruction diagnostic; singular-value equality is only one gate.
+Read dimensions before interpreting $U$ and $V$. Compare the repeated right/left subspaces on the correct side and do not expect a column-by-column match with $T$. $r_{\mathrm{svd}}$ remains the reconstruction diagnostic; singular-value equality is only one gate.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 

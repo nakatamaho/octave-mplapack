@@ -26,19 +26,19 @@ where $a'_j,b'_j$ are the realized, once-quantized entries.
 
 ## Why this problem is numerically difficult
 
-The pair case tests a subtle representation invariant rather than merely asking for complex output. A pair block is real, but its eigenvalues are complex conjugates, and the full block upper-triangular standard form need not be normal because of the 8I2 couplings. Quantizing the upper b and lower -b independently can break the exact conjugate block structure by one ulp. The specified sign-copy rule avoids that error: quantize the shared magnitude once and form the lower entry by exact negation. The dense A then inherits a nontrivial nonnormal eigenvector problem while its requested pair geometry is known.
+The pair case tests a subtle representation invariant rather than merely asking for complex output. A pair block is real, but its eigenvalues are complex conjugates, and the full block upper-triangular standard form need not be normal because of the $8I_2$ couplings. Quantizing the upper $b$ and lower $-b$ independently can break the exact conjugate block structure by one ulp. The specified sign-copy rule avoids that error: quantize the shared magnitude once and form the lower entry by exact negation. The dense $A$ then inherits a nontrivial nonnormal eigenvector problem while its requested pair geometry is known.
 
 The matrix is never replaced by a different representation merely because a related control has a convenient spectrum. Exact model facts, generated-input facts, and measured solver output are kept in separate records.
 
 ## What the Octave example computes
 
-The matching [oo53_pair.m](../../../../examples/tiered/neig-tier-s/oo53_pair.m) selects the paired case and reports the generator audit, the realized block roots, and the measured eig output. The comparison uses a complex MP bijective matching and the left-eigenvector convention A^H w = conjugate(lambda) w. It checks the real reconstruction of the paired blocks separately from the dense residual. The example is deliberately not a call to a complex-valued generic matrix constructor followed by a binary64 conversion.
+The matching [oo53_pair.m](../../../../examples/tiered/neig-tier-s/oo53_pair.m) selects the paired case and reports the generator audit, the realized block roots, and the measured eig output. The comparison uses a complex MP bijective matching and the left-eigenvector convention $A^{\mathsf H}w=\overline{\lambda}w$. It checks the real reconstruction of the paired blocks separately from the dense residual. The example is deliberately not a call to a complex-valued generic matrix constructor followed by a binary64 conversion.
 
 The example reports the selected case ID, profile, dimensions, input/model identity, and measured rows. Run it from a loaded mplapack-interop package; the package's mp values remain MPFR/MPC values throughout the numerical path.
 
 ## Construction and exactness
 
-The paired generator checks that both diagonal positions share one quantized a, that the lower b is exactly the negative of the quantized upper b, and that the same lattice and magnitude bounds used for the theorem hold. It independently verifies both matrix products and XY=YX=I. The realized pair is stored before any eigensolver call. A nonzero b' is required for the mandatory fixture; if a future parameter made b'=0, its multiplicity would have to be relabeled rather than still called a complex pair.
+The paired generator checks that both diagonal positions share one quantized $a$, that the lower $b$ is exactly the negative of the quantized upper $b$, and that the same lattice and magnitude bounds used for the theorem hold. It independently verifies both matrix products and $XY=YX=I$. The realized pair is stored before any eigensolver call. A nonzero $b'$ is required for the mandatory fixture; if a future parameter made $b'=0$, its multiplicity would have to be relabeled rather than still called a complex pair.
 
 The construction audit is intentionally independent of eig: it checks algebraic identities, dyadic serialization, and declared generation guards before using a solver result. A cross-precision match is useful evidence, but it is not an exactness proof.
 
@@ -61,17 +61,17 @@ Also inspect the normwise backward indicator against the correct input, the forw
 
 ## Backward error versus forward error
 
-The residual (r_{\mathrm{eig}}) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
+The residual ($r_{\mathrm{eig}}$) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
 
 ## What arbitrary precision changes
 
-The source precision is g=53 for the generator. Later 128/256-bit arithmetic evaluates the frozen A and its complex eigensystem. MPFR precision controls real components and MPC precision controls complex operations at the selected operation precision; neither changes the original quantization. Mathematical difficulty comes from nonnormal block coupling and the relation between right and left eigenvectors, not simply from the presence of imaginary parts.
+The source precision is $g=53$ for the generator. Later 128/256-bit arithmetic evaluates the frozen $A$ and its complex eigensystem. MPFR precision controls real components and MPC precision controls complex operations at the selected operation precision; neither changes the original quantization. Mathematical difficulty comes from nonnormal block coupling and the relation between right and left eigenvectors, not simply from the presence of imaginary parts.
 
 Three precision roles must be distinguished. **Input/source precision** describes the stored model and any fixed generator rounding. **Arithmetic/work precision** is the one-operation MPFR/MPC precision used to construct, factor, and inspect that stored value. **Mathematical conditioning** describes sensitivity of the problem and is not repaired merely by printing more digits. The runner also tests low/high ambient defaults and restoration so an unrelated caller setting cannot silently choose the operation precision. No builtin binary64 complex fallback is part of this example.
 
 ## Reading the output
 
-Look for conjugate pairing in the realized spectrum and for a small left residual using conjugate transpose. The order and phases of eigenvectors are not fixed. A residual for A V-V D can be small even when the two members of a sensitive pair move, so compare the matched eigenvalues and the block-structure audit together. The requested values are a construction target; the realized values are the forward-error reference.
+Look for conjugate pairing in the realized spectrum and for a small left residual using conjugate transpose. The order and phases of eigenvectors are not fixed. A residual for $AV-VD$ can be small even when the two members of a sensitive pair move, so compare the matched eigenvalues and the block-structure audit together. The requested values are a construction target; the realized values are the forward-error reference.
 
 A PASS line means the declared case-level gates passed; it does not erase the limitations stated above. Compare rows only within the same model identity and profile. If an exactness, coverage, cluster, or precision-contract field is missing, the honest status is incomplete rather than inferred from a pretty display.
 

@@ -24,7 +24,7 @@ The exact model, any analytic or structural reference, and measured SVD output a
 
 ## What the Octave example computes
 
-The matching [lauchli_tall.m](../../../../examples/tiered/svd-tier-a/lauchli_tall.m) selects only A4-LAU-TALL from the fixed manifest. The matching lauchli_tall.m builds T in MP, runs public svd, and compares the values with the analytic spectrum. It checks the repeated right subspace I-11^T/n, the left subspace, reconstruction, and factor orthogonality. A native T^T T calculation is logged only as a negative control. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
+The matching [lauchli_tall.m](../../../../examples/tiered/svd-tier-a/lauchli_tall.m) selects only A4-LAU-TALL from the fixed manifest. The matching lauchli_tall.m builds $T$ in MP, runs public svd, and compares the values with the analytic spectrum. It checks the repeated right subspace $I-\mathbf{1}\mathbf{1}^{\mathsf T}/n$, the left subspace, reconstruction, and factor orthogonality. A native $T^{\mathsf T}T$ calculation is logged only as a negative control. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
 
 ## Construction and exactness
 
@@ -66,7 +66,7 @@ A PASS line is scoped to this case and profile. Compare rows only when parameter
 
 ## Common mistakes
 
-Do not compute the main answer from T^T T, take sqrt(abs(eig(...))) as an oracle, compare repeated columns individually, or claim the full-SVD null direction is a listed singular value.
+Do not compute the main answer from $T^{\mathsf T}T$, take $\sqrt{\lvert\operatorname{eig}(\cdot)\rvert}$ as an oracle, compare repeated columns individually, or claim the full-SVD null direction is a listed singular value.
 
 For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
 

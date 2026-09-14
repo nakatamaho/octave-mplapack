@@ -37,7 +37,7 @@ The matching [nro_scale_down.m](../../../../examples/tiered/svd-tier-s/nro_scale
 
 ## Construction and exactness
 
-The Hadamard entries, 2^b block, and 2^-600 scale are exact dyadics in the intended MP range. The constructor verifies the source hash and the scaling identity A=2^-600 A0. The stable reciprocal expression is used for the small values. An exactness proof checks the block inverse and dyadic range guard independently of SVD.
+The Hadamard entries, $2^b$ block, and $2^{-600}$ scale are exact dyadics in the intended MP range. The constructor verifies the source hash and the scaling identity $A=2^{-600}A_0$. The stable reciprocal expression is used for the small values. An exactness proof checks the block inverse and dyadic range guard independently of SVD.
 
 ## Diagnostics
 
@@ -53,11 +53,11 @@ Report absolute scale, relative singular-value error, and whether any norm opera
 
 ## Backward error versus forward error
 
-r_svd measures a factorization equation defect relative to the stored scaled matrix. Forward error in the smallest singular value is affected by the reciprocal condition number and by scaling. A small relative reconstruction residual is not a proof that the small pair has its displayed digits.
+$r_{\mathrm{svd}}$ measures a factorization equation defect relative to the stored scaled matrix. Forward error in the smallest singular value is affected by the reciprocal condition number and by scaling. A small relative reconstruction residual is not a proof that the small pair has its displayed digits.
 
 ## What arbitrary precision changes
 
-The input/source precision is the exact dyadic scale-down model. Arithmetic/work precision provides the exponent range and significand needed for the scaled products and SVD. Mathematical conditioning remains that of the unscaled NRO pair; multiplication by 2^-600 changes units, not the relative condition. More bits protect the range and tail but do not make the reciprocal pair well-conditioned.
+The input/source precision is the exact dyadic scale-down model. Arithmetic/work precision provides the exponent range and significand needed for the scaled products and SVD. Mathematical conditioning remains that of the unscaled NRO pair; multiplication by $2^{-600}$ changes units, not the relative condition. More bits protect the range and tail but do not make the reciprocal pair well-conditioned.
 
 ## Parameter boundary and comparison protocol
 
@@ -70,7 +70,7 @@ Confirm the scale exponent and source hash first. Then inspect whether the large
 
 ## Common mistakes
 
-Do not multiply by 2^600 before measuring and call the result the original run, use A^H A as the primary path, use cancellation for the small value, or infer range safety from a finite display. Do not treat a range failure as evidence that the mathematical model is wrong.
+Do not multiply by $2^{600}$ before measuring and call the result the original run, use $A^{\mathsf H}A$ as the primary path, use cancellation for the small value, or infer range safety from a finite display. Do not treat a range failure as evidence that the mathematical model is wrong.
 
 ## Scope of the claim
 

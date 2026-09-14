@@ -33,8 +33,8 @@ A small reconstruction residual is a backward-style factorization check. Forward
 | S1-NRO-SCALE-DOWN | $2^{-600}$ times NRO block | small exponent range | [nro_scale_down.m](../../../../examples/tiered/svd-tier-s/nro_scale_down.m) | [nro_scale_down.md](./nro_scale_down.md) | [MPFR manual](https://www.mpfr.org/mpfr-current/mpfr.html) |
 | S2-JS | Jacobi–Stirling unit lower triangle | combinatorial growth | [jacobi_stirling.m](../../../../examples/tiered/svd-tier-s/jacobi_stirling.m) | [jacobi_stirling.md](./jacobi_stirling.md) | [Delgado–Peña (2014)](https://doi.org/10.1016/j.amc.2014.03.047) |
 | S3-LAH | unsigned Lah lower triangle | growth and small tail | [lah.m](../../../../examples/tiered/svd-tier-s/lah.m) | [lah.md](./lah.md) | [Delgado–Orera–Peña (2019)](https://doi.org/10.1002/nla.2217) |
-| S4-DD-SYM | symmetric shifted path | exact tiny sigma_min | [dd_sym.m](../../../../examples/tiered/svd-tier-s/dd_sym.m) | [dd_sym.md](./dd_sym.md) | [Dopico–Koev (2011)](https://doi.org/10.1007/s00211-011-0382-3) |
-| S4-DD-NONSYM | biased diagonally dominant path | eigenvalue is not sigma_min | [dd_nonsym.m](../../../../examples/tiered/svd-tier-s/dd_nonsym.m) | [dd_nonsym.md](./dd_nonsym.md) | [Dopico–Koev (2011)](https://doi.org/10.1007/s00211-011-0382-3) |
+| S4-DD-SYM | symmetric shifted path | exact tiny $\sigma_{\min}$ | [dd_sym.m](../../../../examples/tiered/svd-tier-s/dd_sym.m) | [dd_sym.md](./dd_sym.md) | [Dopico–Koev (2011)](https://doi.org/10.1007/s00211-011-0382-3) |
+| S4-DD-NONSYM | biased diagonally dominant path | eigenvalue is not $\sigma_{\min}$ | [dd_nonsym.m](../../../../examples/tiered/svd-tier-s/dd_nonsym.m) | [dd_nonsym.md](./dd_nonsym.md) | [Dopico–Koev (2011)](https://doi.org/10.1007/s00211-011-0382-3) |
 
 The source papers motivate the families. The selected dimensions, dyadic values, exactness guards, and SVD acceptance thresholds are suite-specific.
 

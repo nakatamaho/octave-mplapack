@@ -20,7 +20,7 @@ $n-\ell$.
 
 ## Why this problem is numerically difficult
 
-The matrix combines a large defective zero part with a small nonzero-root problem. A rational formula with division by z can be singular at the point the test needs, so the polynomial identity is the safe model. In the m=3 cases the zero part is defective: algebraic multiplicity and geometric multiplicity differ. Measured eig output must not be repaired by appending known zeros.
+The matrix combines a large defective zero part with a small nonzero-root problem. A rational formula with division by $z$ can be singular at the point the test needs, so the polynomial identity is the safe model. In the $m=3$ cases the zero part is defective: algebraic multiplicity and geometric multiplicity differ. Measured eig output must not be repaired by appending known zeros.
 
 The exact model, any transformed control, and measured solver output remain separate. A related matrix with a convenient analytic answer is never silently substituted for the matrix named by the case ID.
 
@@ -30,7 +30,7 @@ The matching [mks.m](../../../../examples/tiered/neig-tier-a/mks.m) selects only
 
 ## Construction and exactness
 
-The audit verifies N^m, the dyadic rank-one term, q coefficients, and small-n determinant identities. q is solved independently at two MP precisions. A rank calculation distinguishes algebraic multiplicity from geometric nullspace dimension. No exact multiplicity is inferred from a disk count.
+The audit verifies $N^m$, the dyadic rank-one term, $q$ coefficients, and small-$n$ determinant identities. $q$ is solved independently at two MP precisions. A rank calculation distinguishes algebraic multiplicity from geometric nullspace dimension. No exact multiplicity is inferred from a disk count.
 
 Exactness means that declared integer/dyadic identities and their bit guards have been checked independently. Agreement between two MP runs is useful evidence but is not an exactness proof.
 
@@ -68,7 +68,7 @@ A PASS line is scoped to the declared case gates and profile. Compare only rows 
 
 ## Common mistakes
 
-Do not use a singular rational formula, append known zeros to measured output, claim zero is semisimple, use the reduced companion as the dense solve, or infer n-ell from a disk count alone.
+Do not use a singular rational formula, append known zeros to measured output, claim zero is semisimple, use the reduced companion as the dense solve, or infer $n-\ell$ from a disk count alone.
 
 For diagnosis, verify case ID and dimensions, then model hash and input precision, then residual, then the appropriate forward, cluster, or structural metric. Never change the fixture after observing a failure and report it as the original case.
 

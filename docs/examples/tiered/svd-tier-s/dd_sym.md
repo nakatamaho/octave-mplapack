@@ -34,11 +34,11 @@ The exact model, any analytic/reference construction, and measured SVD output ar
 
 ## What the Octave example computes
 
-The matching [dd_sym.m](../../../../examples/tiered/svd-tier-s/dd_sym.m) selects only S4-DD-SYM from the fixed manifest. The matching dd_sym.m constructs the path directly, runs public svd, and compares with the MP formula after setting sigma_0=tau exactly. It reports the explicit model, any below-guard rounded input, reconstruction, orthogonality, and the smallest-value error. The demo deliberately records when p=128 is below the exact construction guard for b=160. The runner records dimensions, case parameters, input/model identity, work/reference precision, measured rows, and any native control.
+The matching [dd_sym.m](../../../../examples/tiered/svd-tier-s/dd_sym.m) selects only S4-DD-SYM from the fixed manifest. The matching dd_sym.m constructs the path directly, runs public svd, and compares with the MP formula after setting $\sigma_0=\tau$ exactly. It reports the explicit model, any below-guard rounded input, reconstruction, orthogonality, and the smallest-value error. The demo deliberately records when $p=128$ is below the exact construction guard for $b=160$. The runner records dimensions, case parameters, input/model identity, work/reference precision, measured rows, and any native control.
 
 ## Construction and exactness
 
-Each row has dominance margin tau and the dyadic inputs are checked. For rho=1, SPD and the path eigenvalue formula provide independent checks; pi and sine are evaluated in MP. A separate V1 certificate is required for rigorous enclosures. Native tau loss is logged as an altered input, not called an MP failure.
+Each row has dominance margin $\tau$ and the dyadic inputs are checked. For $\rho=1$, SPD and the path eigenvalue formula provide independent checks; $\pi$ and sine are evaluated in MP. A separate V1 certificate is required for rigorous enclosures. Native $\tau$ loss is logged as an altered input, not called an MP failure.
 
 The source audit distinguishes exactness of the constructed matrix from agreement between two floating computations. All arithmetic on the model and measured path remains MPFR/MPC; conversion to binary64 is limited to explicitly labelled presentation controls.
 
@@ -70,7 +70,7 @@ Input/source precision identifies the stored matrix and any deliberate once-roun
 
 ## Reading the output
 
-The first singular value should equal tau in the exact model. Read its absolute and relative errors separately, because tau is tiny. A good reconstruction and orthogonality result does not compensate for a rounded input with tau=0. The sorted values are the measured spectrum, not an insertion of the formula.
+The first singular value should equal $\tau$ in the exact model. Read its absolute and relative errors separately, because $\tau$ is tiny. A good reconstruction and orthogonality result does not compensate for a rounded input with $\tau=0$. The sorted values are the measured spectrum, not an insertion of the formula.
 
 A PASS line is scoped to the named case and profile. Compare only rows with identical parameters and model identity. If a cluster, rank, or exactness field is not claimed, do not infer it from a stable display.
 

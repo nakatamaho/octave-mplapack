@@ -26,7 +26,7 @@ The exact model, any analytic or structural reference, and measured SVD output a
 
 ## What the Octave example computes
 
-The matching [pascal_sym.m](../../../../examples/tiered/svd-tier-a/pascal_sym.m) selects only A1-PASCAL-SYM from the fixed manifest. The matching pascal_sym.m constructs Q and P in MP, verifies P=Q Q^T, runs public svd(P), and compares the complete spectrum with a wider reference. It also checks the cross-family identity that singular values of P equal squares of singular values of Q, while still using dense svd for the measured result. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
+The matching [pascal_sym.m](../../../../examples/tiered/svd-tier-a/pascal_sym.m) selects only A1-PASCAL-SYM from the fixed manifest. The matching pascal_sym.m constructs $Q$ and $P$ in MP, verifies $P=QQ^{\mathsf T}$, runs public svd($P$), and compares the complete spectrum with a wider reference. It also checks the cross-family identity that singular values of $P$ equal squares of singular values of $Q$, while still using dense svd for the measured result. The runner records shape, parameters, source/model identity, operation precision, and any native control while retaining MPFR/MPC arithmetic.
 
 ## Construction and exactness
 
@@ -62,13 +62,13 @@ Input/source precision identifies the stored matrix and deliberate once-rounded 
 
 ## Reading the output
 
-Read reconstruction and orthogonality first, then compare σ(P) with σ(Q)^2 as an independent identity. This relation is a check, not permission to form P^T P as a generic SVD oracle. Repeated or clustered factors remain nonunique.
+Read reconstruction and orthogonality first, then compare $\sigma(P)$ with $\sigma(Q)^2$ as an independent identity. This relation is a check, not permission to form $P^{\mathsf T}P$ as a generic SVD oracle. Repeated or clustered factors remain nonunique.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 
 ## Common mistakes
 
-Do not call a numerical P=Q Q^T equality an exact proof, use normal equations as the main path, infer factor uniqueness from symmetry, or quote a published table not reproduced by this fixture.
+Do not call a numerical $P=QQ^{\mathsf T}$ equality an exact proof, use normal equations as the main path, infer factor uniqueness from symmetry, or quote a published table not reproduced by this fixture.
 
 For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
 

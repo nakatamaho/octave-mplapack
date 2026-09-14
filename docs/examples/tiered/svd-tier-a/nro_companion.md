@@ -60,7 +60,7 @@ Input/source precision identifies the stored matrix and deliberate once-rounded 
 
 ## Reading the output
 
-Read the complete singular spectrum, r_svd, and factor residuals. The determinant is a rank/invariant check, not a product-based accuracy certificate in finite precision. Because values may be clustered or widely scaled, use value-wise metrics appropriate to magnitude and avoid individual-vector claims without a gap.
+Read the complete singular spectrum, $r_{\mathrm{svd}}$, and factor residuals. The determinant is a rank/invariant check, not a product-based accuracy certificate in finite precision. Because values may be clustered or widely scaled, use value-wise metrics appropriate to magnitude and avoid individual-vector claims without a gap.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 

@@ -25,13 +25,13 @@ first subdiagonal. The complex coefficientwise indicator is
 
 ## Why this problem is numerically difficult
 
-The roots are simple integers, but the coefficient vector contains large cancellation and the companion problem magnifies coefficient perturbations. A matrix residual is a backward statement for C, whereas eta_poly is a coefficientwise backward statement for p_n; neither is the root's forward error. The example catches unsafe coefficient construction from native poly.
+The roots are simple integers, but the coefficient vector contains large cancellation and the companion problem magnifies coefficient perturbations. A matrix residual is a backward statement for $C$, whereas $\eta_{\mathrm{poly}}$ is a coefficientwise backward statement for $p_n$; neither is the root's forward error. The example catches unsafe coefficient construction from native poly.
 
 The exact model, any transformed control, and measured solver output remain separate. A related matrix with a convenient analytic answer is never silently substituted for the matrix named by the case ID.
 
 ## What the Octave example computes
 
-The matching [wilkinson.m](../../../../examples/tiered/neig-tier-a/wilkinson.m) selects only WILKINSON from the fixed manifest and calls the public eig interface. The matching wilkinson.m constructs coefficients by exact integer recurrence, forms C, runs public eig, and evaluates Horner p(z) and its denominator in MP. It reports exact-root bottleneck, r_eig, and eta_poly for the exact model and any separately labelled native control. The matrix is never reconstructed from measured roots. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
+The matching [wilkinson.m](../../../../examples/tiered/neig-tier-a/wilkinson.m) selects only WILKINSON from the fixed manifest and calls the public eig interface. The matching wilkinson.m constructs coefficients by exact integer recurrence, forms $C$, runs public eig, and evaluates Horner $p(z)$ and its denominator in MP. It reports exact-root bottleneck, $r_{\mathrm{eig}}$, and $\eta_{\mathrm{poly}}$ for the exact model and any separately labelled native control. The matrix is never reconstructed from measured roots. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
 
 ## Construction and exactness
 
@@ -67,13 +67,13 @@ Input/source precision is the precision and exactness of the stored model. Arith
 
 ## Reading the output
 
-A tiny eta_poly says a nearby coefficient vector can explain z; it does not say z is close to its intended integer. Compare eta_poly, r_eig, and forward distance as three quantities. Exact roots belong only to the exact coefficient model.
+A tiny $\eta_{\mathrm{poly}}$ says a nearby coefficient vector can explain $z$; it does not say $z$ is close to its intended integer. Compare $\eta_{\mathrm{poly}}$, $r_{\mathrm{eig}}$, and forward distance as three quantities. Exact roots belong only to the exact coefficient model.
 
 A PASS line is scoped to the declared case gates and profile. Compare only rows with the same parameters and model hash. If a certificate field is absent, do not infer it from a small residual or a stable display.
 
 ## Common mistakes
 
-Do not form coefficients with binary64 poly, call polynomial backward error a forward error, use poly(eig(C)) as an oracle, or claim a small residual proves all roots equal 1:n.
+Do not form coefficients with binary64 poly, call polynomial backward error a forward error, use poly(eig(C)) as an oracle, or claim a small residual proves all roots equal $1,\ldots,n$.
 
 For diagnosis, verify case ID and dimensions, then model hash and input precision, then residual, then the appropriate forward, cluster, or structural metric. Never change the fixture after observing a failure and report it as the original case.
 

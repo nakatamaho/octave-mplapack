@@ -22,6 +22,14 @@ v_i=\frac{s^{k-i}}{(k-i)!}\quad (i\le k),\qquad
 w_i=\frac{(-s)^{i-k}}{(i-k)!}\quad (i\ge k).
 ```
 
+The corresponding left/right condition reference is
+
+```math
+\kappa_k=
+\left[\sum_{j=0}^{k-1}\frac{s^{2j}}{(j!)^2}\right]^{1/2}
+\left[\sum_{j=0}^{n-k}\frac{s^{2j}}{(j!)^2}\right]^{1/2}.
+```
+
 ## Why this problem is numerically difficult
 
 The spectrum is well separated while the eigenvectors are not. A dense orthogonal similarity hides the triangular structure, so the eigensolver must work in dense coordinates. Factorial recurrences create large and small components at once, and the left/right overlap determines individual eigenvalue sensitivity. Exact integer and dyadic entries make the input auditable, but an integer spectrum does not make every computed digit forward accurate.
@@ -30,11 +38,11 @@ The exact model, any transformed control, and measured solver output remain sepa
 
 ## What the Octave example computes
 
-The matching [had_bidiag.m](../../../../examples/tiered/neig-tier-a/had_bidiag.m) selects only HAD_BIDIAG from the fixed manifest and calls the public eig interface. The matching had_bidiag.m selects only HAD_BIDIAG from the frozen manifest, constructs T and A directly, checks Hadamard orthogonality, and calls the public eig path on A. It compares measured roots with 1:n, reports residuals and matched forward error, and evaluates the condition reference κ_k = sqrt(sum s^(2j)/(j!)^2) times sqrt(sum s^(2j)/(j!)^2). It never solves T instead of A. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
+The matching [had_bidiag.m](../../../../examples/tiered/neig-tier-a/had_bidiag.m) selects only HAD_BIDIAG from the fixed manifest and calls the public eig interface. The matching had_bidiag.m selects only HAD_BIDIAG from the frozen manifest, constructs $T$ and $A$ directly, checks Hadamard orthogonality, and calls the public eig path on $A$. It compares measured roots with $1:n$, reports residuals and matched forward error, and evaluates the condition reference $\kappa_k$ shown above. It never solves $T$ instead of $A$. The runner records the case ID, profile, dimensions, input identity, and operation precision, and keeps MP values until presentation.
 
 ## Construction and exactness
 
-The audit checks H H^T = n I, both dense product stages, the dyadic bit guard, and the exact spectrum independently. Factorial terms are evaluated by MP multiplicative recurrences rather than native factorials. Vector comparisons use normalization and sign matching. Agreement between two MP runs is corroborating evidence, not an exactness proof.
+The audit checks $HH^{\mathsf T}=nI$, both dense product stages, the dyadic bit guard, and the exact spectrum independently. Factorial terms are evaluated by MP multiplicative recurrences rather than native factorials. Vector comparisons use normalization and sign matching. Agreement between two MP runs is corroborating evidence, not an exactness proof.
 
 Exactness means that declared integer/dyadic identities and their bit guards have been checked independently. Agreement between two MP runs is useful evidence but is not an exactness proof.
 
@@ -66,13 +74,13 @@ Input/source precision is the precision and exactness of the stored model. Arith
 
 ## Reading the output
 
-The integer-root bottleneck is a forward diagnostic; r_eig is an eigen-equation diagnostic. A small residual with a larger root error is consistent with a large κ_k. The Hadamard transform is an orthogonal similarity, not the two-sided equivalence used by SVD cases.
+The integer-root bottleneck is a forward diagnostic; $r_{\mathrm{eig}}$ is an eigen-equation diagnostic. A small residual with a larger root error is consistent with a large $\kappa_k$. The Hadamard transform is an orthogonal similarity, not the two-sided equivalence used by SVD cases.
 
 A PASS line is scoped to the declared case gates and profile. Compare only rows with the same parameters and model hash. If a certificate field is absent, do not infer it from a small residual or a stable display.
 
 ## Common mistakes
 
-Do not replace A with T, compute factorials in binary64, call κ_k a measured error, or infer good eigenvectors from separated eigenvalues. Do not confuse eigenvalue similarity with singular-value mixing.
+Do not replace $A$ with $T$, compute factorials in binary64, call $\kappa_k$ a measured error, or infer good eigenvectors from separated eigenvalues. Do not confuse eigenvalue similarity with singular-value mixing.
 
 For diagnosis, verify case ID and dimensions, then model hash and input precision, then residual, then the appropriate forward, cluster, or structural metric. Never change the fixture after observing a failure and report it as the original case.
 

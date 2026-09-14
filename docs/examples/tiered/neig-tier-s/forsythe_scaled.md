@@ -2,7 +2,7 @@
 
 ## Quick idea
 
-FORSYTHE_SCALED isolates one mathematical reason a dense nonsymmetric eigensystem can be misleading: The primary diagnostics are r_eig, the unitary eigenvector residual, and the normalized circle bottleneck. The case is intentionally small enough to inspect and is paired with a deterministic runner. Its tier is a statement about pedagogical difficulty and verification depth, not a claim that the public eig routine implements the cited paper's algorithm.
+FORSYTHE_SCALED isolates one mathematical reason a dense nonsymmetric eigensystem can be misleading: The primary diagnostics are $r_{\mathrm{eig}}$, the unitary eigenvector residual, and the normalized circle bottleneck. The case is intentionally small enough to inspect and is paired with a deterministic runner. Its tier is a statement about pedagogical difficulty and verification depth, not a claim that the public eig routine implements the cited paper's algorithm.
 
 ## Mathematical problem
 
@@ -15,7 +15,7 @@ Let $P$ be the cyclic permutation matrix with $P_{i,i+1}=1$ and $P_{n,1}=1$. The
 F_{\mathrm{scaled}}=I+rP,\qquad r=2^{-a},\qquad P^{\mathsf H}P=I.
 ```
 
-Because P is unitary, its eigenvalues are $\zeta_k=\exp(2\pi i k/n)$ and
+Because $P$ is unitary, its eigenvalues are $\zeta_k=\exp(2\pi i k/n)$ and
 
 ```math
 \lambda_k=1+r\zeta_k.
@@ -31,13 +31,13 @@ The matrix is never replaced by a different representation merely because a rela
 
 ## What the Octave example computes
 
-The matching [forsythe_scaled.m](../../../../examples/tiered/neig-tier-s/forsythe_scaled.m) builds P directly, forms I+rP in MP, and measures the dense eig result. It compares normalized coordinates (lambda-1)/r with the MP roots of unity and checks the unitary similarity/control identities. It does not form P through a generic exponential or through a binary64 complex fallback.
+The matching [forsythe_scaled.m](../../../../examples/tiered/neig-tier-s/forsythe_scaled.m) builds $P$ directly, forms $I+rP$ in MP, and measures the dense eig result. It compares normalized coordinates $(\lambda-1)/r$ with the MP roots of unity and checks the unitary similarity/control identities. It does not form $P$ through a generic exponential or through a binary64 complex fallback.
 
 The example reports the selected case ID, profile, dimensions, input/model identity, and measured rows. Run it from a loaded mplapack-interop package; the package's mp values remain MPFR/MPC values throughout the numerical path.
 
 ## Construction and exactness
 
-The constructor verifies P’s permutation entries, P^n=I, and P^H P=I. The dyadic scale r is exact within the selected input precision; complex roots of unity are analytic MP references, with real endpoints fixed explicitly. The identity with FORSYTHE is checked independently from measured eigenvalues.
+The constructor verifies $P$'s permutation entries, $P^n=I$, and $P^{\mathsf H}P=I$. The dyadic scale $r$ is exact within the selected input precision; complex roots of unity are analytic MP references, with real endpoints fixed explicitly. The identity with FORSYTHE is checked independently from measured eigenvalues.
 
 The construction audit is intentionally independent of eig: it checks algebraic identities, dyadic serialization, and declared generation guards before using a solver result. A cross-precision match is useful evidence, but it is not an exactness proof.
 
@@ -60,7 +60,7 @@ Also inspect the normwise backward indicator against the correct input, the forw
 
 ## Backward error versus forward error
 
-The residual (r_{\mathrm{eig}}) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
+The residual ($r_{\mathrm{eig}}$) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
 
 ## What arbitrary precision changes
 
@@ -70,13 +70,13 @@ Three precision roles must be distinguished. **Input/source precision** describe
 
 ## Reading the output
 
-The primary diagnostics are r_eig, the unitary eigenvector residual, and the normalized circle bottleneck. Since the matrix is normal, a small residual has a more direct forward interpretation than in the original scaled coordinates, but it still does not certify every displayed digit. Signs, phases, and column order remain arbitrary.
+The primary diagnostics are $r_{\mathrm{eig}}$, the unitary eigenvector residual, and the normalized circle bottleneck. Since the matrix is normal, a small residual has a more direct forward interpretation than in the original scaled coordinates, but it still does not certify every displayed digit. Signs, phases, and column order remain arbitrary.
 
 A PASS line means the declared case-level gates passed; it does not erase the limitations stated above. Compare rows only within the same model identity and profile. If an exactness, coverage, cluster, or precision-contract field is missing, the honest status is incomplete rather than inferred from a pretty display.
 
 ## Common mistakes
 
-Do not claim this control proves the original matrix is well conditioned, compare unnormalized lambda with a relative tolerance around 1, or use native roots of unity as the MP reference. Do not hide the diagonal scaling relationship.
+Do not claim this control proves the original matrix is well conditioned, compare unnormalized $\lambda$ with a relative tolerance around 1, or use native roots of unity as the MP reference. Do not hide the diagonal scaling relationship.
 
 A useful debugging sequence is: verify the case ID and parameters; verify the serialized input/model hash; inspect the input precision and ambient precision; inspect the residual; then inspect the conditioning-appropriate forward or subspace metric. Do not change parameters after seeing a failure and call the changed run the original case.
 

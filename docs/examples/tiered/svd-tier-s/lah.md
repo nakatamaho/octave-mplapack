@@ -60,7 +60,7 @@ Input/source precision identifies the stored matrix and any deliberate once-roun
 
 ## Reading the output
 
-Inspect σ_i relative errors across the full range, not only the largest value. r_svd can be small while σ_min loses relative digits. Factor columns may change sign or phase and should be matched only under a separation condition.
+Inspect $\sigma_i$ relative errors across the full range, not only the largest value. $r_{\mathrm{svd}}$ can be small while $\sigma_{\min}$ loses relative digits. Factor columns may change sign or phase and should be matched only under a separation condition.
 
 A PASS line is scoped to the named case and profile. Compare only rows with identical parameters and model identity. If a cluster, rank, or exactness field is not claimed, do not infer it from a stable display.
 

@@ -36,7 +36,7 @@ The example reports the selected case ID, profile, dimensions, input/model ident
 
 ## Construction and exactness
 
-The model proof checks the similarity identities, the two characteristic factors (z-1)^2 and (z-1-d)^2, the rank-one nilpotent part of each Jordan block, and the direct-sum dimensions. The invariant basis is formed from the relevant columns of Y, and the oblique commuting projector for a union of full coordinate blocks is kept distinct from an orthogonal range projector. Exact dyadic construction is checked independently from the eig output.
+The model proof checks the similarity identities, the two characteristic factors $(z-1)^2$ and $(z-1-d)^2$, the rank-one nilpotent part of each Jordan block, and the direct-sum dimensions. The invariant basis is formed from the relevant columns of $Y$, and the oblique commuting projector for a union of full coordinate blocks is kept distinct from an orthogonal range projector. Exact dyadic construction is checked independently from the eig output.
 
 The construction audit is intentionally independent of eig: it checks algebraic identities, dyadic serialization, and declared generation guards before using a solver result. A cross-precision match is useful evidence, but it is not an exactness proof.
 
@@ -59,7 +59,7 @@ Also inspect the normwise backward indicator against the correct input, the forw
 
 ## Backward error versus forward error
 
-The residual (r_{\mathrm{eig}}) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
+The residual ($r_{\mathrm{eig}}$) measures how nearly the returned factors satisfy an eigen-equation. It can be interpreted as a small backward perturbation of the matrix under suitable normalization, but the corresponding forward eigenvalue error is multiplied by eigenvalue and eigenvector conditioning. In a cluster, the forward object is an invariant subspace. In a defective case, a full diagonalizing basis does not exist. The report therefore never promotes a small residual to a universal accuracy claim.
 
 ## What arbitrary precision changes
 
@@ -69,7 +69,7 @@ Three precision roles must be distinguished. **Input/source precision** describe
 
 ## Reading the output
 
-Read the bottleneck matching, cluster counts, and block residuals as separate fields. If the two clusters merge numerically, the correct statement is a certificate for the union, not “the roots have multiplicity four.” If they separate, each two-dimensional invariant space is still defective and must not be reduced to two individual eigenvector claims. r_eig is reported for the full matrix and for selected blocks.
+Read the bottleneck matching, cluster counts, and block residuals as separate fields. If the two clusters merge numerically, the correct statement is a certificate for the union, not “the roots have multiplicity four.” If they separate, each two-dimensional invariant space is still defective and must not be reduced to two individual eigenvector claims. $r_{\mathrm{eig}}$ is reported for the full matrix and for selected blocks.
 
 A PASS line means the declared case-level gates passed; it does not erase the limitations stated above. Compare rows only within the same model identity and profile. If an exactness, coverage, cluster, or precision-contract field is missing, the honest status is incomplete rather than inferred from a pretty display.
 

@@ -60,13 +60,13 @@ Input/source precision identifies the stored matrix and deliberate once-rounded 
 
 ## Reading the output
 
-Read the spectrum identity, r_svd, and both factor orthogonality residuals. Dense mixing can change factor vectors even when singular values agree. For repeated values compare left/right subspaces, not H or G columns individually.
+Read the spectrum identity, $r_{\mathrm{svd}}$, and both factor orthogonality residuals. Dense mixing can change factor vectors even when singular values agree. For repeated values compare left/right subspaces, not $H$ or $G$ columns individually.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 
 ## Common mistakes
 
-Do not use H B G^T as an eigenvalue similarity, solve the raw B in place of A, compare factor columns without phases, or claim a dense HRA algorithm.
+Do not use $HBG^{\mathsf T}$ as an eigenvalue similarity, solve the raw $B$ in place of $A$, compare factor columns without phases, or claim a dense HRA algorithm.
 
 For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
 

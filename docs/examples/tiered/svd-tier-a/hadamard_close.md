@@ -60,7 +60,7 @@ Input/source precision identifies the stored matrix and deliberate once-rounded 
 
 ## Reading the output
 
-Read the pair’s value bottleneck and its two-dimensional projector/angle diagnostic separately. A small r_svd does not certify individual columns. If delta is below the work precision, the honest status is unresolved separation, not a changed parameter.
+Read the pair’s value bottleneck and its two-dimensional projector/angle diagnostic separately. A small $r_{\mathrm{svd}}$ does not certify individual columns. If $\delta$ is below the work precision, the honest status is unresolved separation, not a changed parameter.
 
 A PASS line is scoped to this case and profile. Compare rows only when parameters and model identity match. If a rank, subspace, or exactness field is not claimed, do not infer it from a visually stable display.
 

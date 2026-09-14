@@ -75,7 +75,7 @@ Preview method: official syntax audit, source-level representative inspection,
 GitHub's `math` fences are used as the default robust form for matrices,
 multiline formulas, aligned expressions, complex displays, fractions, and
 piecewise/condition expressions. Existing standalone `$$` blocks remain
-accepted by the checker for compatibility, but all 128 in-scope displays are
+accepted by the checker for compatibility, but all 130 in-scope displays are
 now fenced `math` blocks.
 
 ## Conversion and audit totals
@@ -84,7 +84,7 @@ now fenced `math` blocks.
 Tiered Markdown files audited: 51
 Detailed case pages: 44
 Family/master/index/glossary/migration pages: 7
-Fenced math blocks: 128 opening / 128 closing
+Fenced math blocks: 130 opening / 130 closing
 Standalone $$ blocks remaining: 0
 Raw \[...\] delimiters: 0
 Raw \(...\) delimiters: 0
@@ -126,7 +126,7 @@ Migration map: docs/examples/tiered/MIGRATION.md
 ## Syntax normalization
 
 ```text
-Complex/multiline displays converted to fenced math: 128
+Complex/multiline displays converted to fenced math: 130
 Simple $$ displays retained: 0 in the current Tiered pages
 Raw \[...\] removed: 0 remaining
 Raw \(...\) removed: 0 remaining
