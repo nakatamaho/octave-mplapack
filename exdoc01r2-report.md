@@ -70,6 +70,8 @@ GitHub MathJax support: YES — official GitHub Markdown math syntax
 Live GitHub preview available: NO — this branch was not published for preview
 Preview method: official syntax audit, source-level representative inspection,
   and tools/check-github-math.sh
+GitHub Markdown API preview: NOT AVAILABLE — the environment has no `curl`
+  client; no remote branch, PR, or published preview was created
 ```
 
 GitHub's `math` fences are used as the default robust form for matrices,
