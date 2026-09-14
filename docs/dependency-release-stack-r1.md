@@ -5,21 +5,21 @@ This repository-only manifest is the canonical handoff for the frozen
 the public source archive because it records that archive's checksum; putting
 it into the archive would make the release metadata self-referential.
 
-## Current D04 MPLAPACK release-candidate update
+## Current D04 MPLAPACK release update
 
 The frozen D02R1 table below records the dependency identity used by that
-historical `mplapack-interop` 0.3.1 release. For the subsequent D04 release
-candidate, MPLAPACK 3.0.1 has been superseded by the following source
-identity:
+historical `mplapack-interop` 0.3.1 release. For the subsequent D04 release,
+the previously recorded MPLAPACK 3.0.1 candidate has been superseded by the
+official upstream release source:
 
 | Layer | Version | Commit | Archive | SHA256 | Size |
 |---|---:|---|---|---|---:|
-| MPLAPACK | 3.0.1 RC | `c7e56f15dd4dc6413a1dc80b9d1c4109b77d5078` | `mplapack-3.0.1.tar.xz` | `77008a2d6cc7b2d310a4d606e013003923872a6840f1098dda8b6f337f137afa` | 85562992 |
+| MPLAPACK | 3.0.1 | `953d7a4916554546937a753a30b0619691072841` | `v3.0.1` | `mplapack-3.0.1.tar.xz` | `47ebb653b21f0c62e8144c1e515e94d76965d9d0d4b7ba216b034d778570cbaa` | 85720132 |
 
 This update does not change the historical D02R1 QA claims below. The local
-archive at `/home/docker/src/mplapack-3.0.1.tar.xz` matches the new SHA256 and
-has the recorded size above. D04 must validate this replacement archive or an
-installed build derived from it before freezing the next stack.
+archive at `/home/docker/src/mplapack-3.0.1.tar.xz` matches the official
+release SHA256 and has the recorded size above. D04 must validate this exact
+archive or an installed build derived from it before freezing the next stack.
 
 ## Frozen stack
 
@@ -38,9 +38,10 @@ The canonical archive files used for the freeze are installed at:
 ```
 
 The gmpfrxx archive is the existing GitHub Release asset for `v1.4.1`.
-MPLAPACK 3.0.1 is the supplied upstream QA archive at commit `c21a9f5`;
-this workflow did not create or modify an MPLAPACK release tag. The only
-new public tag created by D02R1 is `octave-mplapack:v0.3.1`.
+MPLAPACK 3.0.1 is the official upstream release archive at source baseline
+`953d7a49` and release tag `v3.0.1`; D04 consumes it as an external
+dependency. The only new public tag created by D02R1 is
+`octave-mplapack:v0.3.1`.
 
 ## Dependency graph and runtime closure
 

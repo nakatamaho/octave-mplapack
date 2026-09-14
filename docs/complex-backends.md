@@ -95,5 +95,7 @@ rerouted through a complex kernel.
 
 No `gmpfrxx_mkII` fix was required through C12.
 
-No final MPLAPACK 3.0.1 release commit, archive, or dependency tag is frozen
-by this development goal.
+The C00–C12 development goal did not freeze an upstream release. D04 now
+uses the official MPLAPACK 3.0.1 release source baseline
+`953d7a4916554546937a753a30b0619691072841`, tag `v3.0.1`, archive
+SHA256 `47ebb653b21f0c62e8144c1e515e94d76965d9d0d4b7ba216b034d778570cbaa`.
