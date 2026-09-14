@@ -17,6 +17,43 @@ A_{\mathbb C}=ZAZ^{\mathsf H}.
 $Z^{\mathsf H}Z=I$, so $A_{\mathbb C}$ and $A$ have the same eigenvalues;
 right and left vectors transform with the corresponding conjugate phases.
 
+## Concrete demo matrix
+
+<!-- demo-matrix: HAD_COMPLEX -->
+
+For the fixed demo parameters $n=16$ and $s=128$, the exact complex input
+passed to `eig` is
+
+```math
+A_{\mathbb C,\mathrm{demo}}=2^{-1}\begin{bmatrix}
+257 & 17i & 18 & -16i & -20 & 16i & 16 & -16i & -24 & 16i & 16 & -16i & -16 & 16i & 16 & -16i \\
+15i & -223 & -16i & -14 & 16i & 12 & -16i & -16 & 16i & 8 & -16i & -16 & 16i & 16 & -16i & -16 \\
+-14 & 16i & 33 & 241i & -16 & 16i & 12 & -16i & -16 & 16i & 8 & -16i & -16 & 16i & 16 & -16i \\
+16i & 18 & 239i & 1 & 16i & 16 & -16i & -20 & 16i & 16 & -16i & -24 & 16i & 16 & -16i & -16 \\
+12 & -16i & -16 & 16i & 161 & 113i & 114 & -112i & 16 & -16i & -16 & 16i & 8 & -16i & -16 & 16i \\
+-16i & -20 & 16i & 16 & 111i & -127 & -112i & -110 & -16i & -16 & 16i & 16 & -16i & -24 & 16i & 16 \\
+16 & -16i & -20 & 16i & -110 & 112i & 129 & 145i & 16 & -16i & -16 & 16i & 16 & -16i & -24 & 16i \\
+-16i & -16 & 16i & 12 & 112i & 114 & 143i & -95 & -16i & -16 & 16i & 16 & -16i & 16 & -16i & 8 \\
+8 & -16i & -16 & 16i & 16 & -16i & -16 & 16i & 225 & 49i & 50 & -48i & -52 & 48i & 48 & -48i \\
+-16i & -24 & 16i & 16 & -16i & -16 & 16i & 16 & 47i & -191 & -48i & -46 & 48i & 44 & -48i & -48 \\
+16 & -16i & -24 & 16i & 16 & -16i & -16 & 16i & -46 & 48i & 65 & 209i & -48 & 48i & 44 & -48i \\
+-16i & -16 & 16i & 8 & -16i & -16 & 16i & 16 & 48i & 50 & 207i & -31 & 48i & 48 & -48i & -52 \\
+-16 & 16i & 16 & -16i & -24 & 16i & 16 & -16i & 44 & -48i & -48 & 48i & 193 & 81i & 82 & -80i \\
+16i & 16 & -16i & -16 & 16i & 8 & -16i & -16 & -48i & -52 & 48i & 48 & 79i & -159 & -80i & -78 \\
+-16 & 16i & 16 & -16i & -16 & 16i & 8 & -16i & 48 & -48i & -52 & 48i & -78 & 80i & 97 & 177i \\
+16i & 16 & -16i & -16 & 16i & 16 & -16i & -24 & -48i & -48 & 48i & 44 & 80i & 82 & 175i & -63
+\end{bmatrix}.
+```
+
+This is the full concrete demo fixture for `HAD_COMPLEX`. It is obtained
+from the exact real Hadamard-bidiagonal model by
+$A_{\mathbb C}=ZAZ^{\mathsf H}$ with the repeated phase pattern
+$(1,i,-1,-i)$. The matching [`had_complex.m`](../../../../examples/tiered/neig-tier-a/had_complex.m)
+selects the same manifest case and passes this exact complex input to the
+public `eig` path; the displayed matrix is not solver output. The common
+factor $2^{-1}$ applies to every displayed entry, so all source values are
+exact dyadic real/imaginary components.
+
 ## Why this problem is numerically difficult
 
 This is a complex API and conjugation control, not a new spectrum. It catches a transpose in place of conjugate transpose and code that routes a real-only operation through an unrelated binary64 complex fallback. The underlying dense matrix remains nonnormal, while the phase changes the coordinate appearance of vectors.
