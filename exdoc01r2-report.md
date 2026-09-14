@@ -208,6 +208,10 @@ master tier index: docs/examples/tiered/README.md — PASS
 glossary: docs/examples/tiered/GLOSSARY.md — PASS
 ```
 
+Auxiliary Pandoc HTML conversion: 6/6 representative files produced math
+nodes and no `language-math` code-block fallback. This is a syntax/rendering
+shape check only; Pandoc is not treated as the authoritative GitHub renderer.
+
 Literal norm bars in the remaining displayed residuals were changed to
 `\lVert`/`\rVert` (and scalar bars to `\lvert`/`\rvert`) where they were
 being used as mathematical notation. No literal pipe was introduced into a
