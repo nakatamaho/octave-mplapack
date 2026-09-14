@@ -189,6 +189,14 @@ GitHub Markdown is the source of truth for mathematical documentation.
 * Do not rely on custom MathJax/LaTeX preamble macros; use standard explicit
   commands supported by GitHub MathJax.
 
+* For piecewise definitions in GitHub Markdown, use the standard `cases`
+  environment, written as `\begin{cases} ... \end{cases}`. Do not emulate a
+  piecewise brace with
+  `\left\{ ... \begin{aligned} ... \end{aligned} ... \right.`.
+* Use `aligned` for genuinely aligned systems of equations, not for a
+  piecewise definition. Keep complex matrices and multiline formulas inside
+  isolated fenced `math` blocks where appropriate.
+
 A documentation change is incomplete if its equations do not render correctly
 on GitHub. The GitHub-math checker is `tools/check-github-math.sh`, and it is
 part of the documentation consistency gate.

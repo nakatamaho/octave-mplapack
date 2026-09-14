@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Static GitHub-Markdown math policy checks for the tiered documentation.
+# Static GitHub-Markdown math policy checks for repository documentation.
 # This intentionally does not parse TeX or execute numerical examples.
 # GitHub renders inline math with dollar delimiters and multiline math with
 # fenced `math` blocks.  The checker also permits legacy standalone $$ blocks
@@ -11,6 +11,128 @@ repo_root=$(CDPATH= cd "$(dirname "$0")/.." && pwd)
 cd "$repo_root"
 
 fail=0
+
+# Enforce the repository-wide Markdown policy for fragile piecewise displays.
+# This scanner intentionally understands only Markdown containers: it checks
+# fenced math and standalone $$ blocks, ignores non-math code fences, and
+# excludes docs/goals because those files can preserve historical goal text.
+python3 - "$repo_root" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+root = Path(sys.argv[1])
+backtick = chr(96)
+fence_start = re.compile(rf"^\s*({backtick}{{3,}}|~{{3,}})(.*)$")
+fragile = re.compile(
+    r"\\left(?:\{|\\lbrace)\s*"
+    r"\\begin\{(?:aligned|alignedat|array)\}"
+    r"(?:\s*\{[^{}\n]*\})?"
+    r".{0,12000}?"
+    r"\\end\{(?:aligned|alignedat|array)\}\s*\\right\.",
+    re.DOTALL,
+)
+
+
+def math_chunks(text):
+    lines = text.splitlines()
+    chunks = []
+    mode = None
+    fence_char = ""
+    fence_length = 0
+    start_line = 0
+    current = []
+
+    for number, line in enumerate(lines, 1):
+        if mode in {"fence", "code"}:
+            closing = re.match(
+                rf"^\s*{re.escape(fence_char)}{{{fence_length},}}\s*$", line
+            )
+            if closing:
+                if mode == "fence" and current:
+                    chunks.append((start_line, "\n".join(current)))
+                mode = None
+                current = []
+            elif mode == "fence":
+                current.append(line)
+            continue
+
+        if mode == "dollar":
+            if line.strip() == "$$":
+                if current:
+                    chunks.append((start_line, "\n".join(current)))
+                mode = None
+                current = []
+            else:
+                current.append(line)
+            continue
+
+        fence = fence_start.match(line)
+        if fence:
+            token = fence.group(1)
+            info = fence.group(2).strip().lower()
+            fence_char = token[0]
+            fence_length = len(token)
+            start_line = number + 1
+            current = []
+            mode = "fence" if info.startswith("math") else "code"
+            continue
+
+        if line.strip() == "$$":
+            mode = "dollar"
+            start_line = number + 1
+            current = []
+            continue
+
+        # Support a compact same-line $$...$$ display without treating an
+        # ordinary single dollar inline expression as a display block.
+        if line.count("$$") >= 2:
+            pieces = line.split("$$")
+            for index in range(1, len(pieces) - 1, 2):
+                chunks.append((number, pieces[index]))
+
+    if mode == "fence" and current:
+        chunks.append((start_line, "\n".join(current)))
+    elif mode == "dollar" and current:
+        chunks.append((start_line, "\n".join(current)))
+    return chunks
+
+
+files = 0
+violations = []
+for path in sorted(root.rglob("*")):
+    if not path.is_file() or path.suffix.lower() not in {".md", ".markdown"}:
+        continue
+    relative = path.relative_to(root)
+    if (
+        ".git" in relative.parts
+        or relative.parts[:2] == ("docs", "goals")
+        or relative.parts[:2] == ("release", "logs")
+    ):
+        continue
+    if "docs/.build" in str(relative):
+        continue
+    files += 1
+    text = path.read_text(encoding="utf-8")
+    for start_line, chunk in math_chunks(text):
+        match = fragile.search(chunk)
+        if match is not None:
+            line = start_line + chunk[:match.start()].count("\n")
+            violations.append((relative, line))
+
+if violations:
+    for path, line in violations:
+        print(
+            f"FAIL: {path}:{line}: forbidden piecewise brace; "
+            r"use \begin{cases} instead of "
+            r"\left\{+\begin{aligned|alignedat|array}+...\right.",
+            file=sys.stderr,
+        )
+    raise SystemExit(1)
+
+print(f"PASS: Markdown fragile-piecewise scan ({files} live files)")
+PY
+
 mapfile -t documents < <(find docs/examples/tiered -type f -name '*.md' |
   LC_ALL=C sort)
 

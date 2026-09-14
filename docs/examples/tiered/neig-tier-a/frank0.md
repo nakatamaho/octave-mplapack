@@ -10,26 +10,26 @@ Smoke: $n=8$. Demo: $n=24$. The matrix is an exact integer upper-Hessenberg
 Frank orientation.
 
 ```math
-(F_0)_{ij}=
-\left\{
-\begin{aligned}
-n+1-\max(i,j), &\quad j\ge i-1,\\
-0, &\quad j<i-1.
-\end{aligned}
-\right.
+(F_0)_{ij}
+=
+\begin{cases}
+n+1-\max(i,j), & j \ge i-1,\\
+0, & j < i-1.
+\end{cases}
 ```
 
 An independent symmetric Jacobi reference has off-diagonal entries
 $\sqrt{j}$. Its eigenvalue $z$ is mapped stably to $f(z)$ by
 
 ```math
-f(z)=
-\left\{
-\begin{aligned}
-\left(\frac{z+\sqrt{z^2+4}}{2}\right)^2, &\quad z\ge0,\\
-\left(\frac{2}{\sqrt{z^2+4}-z}\right)^2, &\quad z<0.
-\end{aligned}
-\right.
+f(z)
+=
+\begin{cases}
+\left(\dfrac{z+\sqrt{z^2+4}}{2}\right)^2,
+& z \ge 0,\\
+\left(\dfrac{2}{\sqrt{z^2+4}-z}\right)^2,
+& z < 0.
+\end{cases}
 ```
 
 ## Concrete smoke matrix

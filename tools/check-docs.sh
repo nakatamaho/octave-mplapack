@@ -21,6 +21,7 @@ required=(
   docs/examples/tiered/README.md
   docs/examples/tiered/MIGRATION.md
   docs/examples/tiered/GLOSSARY.md
+  docs/math-rendering-migration.md
   tools/check-tiered-math.sh
   tools/check-github-math.sh
   tools/check-smoke-matrices.sh
@@ -43,7 +44,8 @@ agents=AGENTS.md
 for policy in \
   'GitHub Markdown is the source of truth for mathematical documentation.' \
   'Use fenced math blocks' \
-  'Do not put display mathematics inside Markdown table cells'; do
+  'Do not put display mathematics inside Markdown table cells' \
+  'For piecewise definitions in GitHub Markdown, use the standard'; do
   if ! grep -Fq "$policy" "$agents"; then
     echo "FAIL: AGENTS.md is missing GitHub math policy: $policy" >&2
     fail=1

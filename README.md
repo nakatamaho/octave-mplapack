@@ -88,7 +88,9 @@ The difficult SVD example/verification suite is documented in
 in `examples/14_svd_tier_s.m` through `examples/16_svd_verified.m`.
 The one-case worked examples are indexed by
 [`docs/examples/tiered/README.md`](docs/examples/tiered/README.md), with a
-matching explanation for every NEIGT/SVT Tier S/A case.
+matching explanation for every NEIGT/SVT Tier S/A case. The GitHub Markdown
+piecewise-rendering policy and migration record are in
+[`docs/math-rendering-migration.md`](docs/math-rendering-migration.md).
 
 ## Quick start
 
