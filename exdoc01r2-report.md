@@ -244,8 +244,15 @@ displays and no longer rejects the selected GitHub-safe form. Its display
 equation test was also corrected to recognize either form. The new checker is
 required and executed by `tools/check-docs.sh`.
 
+The checker also audits the scoped pages for obvious residual, adjoint,
+exponent, and TeX-like mathematical tokens accidentally left outside code or
+GitHub math delimiters. That audit ignores inline code, inline math, legacy
+`$$` blocks, and fenced code/math blocks; it is a notation guard, not a TeX
+parser.
+
 ```text
 Violations remaining in scoped Tier Markdown: 0
+Unwrapped obvious-math notation: 0
 ```
 
 ## Documentation builds and gates
@@ -352,8 +359,8 @@ dependency header, public API, or accepted numerical result was changed.
 ```text
 Branch: main
 Starting commit: 04647345895cf7c260157ca49532dbf748febb35
-Final commit: 1ba8cc0b2458270e2ec5723091e455d5a55003c5
-Final implementation commit: 1ba8cc0b2458270e2ec5723091e455d5a55003c5
+Final commit: 0894b1ac2cc85ac70cfec7770950f1030943076a
+Final implementation commit: 0894b1ac2cc85ac70cfec7770950f1030943076a
   (this report is maintained in a separate status/report commit)
 Files changed: listed in Actual changed paths above
 Commands run: listed in Documentation builds and gates above
