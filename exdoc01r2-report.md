@@ -69,9 +69,11 @@ Official GitHub math documentation:
 GitHub MathJax support: YES — official GitHub Markdown math syntax
 Live GitHub preview available: NO — this branch was not published for preview
 Preview method: official syntax audit, source-level representative inspection,
-  and tools/check-github-math.sh
-GitHub Markdown API preview: NOT AVAILABLE — the environment has no `curl`
-  client; no remote branch, PR, or published preview was created
+  tools/check-github-math.sh, and the non-destructive GitHub Markdown API
+  `/markdown/raw` endpoint
+GitHub Markdown API preview: PASS — 6 representative documents returned
+  `<pre lang="math">` blocks and no ordinary `language-math` code blocks;
+  no remote branch, PR, or published preview was created
 ```
 
 GitHub's `math` fences are used as the default robust form for matrices,
@@ -188,8 +190,11 @@ Result: PASS for static GitHub rendering
 ## Visual audit
 
 Direct authenticated GitHub UI preview was unavailable for this unpushed
-worktree. The official GitHub syntax, source-level visual inspection, and the
-static checker were used as the near-live gate.
+worktree. The non-destructive GitHub Markdown API preview was available for
+the six representative files below. Its response preserves the GFM
+`<pre lang="math">` structure, but it does not execute the browser-side
+MathJax pass; the official syntax, source-level inspection, API response, and
+static checker were therefore used as the near-live gate.
 
 ```text
 matrix-heavy NEIG: docs/examples/tiered/neig-tier-s/sim_jordan.md — PASS
@@ -209,6 +214,10 @@ precision/results/index audit:
 master tier index: docs/examples/tiered/README.md — PASS
 glossary: docs/examples/tiered/GLOSSARY.md — PASS
 ```
+
+GitHub Markdown API files: `sim_jordan.md`, `oo53_real.md`, `had_bidiag.md`,
+`hadamard_close.md`, `nro_two.md`, and the tier master `README.md` — all
+returned the expected GFM math-fence shape.
 
 Auxiliary Pandoc HTML conversion: 6/6 representative files produced math
 nodes and no `language-math` code-block fallback. This is a syntax/rendering
