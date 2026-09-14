@@ -273,6 +273,7 @@ tools/check-github-math.sh: PASS — 51 documents
 tools/check-tiered-math.sh: PASS — 44 detailed pages
 tools/check-docs.sh: PASS
 tools/build-docs.sh: PASS — user HTML, Info/plaintext, Markdown, and Doxygen HTML
+Pandoc GFM syntax parse: PASS — 51/51 documents exited successfully
 git diff --check: PASS
 bash -n on changed shell checkers: PASS
 ```
@@ -281,6 +282,9 @@ bash -n on changed shell checkers: PASS
 modify the tracked Texinfo or generated Markdown manual. No TeX PDF toolchain
 was available, but the required Info/plaintext manual artifact, HTML manual,
 generated Markdown comparison, and Doxygen HTML all built successfully.
+Pandoc was used only as an auxiliary GFM syntax parser; any TeX-to-HTML
+conversion warnings from Pandoc are not treated as evidence about GitHub's
+MathJax renderer.
 
 ## CI
 
