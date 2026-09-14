@@ -253,7 +253,9 @@ inline dollar balance
 `tools/check-tiered-math.sh` now accepts either legacy `$$` or fenced `math`
 displays and no longer rejects the selected GitHub-safe form. Its display
 equation test was also corrected to recognize either form. The new checker is
-required and executed by `tools/check-docs.sh`.
+required and executed by `tools/check-docs.sh`. Its document discovery is
+recursive, so every Markdown file below `docs/examples/tiered/` is included
+even if a future case is placed in a deeper subdirectory.
 
 The checker also audits the scoped pages for obvious residual, adjoint,
 exponent, and TeX-like mathematical tokens accidentally left outside code or
@@ -374,8 +376,8 @@ dependency header, public API, or accepted numerical result was changed.
 ```text
 Branch: main
 Starting commit: 04647345895cf7c260157ca49532dbf748febb35
-Final commit: 0894b1ac2cc85ac70cfec7770950f1030943076a
-Final implementation commit: 0894b1ac2cc85ac70cfec7770950f1030943076a
+Final commit: 3517d9fe1f388b7b880f0c6a93022762b0f0d171
+Final implementation commit: 3517d9fe1f388b7b880f0c6a93022762b0f0d171
   (this report is maintained in a separate status/report commit)
 Files changed: listed in Actual changed paths above
 Commands run: listed in Documentation builds and gates above
