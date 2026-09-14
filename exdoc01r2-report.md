@@ -71,9 +71,11 @@ Live GitHub preview available: NO — this branch was not published for preview
 Preview method: official syntax audit, source-level representative inspection,
   tools/check-github-math.sh, and the non-destructive GitHub Markdown API
   `/markdown/raw` endpoint
-GitHub Markdown API preview: PASS — 6 representative documents returned
-  `<pre lang="math">` blocks and no ordinary `language-math` code blocks;
-  no remote branch, PR, or published preview was created
+GitHub Markdown API preview: PASS — all 51 scoped documents were accepted;
+  50 documents preserved every source fenced-math block as `<pre lang="math">`
+  and the fence-free `MIGRATION.md` remained fence-free; no ordinary
+  `language-math` code blocks, remote branch, PR, or published preview were
+  created
 ```
 
 GitHub's `math` fences are used as the default robust form for matrices,
@@ -191,10 +193,10 @@ Result: PASS for static GitHub rendering
 
 Direct authenticated GitHub UI preview was unavailable for this unpushed
 worktree. The non-destructive GitHub Markdown API preview was available for
-the six representative files below. Its response preserves the GFM
-`<pre lang="math">` structure, but it does not execute the browser-side
-MathJax pass; the official syntax, source-level inspection, API response, and
-static checker were therefore used as the near-live gate.
+all 51 scoped files. Its response preserves the GFM `<pre lang="math">`
+structure, but it does not execute the browser-side MathJax pass; the
+official syntax, source-level inspection, API response, and static checker
+were therefore used as the near-live gate.
 
 ```text
 matrix-heavy NEIG: docs/examples/tiered/neig-tier-s/sim_jordan.md — PASS
@@ -215,9 +217,11 @@ master tier index: docs/examples/tiered/README.md — PASS
 glossary: docs/examples/tiered/GLOSSARY.md — PASS
 ```
 
-GitHub Markdown API files: `sim_jordan.md`, `oo53_real.md`, `had_bidiag.md`,
-`hadamard_close.md`, `nro_two.md`, and the tier master `README.md` — all
-returned the expected GFM math-fence shape.
+GitHub Markdown API representative files: `sim_jordan.md`, `oo53_real.md`,
+`had_bidiag.md`, `hadamard_close.md`, `nro_two.md`, and the tier master
+`README.md` — all returned the expected GFM math-fence shape. The full API
+audit covered 50 fenced-math documents plus the intentionally fence-free
+`MIGRATION.md` index.
 
 Auxiliary Pandoc HTML conversion: 6/6 representative files produced math
 nodes and no `language-math` code-block fallback. This is a syntax/rendering
