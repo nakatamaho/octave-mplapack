@@ -35,6 +35,54 @@ for file in "${documents[@]}"; do
     fail=1
   fi
 
+  # Catch the small class of obvious mathematical identifiers that are easy
+  # to leave behind as plain Markdown prose during a notation conversion.
+  # This is deliberately conservative: code fences, legacy $$ blocks,
+  # inline code, and inline dollar math are removed before matching.  It is
+  # not intended to parse TeX or infer mathematical meaning from arbitrary
+  # English.
+  if ! awk '
+    function report(line_number) {
+      printf "FAIL: %s:%d: obvious mathematical notation is outside GitHub math delimiters\n", FILENAME, line_number > "/dev/stderr"
+      bad = 1
+    }
+    {
+      line = $0
+      if (line ~ /^[[:space:]]*(```|~~~)/) {
+        in_fence = !in_fence
+        next
+      }
+      if (line ~ /^[[:space:]]*\$\$[[:space:]]*$/) {
+        in_dollar_block = !in_dollar_block
+        next
+      }
+      if (in_fence || in_dollar_block)
+        next
+
+      # Remove inline code and both GitHub inline-math forms before the
+      # intentionally small list of raw-notation checks.
+      gsub(/`[^`]*`/, "", line)
+      gsub(/\$`[^`]*`\$/, "", line)
+      gsub(/\$[^$]*\$/, "", line)
+
+      if (line ~ /r_eig|r_svd|sigma_min|sigma_max/ ||
+          line ~ /A\^H|A\^T|V\^H|U\^H|Q\^T|H\^T/ ||
+          line ~ /XY[[:space:]]*=/ || line ~ /YX[[:space:]]*=/ ||
+          line ~ /(^|[^[:alnum:]_])lambda[[:space:]]*=/ ||
+          line ~ /(^|[^[:alnum:]_])eta[[:space:]]*=/ ||
+          line ~ /(^|[^[:alnum:]_])epsilon[[:space:]]*=/ ||
+          line ~ /(^|[^[:alnum:]_])kappa[[:space:]]*=/ ||
+          line ~ /2\^[-0-9]/ || line ~ /N\^m|P\^n|T\^T/ ||
+          line ~ /\\(begin|end|frac|sqrt|sum|prod|operatorname|mathsf|mathbb|lVert|lvert|binom|qquad)/)
+        report(FNR)
+    }
+    END {
+      exit (bad ? 1 : 0)
+    }
+  ' "$file"; then
+    fail=1
+  fi
+
   # Keep the structural checks in one small line-oriented parser.  It is not
   # a TeX parser: it only verifies the Markdown embedding contract that is
   # relevant to GitHub's MathJax renderer.
