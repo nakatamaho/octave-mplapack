@@ -10,7 +10,7 @@ Smoke: $m=4$, $g=4$. Demo: $m=16$, $g=3$. The weights are
 $w_j=2^{g(j-1)}$.
 
 ```math
-B=H_m\operatorname{diag}\!\left(2^{g(j-1)}\right),\qquad
+B=H_m\mathrm{diag}\!\left(2^{g(j-1)}\right),\qquad
 A=\begin{bmatrix}I_m&B\\0&I_m\end{bmatrix}.
 ```
 

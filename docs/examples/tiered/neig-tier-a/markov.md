@@ -15,7 +15,7 @@ stationary left vector.
 h=n/2,\qquad
 C\in\mathbb{R}^{h\times h},\quad
 C_{i,i+1}=1\ (1\leq i<h),\quad C_{h,1}=1,\\
-Q=\operatorname{blockdiag}\left(\frac{3}{4}I_h+\frac{1}{4}C,
+Q=\mathrm{blockdiag}\left(\frac{3}{4}I_h+\frac{1}{4}C,
 \frac{7}{8}I_h+\frac{1}{8}C\right),\\
 r_i=2^{-i}\ (1\leq i<n),\qquad r_n=2^{-(n-1)},
 \qquad \mathbf{1}^{\mathsf T}r=1,\\

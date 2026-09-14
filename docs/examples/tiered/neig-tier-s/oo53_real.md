@@ -20,15 +20,15 @@ The specified generator applies the two rounded shifted additions and then the t
 
 ```math
 \sigma=12\alpha P,\qquad
-S'_{ij}=\operatorname{RN}_{g}\left(\operatorname{RN}_{g}(\sigma+(S_{\mathrm{req}})_{ij})-\sigma\right),
+S'_{ij}=\mathrm{RN}_{g}\left(\mathrm{RN}_{g}(\sigma+(S_{\mathrm{req}})_{ij})-\sigma\right),
 ```
 
 
 ```math
-A=\operatorname{RN}_{g}\left(Y\,\operatorname{RN}_{g}(S'X)\right).
+A=\mathrm{RN}_{g}\left(Y\,\mathrm{RN}_{g}(S'X)\right).
 ```
 
-The roots of the realized triangular standard form are $\operatorname{diag}(S')$, not the requested diagonal.
+The roots of the realized triangular standard form are $\mathrm{diag}(S')$, not the requested diagonal.
 
 ## Why this problem is numerically difficult
 
@@ -90,7 +90,7 @@ The input/source precision is $g=53$ for the frozen generator output. Arithmetic
 
 ## Reading the output
 
-First confirm that the case ID, $n$, $g$, and requested/realized hashes are correct. Next confirm the theorem audit and product exactness. Then read $r_{\mathrm{eig}}$ and the matched forward errors. If the measured result follows $\operatorname{diag}(S')$ rather than $\operatorname{diag}(S_{\mathrm{req}})$, that is expected when the generator removed a requested increment. A PASS line is only a pass for these declared gates; it is not a claim that the requested unrounded spectrum was computed.
+First confirm that the case ID, $n$, $g$, and requested/realized hashes are correct. Next confirm the theorem audit and product exactness. Then read $r_{\mathrm{eig}}$ and the matched forward errors. If the measured result follows $\mathrm{diag}(S')$ rather than the requested $\mathrm{diag}(S_{\mathrm{req}})$, that is expected when the generator removed a requested increment. A PASS line is only a pass for these declared gates; it is not a claim that the requested unrounded spectrum was computed.
 
 ## Common mistakes
 

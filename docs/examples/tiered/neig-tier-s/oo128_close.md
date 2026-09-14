@@ -25,7 +25,7 @@ s_1=1,\qquad s_2=1+2^{-80}+2^{-120},
 the remaining diagonal entries are $3,4,\ldots,n$, and every first-superdiagonal entry is 1. The fixed 128-bit generator rounds the shifted expression at $g=128$, producing $S'$ and then
 
 ```math
-A=\operatorname{RN}_{128}\!\left(Y\,\operatorname{RN}_{128}(S'X)\right).
+A=\mathrm{RN}_{128}\!\left(Y\,\mathrm{RN}_{128}(S'X)\right).
 ```
 
 The required realized gap is $s'_2-s'_1=2^{-80}$: the $2^{-120}$ requested increment is intentionally removed and must remain visible in the metadata.

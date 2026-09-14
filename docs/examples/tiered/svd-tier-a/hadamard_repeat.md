@@ -10,7 +10,7 @@ Smoke and demo: $n=8$. The close-pair $\delta$ is exactly zero, so
 $d=[4,2,1,1,1/2,1/4,1/8,1/16]$.
 
 ```math
-A=\frac{1}{n}H\operatorname{diag}(4,2,1,1,1/2,1/4,1/8,1/16)G^{\mathsf T}.
+A=\frac{1}{n}H\mathrm{diag}(4,2,1,1,1/2,1/4,1/8,1/16)G^{\mathsf T}.
 ```
 
 The singular value 1 has multiplicity two and its left/right model subspaces are the corresponding H/G column spans.

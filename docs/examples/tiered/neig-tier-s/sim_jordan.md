@@ -13,7 +13,7 @@ Define
 
 ```math
 J_{\mathrm{Jordan}}=
-\begin{bmatrix}1&1\\0&1\end{bmatrix}\oplus\operatorname{diag}(4,5,\ldots,n),
+\begin{bmatrix}1&1\\0&1\end{bmatrix}\oplus\mathrm{diag}(4,5,\ldots,n),
 \qquad A=YJ_{\mathrm{Jordan}}X,\qquad X=LU,\;Y=U^{-1}L^{-1}.
 ```
 

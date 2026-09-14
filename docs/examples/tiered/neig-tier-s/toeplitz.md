@@ -12,9 +12,9 @@ subdiagonal 1 and superdiagonal $2^{-2b}$.
 Let
 
 ```math
-A=\operatorname{tridiag}(1,3,2^{-2b}),\qquad
-B=\operatorname{tridiag}(2^{-b},3,2^{-b}),\qquad
-D=\operatorname{diag}(2^{b(j-1)})_{j=1}^n.
+A=\mathrm{tridiag}(1,3,2^{-2b}),\qquad
+B=\mathrm{tridiag}(2^{-b},3,2^{-b}),\qquad
+D=\mathrm{diag}(2^{b(j-1)})_{j=1}^n.
 ```
 
 The exact identities are

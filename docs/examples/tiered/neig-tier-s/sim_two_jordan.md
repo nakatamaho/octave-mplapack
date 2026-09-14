@@ -16,7 +16,7 @@ J_{\mathrm{two}}=
 \begin{bmatrix}1&1\\0&1\end{bmatrix}
 \oplus
 \begin{bmatrix}1+d&1\\0&1+d\end{bmatrix}
-\oplus\operatorname{diag}(4,5,\ldots,n-1),
+\oplus\mathrm{diag}(4,5,\ldots,n-1),
 \qquad d=2^{-a},
 ```
 

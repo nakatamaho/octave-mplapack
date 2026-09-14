@@ -11,7 +11,7 @@ $\varepsilon=2^{-80}$, and $\alpha=3/2$.
 
 ```math
 \alpha=\frac{3}{2},\qquad
-D=\operatorname{diag}(1,2,\ldots,2^{n-1}),\qquad
+D=\mathrm{diag}(1,2,\ldots,2^{n-1}),\qquad
 A=\alpha D P D^{-1}.
 ```
 

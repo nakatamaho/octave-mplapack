@@ -11,7 +11,7 @@ binary64.
 ## Mathematical problem
 
 The demo uses $m=16$, $b=40$, and scale exponent $s=600$. Let $H_m$ be a
-Sylvester Hadamard matrix and $B=H_m\operatorname{diag}(2^b)$. The unscaled
+Sylvester Hadamard matrix and $B=H_m\mathrm{diag}(2^b)$. The unscaled
 block is
 
 ```math

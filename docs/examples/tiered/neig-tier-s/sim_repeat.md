@@ -12,7 +12,7 @@ has algebraic and geometric multiplicity 2.
 With the same exact triangular inverse pair $X=LU$ and $Y=X^{-1}$ used by the neighboring similarity cases, set
 
 ```math
-J_{\mathrm{repeat}}=I_2\oplus\operatorname{diag}(4,5,\ldots,n),\qquad
+J_{\mathrm{repeat}}=I_2\oplus\mathrm{diag}(4,5,\ldots,n),\qquad
 A=YJ_{\mathrm{repeat}}X.
 ```
 

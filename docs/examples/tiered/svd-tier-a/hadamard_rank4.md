@@ -11,8 +11,8 @@ exact zeros.
 
 ```math
 d=[1,1/2,1/4,1/8,0,0,0,0],
-\qquad A=\frac{1}{n}H\operatorname{diag}(d)G^{\mathsf T},
-\qquad \operatorname{rank}(A)=4.
+\qquad A=\frac{1}{n}H\mathrm{diag}(d)G^{\mathsf T},
+\qquad \mathrm{rank}(A)=4.
 ```
 
 ## Why this problem is numerically difficult

@@ -10,7 +10,7 @@ Smoke: $n=8$, $a=4$. Demo: $n=16$, $a=8$. The exact diagonal values are
 $d_j=2^{-a(j-1)}$.
 
 ```math
-A=\frac{1}{n}H\operatorname{diag}(d_1,\ldots,d_n)G^{\mathsf T},
+A=\frac{1}{n}H\mathrm{diag}(d_1,\ldots,d_n)G^{\mathsf T},
 \qquad d_j=2^{-a(j-1)}.
 ```
 

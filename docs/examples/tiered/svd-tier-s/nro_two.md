@@ -10,7 +10,7 @@ Smoke: $m=4$, $b=12$, giving a $2m=8$ square matrix. Demo: $m=16$,
 $b=40$, giving a 32-by-32 matrix.
 
 ```math
-B=H_m\operatorname{diag}(w_1,\ldots,w_m),\qquad
+B=H_m\mathrm{diag}(w_1,\ldots,w_m),\qquad
 A=\begin{bmatrix}I_m&B\\0&I_m\end{bmatrix},\qquad w_j=2^b.
 ```
 

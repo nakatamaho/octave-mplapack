@@ -85,7 +85,7 @@ forward error, precision roles, output interpretation, common mistakes,
 scope, external references, and project provenance. The Markov/Perron pages
 explicitly distinguish the teleportation target $r$ from the nonuniform
 stationary vector $\pi$. The two-Jordan page explicitly uses the complement
-$\operatorname{diag}(4,5,\ldots,n-1)$, matching the generator.
+$\mathrm{diag}(4,5,\ldots,n-1)$, matching the generator.
 
 ## Math rendering
 

@@ -11,7 +11,7 @@ $\delta=2^{-100}$. The close pair is around one.
 
 ```math
 d=[4,2,1+\delta,1,1/2,1/4,1/8,1/16],
-\qquad A=\frac{1}{n}H\operatorname{diag}(d)G^{\mathsf T}.
+\qquad A=\frac{1}{n}H\mathrm{diag}(d)G^{\mathsf T}.
 ```
 
 The pair at indices 3 and 4 has gap delta and is otherwise separated from the remaining values.

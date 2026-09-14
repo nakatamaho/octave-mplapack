@@ -15,7 +15,7 @@ Let $N$ be the first-superdiagonal shift, $r=2^{-a}$, and $\varepsilon=r^n$. The
 F=I+N+\varepsilon e_n e_1^{\mathsf T}.
 ```
 
-Writing $P=N+e_ne_1^{\mathsf T}$, the exact scaled control is $F_{\mathrm{scaled}}=I+rP$, and with $D=\operatorname{diag}(1,r,\ldots,r^{n-1})$,
+Writing $P=N+e_ne_1^{\mathsf T}$, the exact scaled control is $F_{\mathrm{scaled}}=I+rP$, and with $D=\mathrm{diag}(1,r,\ldots,r^{n-1})$,
 
 ```math
 FD=D F_{\mathrm{scaled}}.

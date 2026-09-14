@@ -12,7 +12,7 @@ off-diagonals equal to $2^{-b}$.
 The control matrix is
 
 ```math
-B=\operatorname{tridiag}(2^{-b},3,2^{-b}).
+B=\mathrm{tridiag}(2^{-b},3,2^{-b}).
 ```
 
 For $\theta_k=k\pi/(n+1)$, the exact real eigenpairs are

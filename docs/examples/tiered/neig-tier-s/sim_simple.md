@@ -19,7 +19,7 @@ Let $N$ be the first-superdiagonal shift, $L=I+N^{\mathsf T}$, $U=I+N$, $X=LU$, 
 
 ```math
 J_{\mathrm{simple}}=
-\begin{bmatrix}1&1\\0&1+d\end{bmatrix}\oplus\operatorname{diag}(4,5,\ldots,n),
+\begin{bmatrix}1&1\\0&1+d\end{bmatrix}\oplus\mathrm{diag}(4,5,\ldots,n),
 \qquad d=2^{-a}.
 ```
 

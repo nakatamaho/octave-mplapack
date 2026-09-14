@@ -12,7 +12,7 @@ $\eta=2^{-100}$. Five positive source values are followed by three zeros.
 ```math
 d=[1,1/2,1/4,1/8,\eta,0,0,0],
 \qquad \eta=2^{-b},
-\qquad \operatorname{rank}(A)=5.
+\qquad \mathrm{rank}(A)=5.
 ```
 
 The fifth singular value is $\eta$ exactly in the model, while the last three are exact zeros.

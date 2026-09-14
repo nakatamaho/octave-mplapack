@@ -66,7 +66,7 @@ A PASS line is scoped to this case and profile. Compare rows only when parameter
 
 ## Common mistakes
 
-Do not compute the main answer from $T^{\mathsf T}T$, take $\sqrt{\lvert\operatorname{eig}(\cdot)\rvert}$ as an oracle, compare repeated columns individually, or claim the full-SVD null direction is a listed singular value.
+Do not compute the main answer from $T^{\mathsf T}T$, take $\sqrt{\lvert\mathrm{eig}(\cdot)\rvert}$ as an oracle, compare repeated columns individually, or claim the full-SVD null direction is a listed singular value.
 
 For diagnosis, verify case ID and shape, then model hash/input precision, then reconstruction and orthogonality, then the case-specific value or subspace metric. Do not change parameters after a failure and report the changed input as this case.
 

@@ -10,7 +10,7 @@ Smoke: $n=8$ and $s=16$. Demo: $n=16$ and $s=128$. $n$ is a power of two
 and $H$ is the Sylvester Hadamard matrix.
 
 ```math
-T=\operatorname{diag}(1,2,\ldots,n)+sN,\qquad
+T=\mathrm{diag}(1,2,\ldots,n)+sN,\qquad
 A=\frac{1}{n}HTH^{\mathsf T},\qquad HH^{\mathsf T}=nI.
 ```
 

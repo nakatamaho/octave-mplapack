@@ -10,7 +10,7 @@ Smoke: $m=4$, $b=12$. Demo: $m=16$, $b=40$. The first half of the weights
 are $2^b$ and the second half are zero.
 
 ```math
-B=H_m\operatorname{diag}(2^b,\ldots,2^b,0,\ldots,0),
+B=H_m\mathrm{diag}(2^b,\ldots,2^b,0,\ldots,0),
 \qquad A=\begin{bmatrix}I_m&B\\0&I_m\end{bmatrix}.
 ```
 

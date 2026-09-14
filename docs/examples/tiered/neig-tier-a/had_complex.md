@@ -10,7 +10,7 @@ Demo only: $n=16$ and $s=128$. The phase diagonal repeats $1$, $i$, $-1$, $i$
 and is applied by unitary similarity.
 
 ```math
-Z=\operatorname{diag}(1,i,-1,-i,\ldots),\qquad
+Z=\mathrm{diag}(1,i,-1,-i,\ldots),\qquad
 A_{\mathbb C}=ZAZ^{\mathsf H}.
 ```
 
