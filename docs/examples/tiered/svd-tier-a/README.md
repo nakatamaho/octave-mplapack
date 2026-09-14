@@ -2,6 +2,11 @@
 
 Tier A broadens the SVD path with Pascal and Vandermonde structure, raw versus dense bidiagonal representations, tall/wide/complex Läuchli shapes, known singular-value groups, exact rank controls, and a bounded-integer companion-like construction.
 
+The detailed pages print every small smoke or fixed control in full with exact
+integer or dyadic entries, including the small rectangular and complex
+Läuchli controls. The source matrix is kept separate from measured SVD output,
+and the exact generator comparison is `tools/check-smoke-matrices.sh`.
+
 ## Core equation and interpretation
 
 For $A\in\mathbb{C}^{m\times n}$:

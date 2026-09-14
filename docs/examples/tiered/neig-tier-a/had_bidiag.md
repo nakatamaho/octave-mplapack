@@ -30,6 +30,29 @@ The corresponding left/right condition reference is
 \left[\sum_{j=0}^{n-k}\frac{s^{2j}}{(j!)^2}\right]^{1/2}.
 ```
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: HAD_BIDIAG -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-1} \begin{bmatrix}
+37 & -5 & -6 & -4 & -8 & -4 & -4 & -4 \\
+3 & -19 & 4 & 2 & 4 & 0 & 4 & 4 \\
+2 & 4 & 13 & -29 & 4 & 4 & 0 & 4 \\
+-4 & -6 & 27 & 5 & -4 & -4 & -4 & -8 \\
+0 & 4 & 4 & 4 & 29 & -13 & -14 & -12 \\
+-4 & -8 & -4 & -4 & 11 & -11 & 12 & 10 \\
+-4 & -4 & -8 & -4 & 10 & 12 & 21 & -21 \\
+4 & 4 & 4 & 0 & -12 & -14 & 19 & -3
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `HAD_BIDIAG`. The matching [`had_bidiag.m`](../../../../examples/tiered/neig-tier-a/had_bidiag.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The spectrum is well separated while the eigenvectors are not. A dense orthogonal similarity hides the triangular structure, so the eigensolver must work in dense coordinates. Factorial recurrences create large and small components at once, and the left/right overlap determines individual eigenvalue sensitivity. Exact integer and dyadic entries make the input auditable, but an integer spectrum does not make every computed digit forward accurate.

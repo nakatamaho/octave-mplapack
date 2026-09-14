@@ -16,6 +16,29 @@ J(i,j)=J(i-1,j-1)+j(j+1)J(i-1,j),\qquad 1\le j\le i.
 
 The matrix is lower triangular with unit diagonal; its leading rows are [1], [0 1], [0 2 1], [0 4 8 1]. Therefore det(J)=1.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: S2-JS -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 2 & 1 & 0 & 0 & 0 & 0 & 0 \\
+0 & 4 & 8 & 1 & 0 & 0 & 0 & 0 \\
+0 & 8 & 52 & 20 & 1 & 0 & 0 & 0 \\
+0 & 16 & 320 & 292 & 40 & 1 & 0 & 0 \\
+0 & 32 & 1936 & 3824 & 1092 & 70 & 1 & 0 \\
+0 & 64 & 11648 & 47824 & 25664 & 3192 & 112 & 1
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `S2-JS`. The matching [`jacobi_stirling.m`](../../../../examples/tiered/svd-tier-s/jacobi_stirling.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The entries grow combinatorially while the diagonal remains one. A rounded lower-triangular input can still have full rank but a materially different small singular spectrum. The structural zero pattern also makes the phrase totally positive unsafe if it means every minor is strictly positive; the appropriate nonnegative terminology is part of the documentation.

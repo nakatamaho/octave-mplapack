@@ -23,6 +23,29 @@ Because $P$ is unitary, its eigenvalues are $\zeta_k=\exp(2\pi i k/n)$ and
 
 This matrix is unitarily diagonalizable and is related to the original Forsythe form by $FD=DF_{\mathrm{scaled}}$.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: FORSYTHE_SCALED -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 2^{-4} & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 1 & 2^{-4} & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 1 & 2^{-4} & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 & 2^{-4} & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 1 & 2^{-4} & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 & 2^{-4} & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 2^{-4} \\
+2^{-4} & 0 & 0 & 0 & 0 & 0 & 0 & 1
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `FORSYTHE_SCALED`. The matching [`forsythe_scaled.m`](../../../../examples/tiered/neig-tier-s/forsythe_scaled.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 This is the normal-coordinate control for the tiny cyclic perturbation. It asks whether the eigensolver can preserve a small but exactly representable displacement when no nonunitary diagonal scaling is present. The result should be interpreted with the original FORSYTHE case: equal spectra do not imply equal eigenvector conditioning or equal pseudospectra in the original coordinates. The control also makes the unit-circle matching metric transparent.

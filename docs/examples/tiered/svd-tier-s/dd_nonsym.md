@@ -20,6 +20,29 @@ A_{i,i-1}=-\rho,\quad A_{ii}=1+\rho+\tau,\quad A_{i,i+1}=-1,
 
 with A_{n,n-1}=-rho and A_{nn}=rho+tau. The row sums show A 1 = tau 1, which is an eigenvalue relation, not a singular-value formula.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: S4-DD-NONSYM -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+\frac{4294967297}{4294967296} & -1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+-2^{-1} & \frac{6442450945}{4294967296} & -1 & 0 & 0 & 0 & 0 & 0 \\
+0 & -2^{-1} & \frac{6442450945}{4294967296} & -1 & 0 & 0 & 0 & 0 \\
+0 & 0 & -2^{-1} & \frac{6442450945}{4294967296} & -1 & 0 & 0 & 0 \\
+0 & 0 & 0 & -2^{-1} & \frac{6442450945}{4294967296} & -1 & 0 & 0 \\
+0 & 0 & 0 & 0 & -2^{-1} & \frac{6442450945}{4294967296} & -1 & 0 \\
+0 & 0 & 0 & 0 & 0 & -2^{-1} & \frac{6442450945}{4294967296} & -1 \\
+0 & 0 & 0 & 0 & 0 & 0 & -2^{-1} & \frac{2147483649}{4294967296}
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `S4-DD-NONSYM`. The matching [`dd_nonsym.m`](../../../../examples/tiered/svd-tier-s/dd_nonsym.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 Biasing the subdiagonal destroys symmetry while retaining diagonal dominance. The constant row-sum relation gives a useful eigenvalue control but does not determine σ_min. This is a direct guard against replacing a nonsymmetric SVD problem by an eigenvalue calculation. The small tau can also disappear in a below-guard rounded input.

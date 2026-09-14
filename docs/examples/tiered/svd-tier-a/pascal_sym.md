@@ -18,6 +18,29 @@ P=QQ^{\mathsf T},
 Because $Q$ is unit lower triangular, $P$ is positive definite and
 $\det(P)=1$.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A1-PASCAL-SYM -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 \\
+1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+1 & 3 & 6 & 10 & 15 & 21 & 28 & 36 \\
+1 & 4 & 10 & 20 & 35 & 56 & 84 & 120 \\
+1 & 5 & 15 & 35 & 70 & 126 & 210 & 330 \\
+1 & 6 & 21 & 56 & 126 & 252 & 462 & 792 \\
+1 & 7 & 28 & 84 & 210 & 462 & 924 & 1716 \\
+1 & 8 & 36 & 120 & 330 & 792 & 1716 & 3432
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A1-PASCAL-SYM`. The matching [`pascal_sym.m`](../../../../examples/tiered/svd-tier-a/pascal_sym.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The dense symmetric product has exact combinatorial entries, large growth, and a clean positive-definite model. It is a useful contrast with the nonsymmetric triangular factor: symmetry enables an orthogonal factor interpretation, but it does not remove the singular-value dynamic range. Forming P by an exact product and checking the closed form prevents a hidden source inconsistency.

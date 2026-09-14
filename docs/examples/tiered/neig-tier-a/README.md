@@ -2,6 +2,10 @@
 
 Tier A is the broad advanced-example path. These cases retain exact integer/dyadic models while introducing eigenvalue conditioning, companion-polynomial diagnostics, pseudospectrum probes, stochastic/Perron structure, and a complex phase control. Each row is one conceptual case with one runnable entry point and one detailed mathematical explanation.
 
+The detailed pages print every small smoke or fixed control in full with exact
+integer or dyadic entries. The source matrix is not solver output, and source
+precision remains separate from measured eigensystem precision.
+
 ## Common diagnostic language
 
 For right eigenvectors V and left eigenvectors W:

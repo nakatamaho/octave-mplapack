@@ -15,6 +15,29 @@ A=\frac{1}{n}H\mathrm{diag}(4,2,1,1,1/2,1/4,1/8,1/16)G^{\mathsf T}.
 
 The singular value 1 has multiplicity two and its left/right model subspaces are the corresponding H/G column spans.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A5-REPEAT -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-7} \begin{bmatrix}
+29 & 143 & 37 & 73 & 35 & 113 & 27 & 55 \\
+55 & 37 & 143 & 35 & 73 & 27 & 113 & 29 \\
+27 & 73 & 35 & 143 & 37 & 55 & 29 & 113 \\
+113 & 35 & 73 & 37 & 143 & 29 & 55 & 27 \\
+35 & 113 & 27 & 55 & 29 & 143 & 37 & 73 \\
+73 & 27 & 113 & 29 & 55 & 37 & 143 & 35 \\
+37 & 55 & 29 & 113 & 27 & 73 & 35 & 143 \\
+143 & 29 & 55 & 27 & 113 & 35 & 73 & 37
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A5-REPEAT`. The matching [`hadamard_repeat.m`](../../../../examples/tiered/svd-tier-a/hadamard_repeat.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 A repeated singular value makes individual left and right vectors nonunique. This dense construction is designed so the target is a projector or subspace, not a particular factor basis. It is a semantic test: a checker that matches columns one by one can report failure for two mathematically correct SVDs.

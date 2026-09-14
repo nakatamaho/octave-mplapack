@@ -23,6 +23,10 @@ required=(
   docs/examples/tiered/GLOSSARY.md
   tools/check-tiered-math.sh
   tools/check-github-math.sh
+  tools/check-smoke-matrices.sh
+  tools/check-smoke-matrices.py
+  tools/dump_smoke_matrices.m
+  tools/format_smoke_matrices.py
   AGENTS.md
 )
 for path in "${required[@]}"; do
@@ -220,6 +224,15 @@ if [[ -x tools/check-github-math.sh ]]; then
   fi
 else
   echo "FAIL: missing tools/check-github-math.sh" >&2
+  fail=1
+fi
+
+if [[ -x tools/check-smoke-matrices.sh ]]; then
+  if ! tools/check-smoke-matrices.sh; then
+    fail=1
+  fi
+else
+  echo "FAIL: missing tools/check-smoke-matrices.sh" >&2
   fail=1
 fi
 

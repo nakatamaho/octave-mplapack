@@ -17,6 +17,29 @@ d=[1,1/2,1/4,1/8,\eta,0,0,0],
 
 The fifth singular value is $\eta$ exactly in the model, while the last three are exact zeros.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A5-RANK5 -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-35} \begin{bmatrix}
+1610612735 & 8053063681 & 2684354561 & 4831838209 & 1610612737 & 8053063679 & 2684354559 & 4831838207 \\
+4831838207 & 2684354561 & 8053063681 & 1610612737 & 4831838209 & 2684354559 & 8053063679 & 1610612735 \\
+2684354559 & 4831838209 & 1610612737 & 8053063681 & 2684354561 & 4831838207 & 1610612735 & 8053063679 \\
+8053063679 & 1610612737 & 4831838209 & 2684354561 & 8053063681 & 1610612735 & 4831838207 & 2684354559 \\
+1610612737 & 8053063679 & 2684354559 & 4831838207 & 1610612735 & 8053063681 & 2684354561 & 4831838209 \\
+4831838209 & 2684354559 & 8053063679 & 1610612735 & 4831838207 & 2684354561 & 8053063681 & 1610612737 \\
+2684354561 & 4831838207 & 1610612735 & 8053063679 & 2684354559 & 4831838209 & 1610612737 & 8053063681 \\
+8053063681 & 1610612735 & 4831838207 & 2684354559 & 8053063679 & 1610612737 & 4831838209 & 2684354561
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A5-RANK5`. The matching [`hadamard_rank5.m`](../../../../examples/tiered/svd-tier-a/hadamard_rank5.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The fifth value sits next to a null space and can be confused with zero by a low-precision or threshold-only test. The five-dimensional range is the stable rank target; the individual vector associated with $\eta$ can be sensitive to the gap from zero. The exact dyadic $\eta$ must be kept separate from any native rounded input.

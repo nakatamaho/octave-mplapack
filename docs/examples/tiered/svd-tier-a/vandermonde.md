@@ -16,6 +16,29 @@ V_{ij}=x_i^{j-1},\qquad x_i=i/2^d,
 
 The nodes are distinct because $n<2^d$ in the selected profiles.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A2-VAND -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-28} \begin{bmatrix}
+268435456 & 16777216 & 1048576 & 65536 & 4096 & 256 & 16 & 1 \\
+268435456 & 33554432 & 4194304 & 524288 & 65536 & 8192 & 1024 & 128 \\
+268435456 & 50331648 & 9437184 & 1769472 & 331776 & 62208 & 11664 & 2187 \\
+268435456 & 67108864 & 16777216 & 4194304 & 1048576 & 262144 & 65536 & 16384 \\
+268435456 & 83886080 & 26214400 & 8192000 & 2560000 & 800000 & 250000 & 78125 \\
+268435456 & 100663296 & 37748736 & 14155776 & 5308416 & 1990656 & 746496 & 279936 \\
+268435456 & 117440512 & 51380224 & 22478848 & 9834496 & 4302592 & 1882384 & 823543 \\
+268435456 & 134217728 & 67108864 & 33554432 & 16777216 & 8388608 & 4194304 & 2097152
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A2-VAND`. The matching [`vandermonde.m`](../../../../examples/tiered/svd-tier-a/vandermonde.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 Vandermonde powers amplify small node errors and produce a rapidly changing singular spectrum even when every node is an exact dyadic. The determinant identity proves nonsingularity but is not a useful accuracy bound for individual singular values. Building successive powers in MP is part of the input contract; native decimal or binary64 nodes would define a different matrix.

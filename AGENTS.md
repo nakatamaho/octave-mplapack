@@ -114,6 +114,18 @@ Do not mark a public feature PASS while any required documentation or example
 is knowingly missing. Deferred or unsupported forms must be documented
 explicitly and must not be implemented through a builtin binary64 fallback.
 
+## Explicit small-matrix documentation
+
+Every reasonably small smoke or fixed matrix used by the NEIG/SVD example
+families must be printed in full in its detailed Markdown page. This includes
+all n=8 square smoke matrices, the selected n=10 Wilkinson control, and the
+small rectangular controls. Use GitHub-safe fenced math with `bmatrix` or
+`pmatrix`, and write integer or exact dyadic entries rather than long decimal
+approximations. The page must identify the matching generator, distinguish the
+source matrix from measured solver output, and state the source/generation
+precision and any exact widening separately. The deterministic comparison is
+performed by `tools/check-smoke-matrices.sh`.
+
 ## Native value invariants
 
 37. Native Octave payloads are immutable.

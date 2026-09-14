@@ -22,6 +22,29 @@ a_j=\frac{\sqrt{\beta_j^2+4}+\beta_j}{2},\qquad
 b_j=\frac{2}{\sqrt{\beta_j^2+4}+\beta_j}.
 ```
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: S1-NRO-TWO -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 0 & 0 & 0 & 4096 & 4096 & 4096 & 4096 \\
+0 & 1 & 0 & 0 & 4096 & -4096 & 4096 & -4096 \\
+0 & 0 & 1 & 0 & 4096 & 4096 & -4096 & -4096 \\
+0 & 0 & 0 & 1 & 4096 & -4096 & -4096 & 4096 \\
+0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `S1-NRO-TWO`. The matching [`nro_two.m`](../../../../examples/tiered/svd-tier-s/nro_two.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The input is integer/dyadic and full rank, but the off-diagonal block makes reciprocal singular values as large and small as beta. Orthogonal reduction shows the spectrum exactly, while a dense SVD must still materialize A and compute factors. The small value must be evaluated by the reciprocal formula; subtracting nearly equal square roots would create an avoidable loss. The demo reaches a large condition range without asking native arithmetic to fail.

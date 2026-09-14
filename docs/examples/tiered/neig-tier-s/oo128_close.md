@@ -30,6 +30,29 @@ A=\mathrm{RN}_{128}\!\left(Y\,\mathrm{RN}_{128}(S'X)\right).
 
 The required realized gap is $s'_2-s'_1=2^{-80}$: the $2^{-120}$ requested increment is intentionally removed and must remain visible in the metadata.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: OO128_CLOSE -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-80} \begin{bmatrix}
+10880332376531662572355577 & 25387442211907212668829682 & 10880332376531662572355577 & -2417851639229258349412352 & 2417851639229258349412352 & -2417851639229258349412352 & 2417851639229258349412352 & -1208925819614629174706176 \\
+-8462480737302404222943225 & -21760664753063325144711154 & -9671406556917033397649401 & 2417851639229258349412352 & -2417851639229258349412352 & 2417851639229258349412352 & -2417851639229258349412352 & 1208925819614629174706176 \\
+7253554917687775048237050 & 21760664753063325144711156 & 12089258196146291747061754 & -1208925819614629174706176 & 2417851639229258349412352 & -2417851639229258349412352 & 2417851639229258349412352 & -1208925819614629174706176 \\
+-6044629098073145873530875 & -18133887294219437620592630 & -6044629098073145873530875 & 6044629098073145873530880 & -1208925819614629174706176 & 2417851639229258349412352 & -2417851639229258349412352 & 1208925819614629174706176 \\
+4835703278458516698824700 & 14507109835375550096474104 & 4835703278458516698824700 & 0 & 7253554917687775048237056 & -1208925819614629174706176 & 2417851639229258349412352 & -1208925819614629174706176 \\
+-3626777458843887524118525 & -10880332376531662572355578 & -3626777458843887524118525 & 0 & 0 & 8462480737302404222943232 & -1208925819614629174706176 & 1208925819614629174706176 \\
+2417851639229258349412350 & 7253554917687775048237052 & 2417851639229258349412350 & 0 & 0 & 0 & 9671406556917033397649408 & 0 \\
+-1208925819614629174706175 & -3626777458843887524118526 & -1208925819614629174706175 & 0 & 0 & 0 & 0 & 9671406556917033397649408
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `OO128_CLOSE`. The matching [`oo128_close.m`](../../../../examples/tiered/neig-tier-s/oo128_close.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 This case separates source/model fidelity from eigensolver precision. The target roots are close relative to their magnitude, and the requested form includes a tail below the selected generation lattice. If a reader sees a 256-bit eig run and assumes all requested bits are present, the experiment has been misread. Conversely, if the dense products are evaluated at insufficient precision, a product error can be mistaken for the intended quantization. The test therefore has two distinct questions: did the prescribed $g=128$ generator realize exactly the documented $S'$, and can later MP arithmetic recover the spectrum of that realized dense matrix?

@@ -2,6 +2,11 @@
 
 Tier S is the study path for cases where a residual-only eigensystem check is not enough. The cases progress from a specified eigenvalue generator to exact similarities, representation-sensitive Toeplitz/Forsythe pairs, and a genuine Jordan limit. Each row below is one conceptual case, one runnable .m file, and one detailed mathematical page.
 
+The detailed pages print every small smoke matrix in full with exact integer or
+dyadic entries. Source/generation precision, exact widening, and measured
+eigensolver output remain separate; `tools/check-smoke-matrices.sh` verifies
+the displayed matrices against the existing constructors.
+
 ## What to know first
 
 The public result is interpreted as a right relation

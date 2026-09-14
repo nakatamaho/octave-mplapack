@@ -32,6 +32,29 @@ and then scales $w$ so that $w^{\mathsf T}v=1$. The vectors $r$ and $\pi$ are
 deliberately distinct objects: $r$ defines teleportation, while $\pi$ is the
 left stationary vector computed from the Markov equation.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: PERRON_POS -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-39} \begin{bmatrix}
+618475278336 & 103079215104 & 1536 & 384 & 96 & 24 & 6 & 3 \\
+49152 & 618475266048 & 103079212032 & 768 & 192 & 48 & 12 & 6 \\
+98304 & 24576 & 618475259904 & 103079210496 & 384 & 96 & 24 & 12 \\
+1649267539968 & 49152 & 12288 & 618475256832 & 768 & 192 & 48 & 24 \\
+393216 & 98304 & 24576 & 6144 & 721554464256 & 51539604864 & 96 & 48 \\
+786432 & 196608 & 49152 & 12288 & 3072 & 721554463488 & 51539604672 & 96 \\
+1572864 & 393216 & 98304 & 24576 & 6144 & 1536 & 721554463104 & 51539604672 \\
+3145728 & 786432 & 196608 & 49152 & 824633683968 & 3072 & 768 & 721554463104
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `PERRON_POS`. The matching [`perron_pos.m`](../../../../examples/tiered/neig-tier-a/perron_pos.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 Positivity is preserved while a nonunitary diagonal similarity creates a large coordinate dynamic range. A solver can satisfy a small residual with a poorly normalized vector, and checking only the right equation misses the nontrivial left vector. The scale 3/2 also distinguishes this matrix from the stochastic model.

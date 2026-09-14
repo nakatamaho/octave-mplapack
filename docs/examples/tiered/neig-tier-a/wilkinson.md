@@ -23,6 +23,31 @@ first subdiagonal. The complex coefficientwise indicator is
 \qquad c_0=1.
 ```
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: WILKINSON -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+55 & -1320 & 18150 & -157773 & 902055 & -3416930 & 8409500 & -12753576 & 10628640 & -3628800 \\
+1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `WILKINSON`. The matching [`wilkinson.m`](../../../../examples/tiered/neig-tier-a/wilkinson.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The roots are simple integers, but the coefficient vector contains large cancellation and the companion problem magnifies coefficient perturbations. A matrix residual is a backward statement for $C$, whereas $\eta_{\mathrm{poly}}$ is a coefficientwise backward statement for $p_n$; neither is the root's forward error. The example catches unsafe coefficient construction from native poly.

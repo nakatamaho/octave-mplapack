@@ -16,6 +16,29 @@ d=[4,2,1+\delta,1,1/2,1/4,1/8,1/16],
 
 The pair at indices 3 and 4 has gap delta and is otherwise separated from the remaining values.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A5-CLOSE -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-35} \begin{bmatrix}
+7784628223 & 38386270209 & 9932111873 & 19595788287 & 9395240959 & 30333206529 & 7247757313 & 14763950079 \\
+14763950079 & 9932111873 & 38386270209 & 9395240959 & 19595788287 & 7247757313 & 30333206529 & 7784628223 \\
+7247757313 & 19595788287 & 9395240959 & 38386270209 & 9932111873 & 14763950079 & 7784628223 & 30333206529 \\
+30333206529 & 9395240959 & 19595788287 & 9932111873 & 38386270209 & 7784628223 & 14763950079 & 7247757313 \\
+9395240959 & 30333206529 & 7247757313 & 14763950079 & 7784628223 & 38386270209 & 9932111873 & 19595788287 \\
+19595788287 & 7247757313 & 30333206529 & 7784628223 & 14763950079 & 9932111873 & 38386270209 & 9395240959 \\
+9932111873 & 14763950079 & 7784628223 & 30333206529 & 7247757313 & 19595788287 & 9395240959 & 38386270209 \\
+38386270209 & 7784628223 & 14763950079 & 7247757313 & 30333206529 & 9395240959 & 19595788287 & 9932111873
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A5-CLOSE`. The matching [`hadamard_close.m`](../../../../examples/tiered/svd-tier-a/hadamard_close.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The close pair is a forward-accuracy and subspace test. When delta is small, individual singular vectors can rotate substantially under tiny perturbations even though the two-dimensional subspace is stable. A binary64 source can lose delta entirely; a high-precision run must preserve it as part of the exact dyadic model.

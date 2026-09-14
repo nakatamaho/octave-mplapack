@@ -20,6 +20,12 @@ The residuals are backward-style equation diagnostics. Forward error additionall
 
 The examples use only the public arbitrary-precision interfaces. Input/source precision, operation/work precision, and mathematical conditioning are separate fields. A displayed conversion to binary64 is a presentation boundary, never an unreported numerical fallback.
 
+Every reasonably small smoke or fixed matrix is shown in full on its detailed
+page using exact integer or dyadic notation. The displayed source matrix is
+kept separate from measured eig/SVD output, and fixed-generation precision is
+kept separate from any exact widening and solver precision. The matrix audit
+is `tools/check-smoke-matrices.sh`.
+
 ## Family guides
 
 | Family | Cases | Purpose | Guide |

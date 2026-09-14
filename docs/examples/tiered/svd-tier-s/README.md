@@ -2,6 +2,11 @@
 
 Tier S is the SVD learning path for matrices whose singular values, subspaces, or exponent ranges defeat a residual-only reading. The NRO family begins with exact integer block matrices, Jacobi–Stirling and Lah cases exercise combinatorial growth, and the diagonally dominant pair separates an analytic symmetric tail from a genuinely nonsymmetric SVD.
 
+The detailed pages print every small smoke matrix in full with exact integer or
+dyadic entries. The source/model matrix, fixed-generation precision, any exact
+widening, and the measured SVD output are kept as distinct objects; the exact
+matrix audit is `tools/check-smoke-matrices.sh`.
+
 ## Core equation
 
 For $A\in\mathbb{C}^{m\times n}$, the measured factorization is

@@ -16,6 +16,29 @@ B_{ii}=2^{-a(i-1)},
 
 Every nonzero entry has a one-bit significand; the raw matrix is upper bidiagonal and full rank.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A3-BDI-RAW -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 2^{-1} & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 2^{-4} & 2^{-5} & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 2^{-8} & 2^{-9} & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 2^{-12} & 2^{-13} & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 2^{-16} & 2^{-17} & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 2^{-20} & 2^{-21} & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 2^{-24} & 2^{-25} \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 2^{-28}
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A3-BDI-RAW`. The matching [`bidiag_raw.m`](../../../../examples/tiered/svd-tier-a/bidiag_raw.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 Bidiagonal structure is the natural setting for relative-accuracy singular-value ideas, but this page still measures the public dense SVD interface. The small tail spans several powers of two and is sensitive to input rounding. Exact dyadic construction makes it possible to separate loss in the model from loss in the decomposition.

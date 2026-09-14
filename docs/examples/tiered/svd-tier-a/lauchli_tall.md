@@ -16,6 +16,26 @@ T=\begin{bmatrix}\mathbf{1}^{\mathsf T}\\ \mu I_n\end{bmatrix},
 
 The singular values are $\sqrt{n+\mu^2}$, followed by $n-1$ copies of $\mu$.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A4-LAU-TALL -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 1 & 1 & 1 \\
+2^{-20} & 0 & 0 & 0 \\
+0 & 2^{-20} & 0 & 0 \\
+0 & 0 & 2^{-20} & 0 \\
+0 & 0 & 0 & 2^{-20}
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A4-LAU-TALL`. The matching [`lauchli_tall.m`](../../../../examples/tiered/svd-tier-a/lauchli_tall.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The small singular group is controlled by μ while the normal-equation matrix contains μ^2, which is much easier to lose. This is a rank-sensitive example with a repeated small singular value; individual small singular vectors are not identifiable. The exact Gram identity is a control, not a replacement for measuring T with svd.

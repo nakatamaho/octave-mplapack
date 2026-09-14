@@ -16,6 +16,29 @@ A=\frac{1}{n}HBG^{\mathsf T},
 
 The two-sided orthogonal equivalence preserves singular values exactly, but it is not an eigenvalue similarity.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A3-BDI-MIXED -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-31} \begin{bmatrix}
+108558727 & 429496729 & 126322567 & 409442407 & 108627577 & 429418087 & 126253177 & 409364377 \\
+158824073 & 378967703 & 143165577 & 392730473 & 158763383 & 379021673 & 143226743 & 392784023 \\
+109541753 & 426154343 & 125339513 & 412653721 & 109479559 & 426206873 & 125401223 & 412706663 \\
+159938167 & 376018537 & 142051447 & 395810711 & 160008585 & 375941527 & 141981577 & 395733097 \\
+108562041 & 429483623 & 126318713 & 409429913 & 108624263 & 429431193 & 126257031 & 409376871 \\
+158828919 & 378956137 & 143161207 & 392718487 & 158758537 & 379033239 & 143231113 & 392796009 \\
+109545095 & 426141337 & 125335687 & 412641127 & 109476217 & 426219879 & 125405049 & 412719257 \\
+159943049 & 376007063 & 142047113 & 395798633 & 160003703 & 375953001 & 141985911 & 395745175
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A3-BDI-MIXED`. The matching [`bidiag_mixed.m`](../../../../examples/tiered/svd-tier-a/bidiag_mixed.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The mixed matrix has the same singular spectrum as the raw bidiagonal but dense signed entries and a different reduction path. It tests whether the public SVD handles a dense representation without confusing orthogonal equivalence with similarity. The product is a finite sum of dyadic terms and must be constructed at a declared precision.

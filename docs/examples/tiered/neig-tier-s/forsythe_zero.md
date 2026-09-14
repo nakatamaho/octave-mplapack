@@ -21,6 +21,29 @@ Its only eigenvalue is 1 with algebraic multiplicity n and geometric multiplicit
 (F_0-I)^n=0,\qquad (F_0-I)^{n-1}\ne0.
 ```
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: FORSYTHE_ZERO -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `FORSYTHE_ZERO`. The matching [`forsythe_zero.m`](../../../../examples/tiered/neig-tier-s/forsythe_zero.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 This is not a failed version of the nonzero Forsythe test. It is a deliberate boundary case where no full eigenbasis exists and all individual eigenvectors are maximally nonunique in the defective sense. The right success condition is an invariant block or a generalized chain, not n independent vectors. Keeping this case separate prevents a certificate framework from silently converting an exact Jordan block into a diagonal matrix because a numerical eig call printed repeated roots.

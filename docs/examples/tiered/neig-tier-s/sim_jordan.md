@@ -23,6 +23,29 @@ The root 1 has algebraic multiplicity two but only one independent eigenvector. 
 A(Y e_2)=Y e_2+Y e_1.
 ```
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: SIM_JORDAN -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+9 & 34 & 24 & -2 & 2 & -2 & 2 & -2 \\
+-7 & -31 & -23 & 2 & -2 & 2 & -2 & 2 \\
+6 & 30 & 23 & -2 & 2 & -2 & 2 & -2 \\
+-5 & -25 & -15 & 6 & -2 & 2 & -2 & 2 \\
+4 & 20 & 12 & 0 & 7 & -2 & 2 & -2 \\
+-3 & -15 & -9 & 0 & 0 & 8 & -2 & 2 \\
+2 & 10 & 6 & 0 & 0 & 0 & 9 & -2 \\
+-1 & -5 & -3 & 0 & 0 & 0 & 0 & 10
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `SIM_JORDAN`. The matching [`sim_jordan.m`](../../../../examples/tiered/neig-tier-s/sim_jordan.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The Jordan block is the explicit counterexample to the idea that a full eigenbasis always exists. Near a defective matrix, computed eigenvalues can split and computed vectors can become extremely sensitive; at the exact model, requiring two independent eigenvectors is mathematically impossible. The correct numerical object is the invariant two-dimensional subspace and, when requested, a block Schur factor. The example is also a guard against calling a nontrivial projector certificate a proof of diagonalizability.

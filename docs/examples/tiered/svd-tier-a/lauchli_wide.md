@@ -16,6 +16,25 @@ W=T^{\mathsf T}=\begin{bmatrix}\mathbf{1}&\mu I_n\end{bmatrix},
 
 The nonzero singular values are the same as for T, but left and right singular subspaces exchange roles.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A4-LAU-WIDE -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 2^{-20} & 0 & 0 & 0 \\
+1 & 0 & 2^{-20} & 0 & 0 \\
+1 & 0 & 0 & 2^{-20} & 0 \\
+1 & 0 & 0 & 0 & 2^{-20}
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A4-LAU-WIDE`. The matching [`lauchli_wide.m`](../../../../examples/tiered/svd-tier-a/lauchli_wide.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The wide form checks shape-aware SVD semantics and conjugate/transposed factor orientation. The repeated small group remains non-identifiable, but it lives on the opposite side from the tall formulation. A routine that assumes m≥n or compares the wrong projector can pass a scalar-value test while returning wrong factors.

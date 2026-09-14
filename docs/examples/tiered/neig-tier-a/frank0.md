@@ -32,6 +32,31 @@ f(z)=
 \right.
 ```
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: FRANK0 -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+8 & 7 & 6 & 5 & 4 & 3 & 2 & 1 \\
+7 & 7 & 6 & 5 & 4 & 3 & 2 & 1 \\
+0 & 6 & 6 & 5 & 4 & 3 & 2 & 1 \\
+0 & 0 & 5 & 5 & 4 & 3 & 2 & 1 \\
+0 & 0 & 0 & 4 & 4 & 3 & 2 & 1 \\
+0 & 0 & 0 & 0 & 3 & 3 & 2 & 1 \\
+0 & 0 & 0 & 0 & 0 & 2 & 2 & 1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 1
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `FRANK0`. The matching [`frank0.m`](../../../../examples/tiered/neig-tier-a/frank0.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+For `FRANK0`, the displayed array is the exact integer upper-Hessenberg orientation. Representative formula checks are $(F_0)_{11}=8$, $(F_0)_{18}=1$, $(F_0)_{43}=5$, and $(F_0)_{42}=0$.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 Frank matrices are integer and structured, but small positive eigenvalues and reciprocal pairing make relative accuracy important. The orientation convention is part of the case: a reflected gallery matrix with a different flag is not silently substituted. The Jacobi map provides an independent reference and a cancellation-safe formula for the small branch.

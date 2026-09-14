@@ -16,6 +16,30 @@ T_c=D_L T D_R,
 
 Two-sided unitary phase factors preserve singular values and transform the singular subspaces by D_L and D_R.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A4-LAU-COMPLEX -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & -1i & -1 & 1i & 1 & -1i & -1 & 1i \\
+2^{-100}i & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 2^{-100}i & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 2^{-100}i & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 2^{-100}i & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 2^{-100}i & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 2^{-100}i & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 2^{-100}i & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 2^{-100}i
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A4-LAU-COMPLEX`. The matching [`lauchli_complex.m`](../../../../examples/tiered/svd-tier-a/lauchli_complex.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+This fixed demo configuration is deliberately small enough to inspect in full. It is a demo-only manifest row rather than a smoke-profile row, and the displayed matrix is the exact input for that complex phase control.
+
 ## Why this problem is numerically difficult
 
 This is a complex SVD interface control: the value spectrum is unchanged but both factor sides become genuinely complex. It catches transpose-only code and binary64 complex fallback. The repeated small group remains a subspace target, so phase changes cannot be mistaken for numerical failure.

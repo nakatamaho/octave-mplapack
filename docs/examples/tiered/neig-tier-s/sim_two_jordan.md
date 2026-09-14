@@ -22,6 +22,29 @@ J_{\mathrm{two}}=
 
 and $A=YJ_{\mathrm{two}}X$ with the exact inverse pair $X=LU$, $Y=U^{-1}L^{-1}$. The two clusters each have algebraic multiplicity 2 and geometric multiplicity 1; their union has dimension four.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: SIM_TWO_JORDAN -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-12} \begin{bmatrix}
+36864 & 65542 & 57351 & 98300 & 73723 & -8192 & 8192 & -8192 \\
+-28672 & -53254 & -53255 & -98300 & -73723 & 8192 & -8192 & 8192 \\
+24576 & 49158 & 53255 & 98300 & 73723 & -8192 & 8192 & -8192 \\
+-20480 & -40965 & -40965 & -86011 & -69627 & 8192 & -8192 & 8192 \\
+16384 & 32772 & 32772 & 81916 & 69628 & -8192 & 8192 & -8192 \\
+-12288 & -24579 & -24579 & -61437 & -36861 & 24576 & -8192 & 8192 \\
+8192 & 16386 & 16386 & 40958 & 24574 & 0 & 28672 & -8192 \\
+-4096 & -8193 & -8193 & -20479 & -12287 & 0 & 0 & 32768
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `SIM_TWO_JORDAN`. The matching [`sim_two_jordan.m`](../../../../examples/tiered/neig-tier-s/sim_two_jordan.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 This case makes cluster selection itself part of the problem. At high enough precision the two defective blocks are separated, but a lower-precision inclusion region can merge them. A simple-root solver diagnostic is invalid inside either block, while a four-dimensional invariant-subspace statement is valid for the union. The dense similarity also means that the coordinate block basis is not orthogonal, so a naive Euclidean comparison can overstate or understate the actual subspace error.

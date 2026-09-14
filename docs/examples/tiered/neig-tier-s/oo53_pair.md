@@ -24,6 +24,29 @@ The requested $S_{\mathrm{req}}$ places $B_j$ on the diagonal and $8I_2$ on each
 
 where $a'_j,b'_j$ are the realized, once-quantized entries.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: OO53_PAIR -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-3} \begin{bmatrix}
+23 & 646 & 744 & 130 & 148 & 94 & 96 & -93 \\
+-14 & -572 & -615 & -66 & -148 & -94 & -96 & 93 \\
+12 & 513 & 558 & 130 & 212 & 94 & 96 & -93 \\
+-10 & -430 & -450 & -100 & -145 & -30 & -96 & 93 \\
+8 & 344 & 360 & 115 & 166 & 94 & 160 & -93 \\
+-6 & -258 & -270 & -90 & -102 & -44 & -91 & 157 \\
+4 & 172 & 180 & 60 & 68 & 69 & 126 & -93 \\
+-2 & -86 & -90 & -30 & -34 & -38 & -42 & 99
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `OO53_PAIR`. The matching [`oo53_pair.m`](../../../../examples/tiered/neig-tier-s/oo53_pair.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The pair case tests a subtle representation invariant rather than merely asking for complex output. A pair block is real, but its eigenvalues are complex conjugates, and the full block upper-triangular standard form need not be normal because of the $8I_2$ couplings. Quantizing the upper $b$ and lower $-b$ independently can break the exact conjugate block structure by one ulp. The specified sign-copy rule avoids that error: quantize the shared magnitude once and form the lower entry by exact negation. The dense $A$ then inherits a nontrivial nonnormal eigenvector problem while its requested pair geometry is known.

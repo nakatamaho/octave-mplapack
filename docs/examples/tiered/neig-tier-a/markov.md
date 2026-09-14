@@ -37,6 +37,29 @@ vector. The stationary row is
 Thus the right Perron vector of $P$ is $\mathbf{1}$, whereas its left
 stationary vector is the nonuniform $\pi$.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: MARKOV -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-31} \begin{bmatrix}
+1610612704 & 536870912 & 16 & 8 & 4 & 2 & 1 & 1 \\
+64 & 1610612672 & 536870896 & 8 & 4 & 2 & 1 & 1 \\
+64 & 32 & 1610612656 & 536870888 & 4 & 2 & 1 & 1 \\
+536870944 & 32 & 16 & 1610612648 & 4 & 2 & 1 & 1 \\
+64 & 32 & 16 & 8 & 1879048084 & 268435442 & 1 & 1 \\
+64 & 32 & 16 & 8 & 4 & 1879048082 & 268435441 & 1 \\
+64 & 32 & 16 & 8 & 4 & 2 & 1879048081 & 268435441 \\
+64 & 32 & 16 & 8 & 268435444 & 2 & 1 & 1879048081
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `MARKOV`. The matching [`markov.m`](../../../../examples/tiered/neig-tier-a/markov.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The Perron root is known, but the stationary vector is a nontrivial left eigenvector. Rank-one dyadic mixing makes the chain irreducible while preserving an exact model. A row-sum check tests only the right vector and can miss a broken left convention. Non-Perron roots are outside the Perron certificate.

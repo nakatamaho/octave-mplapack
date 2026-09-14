@@ -31,6 +31,29 @@ A=YJ_{\mathrm{simple}}X,\qquad X A=J_{\mathrm{simple}}X,\quad A Y=YJ_{\mathrm{si
 
 Its spectrum is simple, but the first two roots are only d apart and the leading block has a large off-diagonal relative to that gap.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: SIM_SIMPLE -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+9 & 34 & 24 & -2 & 2 & -2 & 2 & -2 \\
+-7 & -31 & -23 & 2 & -2 & 2 & -2 & 2 \\
+6 & 30 & 23 & -2 & 2 & -2 & 2 & -2 \\
+-5 & -25 & -15 & 6 & -2 & 2 & -2 & 2 \\
+4 & 20 & 12 & 0 & 7 & -2 & 2 & -2 \\
+-3 & -15 & -9 & 0 & 0 & 8 & -2 & 2 \\
+2 & 10 & 6 & 0 & 0 & 0 & 9 & -2 \\
+-1 & -5 & -3 & 0 & 0 & 0 & 0 & 10
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `SIM_SIMPLE`. The matching [`sim_simple.m`](../../../../examples/tiered/neig-tier-s/sim_simple.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The case is diagonalizable, so it is a legitimate individual-eigenpair experiment, but it is close to the defective limit. The coordinate columns of Y are not the eigenvectors of the leading triangular block: the second coordinate eigenvector must solve a 2-by-2 triangular equation. This distinction matters in a dense similarity because a visually plausible column can have a large residual. The small gap makes forward eigenvalue error sensitive even if a backward perturbation is small. It also creates a natural balance-control question without changing the exact model.

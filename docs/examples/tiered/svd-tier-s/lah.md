@@ -16,6 +16,29 @@ L_{ij}=\binom{i-1}{j-1}\frac{i!}{j!}\quad (j\le i),
 
 Equivalently L(i,j)=L(i-1,j-1)+(i+j-1)L(i-1,j), with out-of-range entries zero. The first rows are [1], [2 1], [6 6 1], [24 36 12 1].
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: S3-LAH -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+2 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+6 & 6 & 1 & 0 & 0 & 0 & 0 & 0 \\
+24 & 36 & 12 & 1 & 0 & 0 & 0 & 0 \\
+120 & 240 & 120 & 20 & 1 & 0 & 0 & 0 \\
+720 & 1800 & 1200 & 300 & 30 & 1 & 0 & 0 \\
+5040 & 15120 & 12600 & 4200 & 630 & 42 & 1 & 0 \\
+40320 & 141120 & 141120 & 58800 & 11760 & 1176 & 56 & 1
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `S3-LAH`. The matching [`lah.m`](../../../../examples/tiered/svd-tier-s/lah.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 Lah entries grow rapidly down the triangle, producing a full-rank matrix whose smallest singular values are sensitive to small relative entry errors. The unit diagonal proves nonsingularity but says little about the conditioning of the singular vectors or the relative accuracy of σ_min. A recurrence and closed form give two independent construction checks.

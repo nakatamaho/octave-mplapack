@@ -16,6 +16,29 @@ A=\frac{1}{n}H\mathrm{diag}(d_1,\ldots,d_n)G^{\mathsf T},
 
 Orthogonal equivalence gives singular values exactly d_1,...,d_n.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A5-GEO -->
+
+```math
+A_{\mathrm{smoke}} = 2^{-31} \begin{bmatrix}
+250671375 & 286331153 & 252645135 & 284102895 & 250679025 & 286322415 & 252637425 & 284094225 \\
+284094225 & 252645135 & 286331153 & 250679025 & 284102895 & 252637425 & 286322415 & 250671375 \\
+252637425 & 284102895 & 250679025 & 286331153 & 252645135 & 284094225 & 250671375 & 286322415 \\
+286322415 & 250679025 & 284102895 & 252645135 & 286331153 & 250671375 & 284094225 & 252637425 \\
+250679025 & 286322415 & 252637425 & 284094225 & 250671375 & 286331153 & 252645135 & 284102895 \\
+284102895 & 252637425 & 286322415 & 250671375 & 284094225 & 252645135 & 286331153 & 250679025 \\
+252645135 & 284094225 & 250671375 & 286322415 & 252637425 & 284102895 & 250679025 & 286331153 \\
+286331153 & 250671375 & 284094225 & 252637425 & 286322415 & 250679025 & 284102895 & 252645135
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A5-GEO`. The matching [`hadamard_geometric.m`](../../../../examples/tiered/svd-tier-a/hadamard_geometric.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 This is a dense matrix with a known geometrically decaying singular spectrum. The source entries are finite signed sums of dyadics, so construction precision and cancellation need an explicit guard. A global reconstruction residual can conceal a small tail value; the geometric reference makes that failure visible.

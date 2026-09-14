@@ -26,6 +26,29 @@ The exact ascending singular values are
 \qquad k=0,\ldots,n-1.
 ```
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: S4-DD-SYM -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+\frac{4294967297}{4294967296} & -1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+-1 & \frac{8589934593}{4294967296} & -1 & 0 & 0 & 0 & 0 & 0 \\
+0 & -1 & \frac{8589934593}{4294967296} & -1 & 0 & 0 & 0 & 0 \\
+0 & 0 & -1 & \frac{8589934593}{4294967296} & -1 & 0 & 0 & 0 \\
+0 & 0 & 0 & -1 & \frac{8589934593}{4294967296} & -1 & 0 & 0 \\
+0 & 0 & 0 & 0 & -1 & \frac{8589934593}{4294967296} & -1 & 0 \\
+0 & 0 & 0 & 0 & 0 & -1 & \frac{8589934593}{4294967296} & -1 \\
+0 & 0 & 0 & 0 & 0 & 0 & -1 & \frac{4294967297}{4294967296}
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `S4-DD-SYM`. The matching [`dd_sym.m`](../../../../examples/tiered/svd-tier-s/dd_sym.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The smallest singular value is the tiny diagonal-dominance margin tau, while neighboring values are controlled by a path Laplacian. This makes loss of tau in a low-precision or native construction immediately visible. The symmetric case has an analytic positive-term formula, but its trigonometric evaluation is not itself an outward interval proof.

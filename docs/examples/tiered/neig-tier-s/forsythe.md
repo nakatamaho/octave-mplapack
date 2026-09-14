@@ -27,6 +27,29 @@ The roots are the circle
 \lambda_k=1+r\exp(2\pi i k/n),\qquad k=0,\ldots,n-1.
 ```
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: FORSYTHE -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 \\
+2^{-32} & 0 & 0 & 0 & 0 & 0 & 0 & 1
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `FORSYTHE`. The matching [`forsythe.m`](../../../../examples/tiered/neig-tier-s/forsythe.m) selects the same manifest case and hands this input to the public `eig` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 The perturbation closes a nilpotent chain with a value as small as $r^n$. In native arithmetic the corner can be lost while the superdiagonal remains visible, turning a simple-root cyclic matrix into the zero-limit Jordan block. In the exact model the roots are distinct, but their eigenvectors inherit strong scaling from the original coordinates. The scaled control is normal and has the same roots, so it provides a representation control rather than a replacement for the original test.

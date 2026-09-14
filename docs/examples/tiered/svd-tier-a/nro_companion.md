@@ -16,6 +16,29 @@ k_i=(-1)^{i-1}\quad (k_n=1),
 
 The matrix has first row a, subdiagonal ones, and diagonal -nu as specified by the companion-like construction. Horner recurrence preserves the target k sequence and det(A)=(-1)^(n-1).
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: A6-NRO-COMPANION -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & -17 & 17 & -17 & 17 & -17 & 17 & -15 \\
+1 & -16 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 1 & -16 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 1 & -16 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 & -16 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 1 & -16 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 & -16 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & -16
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `A6-NRO-COMPANION`. The matching [`nro_companion.m`](../../../../examples/tiered/svd-tier-a/nro_companion.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 This is a nonsymmetric bounded-integer construction whose singular spectrum is not supplied by a simple diagonal formula. The large parameter nu creates a scale-separated dense eigen/singular problem while the exact recurrence supplies an independent construction invariant. It is a control against treating a companion-like matrix as if its eigenvalues were its singular values.

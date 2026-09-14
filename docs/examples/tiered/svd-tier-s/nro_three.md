@@ -17,6 +17,29 @@ B=H_m\mathrm{diag}(2^b,\ldots,2^b,0,\ldots,0),
 For a nonzero weight the pair is $(a_j,b_j)$ above; for $w_j=0$,
 $\beta_j=0$ and both singular values are exactly 1.
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: S1-NRO-THREE -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 0 & 0 & 0 & 4096 & 4096 & 0 & 0 \\
+0 & 1 & 0 & 0 & 4096 & -4096 & 0 & 0 \\
+0 & 0 & 1 & 0 & 4096 & 4096 & 0 & 0 \\
+0 & 0 & 0 & 1 & 4096 & -4096 & 0 & 0 \\
+0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `S1-NRO-THREE`. The matching [`nro_three.m`](../../../../examples/tiered/svd-tier-s/nro_three.m) selects the same manifest case and hands this input to the public `svd` path; the displayed matrix is not solver output.
+
+The entries are exact integers or dyadic rationals. If a common factor such as `2^{-q}` appears before the bracket, it multiplies every bracket entry and is part of the exact matrix, not a decimal approximation. Fixed-generation cases retain the declared generator precision in their model object; any separate exact widening and solver/work precision remain distinct recorded quantities.
+
+The smoke configuration is the small, inspectable documentation and CI instance. Its matching demo is a separate manifest row that may change the dimension, parameter, or profile; it is not substituted for this input when interpreting the measured result. This separation keeps the source matrix, source precision, and solver output auditable.
+
 ## Why this problem is numerically difficult
 
 This variant adds a true unit group to the extreme reciprocal groups. It checks whether a solver and its matching logic preserve multiplicity rather than treating the middle values as accidental. The matrix remains nonsingular even though B is rank deficient, because A is block unit triangular. Individual singular vectors in the unit group are not identifiable; the correct comparison is a subspace/projector comparison.
