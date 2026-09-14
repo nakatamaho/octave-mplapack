@@ -121,6 +121,10 @@ Family READMEs: docs/examples/tiered/neig-tier-s/README.md,
 Detailed case docs: 44 pages under docs/examples/tiered/{neig-tier-*,svd-tier-*}
 Glossary: docs/examples/tiered/GLOSSARY.md
 Migration map: docs/examples/tiered/MIGRATION.md
+README.md: audited Tier/NEIG/SVD references; no Markdown mathematical
+  expression in the scoped references required conversion
+doc/mplapack-interop.texi: audited the Tier worked-example summaries; native
+  Texinfo @display/@math markup retained and no GitHub fenced math inserted
 ```
 
 ## Syntax normalization
@@ -223,6 +227,11 @@ work/operation precision, and mathematical conditioning into one concept.
 The external references and project-provenance links remain separate, and
 the pages continue to distinguish measured solver output from independent
 model facts.
+
+The README and Texinfo audit also preserved the separation between rendering
+targets: README prose remains ordinary GitHub Markdown, while the manual keeps
+its native Texinfo `@display`/`@math` forms. No Markdown fence was pasted into
+the Texinfo source.
 
 ## Static checker
 
