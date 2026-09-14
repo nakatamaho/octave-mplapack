@@ -25,6 +25,34 @@ The unstructured complex 2-norm pseudospectrum is
 \{z:\sigma_{\min}(zI-G)\le\varepsilon\}.
 ```
 
+## Concrete smoke matrix
+
+<!-- smoke-matrix: GRCAR -->
+
+```math
+A_{\mathrm{smoke}} = \begin{bmatrix}
+1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+-1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & -1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & -1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & -1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & -1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & -1 & 1 & 1 & 1 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & -1 & 1 & 1 & 1 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & -1 & 1 & 1 & 1 & 1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & -1 & 1 & 1 & 1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & -1 & 1 & 1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & -1 & 1
+\end{bmatrix}.
+```
+
+This is the full concrete smoke fixture for `GRCAR`. The matching
+[`grcar.m`](../../../../examples/tiered/neig-tier-a/grcar.m) selects the same
+manifest case (`n=12`, upper bandwidth `3`) and hands this input to the
+public `eig` path; the displayed matrix is not solver output. Every entry is
+an exact integer, and the lower subdiagonal `-1` is distinct from the three
+upper diagonals of `+1`.
+
 ## Why this problem is numerically difficult
 
 Grcar shows that an eigenvalue list does not describe a nonnormal matrix. Small perturbations can move eigenvalues far from the computed spectrum, and an individual residual does not certify a pseudospectral boundary. The exact ±1 input is easy to audit, but there is no claimed analytic spectrum; the reference uses independent MP eig and shifted singular-value probes.

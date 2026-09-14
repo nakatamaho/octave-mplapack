@@ -11,17 +11,29 @@ $\varepsilon=2^{-80}$. The matrix is row-stochastic with a nonuniform
 stationary left vector.
 
 ```math
-\begin{gathered}
 h=n/2,\qquad
-C\in\mathbb{R}^{h\times h},\quad
-C_{i,i+1}=1\ (1\leq i<h),\quad C_{h,1}=1,\\
-Q=\mathrm{blockdiag}\left(\frac{3}{4}I_h+\frac{1}{4}C,
-\frac{7}{8}I_h+\frac{1}{8}C\right),\\
-r_i=2^{-i}\ (1\leq i<n),\qquad r_n=2^{-(n-1)},
-\qquad \mathbf{1}^{\mathsf T}r=1,\\
-P=(1-\varepsilon)Q+\varepsilon\mathbf{1}r^{\mathsf T},
-\qquad \varepsilon=2^{-e},\qquad P\mathbf{1}=\mathbf{1}.
-\end{gathered}
+C\in\mathbb{R}^{h\times h}.
+```
+
+```math
+C_{i,i+1}=1\quad (1\leq i<h),\qquad C_{h,1}=1.
+```
+
+```math
+Q=\mathrm{blockdiag}\left(
+\frac{3}{4}I_h+\frac{1}{4}C,
+\frac{7}{8}I_h+\frac{1}{8}C
+\right).
+```
+
+```math
+r_i=2^{-i}\quad (1\leq i<n),\qquad
+r_n=2^{-(n-1)},\qquad \mathbf{1}^{\mathsf T}r=1.
+```
+
+```math
+P=(1-\varepsilon)Q+\varepsilon\mathbf{1}r^{\mathsf T},\qquad
+\varepsilon=2^{-e},\qquad P\mathbf{1}=\mathbf{1}.
 ```
 
 The vector $r$ is the teleportation target, not generally the stationary
