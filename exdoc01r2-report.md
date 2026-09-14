@@ -252,6 +252,7 @@ blank-line isolation
 display math in table/HTML/blockquote/details contexts
 matrix/multiline environments outside display blocks
 inline dollar balance
+HTML table/details tags are detected beyond column-zero markup
 ```
 
 `tools/check-tiered-math.sh` now accepts either legacy `$$` or fenced `math`
@@ -383,8 +384,8 @@ dependency header, public API, or accepted numerical result was changed.
 ```text
 Branch: main
 Starting commit: 04647345895cf7c260157ca49532dbf748febb35
-Final commit: fb0621716709f996cfd02e295578d87b5d9453d8
-Final implementation commit: fb0621716709f996cfd02e295578d87b5d9453d8
+Final commit: 7acf52750f6fd8bd2551be82eca9633ba8050706
+Final implementation commit: 7acf52750f6fd8bd2551be82eca9633ba8050706
   (this report is maintained in a separate status/report commit)
 Files changed: listed in Actual changed paths above
 Commands run: listed in Documentation builds and gates above
