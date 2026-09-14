@@ -11,7 +11,7 @@ repo_root=$(CDPATH= cd "$(dirname "$0")/.." && pwd)
 cd "$repo_root"
 
 fail=0
-mapfile -t documents < <(find docs/examples/tiered -maxdepth 2 -type f -name '*.md' |
+mapfile -t documents < <(find docs/examples/tiered -type f -name '*.md' |
   LC_ALL=C sort)
 
 if [[ "${#documents[@]}" -eq 0 ]]; then
