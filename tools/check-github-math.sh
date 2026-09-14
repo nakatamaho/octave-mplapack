@@ -121,9 +121,9 @@ for file in "${documents[@]}"; do
         was_html_table = in_html_table
         was_markdown_table = in_markdown_table
 
-        if (line ~ /^[[:space:]]*<table([[:space:]>]|$)/)
+        if (line ~ /<table([[:space:]>]|$)/)
           in_html_table = 1
-        if (line ~ /^[[:space:]]*<details([[:space:]>]|$)/)
+        if (line ~ /<details([[:space:]>]|$)/)
           in_details = 1
         if (line ~ /^[[:space:]]*>/) {
           in_blockquote = 1
@@ -178,9 +178,9 @@ for file in "${documents[@]}"; do
         if (!is_math_marker && !in_math_fence && !in_dollar_block)
           inline_dollars += count_inline_dollars(line)
 
-        if (line ~ /^[[:space:]]*<\/table([[:space:]>]|$)/)
+        if (line ~ /<\/table([[:space:]>]|$)/)
           in_html_table = 0
-        if (line ~ /^[[:space:]]*<\/details([[:space:]>]|$)/)
+        if (line ~ /<\/details([[:space:]>]|$)/)
           in_details = 0
         if (line ~ /^[[:space:]]*$/)
           in_blockquote = 0
