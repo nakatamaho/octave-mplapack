@@ -23,6 +23,7 @@ required=(
   docs/examples/tiered/GLOSSARY.md
   tools/check-tiered-math.sh
   tools/check-github-math.sh
+  AGENTS.md
 )
 for path in "${required[@]}"; do
   if [[ ! -f "$path" ]]; then
@@ -30,6 +31,25 @@ for path in "${required[@]}"; do
     fail=1
   fi
 done
+
+# Keep the GitHub rendering contract permanent rather than relying only on
+# the current checker implementation.  These policy statements are part of
+# the repository's documentation Definition of Done.
+agents=AGENTS.md
+for policy in \
+  'GitHub Markdown is the source of truth for mathematical documentation.' \
+  'Use fenced math blocks' \
+  'Do not put display mathematics inside Markdown table cells'; do
+  if ! grep -Fq "$policy" "$agents"; then
+    echo "FAIL: AGENTS.md is missing GitHub math policy: $policy" >&2
+    fail=1
+  fi
+done
+agents_policy_text=$(tr '\n' ' ' < "$agents")
+if [[ "$agents_policy_text" != *"A documentation change is incomplete if its equations do not render correctly on GitHub."* ]]; then
+  echo "FAIL: AGENTS.md is missing GitHub rendering Definition-of-Done rule" >&2
+  fail=1
+fi
 
 manual=doc/mplapack-interop.texi
 tiered_root=docs/examples/tiered
