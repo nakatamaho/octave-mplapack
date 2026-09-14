@@ -148,6 +148,8 @@ Fragile table inline math fixed: short expressions normalized in the six
   audited index/migration tables
 List-nested displays fixed: no list-nested display blocks remain
 HTML/blockquotes fixed: no display math occurred in those containers
+Static container inventory: 0 `<table>` tags, 0 `<details>` tags, 0 Markdown
+  blockquotes, and 0 standalone `$$` markers in the 51 scoped pages
 ```
 
 ## Matrix rendering
