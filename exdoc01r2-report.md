@@ -143,6 +143,8 @@ Raw \(...\) removed: 0 remaining
 Malformed delimiters fixed: 0 remaining
 Custom macros removed/fixed: 0 remaining
 Accidental doubled escaping fixed: 0 remaining
+Frank0 piecewise rendering: both `cases` displays replaced with explicit
+  left-brace/`aligned` fenced math blocks after the GitHub rendering report
 ```
 
 ## Table/list fixes
@@ -399,8 +401,8 @@ dependency header, public API, or accepted numerical result was changed.
 ```text
 Branch: main
 Starting commit: 04647345895cf7c260157ca49532dbf748febb35
-Final commit: 7acf52750f6fd8bd2551be82eca9633ba8050706
-Final implementation commit: 7acf52750f6fd8bd2551be82eca9633ba8050706
+Final commit: df6e462a5170779a6279d35e28bf3a13485d7445
+Final implementation commit: df6e462a5170779a6279d35e28bf3a13485d7445
   (this report is maintained in a separate status/report commit)
 Files changed: listed in Actual changed paths above
 Commands run: listed in Documentation builds and gates above
