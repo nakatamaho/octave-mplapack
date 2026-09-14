@@ -257,6 +257,9 @@ required and executed by `tools/check-docs.sh`. Its document discovery is
 recursive, so every Markdown file below `docs/examples/tiered/` is included
 even if a future case is placed in a deeper subdirectory.
 
+`tools/check-docs.sh` also verifies that `AGENTS.md` still contains the
+permanent GitHub math policy and the rendering Definition-of-Done rule.
+
 The checker also audits the scoped pages for obvious residual, adjoint,
 exponent, and TeX-like mathematical tokens accidentally left outside code or
 GitHub math delimiters. That audit ignores inline code, inline math, legacy
@@ -376,8 +379,8 @@ dependency header, public API, or accepted numerical result was changed.
 ```text
 Branch: main
 Starting commit: 04647345895cf7c260157ca49532dbf748febb35
-Final commit: 3517d9fe1f388b7b880f0c6a93022762b0f0d171
-Final implementation commit: 3517d9fe1f388b7b880f0c6a93022762b0f0d171
+Final commit: fb0621716709f996cfd02e295578d87b5d9453d8
+Final implementation commit: fb0621716709f996cfd02e295578d87b5d9453d8
   (this report is maintained in a separate status/report commit)
 Files changed: listed in Actual changed paths above
 Commands run: listed in Documentation builds and gates above
