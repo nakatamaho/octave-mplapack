@@ -85,8 +85,7 @@ case "$OCTAVE_CHANNEL" in
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.0}"
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
         if [[ "$OCTAVE_VERSION" == "0.5.0" ]]; then
-            # Filled with the final reproducible D04 archive SHA256.
-            OCTAVE_SHA256="${OCTAVE_SHA256:-}"
+            OCTAVE_SHA256="${OCTAVE_SHA256:-3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04}"
         else
             die "release channel is fixed to mplapack-interop 0.5.0"
         fi
