@@ -1,6 +1,6 @@
 # octave-mplapack
 
-**Status: 0.5.0-dev; 0.4.0 is the immutable D03 release and 0.3.1 is
+**Status: 0.5.0; 0.4.0 is the immutable D03 release and 0.3.1 is
 historical.**
 C00 through C12 pass, including mandatory complex `Cgetrf` LU, and the public
 complex API is closed. N08 adds dense right division. The package identity is
@@ -98,7 +98,7 @@ Install a locally built source archive with Octave's package manager
 (the public PPA is planned, not yet available):
 
 ```text
-octave:1> pkg install mplapack-interop-0.5.0-dev.tar.gz
+octave:1> pkg install mplapack-interop-0.5.0.tar.gz
 octave:2> pkg load mplapack-interop
 ```
 
@@ -110,7 +110,7 @@ bash /home/docker/install-local-octave-mplapack.sh
 ```
 
 The helper installs the verified gmpfrxx/MPLAPACK stack and the current
-`mplapack-interop` development package under
+`mplapack-interop` release package under
 `/home/docker/opt/octave-mplapack-stack`. Start the configured Octave wrapper
 with:
 

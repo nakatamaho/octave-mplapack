@@ -202,8 +202,8 @@ for link in docs/public-api-inventory.md docs/advanced-numerics-compatibility.md
   fi
 done
 
-if ! grep -Fq 'MPLAPACK 3.0.1 release candidate' NEWS.md; then
-  echo "FAIL: NEWS lacks current MPLAPACK release-candidate wording" >&2
+if ! grep -Fq 'official MPLAPACK 3.0.1 release' NEWS.md; then
+  echo "FAIL: NEWS lacks current MPLAPACK release wording" >&2
   fail=1
 fi
 if ! grep -Fq 'D04' NEWS.md; then

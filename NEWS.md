@@ -1,8 +1,8 @@
 # News
 
-## mplapack-interop 0.5.0-dev (2026-09-08)
+## mplapack-interop 0.5.0 (2026-09-15)
 
-The T00–T14 development line closes the advanced arbitrary-precision surface
+The 0.5.0 release closes the advanced arbitrary-precision surface
 for Schur/QZ, dense utilities, matrix functions, polynomial helpers, exact
 sets, serialization, three-dimensional graphics boundaries, random
 generation, 1-D/2-D interpolation, nonlinear equations, scalar quadrature,
@@ -12,16 +12,16 @@ instead of falling through to builtin binary64 implementations.
 
 The final T-series wall passed M00–M23, C00–C12 including mandatory C11L,
 N00–N08, S00–S08, and T00–T14, with 1024/2048-bit canaries, package
-lifecycle, and native ASan/UBSan/LSan coverage. The current development
-surface and deferred re-entry records are in
+lifecycle, and native ASan/UBSan/LSan coverage. The released surface and
+deferred re-entry records are in
 `docs/advanced-numerics-compatibility.md` and `docs/todo/`.
 
 DOC00 closes the user/developer documentation surface with a task-oriented
 manual, complete public API inventory, native backend map, runnable examples,
 Octave help text, and reproducible manual/Doxygen build checks. The D04
-dependency is currently the MPLAPACK 3.0.1 release candidate; it must not be
-described as finally released MPLAPACK 3.0.1 until its upstream release
-process is complete.
+dependency is the official MPLAPACK 3.0.1 release. D04 freezes this package
+against the exact published MPLAPACK and gmpfrxx_mkII source identities
+recorded in the release-stack handoff.
 
 ## 0.4.0
 

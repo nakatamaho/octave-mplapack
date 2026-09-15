@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Local installation helper for the current octave-mplapack development stack.
+# Local installation helper for the current octave-mplapack stack.
 # Hard-coded for the user's Linux/Docker layout.
 #
-# This script verifies the selected source archives, builds the local
+# This script verifies the selected source archives, downloads the official
+# MPLAPACK 3.0.1 archive with curl when it is absent, builds the local
 # gmpfrxx_mkII/MPLAPACK stack, and installs the mplapack-interop Octave
 # package into an isolated prefix.  The default channel is the current
 # development package, 0.5.0-dev.  With no arguments, the generated wrapper
@@ -53,8 +54,10 @@ PREFIX=/home/docker/opt/octave-mplapack-stack
 BUILD=/home/docker/build/octave-mplapack-stack
 JOBS="${JOBS:-$(nproc)}"
 
-GMPFRXX_TAR="$SRC/gmpfrxx_mkII.1.4.1.tar.xz"
-MPLAPACK_TAR="$SRC/mplapack-3.0.1.tar.xz"
+GMPFRXX_TAR="${GMPFRXX_TAR:-$SRC/gmpfrxx_mkII.1.4.1.tar.xz}"
+GMPFRXX_URL="${GMPFRXX_URL:-https://github.com/nakatamaho/gmpfrxx_mkII/releases/download/v1.4.1/gmpfrxx_mkII.1.4.1.tar.xz}"
+MPLAPACK_TAR="${MPLAPACK_TAR:-$SRC/mplapack-3.0.1.tar.xz}"
+MPLAPACK_URL="${MPLAPACK_URL:-https://github.com/nakatamaho/mplapack/releases/download/v3.0.1/mplapack-3.0.1.tar.xz}"
 
 GMPFRXX_SHA256=395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4
 # Current D04 MPLAPACK 3.0.1 official release identity (2026-09-15).
@@ -112,7 +115,7 @@ install_deps() {
             echo
             echo "sudo is not available. Install these packages manually:"
             echo "  build-essential gfortran cmake pkg-config autoconf automake libtool"
-            echo "  libgmp-dev libmpfr-dev libmpc-dev octave octave-dev xz-utils"
+            echo "  libgmp-dev libmpfr-dev libmpc-dev octave octave-dev xz-utils curl"
             exit 1
         fi
     fi
@@ -132,20 +135,50 @@ install_deps() {
         libmpc-dev \
         octave \
         octave-dev \
-        xz-utils
+        xz-utils \
+        curl
 }
 
 if [[ "${SKIP_APT:-0}" != "1" ]]; then
     install_deps
 fi
 
-for cmd in gcc g++ gfortran cmake make pkg-config octave mkoctfile sha256sum tar; do
+for cmd in gcc g++ gfortran cmake make pkg-config octave mkoctfile sha256sum tar curl; do
     command -v "$cmd" >/dev/null 2>&1 || die "required command not found: $cmd"
 done
 
 # ----------------------------------------------------------------------
 # 1. Frozen archive verification
 # ----------------------------------------------------------------------
+
+download_archive_if_missing() {
+    local archive_path="$1"
+    local archive_url="$2"
+    local archive_label="$3"
+
+    if [[ -f "$archive_path" ]]; then
+        return
+    fi
+
+    mkdir -p "$(dirname "$archive_path")"
+    local temporary_archive="${archive_path}.download.$$"
+    rm -f "$temporary_archive"
+    say "Downloading $archive_label"
+    if ! curl --fail --show-error --location --retry 3 --retry-delay 2 \
+        --proto '=https' --tlsv1.2 --output "$temporary_archive" \
+        "$archive_url"; then
+        rm -f "$temporary_archive"
+        die "could not download archive from $archive_url"
+    fi
+    mv "$temporary_archive" "$archive_path"
+}
+
+download_archive_if_missing \
+    "$GMPFRXX_TAR" "$GMPFRXX_URL" \
+    "official gmpfrxx_mkII 1.4.1 release archive"
+download_archive_if_missing \
+    "$MPLAPACK_TAR" "$MPLAPACK_URL" \
+    "official MPLAPACK 3.0.1 release archive"
 
 for f in "$GMPFRXX_TAR" "$MPLAPACK_TAR" "$OCTAVE_TAR"; do
     [[ -f "$f" ]] || die "archive not found: $f"

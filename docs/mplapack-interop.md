@@ -12,7 +12,7 @@ Use this package when the input data, intermediate values, or requested toleranc
 
 Install the source package with Octave’s package manager:
 
-    pkg install mplapack-interop-0.5.0-dev.tar.gz
+    pkg install mplapack-interop-0.5.0.tar.gz
     pkg load mplapack-interop
 
 For a local dependency installation, the repository helper starts a configured session at `/home/docker/opt/octave-mplapack-stack/bin/octave-mplapack`. After starting Octave, load the package with:

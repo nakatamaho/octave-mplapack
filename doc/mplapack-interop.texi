@@ -31,9 +31,10 @@ a dense, two-dimensional @code{mp} value with MPFR real storage and MPC
 complex storage. MPLAPACK is used for the supported dense linear-algebra
 drivers; other operations use package-owned MPFR/MPC algorithms.
 
-The current development line is @code{0.5.0-dev}. T00--T14 is accepted.
-MPLAPACK 3.0.1 is documented as a release candidate until its upstream
-release process is complete.
+This release is @code{0.5.0}. T00--T14 is accepted. The frozen dependency
+stack uses the official MPLAPACK @code{3.0.1} release and gmpfrxx_mkII
+@code{1.4.1}; see the repository release-stack handoff for exact source
+identities and checksums.
 
 @menu
 * Introduction::
@@ -82,7 +83,7 @@ Octave values when binary64 is sufficient or when a deferred API is needed.
 Install the source package with Octave's package manager:
 
 @verbatim
-pkg install mplapack-interop-0.5.0-dev.tar.gz
+pkg install mplapack-interop-0.5.0.tar.gz
 pkg load mplapack-interop
 @end verbatim
 
