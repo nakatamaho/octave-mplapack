@@ -4,6 +4,10 @@ example_root = fullfile (test_root, "examples");
 tier_root = fullfile (example_root, "neig_tiers");
 addpath (tier_root);
 
+neigt24_saved_ambient_bits = mpbits ();
+unwind_protect
+  mpbits (768);
+
 numbered = {"14_neig_tier_s.m", "15_neig_tier_a.m", ...
             "16_neig_verified_vs.m", "17_neig_verified_va.m"};
 for numbered_index = 1:numel (numbered)
@@ -12,6 +16,7 @@ for numbered_index = 1:numel (numbered)
   clear result;
   run (path_name);
   assert (exist ("result", "var") == 1 && isstruct (result));
+  assert (mpbits () == uint64 (768));
   assert (result.scope_ok && result.ok);
   assert (! isfield (result, "used_binary64_fallback") ...
           || ! result.used_binary64_fallback);
@@ -34,3 +39,6 @@ for name = {"mp_neig_tiers", "mp_neig_verify_examples", ...
 endfor
 
 fprintf ("PASS: NEIGT24 numbered Tier-S/Tier-A/V-S/V-A examples and help integration\n");
+unwind_protect_cleanup
+  mpbits (neigt24_saved_ambient_bits);
+end_unwind_protect

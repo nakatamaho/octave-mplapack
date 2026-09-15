@@ -10,6 +10,9 @@ function result = net_v_a2_job (job, profile_data, profile)
   saved_bits = mpbits ();
   unwind_protect
     try
+      % The frozen pencil model is generated at the manifest source
+      % precision, independently of the caller's ambient default.
+      mpbits (bits);
       model = net_v_a2_model (regime, job.fixture.n, bits);
       result.source = model.source;
       result.input_status = model.input_status;
