@@ -6,8 +6,8 @@ addpath (tier_root);
 
 numbered = {"14_neig_tier_s.m", "15_neig_tier_a.m", ...
             "16_neig_verified_vs.m", "17_neig_verified_va.m"};
-for index = 1:numel (numbered)
-  path_name = fullfile (example_root, numbered{index});
+for numbered_index = 1:numel (numbered)
+  path_name = fullfile (example_root, numbered{numbered_index});
   assert (exist (path_name, "file") == 2);
   clear result;
   run (path_name);
@@ -15,7 +15,7 @@ for index = 1:numel (numbered)
   assert (result.scope_ok && result.ok);
   assert (! isfield (result, "used_binary64_fallback") ...
           || ! result.used_binary64_fallback);
-  if (index <= 2)
+  if (numbered_index <= 2)
     assert (any (strcmp (result.status, {"NUMERICS_COMPLETE", ...
                                          "NUMERICS_ONLY_COMPLETE"})));
     assert (result.coverage.measured_eig_rows > 0);

@@ -54,10 +54,10 @@ case_docs = {
 
 assert (numel (case_ids) == numel (case_examples));
 assert (numel (case_ids) == numel (case_docs));
-for index = 1:numel (case_ids)
-  assert (exist (fullfile (repo_root, case_examples{index}), "file") == 2);
-  assert (exist (fullfile (repo_root, case_docs{index}), "file") == 2);
-  fprintf ("%s\t%s\t%s\n", case_ids{index}, case_examples{index}, case_docs{index});
+for case_index = 1:numel (case_ids)
+  assert (exist (fullfile (repo_root, case_examples{case_index}), "file") == 2);
+  assert (exist (fullfile (repo_root, case_docs{case_index}), "file") == 2);
+  fprintf ("%s\t%s\t%s\n", case_ids{case_index}, case_examples{case_index}, case_docs{case_index});
 endfor
 fprintf ("NEIGT Tier-A index: %d cases.\n", numel (case_ids));
 
