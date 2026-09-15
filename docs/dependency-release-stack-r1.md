@@ -12,7 +12,7 @@ available separately and are not reattributed to this stack.
 |---|---|---:|---|---|---|---|---:|---|---|
 | gmpfrxx_mkII | `github.com/nakatamaho/gmpfrxx_mkII` | 1.4.1 | `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `v1.4.1` | `gmpfrxx_mkII.1.4.1.tar.xz` | `395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4` | 15176064 | BSD 2-Clause | GMP, MPFR, MPC |
 | MPLAPACK | `github.com/nakatamaho/mplapack` | 3.0.1 | `953d7a4916554546937a753a30b0619691072841` | `v3.0.1` | `mplapack-3.0.1.tar.xz` | `47ebb653b21f0c62e8144c1e515e94d76965d9d0d4b7ba216b034d778570cbaa` | 85720132 | 2-clause BSD-style plus original LAPACK/BLAS notices | frozen gmpfrxx 1.4.1; GMP, MPFR, MPC |
-| octave-mplapack (`mplapack-interop`) | `github.com/nakatamaho/octave-mplapack` | 0.5.0 | `<D04 freeze commit>` | `v0.5.0` | `mplapack-interop-0.5.0.tar.gz` | `<final archive SHA256>` | `<final archive size>` | BSD 2-Clause | MPLAPACK 3.0.1; gmpfrxx 1.4.1; GMP, MPFR, MPC; Octave |
+| octave-mplapack (`mplapack-interop`) | `github.com/nakatamaho/octave-mplapack` | 0.5.0 | `7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa` | `v0.5.0` | `mplapack-interop-0.5.0.tar.gz` | `3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04` | 817463 | BSD 2-Clause | MPLAPACK 3.0.1; gmpfrxx 1.4.1; GMP, MPFR, MPC; Octave |
 
 The canonical local dependency archives are:
 
@@ -21,15 +21,17 @@ The canonical local dependency archives are:
 /home/docker/src/mplapack-3.0.1.tar.xz
 ```
 
-The package archive is generated from the final D04 freeze commit and will be
-placed at:
+The final package archive generated from the D04 freeze commit is:
 
 ```text
 /home/docker/src/mplapack-interop-0.5.0.tar.gz
 ```
 
-The exact package commit, archive size, and SHA256 are filled only after the
-final release-only commit and reproducibility/replay gates pass.
+Its size is `817463` bytes and its SHA256 is
+`3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04`.
+Two independent archive builds, the tagged-tree extraction, and an isolated
+install/replay all produced the same identity. The D04 report records the
+commands and evidence paths.
 
 ## Dependency graph and runtime closure
 
@@ -94,3 +96,17 @@ source-archive evidence in `reports/D04-report.md`.
 D01 must consume exactly the three version/commit/tag/archive identities in
 the completed table above. If D01 finds a source-level defect, reopen D04 as
 D04R1; do not edit a frozen source tree silently.
+
+## D04 freeze identity
+
+```text
+package freeze commit: 7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa
+package tag:           v0.5.0
+package tag target:    7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa
+release date:          2026-09-15
+```
+
+The `v0.5.0` tag is present locally and points exactly to the freeze commit.
+Remote tag publication was not performed in this work session; no GitHub
+Release, package upload, Debian package, PPA operation, or binary artifact was
+created.
