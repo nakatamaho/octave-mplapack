@@ -7,8 +7,9 @@ set -euo pipefail
 # This script verifies the selected source archives, downloads the official
 # MPLAPACK 3.0.1 archive with curl when it is absent, builds the local
 # gmpfrxx_mkII/MPLAPACK stack, and installs the mplapack-interop Octave
-# package into an isolated prefix.  The default channel is the current
-# development package, 0.5.0-dev.  With no arguments, the generated wrapper
+# package into an isolated prefix.  The default channel is the frozen
+# 0.5.0 release.  The development package remains available through the
+# explicit OCTAVE_CHANNEL=dev setting.  With no arguments, the generated wrapper
 # starts the configured Octave environment and loads the package:
 #
 #   /home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
@@ -21,17 +22,17 @@ set -euo pipefail
 # The package is loaded with `pkg load mplapack-interop`; the historical
 # `pkg load mplapack` name is not provided by the renamed package.
 #
-# The default development archive is expected at:
-#   /home/docker/src/mplapack-interop-0.5.0-dev.tar.gz
-# It is the reproducible archive generated from the T00-T14 development line.
+# The default release archive is expected at:
+#   /home/docker/src/mplapack-interop-0.5.0.tar.gz
 # The immutable D03 0.4.0 archive remains available via
-# OCTAVE_CHANNEL=release.
+# OCTAVE_CHANNEL=historical.
 #
 # Input archives:
 #   /home/docker/src/gmpfrxx_mkII.1.4.1.tar.xz
 #   /home/docker/src/mplapack-3.0.1.tar.xz
-#   /home/docker/src/mplapack-interop-0.5.0-dev.tar.gz (default channel)
-#   /home/docker/src/mplapack-interop-0.4.0.tar.gz (release channel)
+#   /home/docker/src/mplapack-interop-0.5.0.tar.gz (default channel)
+#   /home/docker/src/mplapack-interop-0.5.0-dev.tar.gz (dev channel)
+#   /home/docker/src/mplapack-interop-0.4.0.tar.gz (historical channel)
 #
 # Normal use:
 #   /home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
@@ -65,7 +66,7 @@ MPLAPACK_SHA256=47ebb653b21f0c62e8144c1e515e94d76965d9d0d4b7ba216b034d778570cbaa
 MPLAPACK_SOURCE_COMMIT=953d7a4916554546937a753a30b0619691072841
 MPLAPACK_SOURCE_TAG=v3.0.1
 OCTAVE_PACKAGE=mplapack-interop
-OCTAVE_CHANNEL="${OCTAVE_CHANNEL:-dev}"
+OCTAVE_CHANNEL="${OCTAVE_CHANNEL:-release}"
 
 say() { printf '\n==> %s\n' "$*"; }
 die() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
@@ -81,16 +82,26 @@ case "$OCTAVE_CHANNEL" in
         fi
         ;;
     release)
+        OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.0}"
+        OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
+        if [[ "$OCTAVE_VERSION" == "0.5.0" ]]; then
+            # Filled with the final reproducible D04 archive SHA256.
+            OCTAVE_SHA256="${OCTAVE_SHA256:-}"
+        else
+            die "release channel is fixed to mplapack-interop 0.5.0"
+        fi
+        ;;
+    historical)
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.4.0}"
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.4.0.tar.gz}"
         if [[ "$OCTAVE_VERSION" == "0.4.0" ]]; then
             OCTAVE_SHA256="${OCTAVE_SHA256:-6bc87d42fbda49fa72830db34fbede7b8b9f46b7614b14dc53e7619c7781536c}"
         else
-            [[ -n "${OCTAVE_SHA256:-}" ]] || die "non-0.4.0 release requires OCTAVE_SHA256=<sha256>"
+            die "historical channel is fixed to mplapack-interop 0.4.0"
         fi
         ;;
     *)
-        die "OCTAVE_CHANNEL must be dev or release"
+        die "OCTAVE_CHANNEL must be release, dev, or historical"
         ;;
 esac
 
@@ -540,7 +551,7 @@ Optional environment switches:
   bash ~/install-local-octave-mplapack.sh
       Use the reproducible 0.5.0-dev archive for development testing.
 
-  OCTAVE_CHANNEL=release
+  OCTAVE_CHANNEL=historical
       Use the immutable D03 0.4.0 archive.
 
 EOF

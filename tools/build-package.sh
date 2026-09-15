@@ -125,6 +125,8 @@ find $source_roots -type f \
   ! -path 'docs/v0.1-release-manifest.md' \
   ! -path 'docs/dependency-release-stack.md' \
   ! -path 'docs/dependency-release-stack-r1.md' \
+  ! -path 'docs/goals/D04-0.5.0-release-freeze.md' \
+  ! -path 'docs/goals/D04-0.5.0-release-freeze-status.md' \
   ! -path 'tools/install-local-octave-mplapack.sh' \
   ! -path '*/.libs/*' \
   ! -path '*/.deps/*' \
