@@ -5,8 +5,8 @@ set -euo pipefail
 # Hard-coded for the user's Linux/Docker layout.
 #
 # This script verifies the selected source archives, downloads the official
-# MPLAPACK 3.0.1 archive with curl when it is absent, builds the local
-# gmpfrxx_mkII/MPLAPACK stack, and installs the mplapack-interop Octave
+# gmpfrxx_mkII 1.4.1, MPLAPACK 3.0.1, and the 0.5.0 package archive with curl
+# when they are absent, builds the local gmpfrxx_mkII/MPLAPACK stack, and installs the mplapack-interop Octave
 # package into an isolated prefix.  The default channel is the frozen
 # 0.5.0 release.  The development package remains available through the
 # explicit OCTAVE_CHANNEL=dev setting.  With no arguments, the generated wrapper
@@ -75,6 +75,7 @@ case "$OCTAVE_CHANNEL" in
     dev)
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.0-dev}"
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
+        OCTAVE_URL="${OCTAVE_URL:-}"
         if [[ "$OCTAVE_VERSION" == "0.5.0-dev" ]]; then
             OCTAVE_SHA256="${OCTAVE_SHA256:-fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f}"
         else
@@ -86,6 +87,7 @@ case "$OCTAVE_CHANNEL" in
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
         if [[ "$OCTAVE_VERSION" == "0.5.0" ]]; then
             OCTAVE_SHA256="${OCTAVE_SHA256:-3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04}"
+            OCTAVE_URL="${OCTAVE_URL:-https://github.com/nakatamaho/octave-mplapack/releases/download/v0.5.0/mplapack-interop-0.5.0.tar.gz}"
         else
             die "release channel is fixed to mplapack-interop 0.5.0"
         fi
@@ -93,6 +95,7 @@ case "$OCTAVE_CHANNEL" in
     historical)
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.4.0}"
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.4.0.tar.gz}"
+        OCTAVE_URL="${OCTAVE_URL:-}"
         if [[ "$OCTAVE_VERSION" == "0.4.0" ]]; then
             OCTAVE_SHA256="${OCTAVE_SHA256:-6bc87d42fbda49fa72830db34fbede7b8b9f46b7614b14dc53e7619c7781536c}"
         else
@@ -189,6 +192,11 @@ download_archive_if_missing \
 download_archive_if_missing \
     "$MPLAPACK_TAR" "$MPLAPACK_URL" \
     "official MPLAPACK 3.0.1 release archive"
+if [[ -n "$OCTAVE_URL" ]]; then
+    download_archive_if_missing \
+        "$OCTAVE_TAR" "$OCTAVE_URL" \
+        "official $OCTAVE_PACKAGE $OCTAVE_VERSION release archive"
+fi
 
 for f in "$GMPFRXX_TAR" "$MPLAPACK_TAR" "$OCTAVE_TAR"; do
     [[ -f "$f" ]] || die "archive not found: $f"
