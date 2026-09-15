@@ -1,7 +1,8 @@
 # octave-mplapack
 
-**Status: 0.5.0; 0.4.0 is the immutable D03 release and 0.3.1 is
-historical.**
+**Released: `mplapack-interop 0.5.0` (2026-09-15).**
+The official source release is available on [GitHub](https://github.com/nakatamaho/octave-mplapack/releases/tag/v0.5.0).
+Version 0.4.0 is the immutable D03 release and 0.3.1 is historical.
 C00 through C12 pass, including mandatory complex `Cgetrf` LU, and the public
 complex API is closed. N08 adds dense right division. The package identity is
 `mplapack-interop`; the public GNU Octave class/API remains `mp`, `mpbits`, and
@@ -94,39 +95,48 @@ piecewise-rendering policy and migration record are in
 
 ## Quick start
 
-Install a locally built source archive with Octave's package manager
-(the public PPA is planned, not yet available):
+The simplest supported installation is the local release-stack helper. It
+downloads and verifies the frozen gmpfrxx/MPLAPACK dependencies and the
+`mplapack-interop 0.5.0` source archive, then builds an isolated local stack:
+
+```sh
+curl --fail --location --proto '=https' --tlsv1.2 \
+  -o install-local-octave-mplapack.sh \
+  https://raw.githubusercontent.com/nakatamaho/octave-mplapack/main/tools/install-local-octave-mplapack.sh
+bash install-local-octave-mplapack.sh
+```
+
+The helper has been checked on Ubuntu 26.04 only. Other operating systems and
+distributions are not claimed as release-tested by this helper.
+
+After installation, start the configured Octave wrapper with:
+
+```sh
+"${XDG_DATA_HOME:-$HOME/.local/share}/mplapack-interop/stack/bin/octave-mplapack"
+```
+
+The wrapper loads `mplapack-interop` automatically. In an ordinary Octave
+session from the same stack, load it explicitly with `pkg load mplapack-interop`.
+
+The helper's default source cache, install prefix, and build directory are:
+
+```text
+${XDG_CACHE_HOME:-$HOME/.cache}/mplapack-interop/source
+${XDG_DATA_HOME:-$HOME/.local/share}/mplapack-interop/stack
+${XDG_CACHE_HOME:-$HOME/.cache}/mplapack-interop/build
+```
+
+Override them with `SRC=...`, `PREFIX=...`, and `BUILD=...` when needed.
+The `OCTAVE_CHANNEL=dev` and `OCTAVE_CHANNEL=historical` modes remain
+available for explicitly supplied development or historical archives.
+
+For manual installation, install a source archive with Octave's package
+manager:
 
 ```text
 octave:1> pkg install mplapack-interop-0.5.0.tar.gz
 octave:2> pkg load mplapack-interop
 ```
-
-For the reproducible Linux/Docker development stack used by this repository,
-run the local installation helper:
-
-```sh
-bash /home/docker/install-local-octave-mplapack.sh
-```
-
-The helper installs the verified gmpfrxx/MPLAPACK stack and the current
-`mplapack-interop` release package under
-`/home/docker/opt/octave-mplapack-stack`. Start the configured Octave wrapper
-with:
-
-```sh
-/home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
-```
-
-The wrapper loads `mplapack-interop` automatically. In an Octave session, it
-can also be loaded explicitly with:
-
-```octave
-pkg load mplapack-interop
-```
-
-These paths are specific to the local Docker helper; other installations
-should use the package-manager or checkout instructions above.
 
 For a checkout, `tools/dev-octave.sh` verifies the `pkg-config` dependency,
 builds the native module, and starts a configured development session. It does
@@ -310,12 +320,15 @@ stored-precision `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri` paths.
 
 ## Release provenance
 
-The frozen real-only v0.1.0 source candidate remains identified by the full
-commit in the repository-only release manifest
-(`docs/v0.1-release-manifest.md`). The 0.2.0 release was validated with Octave
-11.1.0 and the installed MPLAPACK MPFR interface provided by
-`mplapack_mpfr` through `pkg-config`. Binary distribution and PPA work are
-separate later milestones.
+The released `mplapack-interop 0.5.0` source is identified by tag `v0.5.0`,
+freeze commit `7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa`, and the published
+archive SHA256
+`3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04`.
+It was validated with Octave 11.1.0 and the MPLAPACK 3.0.1 MPFR interface
+provided by `mplapack_mpfr` through `pkg-config`, using gmpfrxx_mkII 1.4.1.
+The exact dependency handoff is in
+[`docs/dependency-release-stack-r1.md`](docs/dependency-release-stack-r1.md).
+Binary distribution and PPA work are separate later milestones.
 
 ## Public API baseline
 

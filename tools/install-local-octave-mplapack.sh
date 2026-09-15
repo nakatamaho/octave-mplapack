@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # Local installation helper for the current octave-mplapack stack.
-# Hard-coded for the user's Linux/Docker layout.
+# The source, build, and install locations are portable and can be overridden
+# with SRC, BUILD, and PREFIX.
 #
 # This script verifies the selected source archives, downloads the official
 # gmpfrxx_mkII 1.4.1, MPLAPACK 3.0.1, and the 0.5.0 package archive with curl
@@ -12,7 +13,7 @@ set -euo pipefail
 # explicit OCTAVE_CHANNEL=dev setting.  With no arguments, the generated wrapper
 # starts the configured Octave environment and loads the package:
 #
-#   /home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
+#   "$PREFIX/bin/octave-mplapack"
 #
 # In an Octave session started through that wrapper, the package can also be
 # loaded explicitly with:
@@ -22,37 +23,41 @@ set -euo pipefail
 # The package is loaded with `pkg load mplapack-interop`; the historical
 # `pkg load mplapack` name is not provided by the renamed package.
 #
-# The default release archive is expected at:
-#   /home/docker/src/mplapack-interop-0.5.0.tar.gz
+# The release archive is downloaded into the configured source cache when it
+# is absent.  The default locations are derived from XDG_CACHE_HOME,
+# XDG_DATA_HOME, and HOME rather than a machine-specific path.
 # The immutable D03 0.4.0 archive remains available via
 # OCTAVE_CHANNEL=historical.
 #
-# Input archives:
-#   /home/docker/src/gmpfrxx_mkII.1.4.1.tar.xz
-#   /home/docker/src/mplapack-3.0.1.tar.xz
-#   /home/docker/src/mplapack-interop-0.5.0.tar.gz (default channel)
-#   /home/docker/src/mplapack-interop-0.5.0-dev.tar.gz (dev channel)
-#   /home/docker/src/mplapack-interop-0.4.0.tar.gz (historical channel)
+# Input archives are stored below SRC:
+#   gmpfrxx_mkII.1.4.1.tar.xz
+#   mplapack-3.0.1.tar.xz
+#   mplapack-interop-0.5.0.tar.gz (default channel)
+#   mplapack-interop-0.5.0-dev.tar.gz (dev channel)
+#   mplapack-interop-0.4.0.tar.gz (historical channel)
 #
 # Normal use:
-#   /home/docker/opt/octave-mplapack-stack/bin/octave-mplapack
+#   "$PREFIX/bin/octave-mplapack"
 #   pkg load mplapack-interop
 #
 # Development-archive use:
 #   OCTAVE_CHANNEL=dev \
-#   OCTAVE_TAR=/home/docker/src/mplapack-interop-0.5.0-dev.tar.gz \
+#   OCTAVE_TAR="$HOME/src/mplapack-interop-0.5.0-dev.tar.gz" \
 #   OCTAVE_SHA256=fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f \
-#   bash ~/install-local-octave-mplapack.sh
+#   bash ./install-local-octave-mplapack.sh
 #
-# Install prefix:
-#   /home/docker/opt/octave-mplapack-stack
+# Install prefix (override with PREFIX=...):
+#   "${XDG_DATA_HOME:-$HOME/.local/share}/mplapack-interop/stack"
 #
-# Build directory:
-#   /home/docker/build/octave-mplapack-stack
+# Build directory (override with BUILD=...):
+#   "${XDG_CACHE_HOME:-$HOME/.cache}/mplapack-interop/build"
 
-SRC="${SRC:-/home/docker/src}"
-PREFIX=/home/docker/opt/octave-mplapack-stack
-BUILD=/home/docker/build/octave-mplapack-stack
+user_home="${HOME:-$(pwd)}"
+cache_home="${XDG_CACHE_HOME:-$user_home/.cache}"
+data_home="${XDG_DATA_HOME:-$user_home/.local/share}"
+SRC="${SRC:-$cache_home/mplapack-interop/source}"
+PREFIX="${PREFIX:-$data_home/mplapack-interop/stack}"
+BUILD="${BUILD:-$cache_home/mplapack-interop/build}"
 JOBS="${JOBS:-$(nproc)}"
 
 GMPFRXX_TAR="${GMPFRXX_TAR:-$SRC/gmpfrxx_mkII.1.4.1.tar.xz}"
@@ -553,7 +558,7 @@ Optional environment switches:
   JOBS=N
       Override parallel build jobs.
 
-  OCTAVE_CHANNEL=dev OCTAVE_TAR=/home/docker/src/mplapack-interop-0.5.0-dev.tar.gz \
+  OCTAVE_CHANNEL=dev OCTAVE_TAR="$HOME/src/mplapack-interop-0.5.0-dev.tar.gz" \
   OCTAVE_SHA256=fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f \
   bash ~/install-local-octave-mplapack.sh
       Use the reproducible 0.5.0-dev archive for development testing.
