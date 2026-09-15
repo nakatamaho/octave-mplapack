@@ -24,6 +24,7 @@ function result = mp_neig_verify_examples (profile, options)
     addpath (private_root);
     added = true;
   endif
+  saved_bits = mpbits ();
   unwind_protect
     opts = net_options (profile, options);
     bundle = net_manifest ();
@@ -226,6 +227,7 @@ function result = mp_neig_verify_examples (profile, options)
       rmpath (private_root);
     endif
   unwind_protect_cleanup
+    mpbits (saved_bits);
     if (added && any (strcmp (strsplit (path (), pathsep), private_root)))
       rmpath (private_root);
     endif
