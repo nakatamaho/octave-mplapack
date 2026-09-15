@@ -2,64 +2,28 @@
 
 **Released: `mplapack-interop 0.5.0` (2026-09-15).**
 The official source release is available on [GitHub](https://github.com/nakatamaho/octave-mplapack/releases/tag/v0.5.0).
-Version 0.4.0 is the immutable D03 release and 0.3.1 is historical.
-C00 through C12 pass, including mandatory complex `Cgetrf` LU, and the public
-complex API is closed. N08 adds dense right division. The package identity is
-`mplapack-interop`; the public GNU Octave class/API remains `mp`, `mpbits`, and
-`mpdigits`.
-The real-only v0.1.0 release candidate remains historical. The historical D00
-stack is recorded in [`docs/dependency-release-stack.md`](docs/dependency-release-stack.md);
-the forward `mplapack-interop` handoff is in
+It provides GNU Octave access to real and complex arbitrary-precision
+linear algebra through the native `mp` type.
+
+## News
+
+### 0.5.0 — 2026-09-15
+
+- First public real-plus-complex release of `mplapack-interop`.
+- Supports dense linear algebra, SVD/eigenvalue problems, Schur/QZ,
+  matrix functions, polynomial utilities, interpolation, solvers,
+  quadrature, optimization, serialization, and documented compatibility
+  helpers.
+- Complex paths include `Cgemm`, `Cgesv`, `Cgelsy`, `Cpotrf`, QR, pivoted QR,
+  and the mandatory `Cgetrf` LU path.
+- Uses MPLAPACK 3.0.1 and gmpfrxx_mkII 1.4.1 with MPFR/MPC precision
+  semantics and no builtin binary64 complex fallback.
+- Release QA passed the real/complex regression walls, precision canaries,
+  package lifecycle, documentation checks, and native sanitizer suite.
+
+See [`NEWS.md`](NEWS.md) for the detailed release history. The exact frozen
+dependency handoff is in
 [`docs/dependency-release-stack-r1.md`](docs/dependency-release-stack-r1.md).
-N00–N08 and the 0.3.1 source freeze are tracked in the D02R1 release records;
-the S00–S08 script-compatibility work is tracked in the S-series records;
-the 0.2.1 package remains historical provenance.
-The package provides a public real `mp` scalar and dense matrix with
-native MPFR storage, public default-precision control, canonical scalar text,
-explicit binary64 conversion, scalar display, and native scalar/dense
-element-wise `+`, `-`, `.*`, and `./`. Dense matrices use one private
-column-major contiguous native payload;
-`mtimes` uses MPLAPACK MPFR `Rgemm` under a uniform operation-precision
-calling scope. Dense matrix inspection is read-only and preserves stored MPFR
-precision. M12 adds precision-preserving transpose and two-dimensional
-reshape. M13 adds native horizontal and vertical concatenation that returns
-one dense `mp` value. M14 adds value-semantic, in-bounds indexed assignment
-with precision-preserving native copies. M18 adds non-pivoted dense real QR
-through MPLAPACK MPFR `Rgeqrf`/`Rorgqr`; one-output `qr(A)` returns `R` and
-two-output forms return `Q,R` with full or economy shapes. M19 adds
-three-output column-pivoted QR through `Rgeqp3`, with builtin-double
-permutation matrix/vector outputs.
-M20 audits the installed MPLAPACK MPFR complex backend and C01–C12 implement
-complex scalar/matrix values, mixed real/complex operations, Cgemm/Cgesv/
-Cgelsy/Cpotrf/Cgeqrf/Cgeqp3/Cgetrf paths, structural operations, and the
-compatibility firewall. See [`docs/complex-api.md`](docs/complex-api.md) and
-[`docs/complex-compatibility.md`](docs/complex-compatibility.md).
-M21 adds dense real LU through MPLAPACK MPFR `Rgetrf`, including packed,
-two-output, row-permutation-matrix, and 1-based permutation-vector forms for
-square, rectangular, and singular matrices. See [`docs/lu.md`](docs/lu.md).
-N00 adds arbitrary-precision `norm`; N01 adds dense real/complex `det` and
-`inv` through stored-precision `Rgetrf`/`Rgetri` and `Cgetrf`/`Cgetri` paths;
-N02 adds dense real/complex `svd` through `Rgesvd`/`Cgesvd`; N03 adds
-`rank`, `cond`, and `rcond` through MPFR/MPC singular values and
-`Rgecon`/`Cgecon`; N04 adds structured symmetric/Hermitian `eig` through
-`Rsyevd`/`Cheevd`; N05 adds general standard `eig` through `Rgeevx`/`Cgeevx`,
-including balance controls and left eigenvectors. N06 adds generalized
-standard eig through definite `Rsygvd`/`Chegvd` and QZ `Rggev`/`Cggev`, with
-Octave-compatible `matrix`/`vector` layouts and left eigenvectors.
-
-M22 closed the real-only API and M23 froze the v0.1.0 release candidate for
-PPA packaging. See the [v0.1 API inventory](docs/v0.1-api.md),
-[Octave compatibility notes](docs/octave-compatibility.md), and
-[release checklist](docs/release-checklist.md) and the repository-only release
-manifest.
-
-The T00–T14 development line closes the next advanced numerical surface:
-Schur/QZ, dense utilities, matrix functions, polynomial helpers, exact sets,
-the T05 gamma/error family, exact serialization, three-dimensional graphics
-boundaries, arbitrary-precision random generation, 1-D/2-D interpolation,
-`fzero`/`fsolve`, scalar quadrature, and `fminbnd`/`fminsearch`. The complete
-compatibility boundary and deferred re-entry records are in
-[`docs/advanced-numerics-compatibility.md`](docs/advanced-numerics-compatibility.md).
 
 ## Goal
 
@@ -95,9 +59,7 @@ piecewise-rendering policy and migration record are in
 
 ## Quick start
 
-The simplest supported installation is the local release-stack helper. It
-downloads and verifies the frozen gmpfrxx/MPLAPACK dependencies and the
-`mplapack-interop 0.5.0` source archive, then builds an isolated local stack:
+The helper has been checked on Ubuntu 26.04 only:
 
 ```sh
 curl --fail --location --proto '=https' --tlsv1.2 \
@@ -106,37 +68,17 @@ curl --fail --location --proto '=https' --tlsv1.2 \
 bash install-local-octave-mplapack.sh
 ```
 
-The helper has been checked on Ubuntu 26.04 only. Other operating systems and
-distributions are not claimed as release-tested by this helper.
-
-After installation, start the configured Octave wrapper with:
+Start the installed wrapper and load the package:
 
 ```sh
 "${XDG_DATA_HOME:-$HOME/.local/share}/mplapack-interop/stack/bin/octave-mplapack"
 ```
 
-The wrapper loads `mplapack-interop` automatically. In an ordinary Octave
-session from the same stack, load it explicitly with `pkg load mplapack-interop`.
-
-The helper's default source cache, install prefix, and build directory are:
-
-```text
-${XDG_CACHE_HOME:-$HOME/.cache}/mplapack-interop/source
-${XDG_DATA_HOME:-$HOME/.local/share}/mplapack-interop/stack
-${XDG_CACHE_HOME:-$HOME/.cache}/mplapack-interop/build
+```octave
+pkg load mplapack-interop
 ```
 
-Override them with `SRC=...`, `PREFIX=...`, and `BUILD=...` when needed.
-The `OCTAVE_CHANNEL=dev` and `OCTAVE_CHANNEL=historical` modes remain
-available for explicitly supplied development or historical archives.
-
-For manual installation, install a source archive with Octave's package
-manager:
-
-```text
-octave:1> pkg install mplapack-interop-0.5.0.tar.gz
-octave:2> pkg load mplapack-interop
-```
+Other operating systems and distributions are not claimed as release-tested.
 
 For a checkout, `tools/dev-octave.sh` verifies the `pkg-config` dependency,
 builds the native module, and starts a configured development session. It does
