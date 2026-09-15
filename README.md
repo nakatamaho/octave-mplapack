@@ -5,6 +5,18 @@ The official source release is available on [GitHub](https://github.com/nakatama
 It provides GNU Octave access to real and complex arbitrary-precision
 linear algebra through the native `mp` type.
 
+## Quick start
+
+Ubuntu 26.04 only (the helper is not release-tested on other systems):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/nakatamaho/octave-mplapack/main/tools/install-local-octave-mplapack.sh -o install-local-octave-mplapack.sh
+bash install-local-octave-mplapack.sh
+```
+
+After installation, start the printed Octave wrapper and run
+`pkg load mplapack-interop`.
+
 ## News
 
 ### 0.5.0 — 2026-09-15
@@ -56,29 +68,6 @@ The one-case worked examples are indexed by
 matching explanation for every NEIGT/SVT Tier S/A case. The GitHub Markdown
 piecewise-rendering policy and migration record are in
 [`docs/math-rendering-migration.md`](docs/math-rendering-migration.md).
-
-## Quick start
-
-The helper has been checked on Ubuntu 26.04 only:
-
-```sh
-curl --fail --location --proto '=https' --tlsv1.2 \
-  -o install-local-octave-mplapack.sh \
-  https://raw.githubusercontent.com/nakatamaho/octave-mplapack/main/tools/install-local-octave-mplapack.sh
-bash install-local-octave-mplapack.sh
-```
-
-Start the installed wrapper and load the package:
-
-```sh
-"${XDG_DATA_HOME:-$HOME/.local/share}/mplapack-interop/stack/bin/octave-mplapack"
-```
-
-```octave
-pkg load mplapack-interop
-```
-
-Other operating systems and distributions are not claimed as release-tested.
 
 For a checkout, `tools/dev-octave.sh` verifies the `pkg-config` dependency,
 builds the native module, and starts a configured development session. It does
