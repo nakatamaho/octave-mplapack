@@ -17,6 +17,15 @@ bash install-local-octave-mplapack.sh
 After installation, start the printed Octave wrapper and run
 `pkg load mplapack-interop`.
 
+For example, compute a 2x2 multiple-precision SVD:
+
+```octave
+A = mp ([3, 1; 0, 2]);
+[U, S, V] = svd (A);
+disp (S)
+assert (norm (double (A - U * S * V'), "fro") < 1e-12)
+```
+
 ## News
 
 ### 0.5.0 — 2026-09-15
