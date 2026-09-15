@@ -7,10 +7,10 @@ D04 PASS — MPLAPACK-INTEROP 0.5.0 SOURCE FROZEN
 BINARY-DISTRIBUTION-READY
 ```
 
-D04 froze the `mplapack-interop` 0.5.0 source stack locally. The package
-release tag is an annotated local `v0.5.0` tag whose peeled target is the
-freeze commit below. The tag was not pushed in this session, so this report
-does not claim remote publication or a GitHub Release.
+D04 froze the `mplapack-interop` 0.5.0 source stack. The package release tag
+is an annotated `v0.5.0` tag whose local and remote peeled target is the
+freeze commit below. The release branch and tag target were verified after
+push; no GitHub Release was created.
 
 No new numerical functionality was implemented in D04. The release-only
 source diff was audited against the fully tested implementation baseline
@@ -49,12 +49,12 @@ those historical reports.
 | G-D04-VERSION | PASS | authoritative package metadata changed from 0.5.0-dev to 0.5.0; user docs/manual/generated docs and release tooling synchronized |
 | G-D04-REGRESSION | PASS | complete accepted wall passed on the same tested implementation/dependency stack; release-only runtime diff is empty |
 | G-D04-REPRODUCIBLE | PASS | independent archive A/B, tagged-tree archive, file list, size, SHA256, and exact extraction replay agree |
-| G-D04-FREEZE | PASS | freeze commit and local annotated tag target are identical; no report-only commit is tagged |
+| G-D04-FREEZE | PASS | freeze commit and local/remote annotated tag target are identical; no report-only commit is tagged |
 | G-D04-HANDOFF | PASS | canonical dependency manifest, status, and this report are complete |
 
-The remote tag was intentionally not pushed or remotely verified in this
-session. Accordingly, the result is a local source freeze and handoff, not a
-claim that the release has been published remotely.
+The release branch `topic/d04-0.5.0-release-freeze` and annotated tag
+`v0.5.0` were pushed to `origin`. The remote tag was verified to peel to the
+same `7187a0f…` freeze commit.
 
 ## gmpfrxx_mkII
 
@@ -198,7 +198,7 @@ Version after:
 Freeze commit:
   7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa
 Tag:
-  v0.5.0 (annotated, local)
+  v0.5.0 (annotated, pushed and remotely verified)
 Tag target:
   7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa
 Archive:
@@ -438,7 +438,7 @@ runtime implementation remains the tested T00–T14/NEIGT line.
 ## Known limitations and NOT_RUN items
 
 ```text
-remote v0.5.0 tag push/remote target verification: NOT RUN
+remote v0.5.0 tag push/remote target verification: PASS
 GitHub Release creation: NOT RUN by scope
 full duplicate local-ci after release-only metadata: NOT RUN; user-approved skip
 NEIGT25 opt-in stress: NOT RUN
@@ -485,7 +485,7 @@ MPLAPACK:
 octave-mplapack / mplapack-interop:
     version: 0.5.0
     commit: 7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa
-    tag: v0.5.0 (local annotated tag)
+    tag: v0.5.0 (annotated, pushed and remotely verified)
     archive: mplapack-interop-0.5.0.tar.gz
     sha256: 3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04
 ```

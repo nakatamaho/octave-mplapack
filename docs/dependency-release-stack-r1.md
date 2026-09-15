@@ -106,7 +106,7 @@ package tag target:    7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa
 release date:          2026-09-15
 ```
 
-The `v0.5.0` tag is present locally and points exactly to the freeze commit.
-Remote tag publication was not performed in this work session; no GitHub
-Release, package upload, Debian package, PPA operation, or binary artifact was
-created.
+The `v0.5.0` tag is present locally and on `origin`, and both point exactly to
+the freeze commit. The release branch and tag target were verified after the
+push. No GitHub Release, package upload, Debian package, PPA operation, or
+binary artifact was created.
