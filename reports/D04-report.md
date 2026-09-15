@@ -10,7 +10,7 @@ BINARY-DISTRIBUTION-READY
 D04 froze the `mplapack-interop` 0.5.0 source stack. The package release tag
 is an annotated `v0.5.0` tag whose local and remote peeled target is the
 freeze commit below. The release branch and tag target were verified after
-push; no GitHub Release was created.
+push. The GitHub Release `v0.5.0` now contains the exact source asset.
 
 No new numerical functionality was implemented in D04. The release-only
 source diff was audited against the fully tested implementation baseline
@@ -439,7 +439,7 @@ runtime implementation remains the tested T00–T14/NEIGT line.
 
 ```text
 remote v0.5.0 tag push/remote target verification: PASS
-GitHub Release creation: NOT RUN by scope
+GitHub Release `v0.5.0` with `mplapack-interop-0.5.0.tar.gz`: PASS
 full duplicate local-ci after release-only metadata: NOT RUN; user-approved skip
 NEIGT25 opt-in stress: NOT RUN
 NEIGT25 plotting: NOT RUN; headless plot=false gate PASS

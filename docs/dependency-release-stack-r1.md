@@ -108,5 +108,5 @@ release date:          2026-09-15
 
 The `v0.5.0` tag is present locally and on `origin`, and both point exactly to
 the freeze commit. The release branch and tag target were verified after the
-push. No GitHub Release, package upload, Debian package, PPA operation, or
-binary artifact was created.
+push. The GitHub Release `v0.5.0` contains the exact package asset below; no
+Debian package, PPA operation, or binary artifact was created.
