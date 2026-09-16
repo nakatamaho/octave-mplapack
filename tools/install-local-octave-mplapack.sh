@@ -387,7 +387,7 @@ set -e
 
 if [ "\$#" -eq 0 ]; then
     exec octave --no-gui --persist --eval \
-      "pkg ('local_list', '$OCT_PKG_DB'); pkg ('load', '$OCTAVE_PACKAGE'); fprintf ('$OCTAVE_PACKAGE $OCTAVE_VERSION loaded, mpbits = %d\\n', mpbits ());"
+      "warning ('off', 'Octave:shadowed-function'); pkg ('local_list', '$OCT_PKG_DB'); pkg ('load', '$OCTAVE_PACKAGE'); fprintf ('$OCTAVE_PACKAGE $OCTAVE_VERSION loaded, mpbits = %d\\n', mpbits ());"
 fi
 
 # For non-interactive use, pass ordinary Octave options/scripts and put
@@ -405,6 +405,7 @@ say "Installing $OCTAVE_PACKAGE $OCTAVE_VERSION"
 
 # Remove an earlier copy from our isolated package database, if present.
 octave --no-gui --quiet --eval "
+  warning ('off', 'Octave:shadowed-function');
   pkg ('local_list', '$OCT_PKG_DB');
   pkg ('prefix', '$OCT_PKG_PREFIX', '$OCT_PKG_ARCH_PREFIX');
   for package_name = {'$OCTAVE_PACKAGE', 'mplapack'}
@@ -420,6 +421,7 @@ octave --no-gui --quiet --eval "
 "
 
 octave --no-gui --quiet --eval "
+  warning ('off', 'Octave:shadowed-function');
   pkg ('local_list', '$OCT_PKG_DB');
   pkg ('prefix', '$OCT_PKG_PREFIX', '$OCT_PKG_ARCH_PREFIX');
   pkg ('install', '-local', '-verbose', '$OCTAVE_TAR');
@@ -437,6 +439,7 @@ say "Running real + complex smoke test"
 SMOKE="$BUILD/smoke.m"
 cat > "$SMOKE" <<EOF
 pkg ('local_list', '$OCT_PKG_DB');
+warning ('off', 'Octave:shadowed-function');
 pkg ('load', '$OCTAVE_PACKAGE');
 
 assert (mpbits () == 512);

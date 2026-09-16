@@ -27,22 +27,26 @@ The installer prints the wrapper path. With the default paths, start it from
 the shell as follows:
 
 ```sh
-"$HOME/.local/share/mplapack-interop/stack/bin/octave-mplapack"
+$HOME/.local/share/mplapack-interop/stack/bin/octave-mplapack
 ```
 
-The wrapper is the normal Octave startup command; it does not require a
-different Octave launch method. At the Octave prompt, load the package and
-run the example:
+The wrapper is the normal Octave startup command; it loads
+`mplapack-interop` automatically and suppresses only the noisy
+`Octave:shadowed-function` notice for compatibility wrappers. At the Octave
+prompt, run the example directly:
 
 For example, compute a 2x2 multiple-precision SVD:
 
 ```octave
-pkg load mplapack-interop
 A = mp ([3, 1; 0, 2]);
 [U, S, V] = svd (A);
 disp (S)
 assert (norm (double (A - U * S * V'), "fro") < 1e-12)
 ```
+
+The compatibility wrappers are not removed. If you use ordinary `octave`
+instead of the wrapper and want to control the notice yourself, run
+`warning ('off', 'Octave:shadowed-function')` before `pkg load mplapack-interop`.
 
 ## News
 
