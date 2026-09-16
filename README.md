@@ -12,7 +12,7 @@ Ubuntu 26.04 only (the helper is not release-tested on other systems):
 First install the system dependencies:
 
 ```sh
-sudo apt-get update && sudo apt-get install -y build-essential gfortran cmake pkg-config autoconf automake libtool libgmp-dev libmpfr-dev libmpc-dev octave octave-dev xz-utils curl
+sudo apt-get update && sudo apt-get install -y build-essential cmake pkg-config autoconf automake libtool libgmp-dev libmpfr-dev libmpc-dev octave octave-dev xz-utils curl
 ```
 
 Then, in a separate command, download and run the user-level installer:

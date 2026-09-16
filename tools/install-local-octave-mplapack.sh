@@ -127,7 +127,7 @@ OCT_PKG_DB="$PREFIX/octave_packages"
 # 0. Prerequisites
 # ----------------------------------------------------------------------
 
-for cmd in gcc g++ gfortran cmake make pkg-config octave mkoctfile ctest \
+for cmd in gcc g++ cmake make pkg-config octave mkoctfile ctest \
     sha256sum tar curl; do
     command -v "$cmd" >/dev/null 2>&1 || die "required command not found: $cmd. Install the documented Ubuntu dependencies first."
 done
@@ -296,9 +296,15 @@ cd "$MPL_SRC"
 export CPPFLAGS="-I$PREFIX/include ${CPPFLAGS:-}"
 export LDFLAGS="-L$PREFIX/lib -L$PREFIX/lib64 ${LDFLAGS:-}"
 
+# This release helper builds the MPFR backend only.  MPLAPACK's DD backend is
+# enabled by default and would pull in the bundled libQD3 implementation, so
+# disable both QD and DD explicitly.  With tests disabled, no Fortran compiler
+# is needed by this build.
 ./configure \
     --prefix="$PREFIX" \
     --enable-mpfr=yes \
+    --disable-qd \
+    --disable-dd \
     --with-gmpfrxx-mkII="$PREFIX" \
     --with-system-gmp=yes \
     --with-system-mpfr=yes \
