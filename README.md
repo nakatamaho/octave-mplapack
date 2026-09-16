@@ -23,12 +23,21 @@ curl -fsSL https://raw.githubusercontent.com/nakatamaho/octave-mplapack/main/too
 
 Run these two commands in order; do not paste them onto one shell line. The
 second command does not use `sudo`, and writes under your home directory.
-Start the printed Octave wrapper and run
-`pkg load mplapack-interop`.
+The installer prints the wrapper path. With the default paths, start it from
+the shell as follows:
+
+```sh
+"$HOME/.local/share/mplapack-interop/stack/bin/octave-mplapack"
+```
+
+The wrapper is the normal Octave startup command; it does not require a
+different Octave launch method. At the Octave prompt, load the package and
+run the example:
 
 For example, compute a 2x2 multiple-precision SVD:
 
 ```octave
+pkg load mplapack-interop
 A = mp ([3, 1; 0, 2]);
 [U, S, V] = svd (A);
 disp (S)
