@@ -10,11 +10,13 @@ linear algebra through the native `mp` type.
 Ubuntu 26.04 only (the helper is not release-tested on other systems):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/nakatamaho/octave-mplapack/main/tools/install-local-octave-mplapack.sh -o install-local-octave-mplapack.sh
-bash install-local-octave-mplapack.sh
+sudo apt-get update && sudo apt-get install -y build-essential gfortran cmake pkg-config autoconf automake libtool libgmp-dev libmpfr-dev libmpc-dev octave octave-dev xz-utils curl
+curl -fsSL https://raw.githubusercontent.com/nakatamaho/octave-mplapack/main/tools/install-local-octave-mplapack.sh | sh
 ```
 
-After installation, start the printed Octave wrapper and run
+The first line installs system build dependencies. The second line runs the
+user-level installer; it does not use `sudo`, and writes under your home
+directory. Start the printed Octave wrapper and run
 `pkg load mplapack-interop`.
 
 For example, compute a 2x2 multiple-precision SVD:

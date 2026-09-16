@@ -1,7 +1,10 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env sh
+set -eu
 
 # Local installation helper for the current octave-mplapack stack.
+# Run this script as an ordinary user.  It never invokes sudo or apt-get;
+# install the Ubuntu build dependencies first, then use the documented
+# `curl ... | sh` command.
 # The source, build, and install locations are portable and can be overridden
 # with SRC, BUILD, and PREFIX.
 #
@@ -44,7 +47,7 @@ set -euo pipefail
 #   OCTAVE_CHANNEL=dev \
 #   OCTAVE_TAR="$HOME/src/mplapack-interop-0.5.0-dev.tar.gz" \
 #   OCTAVE_SHA256=fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f \
-#   bash ./install-local-octave-mplapack.sh
+#   sh ./install-local-octave-mplapack.sh
 #
 # Install prefix (override with PREFIX=...):
 #   "${XDG_DATA_HOME:-$HOME/.local/share}/mplapack-interop/stack"
@@ -58,7 +61,11 @@ data_home="${XDG_DATA_HOME:-$user_home/.local/share}"
 SRC="${SRC:-$cache_home/mplapack-interop/source}"
 PREFIX="${PREFIX:-$data_home/mplapack-interop/stack}"
 BUILD="${BUILD:-$cache_home/mplapack-interop/build}"
-JOBS="${JOBS:-$(nproc)}"
+if command -v nproc >/dev/null 2>&1; then
+    JOBS="${JOBS:-$(nproc)}"
+else
+    JOBS="${JOBS:-1}"
+fi
 
 GMPFRXX_TAR="${GMPFRXX_TAR:-$SRC/gmpfrxx_mkII.1.4.1.tar.xz}"
 GMPFRXX_URL="${GMPFRXX_URL:-https://github.com/nakatamaho/gmpfrxx_mkII/releases/download/v1.4.1/gmpfrxx_mkII.1.4.1.tar.xz}"
@@ -81,16 +88,16 @@ case "$OCTAVE_CHANNEL" in
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.0-dev}"
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
         OCTAVE_URL="${OCTAVE_URL:-}"
-        if [[ "$OCTAVE_VERSION" == "0.5.0-dev" ]]; then
+        if [ "$OCTAVE_VERSION" = "0.5.0-dev" ]; then
             OCTAVE_SHA256="${OCTAVE_SHA256:-fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f}"
         else
-            [[ -n "${OCTAVE_SHA256:-}" ]] || die "non-0.5.0-dev development archive requires OCTAVE_SHA256=<sha256>"
+            [ -n "${OCTAVE_SHA256:-}" ] || die "non-0.5.0-dev development archive requires OCTAVE_SHA256=<sha256>"
         fi
         ;;
     release)
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.0}"
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
-        if [[ "$OCTAVE_VERSION" == "0.5.0" ]]; then
+        if [ "$OCTAVE_VERSION" = "0.5.0" ]; then
             OCTAVE_SHA256="${OCTAVE_SHA256:-3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04}"
             OCTAVE_URL="${OCTAVE_URL:-https://github.com/nakatamaho/octave-mplapack/releases/download/v0.5.0/mplapack-interop-0.5.0.tar.gz}"
         else
@@ -101,7 +108,7 @@ case "$OCTAVE_CHANNEL" in
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.4.0}"
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-0.4.0.tar.gz}"
         OCTAVE_URL="${OCTAVE_URL:-}"
-        if [[ "$OCTAVE_VERSION" == "0.4.0" ]]; then
+        if [ "$OCTAVE_VERSION" = "0.4.0" ]; then
             OCTAVE_SHA256="${OCTAVE_SHA256:-6bc87d42fbda49fa72830db34fbede7b8b9f46b7614b14dc53e7619c7781536c}"
         else
             die "historical channel is fixed to mplapack-interop 0.4.0"
@@ -120,49 +127,9 @@ OCT_PKG_DB="$PREFIX/octave_packages"
 # 0. Prerequisites
 # ----------------------------------------------------------------------
 
-install_deps() {
-    if ! command -v apt-get >/dev/null 2>&1; then
-        return
-    fi
-
-    local sudo_cmd=()
-    if [[ "${EUID}" -ne 0 ]]; then
-        if command -v sudo >/dev/null 2>&1; then
-            sudo_cmd=(sudo)
-        else
-            echo
-            echo "sudo is not available. Install these packages manually:"
-            echo "  build-essential gfortran cmake pkg-config autoconf automake libtool"
-            echo "  libgmp-dev libmpfr-dev libmpc-dev octave octave-dev xz-utils curl"
-            exit 1
-        fi
-    fi
-
-    say "Installing Ubuntu/Debian build dependencies"
-    "${sudo_cmd[@]}" apt-get update
-    "${sudo_cmd[@]}" apt-get install -y \
-        build-essential \
-        gfortran \
-        cmake \
-        pkg-config \
-        autoconf \
-        automake \
-        libtool \
-        libgmp-dev \
-        libmpfr-dev \
-        libmpc-dev \
-        octave \
-        octave-dev \
-        xz-utils \
-        curl
-}
-
-if [[ "${SKIP_APT:-0}" != "1" ]]; then
-    install_deps
-fi
-
-for cmd in gcc g++ gfortran cmake make pkg-config octave mkoctfile sha256sum tar curl; do
-    command -v "$cmd" >/dev/null 2>&1 || die "required command not found: $cmd"
+for cmd in gcc g++ gfortran cmake make pkg-config octave mkoctfile ctest \
+    sha256sum tar curl; do
+    command -v "$cmd" >/dev/null 2>&1 || die "required command not found: $cmd. Install the documented Ubuntu dependencies first."
 done
 
 # ----------------------------------------------------------------------
@@ -170,16 +137,16 @@ done
 # ----------------------------------------------------------------------
 
 download_archive_if_missing() {
-    local archive_path="$1"
-    local archive_url="$2"
-    local archive_label="$3"
+    archive_path="$1"
+    archive_url="$2"
+    archive_label="$3"
 
-    if [[ -f "$archive_path" ]]; then
+    if [ -f "$archive_path" ]; then
         return
     fi
 
     mkdir -p "$(dirname "$archive_path")"
-    local temporary_archive="${archive_path}.download.$$"
+    temporary_archive="${archive_path}.download.$$"
     rm -f "$temporary_archive"
     say "Downloading $archive_label"
     if ! curl --fail --show-error --location --retry 3 --retry-delay 2 \
@@ -197,29 +164,29 @@ download_archive_if_missing \
 download_archive_if_missing \
     "$MPLAPACK_TAR" "$MPLAPACK_URL" \
     "official MPLAPACK 3.0.1 release archive"
-if [[ -n "$OCTAVE_URL" ]]; then
+if [ -n "$OCTAVE_URL" ]; then
     download_archive_if_missing \
         "$OCTAVE_TAR" "$OCTAVE_URL" \
         "official $OCTAVE_PACKAGE $OCTAVE_VERSION release archive"
 fi
 
 for f in "$GMPFRXX_TAR" "$MPLAPACK_TAR" "$OCTAVE_TAR"; do
-    [[ -f "$f" ]] || die "archive not found: $f"
+    [ -f "$f" ] || die "archive not found: $f"
 done
 
 say "Checking selected source archive SHA256 values"
 
 printf '%s  %s\n' "$GMPFRXX_SHA256" "$GMPFRXX_TAR" | sha256sum -c -
 printf '%s  %s\n' "$MPLAPACK_SHA256" "$MPLAPACK_TAR" | sha256sum -c -
-[[ -n "$OCTAVE_SHA256" ]] || die "set OCTAVE_SHA256 for the final $OCTAVE_PACKAGE $OCTAVE_VERSION archive"
+[ -n "$OCTAVE_SHA256" ] || die "set OCTAVE_SHA256 for the final $OCTAVE_PACKAGE $OCTAVE_VERSION archive"
 printf '%s  %s\n' "$OCTAVE_SHA256" "$OCTAVE_TAR" | sha256sum -c -
 
 OCTAVE_DESCRIPTION_PATH="$(tar -tzf "$OCTAVE_TAR" | awk -F/ '$NF == "DESCRIPTION" { print; exit }')"
-[[ -n "$OCTAVE_DESCRIPTION_PATH" ]] || die "DESCRIPTION is missing from $OCTAVE_TAR"
+[ -n "$OCTAVE_DESCRIPTION_PATH" ] || die "DESCRIPTION is missing from $OCTAVE_TAR"
 OCTAVE_ARCHIVE_NAME="$(tar -xOzf "$OCTAVE_TAR" "$OCTAVE_DESCRIPTION_PATH" | sed -n 's/^Name: *//p')"
 OCTAVE_ARCHIVE_VERSION="$(tar -xOzf "$OCTAVE_TAR" "$OCTAVE_DESCRIPTION_PATH" | sed -n 's/^Version: *//p')"
-[[ "$OCTAVE_ARCHIVE_NAME" == "$OCTAVE_PACKAGE" ]] || die "unexpected Octave package name: $OCTAVE_ARCHIVE_NAME"
-[[ "$OCTAVE_ARCHIVE_VERSION" == "$OCTAVE_VERSION" ]] || die "expected final Octave version $OCTAVE_VERSION, got $OCTAVE_ARCHIVE_VERSION"
+[ "$OCTAVE_ARCHIVE_NAME" = "$OCTAVE_PACKAGE" ] || die "unexpected Octave package name: $OCTAVE_ARCHIVE_NAME"
+[ "$OCTAVE_ARCHIVE_VERSION" = "$OCTAVE_VERSION" ] || die "expected final Octave version $OCTAVE_VERSION, got $OCTAVE_ARCHIVE_VERSION"
 echo "Octave archive identity: $OCTAVE_ARCHIVE_NAME $OCTAVE_ARCHIVE_VERSION"
 
 # ----------------------------------------------------------------------
@@ -306,7 +273,7 @@ cmake --build "$GXX_BUILD" -j"$JOBS"
 
 # The D00 release validated the full gmpfrxx test suite. Run it here as a useful
 # installation sanity check; set SKIP_GMPFRXX_TESTS=1 to skip it.
-if [[ "${SKIP_GMPFRXX_TESTS:-0}" != "1" ]]; then
+if [ "${SKIP_GMPFRXX_TESTS:-0}" != "1" ]; then
     ctest --test-dir "$GXX_BUILD" --output-on-failure -j"$JOBS"
 fi
 
@@ -354,31 +321,31 @@ export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/lib64/pkgconfig${PKG_CONFI
 export LD_LIBRARY_PATH="$PREFIX/lib:$PREFIX/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 MPL_VER="$(pkg-config --modversion mplapack_mpfr)"
-[[ "$MPL_VER" == "3.0.1" ]] || die "unexpected mplapack_mpfr version: $MPL_VER"
+[ "$MPL_VER" = "3.0.1" ] || die "unexpected mplapack_mpfr version: $MPL_VER"
 
 PREC_HEADER=""
 for h in \
     "$PREFIX/include/mplapack/mplapack_mpfr_precision.h" \
     "$PREFIX/include/mplapack_mpfr_precision.h"
 do
-    if [[ -f "$h" ]]; then
+    if [ -f "$h" ]; then
         PREC_HEADER="$h"
         break
     fi
 done
-[[ -n "$PREC_HEADER" ]] || die "mplapack_mpfr_precision.h was not installed"
+[ -n "$PREC_HEADER" ] || die "mplapack_mpfr_precision.h was not installed"
 
 MPL_SO=""
 for so in \
     "$PREFIX/lib/libmplapack_mpfr.so.3" \
     "$PREFIX/lib64/libmplapack_mpfr.so.3"
 do
-    if [[ -e "$so" ]]; then
+    if [ -e "$so" ]; then
         MPL_SO="$so"
         break
     fi
 done
-[[ -n "$MPL_SO" ]] || die "libmplapack_mpfr.so.3 was not installed"
+[ -n "$MPL_SO" ] || die "libmplapack_mpfr.so.3 was not installed"
 
 echo "mplapack_mpfr version : $MPL_VER"
 echo "precision header      : $PREC_HEADER"
@@ -414,11 +381,11 @@ export OCTAVE_MPLAPACK_ARCH_PREFIX="$OCT_PKG_ARCH_PREFIX"
 EOF
 
 cat > "$PREFIX/bin/octave-mplapack" <<EOF
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -e
-source "$PREFIX/env.sh"
+. "$PREFIX/env.sh"
 
-if [[ \$# -eq 0 ]]; then
+if [ "\$#" -eq 0 ]; then
     exec octave --no-gui --persist --eval \
       "pkg ('local_list', '$OCT_PKG_DB'); pkg ('load', '$OCTAVE_PACKAGE'); fprintf ('$OCTAVE_PACKAGE $OCTAVE_VERSION loaded, mpbits = %d\\n', mpbits ());"
 fi
@@ -549,9 +516,6 @@ To rebuild from scratch, simply run this script again.
 
 Optional environment switches:
 
-  SKIP_APT=1
-      Do not run apt-get.
-
   SKIP_GMPFRXX_TESTS=1
       Skip the gmpfrxx CTest suite.
 
@@ -560,7 +524,7 @@ Optional environment switches:
 
   OCTAVE_CHANNEL=dev OCTAVE_TAR="$HOME/src/mplapack-interop-0.5.0-dev.tar.gz" \
   OCTAVE_SHA256=fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f \
-  bash ~/install-local-octave-mplapack.sh
+  sh ~/install-local-octave-mplapack.sh
       Use the reproducible 0.5.0-dev archive for development testing.
 
   OCTAVE_CHANNEL=historical
