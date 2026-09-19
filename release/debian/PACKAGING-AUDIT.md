@@ -1,0 +1,88 @@
+# P01 packaging architecture and license audit
+
+## Proposed source packages
+
+The package-name audit found no Debian package or active tracker entry for the
+three names below. They remain proposals pending P02–P04 review:
+
+```text
+gmpfrxx-mkii
+mplapack
+octave-mplapack-interop
+```
+
+The Git repositories and Octave package name are intentionally distinct:
+
+```text
+Git repository:         octave-mplapack
+Octave package Name:    mplapack-interop
+Debian source proposal: octave-mplapack-interop
+```
+
+## gmpfrxx_mkII 1.4.1
+
+A clean CMake build with `GMPFRXX_MKII_COMPONENTS=GMP,MPFR,MPC`, tests enabled,
+and an isolated `DESTDIR` install was audited from the release archive. The
+upstream test suite passed 156/156 tests. Installed artifacts include the
+public headers, CMake config/targets, and:
+
+```text
+libgmpxx_mkII_default_context_provider.so
+```
+
+The provider currently has the unversioned SONAME
+`libgmpxx_mkII_default_context_provider.so` and no pkg-config module. It is
+not safe to invent a versioned runtime package name from this evidence. The
+initial Debian proposal is therefore a development package containing the
+headers/CMake metadata and provider, with the runtime split deferred until an
+upstream ABI/SONAME decision is available. This is a P02 blocker, not a
+reason to relabel the package as complete.
+
+The CMake audit also found MPFR TLS support, while the installed MPC probe did
+not expose an MPC TLS API. The Debian package must preserve the upstream
+precision-context contract and document this distinction.
+
+## MPLAPACK 3.0.1
+
+The source archive bundles third-party GMP, MPFR, MPC, OpenBLAS, QD, LAPACK,
+and gmpfrxx sources. Its build system exposes system-dependency switches for
+GMP/MPFR/MPC. P03 must select system libraries where Debian policy allows,
+remove or repackage embedded code as required, and carry complete copyright/
+license files for any retained bundled source. The validated installed
+interface is:
+
+```text
+pkg-config module: mplapack_mpfr
+runtime:           libmplapack_mpfr.so.3
+header:            mplapack_mpfr_precision.h
+```
+
+The exact binary package split and Multi-Arch fields are intentionally pending
+P03 Debian policy review; this document does not claim a Debian package.
+
+## octave-mplapack-interop 0.5.0
+
+The Octave package is architecture-dependent because it builds a native `.oct`
+bridge. The likely binary package is `octave-mplapack-interop`, depending on
+Octave and the MPLAPACK MPFR runtime/development packages selected by P03.
+The source archive is BSD-2-Clause. P04 must use installed pkg-config and
+headers rather than a private MPLAPACK prefix.
+
+## License inventory
+
+| Component | Evidence | Initial Debian action |
+|---|---|---|
+| gmpfrxx_mkII | upstream `LICENSE`, BSD-2-Clause | install copyright/license text |
+| MPLAPACK | `COPYING`, MPLAPACK BSD-style text plus LAPACK/BLAS notices | retain complete notices and create DEP-5 entries for bundled code |
+| octave-mplapack-interop | upstream `COPYING`, BSD-2-Clause | install copyright/license text |
+| system GMP | installed package metadata, dual GPL/LGPL terms | use Debian system package |
+| system MPFR/MPC | installed package metadata, LGPL-3+ terms | use Debian system packages |
+
+The final copyright files require source-tree inspection during P02/P03. No
+license conclusion here replaces Debian NEW review.
+
+## P01 status
+
+`P01 PARTIAL`: release artifacts, package boundary, and license inventory are
+documented. P02 is blocked on the unversioned gmpfrxx provider ABI decision;
+P03 is pending system-dependency/repackaging work; P04 depends on both.
