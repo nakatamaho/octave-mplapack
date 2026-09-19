@@ -125,11 +125,13 @@ unrelated numerical work.
 
 ## Final milestone record
 
-Branch: `main` (no branch change made yet)
+Branch: `topic/reldeb00-debian-ppa`
 
 Starting commit: `18454dda239f76061cafc37b47856db58267c0ea`
 
-Final commit: pending commit of this local handoff
+Handoff commit: `4eb13233c232c29cded65dd86d6917fcea73c6e5`
+
+Report commit: the subsequent report-only commit containing this correction
 
 Files changed: `release/debian/*`, this report, and the controller goal file
 
