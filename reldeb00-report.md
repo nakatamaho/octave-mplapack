@@ -141,10 +141,12 @@ search; toolchain availability audit
 
 Tests: gmpfrxx upstream CTest 156/156 PASS; archive SHA256 PASS;
 `tools/check-format.sh`, `tools/check-tree.sh`, and
-`tools/check-github-math.sh` PASS. `tools/local-ci.sh` stopped at its
-dependency gate because the current environment lacks the required
-`mplapack_mpfr_precision.h`; Debian package QA/PPA/public submission remain
-NOT RUN or BLOCKED as recorded above.
+`tools/check-github-math.sh` PASS. With the validated prefix supplied through
+`PKG_CONFIG_PATH`, `tools/local-ci.sh` passed the dependency probe, native
+M00–M21 probes, M20 complex probes, and many public/NEIG checks, but the user
+requested that the long-running run be interrupted before completion. It is
+not a full local-CI PASS. Debian package QA/PPA/public submission remain NOT
+RUN or BLOCKED as recorded above.
 
 Gate: `R00 PASS`, `P00 PASS`, `P01 PARTIAL`, overall `RELDEB00 PARTIAL`
 

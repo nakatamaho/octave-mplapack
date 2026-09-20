@@ -47,3 +47,10 @@ available. `debuild`, `dh`, `dh-octave`, `lintian`, `sbuild`, `autopkgtest`,
 `piuparts`, `reprotest`, `gbp`, `uscan`, `dput`, `reportbug`, and `debsign` are
 missing. Apt installation is unavailable to the unprivileged user. Therefore
 P05 is BLOCKED and no Debian package QA result is claimed.
+
+The repository's `tools/local-ci.sh` was also started with the previously
+validated MPLAPACK prefix supplied only through `PKG_CONFIG_PATH`. That run
+passed the dependency probe, the M00–M21 native probes, M20 complex probes, and
+many public/NEIG checks, but it was intentionally interrupted before the full
+suite completed at the user's request. It is therefore evidence of useful
+progress, not a full local-CI PASS.
