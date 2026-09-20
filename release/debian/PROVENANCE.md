@@ -67,8 +67,28 @@ The archive `DESCRIPTION` was inspected directly. It is the package input for
 P04; the repository name and the Octave package name are intentionally
 different.
 
+## GNU MPC prerequisite
+
+| Field | Value |
+|---|---|
+| Source package | `mpclib3` |
+| Upstream release | GNU MPC 1.4.1 |
+| Archive | `mpc-1.4.1.tar.xz` |
+| SHA256 | `91204cd32f164bd3b7c992d4a6a8ce6519511aadab30f78b6982d0bf8d73e931` |
+| Asset | `https://ftp.gnu.org/gnu/mpc/mpc-1.4.1.tar.xz` |
+| Required API | `mpc_log2` (introduced in MPC 1.4.0) |
+| License | LGPL-3+ |
+
+Ubuntu 26.04's archive currently provides MPC 1.3.1, which does not export
+`mpc_log2`.  The released `mplapack-interop` 0.5.0 native bridge calls this
+function directly.  A PPA build therefore needs a compatible `mpclib3`
+1.4.1 package before the three project packages.  This is an external
+dependency package, not an MPLAPACK or gmpfrxx source change.
+
 ## R00 conclusion
 
-`R00 PASS — UPSTREAM RELEASE STACK FROZEN` for provenance purposes. P02–P04
-remain pending Debian source-package construction and QA; this document does
-not claim that any Debian package has been built or uploaded.
+`R00 PASS — UPSTREAM RELEASE STACK FROZEN` for provenance purposes. The MPC
+prerequisite is now recorded explicitly because the target Ubuntu archive does
+not provide the API required by the released interop bridge. P02–P04 remain
+pending Debian source-package construction and QA; this document does not
+claim that any Debian package has been uploaded.

@@ -1,0 +1,4 @@
+usr/include/mpc.h
+usr/lib/*/libmpc.so
+usr/lib/*/libmpc.a
+usr/lib/*/pkgconfig/mpc.pc

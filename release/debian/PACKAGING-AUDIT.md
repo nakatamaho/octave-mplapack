@@ -126,4 +126,5 @@ license conclusion here replaces Debian NEW review.
 
 `P01 PARTIAL`: release artifacts, package boundary, and license inventory are
 documented. P02 is blocked on the unversioned gmpfrxx provider ABI decision;
-P03 is pending system-dependency/repackaging work; P04 depends on both.
+P03 has a local system-dependency/repackaging draft but still needs Debian
+policy closure; P04 depends on both.

@@ -1,0 +1,29 @@
+Source: mpclib3
+Section: libs
+Priority: optional
+Maintainer: Pending Debian maintainer <debian@example.invalid>
+Build-Depends: debhelper-compat (= 13), libgmp-dev, libmpfr-dev (>= 4.1.1)
+Standards-Version: 4.7.3
+Rules-Requires-Root: no
+Homepage: https://www.multiprecision.org/mpc/
+
+Package: libmpc3
+Section: libs
+Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: multiple precision complex floating-point library
+ GNU MPC is a portable library for arbitrary-precision complex arithmetic
+ with correctly rounded results.  It builds upon GNU MP and MPFR.
+
+Package: libmpc-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libmpc3 (= ${binary:Version}), libmpfr-dev (>= 4.0.0), libgmp-dev,
+ ${misc:Depends}
+Description: multiple precision complex floating-point library development package
+ GNU MPC is a portable library for arbitrary-precision complex arithmetic
+ with correctly rounded results.  This package contains headers and linker
+ files for development.

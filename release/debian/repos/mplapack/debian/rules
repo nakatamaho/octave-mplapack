@@ -37,10 +37,11 @@ override_dh_auto_install:
 	# Ubuntu's libmpc-dev does not ship mpc.pc.  Keep the consumer .pc
 	# self-contained so P04 can resolve the direct MPLAPACK dependencies
 	# without inheriting a developer /usr/local pkg-config tree.
+	multiarch=$$(dpkg-architecture -qDEB_HOST_MULTIARCH); \
 	for pc in debian/tmp/usr/lib/*/pkgconfig/mplapack_mpfr*.pc; do \
 		case "$$pc" in *opt.pc) lib=mplapack_mpfr_opt;; *) lib=mplapack_mpfr;; esac; \
 		sed -i \
 			-e 's/^Requires:.*/Requires:/' \
-			-e "s|^Libs:.*|Libs: -L/usr/lib/$${DEB_HOST_MULTIARCH} -l$$lib -lmpc -lmpfr -lgmp|" \
+			-e "s|^Libs:.*|Libs: -L/usr/lib/$$multiarch -l$$lib -lmpc -lmpfr -lgmp|" \
 			"$$pc"; \
 	done

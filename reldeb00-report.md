@@ -15,6 +15,7 @@ environment and missing external identities.
 | gmpfrxx_mkII | 1.4.1 | `v1.4.1`, `32a7fb797202cdf92312ed9d133f96fdbcda590a` | `gmpfrxx_mkII.1.4.1.tar.xz` | `395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4` |
 | MPLAPACK | 3.0.1 | `v3.0.1`, tag `7646ad96f15d46c4d15333114e98d499e007e09f`, archive source `953d7a4916554546937a753a30b0619691072841` | `mplapack-3.0.1.tar.xz` | `47ebb653b21f0c62e8144c1e515e94d76965d9d0d4b7ba216b034d778570cbaa` |
 | mplapack-interop | 0.5.0 | `v0.5.0`, `7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa` | `mplapack-interop-0.5.0.tar.gz` | `3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04` |
+| GNU MPC prerequisite | 1.4.1 | upstream release | `mpc-1.4.1.tar.xz` | `91204cd32f164bd3b7c992d4a6a8ce6519511aadab30f78b6982d0bf8d73e931` |
 
 All three archives were downloaded from published GitHub release assets and
 hashed locally. The interop archive reports `Name: mplapack-interop`,
@@ -50,6 +51,7 @@ all statuses are explicitly PROPOSED in `TEAM-ROUTING.md`.
 gmpfrxx_mkII:            headers/CMake/provider audited; provider SONAME unversioned
 MPLAPACK:                libmplapack_mpfr.so.3 plus development headers/pkg-config expected
 octave interop:          architecture-dependent Octave .oct binary
+MPC prerequisite:        libmpc3/libmpc-dev 1.4.1 required for mpc_log2
 SONAMEs:                 gmpfrxx provider unversioned; MPLAPACK runtime .so.3
 Multi-Arch/symbols:      pending Debian package build and policy review
 ```
@@ -60,6 +62,13 @@ placeholder maintainer metadata and is not Debian-ready. The full audit and
 license inventory are in `release/debian/PACKAGING-AUDIT.md` and
 `release/debian/ABI-AND-MULTIARCH.md`; build evidence is in
 `release/debian/QA-EVIDENCE.md`.
+
+The released interop bridge also requires GNU MPC 1.4.0 or newer because it
+calls `mpc_log2`. Ubuntu 26.04 currently ships MPC 1.3.1. This is an external
+dependency gap, not an MPLAPACK or gmpfrxx_mkII bug. A local `mpclib3` 1.4.1
+draft package was built and installed; P04 then loaded and passed its smoke
+test. The staging PPA therefore needs `mpclib3` before the three project
+packages.
 
 ## Licensing
 
@@ -109,17 +118,19 @@ No public action was attempted. See `release/debian/PUBLIC-SUBMISSION-STATUS.md`
 
 ## External blockers
 
-1. Install the Debian packaging QA toolchain (`debhelper`/`dh-octave`,
-   `debuild`, `lintian`, `sbuild`, `autopkgtest`, `piuparts`, `reprotest`,
-   `gbp`, `uscan`, `dput`, `reportbug`, and signing support) in a privileged
-   Ubuntu/Debian build environment.
-2. Resolve the standalone gmpfrxx provider's unversioned SONAME/ABI packaging
+1. Provision a clean Debian/Ubuntu testbed with `sbuild`/`autopkgtest`,
+   reproducibility tooling, and signing support. `debhelper`/`dh-octave` and
+   `lintian` are available in the local lab, but this is not a clean testbed.
+2. Provide/package GNU MPC 1.4.1 (or a compatible Ubuntu update) for the
+   `mpc_log2` ABI required by interop 0.5.0. The local draft succeeds, but no
+   PPA upload or Debian sponsorship exists.
+3. Resolve the standalone gmpfrxx provider's unversioned SONAME/ABI packaging
    decision. The validated MPFR-only MPLAPACK library does not link that
    provider, so this blocker is isolated to independent gmpfrxx consumers and
    does not change the interop runtime dependency closure.
-3. Complete P02–P04 source packages using system dependencies and Debian
+4. Complete P02–P04 source packages using system dependencies and Debian
    copyright/repackaging policy.
-4. Obtain Debian team/sponsor/Salsa/mentors and Launchpad identities before
+5. Obtain Debian team/sponsor/Salsa/mentors and Launchpad identities before
    any public submission.
 
 ## Final state
@@ -134,8 +145,9 @@ DEBIAN-OFFICIAL-ACCEPTED: NO
 UBUNTU-OFFICIAL-SYNCED:   NO
 ```
 
-Resume at P02 after the ABI and toolchain blockers are resolved. The current
-draft is evidence to refine, not a submission artifact. Do not repeat the
+Resume at P02/P03 policy closure after the clean-testbed, provider ABI, and
+MPC prerequisite blockers are resolved. The current draft is evidence to
+refine, not a submission artifact. Do not repeat the
 release downloads or create duplicate ITP/RFS/PPA submissions. Do not begin
 unrelated numerical work.
 
@@ -152,8 +164,8 @@ Report commit: the subsequent report-only commit containing this correction
 Files changed: `release/debian/*`, this report, and the controller goal file
 
 Commands run: release-asset download/hash inspection; `git ls-remote`; CMake /
-CTest gmpfrxx release smoke; package/SONAME inspection; Debian package-name
-search; toolchain availability audit
+CTest gmpfrxx release smoke; GNU MPC 1.4.1 build/package smoke; package/SONAME
+inspection; Debian package-name search; toolchain availability audit
 
 Tests: gmpfrxx upstream CTest 156/156 PASS; archive SHA256 PASS;
 `tools/check-format.sh`, `tools/check-tree.sh`, and
@@ -167,9 +179,10 @@ RUN or BLOCKED as recorded above.
 Gate: `R00 PASS`, `P00 PASS`, `P01 PARTIAL`, `P02 PARTIAL`, `P03 PARTIAL`, `P04 PARTIAL`, overall `RELDEB00 PARTIAL`
 
 Known limitations: the P02 draft is not a Debian submission; provider
-ABI/SONAME policy, final package splits, full P03/P04 builds,
-lintian/autopkgtest/reproducibility, PPA publication, ITP/Salsa/mentors/RFS,
-and official acceptance remain undone.
+ABI/SONAME policy, final package splits, clean-testbed P03/P04 builds,
+reproducibility, PPA publication, ITP/Salsa/mentors/RFS, and official
+acceptance remain undone. The local P04 smoke requires the draft MPC 1.4.1
+prerequisite because Ubuntu MPC 1.3.1 does not export `mpc_log2`.
 
 ## Subsequent local-only packaging progress
 
@@ -198,8 +211,10 @@ libmplapack-mpfr-dev_3.0.1-1_amd64.deb
 
 Local `lintian --pedantic` reported only the expected initial-upload warning;
 `readelf -d` showed the expected `.so.3` SONAMEs and no RPATH/RUNPATH. The
-runtime package hash was
-`f42d1ba997e8e96a9d67a0180c1e8c344240f0201d4f953d6caf582e2de0ee67`.
+corrected runtime package hash is
+`6f13670c4f3310b60b9ff639c333fc8543a0a80147170b438f15406ff960ee3c`; the
+development package hash is
+`5c7f4575031aefaf2c49d3377dfb037f81d048e6b97fd9f7b541328fe18ecfea`.
 This is stronger local binary evidence, but P03 remains PARTIAL because the
 maintainer is still a placeholder, package names/splits are proposals, no
 clean Debian testbed or reproducibility run exists, and no upload was made.
@@ -216,7 +231,11 @@ target `debian/tmp` before package splitting; that path is now corrected.
 Clean post-fix P03/P04 and testbed evidence remains pending, so the overall
 gate stays PARTIAL.
 
-The smoke script passed against an existing built development tree as an API
-compatibility check, and the repository format/tree/GitHub-math checks passed.
-This is not Debian binary-package or autopkgtest evidence: P04, P05, PPA,
-and public Debian submission remain partial or blocked as described above.
+With the corrected P03 packages and the local `mpclib3` 1.4.1 prerequisite,
+the P04 package hash is
+`280079d3b1b4370570b1b807ae1521e6cd6082ecc81807c3db9a9041ac6f46c2` and the
+installed-package smoke passes. Repeating the installed-package load against
+Ubuntu MPC 1.3.1 fails predictably with `undefined symbol: mpc_log2`, so the
+MPC 1.4.1 prerequisite is a real PPA dependency gate. This is not Debian
+binary-package or autopkgtest evidence: P04, P05, PPA, and public Debian
+submission remain partial or blocked as described above.

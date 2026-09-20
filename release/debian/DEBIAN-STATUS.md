@@ -21,8 +21,8 @@ filing, repeat the WNPP/name audit and replace placeholder maintainer identity
 and changelog metadata. Public filing requires a configured Debian identity
 and the completed P02–P05 package QA gates.
 
-Dependency order for eventual publication:
+Dependency order for eventual publication (with the required MPC prerequisite):
 
 ```text
-gmpfrxx-mkii -> mplapack -> octave-mplapack-interop
+mpclib3 -> gmpfrxx-mkii -> mplapack -> octave-mplapack-interop
 ```

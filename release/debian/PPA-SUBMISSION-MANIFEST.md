@@ -19,6 +19,7 @@ before signing or upload. Never reuse an already uploaded version.
 gmpfrxx-mkii:             1.4.1-1~ppa1~ubuntu26.04.1
 mplapack:                 3.0.1-1~ppa1~ubuntu26.04.1
 octave-mplapack-interop:  0.5.0-1~ppa1~ubuntu26.04.1
+mpclib3:                  1.4.1-1~ppa1~ubuntu26.04.1
 ```
 
 ## Upstream inputs
@@ -30,6 +31,8 @@ mplapack-3.0.1.tar.xz
   SHA256 47ebb653b21f0c62e8144c1e515e94d76965d9d0d4b7ba216b034d778570cbaa
 mplapack-interop-0.5.0.tar.gz
   SHA256 3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04
+mpc-1.4.1.tar.xz
+  SHA256 91204cd32f164bd3b7c992d4a6a8ce6519511aadab30f78b6982d0bf8d73e931
 ```
 
 ## Upload preflight
@@ -48,7 +51,7 @@ P02/P03/P04 binary and Debian QA PASS
 Upload order is strictly:
 
 ```text
-gmpfrxx-mkii -> mplapack -> octave-mplapack-interop
+mpclib3 -> gmpfrxx-mkii -> mplapack -> octave-mplapack-interop
 ```
 
 No Launchpad URL, build ID, PPA publication, or apt-install result exists yet.

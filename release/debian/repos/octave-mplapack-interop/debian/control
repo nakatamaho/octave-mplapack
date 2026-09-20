@@ -2,7 +2,7 @@ Source: octave-mplapack-interop
 Section: math
 Priority: optional
 Maintainer: Pending Debian maintainer <debian@example.invalid>
-Build-Depends: debhelper-compat (= 13), dh-octave (>= 1.14.1), dh-sequence-octave, octave-dev (>= 11.1.0), pkg-config, libmplapack-mpfr-dev
+Build-Depends: debhelper-compat (= 13), dh-octave (>= 1.14.1), dh-sequence-octave, octave-dev (>= 11.1.0), pkg-config, libmpc-dev (>= 1.4.0), libmplapack-mpfr-dev
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
 Homepage: https://github.com/nakatamaho/octave-mplapack
@@ -10,7 +10,7 @@ Testsuite: autopkgtest-pkg-octave
 
 Package: octave-mplapack-interop
 Architecture: any
-Depends: ${misc:Depends}, ${octave:Depends}, ${shlibs:Depends}, libmplapack-mpfr3
+Depends: ${misc:Depends}, ${octave:Depends}, ${shlibs:Depends}, libmpc3 (>= 1.4.0), libmplapack-mpfr3
 Description: Multiple-precision Linear Algebra with MPLAPACK for Octave
  This Octave package provides the released mplapack-interop interface and
  native MPFR/MPLAPACK bindings. The draft carries an installed-package smoke

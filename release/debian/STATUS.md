@@ -12,9 +12,9 @@ P01  PARTIAL packaging boundary and license audit recorded
 
 ```text
 P02  PARTIAL  source/binary draft plus watch/autopkgtest skeleton; provider ABI/SONAME and Debian QA remain
-P03  PARTIAL  release/build-system audit and source-only draft skeleton; binary/policy QA remain
-P04  PARTIAL  archive/build-boundary and source-only draft skeleton; binary QA depends on P02/P03
-P05  BLOCKED  debuild/sbuild/lintian/autopkgtest/piuparts/reprotest unavailable
+P03  PARTIAL  local binary packages/lintian and linkage evidence; clean testbed/policy remain
+P04  PARTIAL  local binary package and MPC 1.4.1 installed smoke pass; clean testbed remains
+P05  PARTIAL  lintian/autopkgtest available; sbuild/piuparts/reprotest/debuild/signing unavailable
 U00  PENDING  staging PPA metadata and credentials
 U01  BLOCKED  Launchpad account, PPA, and upload key not configured
 U02  PENDING  requires U01
@@ -23,18 +23,19 @@ D01  BLOCKED  Salsa/mentors account and signing identity not configured
 D02  BLOCKED  sponsor/RFS workflow requires Debian submission identity
 ```
 
-The local machine is Ubuntu 26.04 amd64 with Octave 11.1.0. It has
-`dpkg-buildpackage`, CMake, and a compiler, but does not have `debuild`,
-`sbuild`, `lintian`, `autopkgtest`, `piuparts`, `reprotest`, `gbp`, `uscan`,
-`dput`, or `reportbug`; apt installation cannot be performed without root.
-These are concrete environment blockers, not PASS results.
+The local machine is Ubuntu 26.04 amd64 with Octave 11.1.0. It now has
+`dpkg-buildpackage`, CMake, a compiler, debhelper/dh-octave, lintian, and
+autopkgtest. `debuild`, `sbuild`, `piuparts`, `reprotest`, `gbp`, `uscan`,
+`dput`, `reportbug`, and signing support remain unavailable. Local root-based
+package installation was used for binary smoke tests, but this is not a clean
+Debian testbed or a policy/submission PASS.
 
 No ITP, Salsa repository, mentors upload, PPA upload, RFS, or public Debian
 submission has been attempted; ready-to-send ITP/team-contact drafts are now
 under `release/debian/itp/` and `release/debian/team-contact/`. The next
-resumable stage is P02/P03 package
-policy closure after the gmpfrxx provider ABI decision and packaging toolchain
-are available; P04 must then be built against those packaged interfaces.
+resumable stage is P02/P03 policy closure and clean-testbed QA after the
+gmpfrxx provider ABI decision. P04 additionally requires the PPA MPC 1.4.1
+prerequisite because Ubuntu 26.04's MPC 1.3.1 lacks `mpc_log2`.
 
 Additional boundary evidence now separates the blockers: the standalone
 gmpfrxx provider has an unversioned public SONAME, but the released MPFR-only

@@ -12,9 +12,10 @@ PPA uploads:           NOT PERFORMED
 Ubuntu archive sync:   NOT APPLICABLE
 ```
 
-This is intentional: the local package toolchain is incomplete, the gmpfrxx
-provider ABI is not yet packageable without an explicit decision, and no
-Debian/Launchpad signing or sponsor credentials are configured. The artifacts
+This is intentional: clean Debian testbed/policy gates remain incomplete, the
+gmpfrxx provider ABI is not yet packageable without an explicit decision, GNU
+MPC 1.4.1 is required as a PPA prerequisite, and no Debian/Launchpad signing
+or sponsor credentials are configured. The artifacts
 under `release/debian/` are the resumable local handoff, not public submission
 evidence.
 

@@ -14,8 +14,9 @@ Architecture:  amd64 deeply validated; other Launchpad architectures pending
 ## Ordered work
 
 ```text
+PPA0  package GNU MPC 1.4.1 because Ubuntu 26.04 has MPC 1.3.1
 PPA1  package and build the required MPLAPACK MPFR dependency first
-PPA2  build octave-mplapack-interop against PPA1's published dependency
+PPA2  build octave-mplapack-interop against PPA0/PPA1's published dependencies
 PPA3  staging PPA build/install/remove/reinstall QA
 PPA4  public PPA and final release decision
 ```
@@ -31,10 +32,13 @@ libgmpfrxx-mkii-dev   (provider ABI decision still pending)
 libmplapack-mpfr3
 libmplapack-mpfr-dev
 octave-mplapack-interop
+libmpc3 / libmpc-dev 1.4.1 (PPA prerequisite; provides mpc_log2)
 ```
 
-These are proposals for P02/P03/P04 review, not final Debian names. PPA1/PPA2
-own the Debian Policy and package-name decisions.
+These are proposals for P02/P03/P04 review, not final Debian names. The MPC
+binary names follow Ubuntu's existing `mpclib3` source package and must be
+coordinated with the Ubuntu/Debian maintainers. PPA0/PPA1/PPA2 own the Debian
+Policy and package-name decisions.
 
 ## External gate
 

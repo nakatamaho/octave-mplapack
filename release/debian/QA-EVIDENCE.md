@@ -152,6 +152,27 @@ is absent; no watch-file PASS is claimed. The unversioned provider SONAME,
 placeholder maintainer, incomplete DEP-5 inventory, and missing Debian QA
 tools keep P02 PARTIAL.
 
+## MPC prerequisite ABI finding
+
+The installed Ubuntu 26.04 archive provides `libmpc3`/`libmpc-dev` 1.3.1-3.
+That ABI has `mpc_log` and `mpc_log10`, but no `mpc_log2`. The released
+`mplapack-interop` 0.5.0 bridge calls `mpc_log2` from
+`src/mp_script_compat.cc`; the function was added by GNU MPC 1.4.0. This is
+an external MPC version mismatch, not an MPLAPACK or gmpfrxx_mkII symbol.
+
+The official GNU MPC 1.4.1 archive was downloaded and built against the system
+GMP/MPFR libraries. A local Debian draft `mpclib3` package containing
+`libmpc3`/`libmpc-dev` 1.4.1-1~ppa1 passed binary build and pedantic lintian
+with no reported tag. The installed library exports `mpc_log2`.
+
+With that draft MPC package installed, the released P04 source built into a
+Debian binary package and the installed-package smoke passed. The package now
+declares the required `libmpc-dev (>= 1.4.0)` build dependency and
+`libmpc3 (>= 1.4.0)` runtime dependency. The PPA order must therefore start
+with `mpclib3`, before the three project packages. This is local evidence;
+MPC Debian ownership, source-package policy, and PPA publication remain
+pending.
+
 ## P03/P04 source audits
 
 The MPLAPACK 3.0.1 source archive was inspected without modifying it. Its
@@ -248,14 +269,13 @@ newer libraries under `/usr/local`; the verification run constrained
 clean PPA build is expected to use only declared Debian Build-Depends and does
 not rely on this local override.
 
-The first P04 attempt also exposed that Ubuntu's `libmpc-dev` does not ship an
-`mpc.pc`, while the upstream MPLAPACK `.pc` files declare `Requires: mpc`. The
-P03 Debian rules now rewrite the staged consumer metadata to remove that
-non-portable `Requires` and emit direct `-lmpc -lmpfr -lgmp` flags. The first
-post-fix build reached installation and exposed an incorrect pre-split path in
-that hook; the rules now target `debian/tmp`, where `dh_auto_install` actually
-stages the `.pc` files. A clean post-fix binary/testbed rebuild remains
-pending.
+The first P04 attempt also exposed that Ubuntu's `libmpc-dev` 1.3.1 does not
+ship `mpc.pc`, while the upstream MPLAPACK `.pc` files declare `Requires:
+mpc`. The P03 Debian rules now rewrite the staged consumer metadata to remove
+that non-portable `Requires` and emit direct `-lmpc -lmpfr -lgmp` flags. The
+hook targets `debian/tmp`, where `dh_auto_install` stages the `.pc` files.
+The separate `mpc_log2` ABI issue is handled by the explicit MPC 1.4.1 PPA
+prerequisite described above.
 
 The resulting draft packages were:
 
@@ -268,16 +288,33 @@ Both packages passed `lintian --pedantic` with only the expected
 `initial-upload-closes-no-bugs` warnings. `readelf -d` showed SONAMEs
 `libmplapack_mpfr.so.3` and `libmplapack_mpfr_opt.so.3`, the expected
 GMP/MPFR/MPC and C++ runtime NEEDED entries, and no RPATH/RUNPATH. The latest
-local runtime package hash was:
+corrected local package hashes were:
 
 ```text
-f42d1ba997e8e96a9d67a0180c1e8c344240f0201d4f953d6caf582e2de0ee67  libmplapack-mpfr3_3.0.1-1_amd64.deb
+6f13670c4f3310b60b9ff639c333fc8543a0a80147170b438f15406ff960ee3c  libmplapack-mpfr3_3.0.1-1_amd64.deb
+5c7f4575031aefaf2c49d3377dfb037f81d048e6b97fd9f7b541328fe18ecfea  libmplapack-mpfr-dev_3.0.1-1_amd64.deb
 ```
 
 This is strong local binary/layout evidence, not a final Debian package PASS:
 the maintainer remains a placeholder, package names/splits remain proposals,
 clean-testbed and reproducibility checks remain undone, and no upload was
 attempted.
+
+With the corrected P03 packages and the local `mpclib3` 1.4.1 prerequisite,
+a fresh P04 build of the released archive completed the real `dh-octave`
+binary stage. The resulting package hash was:
+
+```text
+280079d3b1b4370570b1b807ae1521e6cd6082ecc81807c3db9a9041ac6f46c2  octave-mplapack-interop_0.5.0-1_amd64.deb
+```
+
+`lintian --pedantic` reported only the expected initial-upload warning, the
+installed `.oct` had no RPATH/RUNPATH, and the installed smoke passed. A
+system-only run with Ubuntu MPC 1.3.1 still fails at load time with the
+expected `undefined symbol: mpc_log2`; that failure is now a documented
+dependency gate rather than an unexplained P04 build failure. Clean Debian
+testbed, reproducibility, and PPA evidence remain pending, so P03/P04 and the
+overall controller stay PARTIAL.
 
 ITP and team-contact messages are prepared but unsent under
 `release/debian/itp/` and `release/debian/team-contact/`. No BTS number,
