@@ -12,8 +12,8 @@ P01  PARTIAL packaging boundary and license audit recorded
 
 ```text
 P02  PARTIAL  local gmpfrxx-mkii source/binary draft builds; provider ABI/SONAME and Debian QA remain
-P03  PENDING  MPLAPACK source package; system-dependency/repackaging audit needed
-P04  PENDING  octave-mplapack-interop source package; depends on P02/P03
+P03  PARTIAL  release/build-system audit complete; source package and Debian policy review remain
+P04  PARTIAL  archive/build-boundary audit complete; source package depends on P02/P03
 P05  BLOCKED  debuild/sbuild/lintian/autopkgtest/piuparts/reprotest unavailable
 U00  PENDING  staging PPA metadata and credentials
 U01  BLOCKED  Launchpad account, PPA, and upload key not configured
@@ -30,5 +30,6 @@ The local machine is Ubuntu 26.04 amd64 with Octave 11.1.0. It has
 These are concrete environment blockers, not PASS results.
 
 No ITP, Salsa repository, mentors upload, PPA upload, RFS, or public Debian
-submission has been attempted. The next resumable stage is P02 after the
-gmpfrxx provider ABI decision and packaging toolchain are available.
+submission has been attempted. The next resumable stage is P02/P03 package
+policy closure after the gmpfrxx provider ABI decision and packaging toolchain
+are available; P04 must then be built against those packaged interfaces.

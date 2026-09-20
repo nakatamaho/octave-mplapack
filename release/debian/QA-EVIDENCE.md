@@ -75,3 +75,19 @@ SONAME and the draft uses placeholder maintainer metadata, so this is not a
 release or Debian submission artifact. `lintian` could not yet run because
 the base environment lacks its Perl dependency set; P02 remains PARTIAL and
 P05 remains BLOCKED.
+
+## P03/P04 source audits
+
+The MPLAPACK 3.0.1 source archive was inspected without modifying it. Its
+Autotools metadata exposes system GMP/MPFR/MPC switches, installs the MPFR
+headers and `mplapack_mpfr` pkg-config metadata, and declares libtool
+version-info `3:0:0` for the reference MPFR library. A full Debian source
+package build was not claimed because the configured source tree's generated
+dependency-file phase is lengthy in this unprivileged environment and the
+Debian QA toolchain is incomplete; P03 remains PARTIAL.
+
+The `mplapack-interop` 0.5.0 archive was inspected and contains the expected
+Octave package metadata, `src/Makefile`, tests, examples, and docs. Its Makefile
+uses the installed `mplapack_mpfr` pkg-config module. The archive is the later
+0.5.0 complex/advanced release, not the historical real-only v0.1 candidate;
+P04 must preserve that fact. No P04 Debian package was built or submitted.

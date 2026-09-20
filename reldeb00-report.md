@@ -3,9 +3,10 @@
 ## Result
 
 `PARTIAL` — local release provenance and package-name/architecture audits are
-complete, and a non-submission P02 gmpfrxx packaging draft now builds in an
-unprivileged lab. Debian package QA and all public submission stages remain
-blocked by the current environment and missing external identities.
+complete, a non-submission P02 gmpfrxx packaging draft builds in an
+unprivileged lab, and P03/P04 source/build boundaries are documented. Debian
+package QA and all public submission stages remain blocked by the current
+environment and missing external identities.
 
 ## Upstream release provenance
 
@@ -153,9 +154,9 @@ requested that the long-running run be interrupted before completion. It is
 not a full local-CI PASS. Debian package QA/PPA/public submission remain NOT
 RUN or BLOCKED as recorded above.
 
-Gate: `R00 PASS`, `P00 PASS`, `P01 PARTIAL`, `P02 PARTIAL`, overall `RELDEB00 PARTIAL`
+Gate: `R00 PASS`, `P00 PASS`, `P01 PARTIAL`, `P02 PARTIAL`, `P03 PARTIAL`, `P04 PARTIAL`, overall `RELDEB00 PARTIAL`
 
 Known limitations: the P02 draft is not a Debian submission; provider
-ABI/SONAME policy, final package split, lintian/autopkgtest/reproducibility,
-P03/P04 source packages, PPA publication, ITP/Salsa/mentors/RFS, and official
-acceptance remain undone.
+ABI/SONAME policy, final package splits, full P03/P04 builds,
+lintian/autopkgtest/reproducibility, PPA publication, ITP/Salsa/mentors/RFS,
+and official acceptance remain undone.

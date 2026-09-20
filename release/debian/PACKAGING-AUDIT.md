@@ -73,6 +73,14 @@ header:            mplapack_mpfr_precision.h
 The exact binary package split and Multi-Arch fields are intentionally pending
 P03 Debian policy review; this document does not claim a Debian package.
 
+The release Autotools metadata confirms that the MPFR reference library is
+`libmplapack_mpfr.la` with libtool version information `3:0:0`, and that the
+public MPFR headers and `mplapack_mpfr.pc` metadata are installed from the
+top-level build. Debian must disable unrelated optional backends, select
+system GMP/MPFR/MPC, and audit the bundled third-party source tree before
+choosing the final source/binary package layout. No P03 package PASS is
+claimed from this source audit.
+
 ## octave-mplapack-interop 0.5.0
 
 The Octave package is architecture-dependent because it builds a native `.oct`
@@ -80,6 +88,14 @@ bridge. The likely binary package is `octave-mplapack-interop`, depending on
 Octave and the MPLAPACK MPFR runtime/development packages selected by P03.
 The source archive is BSD-2-Clause. P04 must use installed pkg-config and
 headers rather than a private MPLAPACK prefix.
+
+The released archive contains a conventional Octave `DESCRIPTION`, `inst/`,
+`src/Makefile`, tests, examples, and docs. The native Makefile obtains
+`MPLAPACK_CFLAGS`/`MPLAPACK_LIBS` from `pkg-config --cflags/--libs
+mplapack_mpfr`; the package therefore has a clear P03 development-package
+boundary. The 0.5.0 release also includes later complex and advanced APIs,
+so P04 packaging must preserve the release's actual scope rather than reuse
+the historical real-only v0.1 description. No P04 package PASS is claimed.
 
 ## License inventory
 
