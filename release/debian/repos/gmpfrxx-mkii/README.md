@@ -14,21 +14,37 @@ build complete. This is build evidence only; it is not a Debian QA or
 submission result. The draft still has a placeholder maintainer, no team or
 Salsa identity, and no final binary-package split.
 
-The resulting development package currently carries the unversioned
-`libgmpxx_mkII_default_context_provider.so` together with the headers and
-CMake metadata. Resolve that ABI/SONAME decision, Debian copyright policy,
-dependency completeness, and the final runtime/development split before
-publishing a package. The package must not be marked ready from this
-placeholder.
+The current local candidate applies a packaging-only CMake target
+`SOVERSION 1` and splits the provider into
+`libgmpxx-mkii-default-context-provider1`; the development package retains
+the headers, CMake metadata, and unversioned linker symlink. This resolves the
+local ELF packaging defect, but the package remains a review draft: Debian
+copyright policy, dependency completeness, symbols/Multi-Arch policy, and
+maintainer ownership still require review before publication.
 
 The latest draft package hash and source-build evidence are recorded in
 `release/debian/QA-EVIDENCE.md`; the extracted-package provider smoke also
-passes. `lintian --pedantic` now runs and reports the documented provider
-SONAME/ldconfig findings. `sbuild` and the remaining Debian QA tools are not
-yet available in the base environment.
+passes. Direct binary `lintian --pedantic` on the split candidate reports only
+the expected initial-upload warning; source-package licensing and metadata
+findings remain. `sbuild` and the remaining Debian QA tools are not yet
+available in the base environment.
 
 The committed `debian/watch`, `debian/upstream/metadata`, install manifest,
-and provider-header autopkgtest are review-only additions. The provider test
-requires the final package's unversioned provider-library policy and therefore
-does not constitute an autopkgtest PASS until that ABI/SONAME decision is
-accepted by Debian maintainers.
+and provider-header autopkgtest are review-only additions. Direct binary
+Lintian for the local split candidate reports only the expected
+`initial-upload-closes-no-bugs` warnings; this does not constitute Debian
+archive acceptance.
+
+## Local provider SONAME candidate (2026-09-20)
+
+The split candidate was installed into the local resolute stack rootfs and
+`ldconfig` completed successfully. `readelf -d` reports:
+
+```text
+libgmpxx_mkII_default_context_provider.so.1
+```
+
+The development package depends on the new runtime package and owns only the
+unversioned linker symlink. This is a packaging-only draft resolution; source
+package licensing, Debian ABI/symbols policy, and maintainer review remain
+open.

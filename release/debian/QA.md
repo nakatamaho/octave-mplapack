@@ -8,8 +8,8 @@ upload-ready.
 |---|---|---|
 | Released source archives and SHA256 | PASS | `PROVENANCE.md`, `SHA256SUMS` |
 | P02 source skeleton | PASS | source-only `.dsc` generation; binary draft remains partial |
-| P02 provider ABI/SONAME policy | BLOCKED | Debian review required for unversioned provider SONAME |
-| P02 build-time/autopkgtest | PARTIAL | clean resolute sbuild build and copied-resolute smoke pass; provider policy remains |
+| P02 provider ABI/SONAME policy | PASS (local draft) | packaging-only target SOVERSION 1, split runtime provider, and direct binary Lintian pass; Debian ABI review remains |
+| P02 build-time/autopkgtest | PARTIAL | candidate clean resolute sbuild and install smoke pass; copied-rootfs autopkgtest/lifecycle must be rerun against split runtime package |
 | P03 source skeleton | PASS | source-only `.dsc` generation from 3.0.1 archive |
 | MPC 1.4.1 prerequisite | PASS (local draft) | `mpclib3` binary build/lintian; PPA/Debian ownership pending |
 | P03 binary build | PARTIAL | clean resolute sbuild build succeeds; policy/lifecycle review pending |
@@ -19,7 +19,7 @@ upload-ready.
 | P04 binary build | PARTIAL | clean resolute sbuild build succeeds with injected MPC 1.4.1; package-policy review remains |
 | P04 autopkgtest | PASS (superficial) | isolated copied resolute rootfs smoke passed; official testbed/public archive lifecycle remains pending |
 | sbuild resolute amd64 | PARTIAL | registered schroot; clean P02/P03/P04 builds pass, Lintian policy remains |
-| lintian --pedantic | PARTIAL | P03/P04 drafts have only the expected initial-upload warning; P02 provider ldconfig/SONAME findings remain |
+| lintian --pedantic | PARTIAL | P02 binary candidates have only expected initial-upload warnings; source draft has licensing/unreleased-changelog findings and P03/P04 policy review remains |
 | autopkgtest | PASS (superficial) | P02/P03/P04 copied Ubuntu 26.04/resolute rootfs smoke tests pass; superficial-only exit 8 is expected |
 | piuparts | PASS (local) | resolute existing-rootfs install/purge test passed; package policy/ownership remains open |
 | local APT stack | PASS (local) | file-repository install of P02/P03/MPC/P04 plus remove/reinstall smoke passed in resolute rootfs |
@@ -38,7 +38,9 @@ The isolated local piuparts/autopkgtest lifecycle checks and the local APT
 dependency-stack install/remove/reinstall smoke now pass against an Ubuntu
 26.04/resolute rootfs copy. A Debian packaging-only prefix-map patch was then
 validated in two independent clean P04 sbuilds; the resulting binary package
-and split debug package hashes matched exactly. The remaining local actions
-are P02 provider/package policy and installed P03/P04 review without changing
-released upstream numerical sources. No Debian/sid or publication identity is
-implied.
+and split debug package hashes matched exactly. The P02 provider candidate now
+also builds with a versioned `.so.1` runtime split and direct binary Lintian
+reports only the expected initial-upload warnings. The remaining local
+actions are rerunning P02 copied-rootfs tests with that split package,
+installed P03/P04 review, and Debian policy/identity work. No Debian/sid or
+publication identity is implied.

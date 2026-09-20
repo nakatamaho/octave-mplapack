@@ -11,7 +11,7 @@ P01  PARTIAL packaging boundary and license audit recorded
 ## Pending stages
 
 ```text
-P02  PARTIAL  clean chroot build succeeds; provider ABI/SONAME and Debian QA remain
+P02  PARTIAL  local `.so.1` provider split builds cleanly; Debian ABI/metadata review remains
 P03  PARTIAL  clean chroot build succeeds; policy, lifecycle, and Debian review remain
 P04  PARTIAL  clean chroot build succeeds with MPC 1.4.1; lifecycle/PPA review remain
 P05  PARTIAL  clean sbuild/autopkgtest/piuparts/local APT and patched reproducibility pass locally; provider policy, lintian, signing remain
@@ -27,10 +27,12 @@ The local machine is Ubuntu 26.04 amd64 with Octave 11.1.0. It has the Debian
 build/QA toolchain and a registered `resolute-amd64-sbuild` schroot. Clean
 P02/P03/P04 source builds, copied-rootfs autopkgtest, piuparts, local APT
 install/remove/reinstall, and two-build P04 reproducibility with the
-packaging-only prefix-map patch have completed there; sbuild's Lintian stage
-still fails on draft metadata/provider policy findings. No Debian identity,
-upload key, public submission, or Launchpad credential is configured, and no
-package policy/official lifecycle PASS is claimed.
+packaging-only prefix-map patch have completed there. The new P02 candidate
+also cleanly builds a versioned provider runtime split; direct binary Lintian
+has only the expected initial-upload warnings. Source-package metadata,
+licensing, Debian policy, and installed P03/P04 review remain open. No Debian
+identity, upload key, public submission, or Launchpad credential is configured,
+and no official lifecycle PASS is claimed.
 
 No ITP, Salsa repository, mentors upload, PPA upload, RFS, or public Debian
 submission has been attempted; ready-to-send ITP/team-contact drafts are now
@@ -43,5 +45,6 @@ Additional boundary evidence now separates the blockers: the standalone
 gmpfrxx provider has an unversioned public SONAME, but the released MPFR-only
 MPLAPACK library neither links that provider nor exports its ABI symbols.
 Therefore the provider ABI decision affects independent gmpfrxx consumers, not
-the `mplapack-interop` runtime dependency closure. This does not remove the
-need for Debian policy review of the standalone gmpfrxx package.
+the `mplapack-interop` runtime dependency closure. The local candidate resolves
+the ELF packaging issue with a separate `.so.1` runtime package, but Debian
+policy review of the standalone gmpfrxx package remains necessary.

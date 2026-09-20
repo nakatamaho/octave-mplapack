@@ -28,14 +28,18 @@ must not depend on a private source worktree or `/tmp` prefix.
 ## Proposed package names
 
 ```text
-libgmpfrxx-mkii-dev   (provider ABI decision still pending)
+libgmpfrxx-mkii-dev
+libgmpxx-mkii-default-context-provider1  (local SONAME .so.1 candidate)
 libmplapack-mpfr3
 libmplapack-mpfr-dev
 octave-mplapack-interop
 libmpc3 / libmpc-dev 1.4.1 (PPA prerequisite; provides mpc_log2)
 ```
 
-These are proposals for P02/P03/P04 review, not final Debian names. The MPC
+These are proposals for P02/P03/P04 review, not final Debian names. The local
+P02 candidate splits the provider runtime from the development package; the
+package name, symbols, and Multi-Arch policy remain subject to Debian review.
+The MPC
 binary names follow Ubuntu's existing `mpclib3` source package and must be
 coordinated with the Ubuntu/Debian maintainers. PPA0/PPA1/PPA2 own the Debian
 Policy and package-name decisions.

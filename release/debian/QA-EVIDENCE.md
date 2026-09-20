@@ -488,5 +488,32 @@ octave-mplapack-interop-dbgsym_0.5.0-1_amd64.ddeb
 ```
 
 This closes the local P04 reproducibility comparison, subject to Debian
-packaging review. It does not change the P02 provider ABI blocker or establish
-official Debian/Launchpad acceptance.
+packaging review. It does not establish official Debian/Launchpad acceptance.
+
+## P02 provider SONAME candidate follow-up (2026-09-20)
+
+The prior P02 draft placed the standalone provider in the development package
+with an unversioned ELF SONAME. That produced the expected Lintian
+`lacks-ldconfig-trigger`, `package-name-doesnt-match-sonames`, and
+`shared-library-lacks-version` findings. A packaging-only quilt patch now sets
+the CMake target `VERSION` to `1.4.1` and `SOVERSION` to `1`, adds
+`libgmpxx-mkii-default-context-provider1`, and leaves only the linker symlink
+in `libgmpfrxx-mkii-dev`.
+
+Evidence:
+
+```text
+clean resolute sbuild: successful
+direct binary lintian: only initial-upload-closes-no-bugs warnings
+provider SONAME: libgmpxx_mkII_default_context_provider.so.1
+runtime package install/ldconfig: PASS in the local resolute stack rootfs
+local `libgmpfrxx-mkii-dev` SHA256:
+  510df2c145745e35525cd06cf53c0a97675774247db24d75a13dd774a4264b87
+local `libgmpxx-mkii-default-context-provider1` SHA256:
+  ca91c2002018d4e3135a55ead76e73e859c2561e553482449161fc34ca76263b
+```
+
+The source-package Lintian run still reports the bundled-GMP license findings
+and the draft unreleased changelog. Placeholder maintainer metadata,
+symbols/Multi-Arch policy, and Debian review remain open, so P02 and the
+overall controller remain `PARTIAL`.

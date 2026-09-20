@@ -10,8 +10,16 @@ Homepage: https://github.com/nakatamaho/gmpfrxx_mkII
 Package: libgmpfrxx-mkii-dev
 Architecture: any
 Multi-Arch: same
-Depends: ${shlibs:Depends}, libgmp-dev, libmpfr-dev, libmpc-dev
+Depends: ${misc:Depends}, ${shlibs:Depends}, libgmpxx-mkii-default-context-provider1 (= ${binary:Version}), libgmp-dev, libmpfr-dev, libmpc-dev
 Description: C++ multiple-precision GMP/MPFR/MPC headers
  gmpfrxx_mkII provides C++ headers and a precision-context provider for
- multiple-precision arithmetic based on GMP, MPFR, and MPC. The provider ABI
- and final runtime/development split are still under Debian review.
+ multiple-precision arithmetic based on GMP, MPFR, and MPC.
+
+Package: libgmpxx-mkii-default-context-provider1
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: gmpfrxx_mkII default-context provider runtime
+ The gmpfrxx_mkII default-context provider owns the external provider ABI
+ and thread-local default context used by consumers of the development
+ interface.

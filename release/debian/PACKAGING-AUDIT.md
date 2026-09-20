@@ -30,13 +30,14 @@ public headers, CMake config/targets, and:
 libgmpxx_mkII_default_context_provider.so
 ```
 
-The provider currently has the unversioned SONAME
-`libgmpxx_mkII_default_context_provider.so` and no pkg-config module. It is
-not safe to invent a versioned runtime package name from this evidence. The
-initial Debian proposal is therefore a development package containing the
-headers/CMake metadata and provider, with the runtime split deferred until an
-upstream ABI/SONAME decision is available. This is a P02 blocker, not a
-reason to relabel the package as complete.
+The upstream provider has no pkg-config module and no versioned SONAME. The
+current local Debian candidate carries a packaging-only quilt patch assigning
+target `VERSION ${PROJECT_VERSION}` and `SOVERSION 1`. It splits the runtime
+into `libgmpxx-mkii-default-context-provider1` and leaves the unversioned
+linker symlink with the headers/CMake metadata in `libgmpfrxx-mkii-dev`.
+Direct binary Lintian is clean apart from the expected initial-upload warning.
+This closes the local ELF packaging defect, but not Debian's ABI, symbols,
+Multi-Arch, licensing, or maintainer review.
 
 The CMake audit also found MPFR TLS support, while the installed MPC probe did
 not expose an MPC TLS API. The Debian package must preserve the upstream

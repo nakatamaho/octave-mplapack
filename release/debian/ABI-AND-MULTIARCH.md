@@ -5,18 +5,20 @@ This is an audit record, not a final Debian package decision.
 ## gmpfrxx_mkII
 
 The 1.4.1 release installs a header/CMake development interface and
-`libgmpxx_mkII_default_context_provider.so`. The provider's SONAME is
-unversioned:
+`libgmpxx_mkII_default_context_provider.so`. The upstream library is
+unversioned, but the local P02 Debian candidate applies a packaging-only
+target `VERSION ${PROJECT_VERSION}` and `SOVERSION 1`:
 
 ```text
-libgmpxx_mkII_default_context_provider.so
+libgmpxx_mkII_default_context_provider.so.1
 ```
 
-No pkg-config module is installed. Debian must not invent a versioned runtime
-ABI package from this observation. P02 must either obtain an upstream SONAME/
-ABI policy or package the provider with the development interface and explain
-why a separate runtime package is not yet safe. Multi-Arch fields remain
-`PENDING` until that decision is made.
+No pkg-config module is installed. The candidate splits the provider into
+`libgmpxx-mkii-default-context-provider1` and keeps the unversioned linker
+symlink in `libgmpfrxx-mkii-dev`. The resulting package-level SONAME and
+ldconfig checks pass locally; Debian must still review the ABI naming,
+symbols, Multi-Arch fields, and whether this packaging-only SONAME policy is
+acceptable for the independent provider consumers.
 
 The released MPLAPACK 3.0.1 source adds an important boundary to this audit.
 Its MPFR reference and optimized build lists include
@@ -66,7 +68,7 @@ the tested Octave ABI. The package is not `Architecture: all`.
 ## Status
 
 ```text
-ABI audit:       PARTIAL
-Multi-Arch:      PENDING Debian package build
-SONAME leakage:  gmpfrxx provider is unversioned; explicit upstream decision required
+ABI audit:       PASS (local candidate; Debian review pending)
+Multi-Arch:      PENDING Debian package review
+SONAME leakage:  local candidate uses provider `.so.1`; upstream source remains unversioned
 ```
