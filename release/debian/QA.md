@@ -18,7 +18,7 @@ upload-ready.
 | P04 binary build | PENDING | build with published P03 development package |
 | P04 autopkgtest | PENDING | complete Octave/advanced coverage after P03 |
 | sbuild sid amd64 | BLOCKED | `sbuild` unavailable in current environment |
-| lintian --pedantic | BLOCKED | `lintian` unavailable in current environment |
+| lintian --pedantic | FAIL | latest P02 draft has provider ldconfig/SONAME findings; see `QA-EVIDENCE.md` |
 | autopkgtest | BLOCKED | `autopkgtest` unavailable in current environment |
 | piuparts | BLOCKED | `piuparts` unavailable in current environment |
 | reprotest/diffoscope | BLOCKED | tools unavailable in current environment |

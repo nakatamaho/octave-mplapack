@@ -21,10 +21,11 @@ dependency completeness, and the final runtime/development split before
 publishing a package. The package must not be marked ready from this
 placeholder.
 
-The exact draft package hash and source-build evidence are recorded in
+The latest draft package hash and source-build evidence are recorded in
 `release/debian/QA-EVIDENCE.md`; the extracted-package provider smoke also
-passes. `lintian`, `sbuild`, and the remaining Debian QA tools were not yet
-available in the base environment.
+passes. `lintian --pedantic` now runs and reports the documented provider
+SONAME/ldconfig findings. `sbuild` and the remaining Debian QA tools are not
+yet available in the base environment.
 
 The committed `debian/watch`, `debian/upstream/metadata`, install manifest,
 and provider-header autopkgtest are review-only additions. The provider test

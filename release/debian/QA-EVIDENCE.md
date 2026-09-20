@@ -69,6 +69,13 @@ Two clean draft binary builds produced:
 548e6d4e4b04b7832672f8ee806b12d017b8e690524f60afb4fbee702a0188c  libgmpfrxx-mkii-dev_1.4.1-1_amd64.deb
 ```
 
+After the `debian/tmp` staging fix and the `${shlibs:Depends}` control fix,
+a fresh binary build produced:
+
+```text
+79bbc32bf8af980e38693e53053e81ce0f7fa0ce729519755e5e80128b1daa7a  libgmpfrxx-mkii-dev_1.4.1-1_amd64.deb
+```
+
 The package contains headers, CMake metadata, and
 `libgmpxx_mkII_default_context_provider.so`. The provider has an unversioned
 SONAME and the draft uses placeholder maintainer metadata, so this is not a
@@ -128,6 +135,13 @@ P02 packaged autopkgtest smoke PASS
 
 The test remains non-authoritative for Debian autopkgtest until the package
 is installed in a clean testbed.
+
+With `lintian --pedantic` now available, the latest draft reports one error
+for the provider's missing ldconfig trigger and warnings for the initial
+upload changelog, package-name/SONAME mismatch, and unversioned shared
+library. The `${shlibs:Depends}` error was removed by the control fix. The
+remaining provider findings are the known ABI/SONAME packaging blocker, not
+silently ignored QA.
 
 Applied to a fresh copy of the release archive, the draft produced
 `gmpfrxx-mkii_1.4.1-1.dsc` with `dpkg-buildpackage -S -us -uc -d`. This is
