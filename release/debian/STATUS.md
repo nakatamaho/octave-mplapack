@@ -12,8 +12,8 @@ P01  PARTIAL packaging boundary and license audit recorded
 
 ```text
 P02  PARTIAL  local gmpfrxx-mkii source/binary draft builds; provider ABI/SONAME and Debian QA remain
-P03  PARTIAL  release/build-system audit complete; source package and Debian policy review remain
-P04  PARTIAL  archive/build-boundary audit complete; source package depends on P02/P03
+P03  PARTIAL  release/build-system audit and source-only draft skeleton; binary/policy QA remain
+P04  PARTIAL  archive/build-boundary and source-only draft skeleton; binary QA depends on P02/P03
 P05  BLOCKED  debuild/sbuild/lintian/autopkgtest/piuparts/reprotest unavailable
 U00  PENDING  staging PPA metadata and credentials
 U01  BLOCKED  Launchpad account, PPA, and upload key not configured

@@ -1,7 +1,8 @@
 # P03 `mplapack` packaging workspace
 
-Status: **AUDIT PARTIAL**. No Debian source package is submitted from this
-workspace.
+Status: **AUDIT PARTIAL / DRAFT SKELETON ONLY**. No Debian source package is
+submitted from this workspace. The `debian/` directory is a review aid for
+P03 and is not upload-ready.
 
 Input archive: `mplapack-3.0.1.tar.xz` with SHA256
 `47ebb653b21f0c62e8144c1e515e94d76965d9d0d4b7ba216b034d778570cbaa`.
@@ -30,3 +31,10 @@ An isolated configure check with dependency tracking disabled and the released
 gmpfrxx headers completed successfully. A bounded five-minute MPFR-only build
 reached compilation of the optimized/reference sources before the explicit
 timeout; it was not reported as a successful package build.
+
+The draft split is `libmplapack-mpfr3` for the MPFR shared libraries and
+`libmplapack-mpfr-dev` for headers, linker files, and pkg-config metadata.
+These names, the optimized-library policy, maintainer/changelog, copyright
+inventory, symbols file, and autopkgtest remain subject to P03 Debian-team
+review. The draft deliberately does not claim a successful `debuild`,
+lintian, sbuild, or autopkgtest result.

@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --buildsystem=autoconf
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		--disable-dependency-tracking \
+		--disable-openmp \
+		--disable-test \
+		--disable-benchmark \
+		--disable-examples \
+		--disable-cuda \
+		--disable-debug \
+		--disable-optimization \
+		--disable-gmp \
+		--enable-mpfr \
+		--disable-qd \
+		--disable-dd \
+		--disable-double \
+		--disable-binary128 \
+		--disable-binary80 \
+		--enable-gmpfrxx-mkII \
+		--with-gmpfrxx-mkII=/usr \
+		--with-system-gmp=yes \
+		--with-system-mpfr=yes \
+		--with-system-mpc=yes

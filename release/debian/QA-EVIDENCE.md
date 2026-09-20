@@ -122,7 +122,28 @@ The `mplapack-interop` 0.5.0 archive was inspected and contains the expected
 Octave package metadata, `src/Makefile`, tests, examples, and docs. Its Makefile
 uses the installed `mplapack_mpfr` pkg-config module. The archive is the later
 0.5.0 complex/advanced release, not the historical real-only v0.1 candidate;
-P04 must preserve that fact. No P04 Debian package was built or submitted.
+P04 must preserve that fact.
+
+Review-only Debian skeletons were then applied to fresh copies of the two
+release archives. `dpkg-buildpackage -S -us -uc -d` produced source metadata
+for both drafts (with `UNRELEASED` changelogs and placeholder maintainers):
+
+```text
+mplapack_3.0.1-1.dsc
+octave-mplapack-interop_0.5.0-1.dsc
+```
+
+The draft MPLAPACK source package used the proposed
+`libmplapack-mpfr3`/`libmplapack-mpfr-dev` split. The draft Octave package
+used `dh-octave` and a placeholder smoke test. These are syntax/source-boundary
+checks only; no binary build, lintian, sbuild, autopkgtest, install lifecycle,
+or Debian submission PASS is claimed. The extracted `dh-octave` clean step
+also reports that the upstream tree has no top-level `clean` target; this
+requires P04 maintainer review rather than being hidden by the draft rules.
+
+The extracted `dh_octave_make` helper generated team/Salsa metadata in an
+earlier temporary copy. Those fields remain deliberately absent from the
+committed skeleton until Debian team ownership and package names are agreed.
 The extracted `dh-octave_make` helper (dh-octave 1.14.1) did generate a
 candidate Debian skeleton from `DESCRIPTION` in a temporary copy. Its team,
 Salsa, and Homepage fields are Debian-policy proposals only and were not

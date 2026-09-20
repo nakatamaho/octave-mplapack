@@ -1,0 +1,23 @@
+Source: mplapack
+Section: science
+Priority: optional
+Maintainer: Pending Debian maintainer <debian@example.invalid>
+Build-Depends: debhelper-compat (= 13), autoconf, automake, libtool, pkg-config, libgmp-dev, libmpfr-dev, libmpc-dev, libgmpfrxx-mkii-dev
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Homepage: https://github.com/nakatamaho/mplapack
+
+Package: libmplapack-mpfr3
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: MPLAPACK MPFR runtime libraries
+ MPLAPACK provides multiple-precision BLAS and LAPACK routines. This package
+ contains the MPFR reference and optimized shared libraries required by
+ consumers of the mplapack_mpfr pkg-config interface.
+
+Package: libmplapack-mpfr-dev
+Architecture: any
+Depends: libmplapack-mpfr3 (= ${binary:Version}), libgmpfrxx-mkii-dev, libgmp-dev, libmpfr-dev, libmpc-dev, ${misc:Depends}
+Description: MPLAPACK MPFR development files
+ MPLAPACK provides multiple-precision BLAS and LAPACK routines. This package
+ contains the MPFR headers, pkg-config metadata, and linker files.

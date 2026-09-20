@@ -3,8 +3,8 @@
 ## Result
 
 `PARTIAL` — local release provenance and package-name/architecture audits are
-complete, a non-submission P02 gmpfrxx packaging draft builds in an
-unprivileged lab, and P03/P04 source/build boundaries are documented. Debian
+complete, non-submission P02/P03/P04 packaging drafts build source metadata in
+an unprivileged lab, and P03/P04 source/build boundaries are documented. Debian
 package QA and all public submission stages remain blocked by the current
 environment and missing external identities.
 

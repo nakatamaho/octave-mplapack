@@ -1,7 +1,8 @@
 # P04 `octave-mplapack-interop` packaging workspace
 
-Status: **AUDIT PARTIAL**. No Debian source package is submitted from this
-workspace.
+Status: **AUDIT PARTIAL / DRAFT SKELETON ONLY**. No Debian source package is
+submitted from this workspace. The `debian/` directory is a review aid for
+P04 and is not upload-ready.
 
 Input archive: `mplapack-interop-0.5.0.tar.gz` with SHA256
 `3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04`.
@@ -29,3 +30,8 @@ The extracted `dh_octave_make` helper also generated a candidate skeleton from
 `DESCRIPTION` in a temporary copy. The generated Debian Octave team/Salsa
 fields are not authoritative and were deliberately not committed; P04 still
 requires team review, final MPLAPACK package names, and package QA.
+
+The draft package is named `octave-mplapack-interop` and depends on the draft
+`libmplapack-mpfr-dev`/`libmplapack-mpfr3` split. The included autopkgtest is
+only a placeholder smoke test; the required P04 coverage (including the
+released archive's advanced/complex controls) remains pending P03/P04 review.

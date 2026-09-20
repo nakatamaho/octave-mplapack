@@ -1,0 +1,7 @@
+mplapack (3.0.1-1) UNRELEASED; urgency=medium
+
+  * Draft Debian packaging for the MPFR backend.
+  * This entry is not suitable for upload until P03 maintainer, copyright,
+    symbols, and Debian QA review are complete.
+
+ -- Pending Debian maintainer <debian@example.invalid>  Sun, 20 Sep 2026 00:00:00 +0000

@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+# Draft P04 smoke only. The final test must cover the released package's
+# scalar, matrix, factorization, complex, eig/svd, serialization, RNG, and
+# Grcar controls after the P03 runtime package and test policy are settled.
+exec octave-cli --no-gui --quiet --eval \
+  "pkg load mplapack-interop; mpbits(); A=mp([1,2;3,4]); B=A*A; assert(rows(B)==2);"
