@@ -450,3 +450,20 @@ local apt reinstall smoke PASS
 This closes the local APT/lifecycle evidence item for the draft stack. It does
 not replace PPA apt-install validation, Debian policy review, reproducibility,
 signing, or external publication.
+
+## P02/P03 package autopkgtest follow-up (2026-09-20)
+
+The P02 and P03 test controls were also made compatible with autopkgtest 5.55
+by removing the obsolete `Features: test-name=...` field when `Tests:` is
+present. Fresh copied resolute rootfs runs produced:
+
+```text
+P02 gmpfrxx-mkii:  smoke PASS (superficial)
+P03 mplapack:      mpfr-backend PASS (superficial)
+```
+
+The command exit status was `8` because autopkgtest defines an all-superficial
+test run as neutral rather than positive; it is not a test failure. The P03
+probe compiled against the installed package headers and libraries and
+exercised both MPFR `Rgemm` and MPC `Cgemm`. As with P04, these are isolated
+local testbed results, not Debian/Launchpad worker acceptance.

@@ -9,18 +9,18 @@ upload-ready.
 | Released source archives and SHA256 | PASS | `PROVENANCE.md`, `SHA256SUMS` |
 | P02 source skeleton | PASS | source-only `.dsc` generation; binary draft remains partial |
 | P02 provider ABI/SONAME policy | BLOCKED | Debian review required for unversioned provider SONAME |
-| P02 build-time/autopkgtest | PARTIAL | clean resolute sbuild build succeeds; lifecycle/autopkgtest pending |
+| P02 build-time/autopkgtest | PARTIAL | clean resolute sbuild build and copied-resolute smoke pass; provider policy remains |
 | P03 source skeleton | PASS | source-only `.dsc` generation from 3.0.1 archive |
 | MPC 1.4.1 prerequisite | PASS (local draft) | `mpclib3` binary build/lintian; PPA/Debian ownership pending |
 | P03 binary build | PARTIAL | clean resolute sbuild build succeeds; policy/lifecycle review pending |
 | P03 symbols/shlibs/Multi-Arch | PENDING | Debian policy review |
-| P03 installed real/complex probes | PENDING | run against built packages |
+| P03 installed real/complex probes | PASS (superficial) | copied-resolute MPLAPACK MPFR backend autopkgtest passes; Debian policy review remains |
 | P04 source skeleton | PASS | source-only `.dsc` generation from 0.5.0 archive |
 | P04 binary build | PARTIAL | clean resolute sbuild build succeeds with injected MPC 1.4.1; package-policy review remains |
 | P04 autopkgtest | PASS (superficial) | isolated copied resolute rootfs smoke passed; official testbed/public archive lifecycle remains pending |
 | sbuild resolute amd64 | PARTIAL | registered schroot; clean P02/P03/P04 builds pass, Lintian policy remains |
 | lintian --pedantic | PARTIAL | P03/P04 drafts have only the expected initial-upload warning; P02 provider ldconfig/SONAME findings remain |
-| autopkgtest | PASS (superficial) | copied Ubuntu 26.04/resolute rootfs smoke passed; this is not Launchpad/Debian acceptance |
+| autopkgtest | PASS (superficial) | P02/P03/P04 copied Ubuntu 26.04/resolute rootfs smoke tests pass; superficial-only exit 8 is expected |
 | piuparts | PASS (local) | resolute existing-rootfs install/purge test passed; package policy/ownership remains open |
 | local APT stack | PASS (local) | file-repository install of P02/P03/MPC/P04 plus remove/reinstall smoke passed in resolute rootfs |
 | reprotest/diffoscope | PENDING | reprotest installed; reproducibility run remains |

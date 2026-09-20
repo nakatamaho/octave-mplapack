@@ -313,3 +313,20 @@ local apt reinstall smoke PASS
 This is local file-repository evidence only; PPA apt-install QA, Debian policy
 review, reproducibility, signing, and public submission remain external or
 pending.
+
+### P02/P03 package autopkgtest follow-up (2026-09-20)
+
+The P02 and P03 autopkgtest controls were corrected to remove the obsolete
+`Features: test-name=...` field when `Tests:` is present. Fresh copied
+resolute-rootfs runs reported:
+
+```text
+P02 gmpfrxx-mkii:  smoke PASS (superficial)
+P03 mplapack:      mpfr-backend PASS (superficial)
+```
+
+Their process exit status was `8`, which autopkgtest intentionally uses when
+all tests are marked `superficial`; the summaries contain no failed test. The
+P03 test compiled against the installed package and exercised both MPFR
+`Rgemm` and MPC `Cgemm`. These results are local isolated evidence only and do
+not imply Debian or Launchpad acceptance.
