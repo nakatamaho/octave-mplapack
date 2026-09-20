@@ -13,5 +13,5 @@ Architecture: any
 Depends: ${misc:Depends}, ${octave:Depends}, ${shlibs:Depends}, libmplapack-mpfr3
 Description: Multiple-precision Linear Algebra with MPLAPACK for Octave
  This Octave package provides the released mplapack-interop interface and
- native MPFR/MPLAPACK bindings. The final Debian team metadata and complete
- autopkgtest are still pending P04 review.
+ native MPFR/MPLAPACK bindings. The draft carries an installed-package smoke
+ test; Debian team metadata and binary-package QA remain pending P04 review.

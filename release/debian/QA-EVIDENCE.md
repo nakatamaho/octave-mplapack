@@ -159,6 +159,13 @@ claimed. The extracted `dh-octave` clean step
 also reports that the upstream tree has no top-level `clean` target; this
 requires P04 maintainer review rather than being hidden by the draft rules.
 
+After that smoke expansion, a fresh copy of the released archive with the
+committed `debian/` directory was checked with `dpkg-source -b` and produced
+`octave-mplapack-interop_0.5.0-1.dsc` plus its Debian source tarball. A full
+`dpkg-buildpackage` could not start because the base environment has no
+`dh` executable; this remains source-boundary evidence only, not a P04 build
+or autopkgtest result.
+
 The extracted `dh_octave_make` helper generated team/Salsa metadata in an
 earlier temporary copy. Those fields remain deliberately absent from the
 committed skeleton until Debian team ownership and package names are agreed.
