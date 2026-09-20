@@ -513,6 +513,21 @@ local `libgmpxx-mkii-default-context-provider1` SHA256:
   ca91c2002018d4e3135a55ead76e73e859c2561e553482449161fc34ca76263b
 ```
 
+The split candidate was then exercised in a fresh copied resolute testbed
+with a local file repository containing the candidate provider/development
+packages and MPC 1.4.1:
+
+```text
+autopkgtest smoke: PASS (superficial; exit 8 is autopkgtest's all-superficial status)
+provider compile/run smoke: PASS
+remove/reinstall of libgmpfrxx-mkii-dev: PASS
+post-reinstall provider SONAME/ldconfig: PASS
+```
+
+This is stronger local lifecycle evidence for the split candidate, but it is
+not an official Ubuntu/Debian worker result and does not close maintainer,
+signing, or publication review.
+
 The source-package Lintian run still reports the bundled-GMP license findings
 and the draft unreleased changelog. Placeholder maintainer metadata,
 symbols/Multi-Arch policy, and Debian review remain open, so P02 and the

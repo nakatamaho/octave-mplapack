@@ -9,7 +9,7 @@ upload-ready.
 | Released source archives and SHA256 | PASS | `PROVENANCE.md`, `SHA256SUMS` |
 | P02 source skeleton | PASS | source-only `.dsc` generation; binary draft remains partial |
 | P02 provider ABI/SONAME policy | PASS (local draft) | packaging-only target SOVERSION 1, split runtime provider, and direct binary Lintian pass; Debian ABI review remains |
-| P02 build-time/autopkgtest | PARTIAL | candidate clean resolute sbuild and install smoke pass; copied-rootfs autopkgtest/lifecycle must be rerun against split runtime package |
+| P02 build-time/autopkgtest | PASS (local superficial) | split candidate clean resolute sbuild, copied-rootfs autopkgtest, provider smoke, and remove/reinstall pass; official policy/lifecycle remains pending |
 | P03 source skeleton | PASS | source-only `.dsc` generation from 3.0.1 archive |
 | MPC 1.4.1 prerequisite | PASS (local draft) | `mpclib3` binary build/lintian; PPA/Debian ownership pending |
 | P03 binary build | PARTIAL | clean resolute sbuild build succeeds; policy/lifecycle review pending |
