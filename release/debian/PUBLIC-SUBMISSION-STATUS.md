@@ -2,6 +2,11 @@
 
 No public Debian or Ubuntu action has been performed from this worktree.
 
+The upstream preparation branch is available for review as GitHub PR #26:
+<https://github.com/nakatamaho/octave-mplapack/pull/26>. This review request
+does not constitute a Debian, Launchpad, Salsa, mentors, or Ubuntu archive
+submission.
+
 ```text
 ITP bugs:              NOT FILED
 Salsa repositories:    NOT CREATED
