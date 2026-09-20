@@ -23,7 +23,7 @@ upload-ready.
 | autopkgtest | PASS (superficial) | P02/P03/P04 copied Ubuntu 26.04/resolute rootfs smoke tests pass; superficial-only exit 8 is expected |
 | piuparts | PASS (local) | resolute existing-rootfs install/purge test passed; package policy/ownership remains open |
 | local APT stack | PASS (local) | file-repository install of P02/P03/MPC/P04 plus remove/reinstall smoke passed in resolute rootfs |
-| reprotest/diffoscope | PENDING | reprotest installed; reproducibility run remains |
+| reprotest/diffoscope | PARTIAL | two clean P04 builds differ only in extension build-id/debuglink; deterministic mkoctfile temp/debug paths remain open |
 | license/DEP-5 review | PENDING | draft files explicitly incomplete |
 | PPA Resolute build | BLOCKED | Launchpad account/PPA/upload key unavailable |
 | PPA apt install | BLOCKED | requires published staging PPA |

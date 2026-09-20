@@ -330,3 +330,20 @@ all tests are marked `superficial`; the summaries contain no failed test. The
 P03 test compiled against the installed package and exercised both MPFR
 `Rgemm` and MPC `Cgemm`. These results are local isolated evidence only and do
 not imply Debian or Launchpad acceptance.
+
+### P04 reproducibility comparison (2026-09-20)
+
+Two independent clean resolute sbuilds from the same corrected P04 source
+package produced different package hashes:
+
+```text
+build A  38e5db17c3371e373833ad3222d488a560297fe6ea35dac9a1815a587cf49f50
+build B  659c00d4f42495d47a801fcd6069367f563dbddac80d3f5355e41424b0f42e92
+```
+
+`diffoscope` limited the package difference to the extension's ELF build-id
+and debuglink; removing those sections made the extension binaries identical.
+The build logs show random `/tmp/oct-*.o` names from `mkoctfile` in split debug
+data. This is recorded as a genuine draft P04 reproducibility defect. No
+override or numerical-source workaround was added, so reproducibility remains
+open and P05 cannot be marked PASS.
