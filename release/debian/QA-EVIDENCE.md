@@ -59,6 +59,27 @@ many public/NEIG checks, but it was intentionally interrupted before the full
 suite completed at the user's request. It is therefore evidence of useful
 progress, not a full local-CI PASS.
 
+The complete run was subsequently executed from this worktree with the
+validated stack selected only through `PKG_CONFIG_PATH`:
+
+```text
+PKG_CONFIG_PATH=/home/docker/.local/share/mplapack-interop/stack/lib/pkgconfig \
+  tools/local-ci.sh
+```
+
+It completed with exit status `0` on 2026-09-20. The output included the
+dependency probe, native M00–M21 probes, M20 complex storage/arithmetic and
+backend probes, installed-package lifecycle checks, public factorization and
+release-closure tests, the compatibility firewall, and the final clean-up
+stage:
+
+```text
+PASS: isolated package D00 install, matrix/Rgemm/Rgesv/Rgels/Rgelss/Rpotrf/Rgeqrf/Rorgqr/Rgeqp3/Rgetrf/inspection/element-wise/structure/concatenation/assignment/Cholesky/QR/pivoted QR/LU, release closure, and complex audit QA, unload, uninstall, and reinstall
+PASS: D00 local CI
+```
+
+This is project local CI evidence, not Debian or Launchpad worker acceptance.
+
 ## Clean resolute chroot build evidence
 
 On 2026-09-20, source packages were rebuilt in the clean `resolute-amd64-sbuild`

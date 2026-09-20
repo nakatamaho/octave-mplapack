@@ -36,6 +36,13 @@ and installed P03/P04 review remain open. No Debian
 identity, upload key, public submission, or Launchpad credential is configured,
 and no official lifecycle PASS is claimed.
 
+The complete project `tools/local-ci.sh` run also passed on 2026-09-20 with
+the validated MPLAPACK stack selected through `PKG_CONFIG_PATH` (exit status
+`0`). It covered the native M00–M21 probes, M20 complex audit probes,
+installed-package lifecycle, public factorization/release-closure tests, and
+the compatibility firewall. This is local project evidence and does not change
+the external Debian/Launchpad status above.
+
 No ITP, Salsa repository, mentors upload, PPA upload, RFS, or public Debian
 submission has been attempted; ready-to-send ITP/team-contact drafts are now
 under `release/debian/itp/` and `release/debian/team-contact/`. The next
