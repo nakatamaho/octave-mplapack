@@ -76,6 +76,15 @@ release or Debian submission artifact. `lintian` could not yet run because
 the base environment lacks its Perl dependency set; P02 remains PARTIAL and
 P05 remains BLOCKED.
 
+The initial binary build exposed a draft staging defect: CMake installed
+directly into the package directory while the `.install` manifest expected
+`debian/tmp`. The committed `override_dh_auto_install` now stages into
+`debian/tmp`; a fresh binary build then completed and produced the package
+above. Extracting that exact `.deb` and running the committed provider smoke
+with its headers/library reported `P02 packaged provider smoke PASS`.
+This is stronger artifact evidence, but it is still not an installed Debian
+testbed, lintian, sbuild, or policy PASS.
+
 The dependency boundary was checked separately against the released MPLAPACK
 source and the validated MPFR shared library. `mpblas/reference/mplapackinit.cpp`
 is listed in the MPFR reference/optimized build sources, but its provider
@@ -108,6 +117,17 @@ and provider library in external-provider mode and reported:
 ```text
 gmpfrxx draft provider smoke PASS
 ```
+
+The same provider smoke was also compiled and run against the extracted draft
+`.deb`, with `CPATH`, `LIBRARY_PATH`, and `LD_LIBRARY_PATH` pointing only at
+the extracted package. It reported:
+
+```text
+P02 packaged autopkgtest smoke PASS
+```
+
+The test remains non-authoritative for Debian autopkgtest until the package
+is installed in a clean testbed.
 
 Applied to a fresh copy of the release archive, the draft produced
 `gmpfrxx-mkii_1.4.1-1.dsc` with `dpkg-buildpackage -S -us -uc -d`. This is

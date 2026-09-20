@@ -8,7 +8,9 @@ Input archive: `gmpfrxx_mkII.1.4.1.tar.xz` with SHA256
 
 The draft was exercised in an unprivileged lab with `dpkg-buildpackage`:
 the source package and an `amd64` development package were produced from the
-released archive. This is build evidence only; it is not a Debian QA or
+released archive. The rules explicitly stage CMake installation in
+`debian/tmp` before `dh_install`; this was required to make the draft binary
+build complete. This is build evidence only; it is not a Debian QA or
 submission result. The draft still has a placeholder maintainer, no team or
 Salsa identity, and no final binary-package split.
 
@@ -20,8 +22,9 @@ publishing a package. The package must not be marked ready from this
 placeholder.
 
 The exact draft package hash and source-build evidence are recorded in
-`release/debian/QA-EVIDENCE.md`; `lintian`, `sbuild`, and the remaining Debian
-QA tools were not available in the base environment.
+`release/debian/QA-EVIDENCE.md`; the extracted-package provider smoke also
+passes. `lintian`, `sbuild`, and the remaining Debian QA tools were not yet
+available in the base environment.
 
 The committed `debian/watch`, `debian/upstream/metadata`, install manifest,
 and provider-header autopkgtest are review-only additions. The provider test
