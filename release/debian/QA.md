@@ -23,7 +23,7 @@ upload-ready.
 | autopkgtest | PASS (superficial) | P02/P03/P04 copied Ubuntu 26.04/resolute rootfs smoke tests pass; superficial-only exit 8 is expected |
 | piuparts | PASS (local) | resolute existing-rootfs install/purge test passed; package policy/ownership remains open |
 | local APT stack | PASS (local) | file-repository install of P02/P03/MPC/P04 plus remove/reinstall smoke passed in resolute rootfs |
-| reprotest/diffoscope | PARTIAL | two clean P04 builds differ only in extension build-id/debuglink; deterministic mkoctfile temp/debug paths remain open |
+| reprotest/diffoscope | PASS (local patch) | two independent clean patched P04 builds are byte-identical; packaging-only source/debug prefix normalization removes the mkoctfile temporary/debug-path difference |
 | license/DEP-5 review | PENDING | draft files explicitly incomplete |
 | PPA Resolute build | BLOCKED | Launchpad account/PPA/upload key unavailable |
 | PPA apt install | BLOCKED | requires published staging PPA |
@@ -36,7 +36,9 @@ upload-ready.
 
 The isolated local piuparts/autopkgtest lifecycle checks and the local APT
 dependency-stack install/remove/reinstall smoke now pass against an Ubuntu
-26.04/resolute rootfs copy. The next local actions are reproducibility, P02
-provider/package policy, and installed P03/P04 probe review without changing
-the released upstream numerical sources. No Debian/sid or publication identity
-is implied.
+26.04/resolute rootfs copy. A Debian packaging-only prefix-map patch was then
+validated in two independent clean P04 sbuilds; the resulting binary package
+and split debug package hashes matched exactly. The remaining local actions
+are P02 provider/package policy and installed P03/P04 review without changing
+released upstream numerical sources. No Debian/sid or publication identity is
+implied.

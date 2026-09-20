@@ -467,3 +467,26 @@ test run as neutral rather than positive; it is not a test failure. The P03
 probe compiled against the installed package headers and libraries and
 exercised both MPFR `Rgemm` and MPC `Cgemm`. As with P04, these are isolated
 local testbed results, not Debian/Launchpad worker acceptance.
+
+## P04 reproducibility remediation follow-up (2026-09-20)
+
+The initial two-build comparison found that the released multi-source
+`mkoctfile` invocation retained random `/tmp/oct-*.o` names in split debug
+records. The P04 Debian draft now applies the packaging-only quilt patch
+`reproducible-mkoctfile-debug-paths.patch`, which adds source/debug prefix maps
+to the released `src/Makefile`; no numerical source or upstream archive was
+changed.
+
+Two independent clean resolute sbuilds of the patched source package produced
+byte-identical binary and split-debug artifacts:
+
+```text
+octave-mplapack-interop_0.5.0-1_amd64.deb
+  f633b94666ef11cae16a7331d6a216fec98b1412fdb52725a9dcc6216aa6d711
+octave-mplapack-interop-dbgsym_0.5.0-1_amd64.ddeb
+  6fc50a6f59bc5e3dffbcb21fe100d513a1073d5b33db95f8d7eb52388f7fc6e6
+```
+
+This closes the local P04 reproducibility comparison, subject to Debian
+packaging review. It does not change the P02 provider ABI blocker or establish
+official Debian/Launchpad acceptance.

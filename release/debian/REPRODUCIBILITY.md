@@ -34,7 +34,7 @@ developer worktree. If the artifacts differ, classify timestamps, build paths,
 toolchain metadata, debug paths, and package content separately before any
 override is proposed.
 
-## P04 comparison performed (2026-09-20)
+## P04 comparison performed (initial draft, 2026-09-20)
 
 Two independent clean resolute sbuilds from the same corrected P04 source
 package produced:
@@ -52,18 +52,40 @@ show `mkoctfile` compiling through randomly named `/tmp/oct-*.o` temporaries,
 which are retained in split DWARF data and therefore influence the build-id
 and debuglink.
 
-This is a real reproducibility defect in the draft P04 build path, not a
-permission or runtime-loader issue. No Lintian override or source-semantic
-workaround has been added. The Debian packaging review must either make the
-object/debug paths deterministic or adopt a reviewed build-id/debug-symbol
-policy before P04 can be called reproducible.
+This was a real reproducibility defect in the unpatched draft P04 build path,
+not a permission or runtime-loader issue. The initial comparison remains
+retained as the before state.
+
+## Packaging-only remediation and comparison (2026-09-20)
+
+The Debian draft now carries
+`debian/patches/reproducible-mkoctfile-debug-paths.patch`. It does not alter
+numerical code or the released upstream archive; it passes the source
+directory through `-ffile-prefix-map` and `-fdebug-prefix-map` when invoking
+the released `mkoctfile` build. This makes compiler/debug records independent
+of the clean build directory and random `/tmp/oct-*.o` names.
+
+Two independent clean resolute sbuilds of that patched source package
+completed successfully and produced identical hashes:
+
+```text
+octave-mplapack-interop_0.5.0-1_amd64.deb
+   f633b94666ef11cae16a7331d6a216fec98b1412fdb52725a9dcc6216aa6d711
+
+octave-mplapack-interop-dbgsym_0.5.0-1_amd64.ddeb
+   6fc50a6f59bc5e3dffbcb21fe100d513a1073d5b33db95f8d7eb52388f7fc6e6
+```
+
+The package and split-debug artifacts were byte-identical between the two
+clean builds. The patch is packaging-specific and remains subject to Debian
+review; it does not make P04 or the overall stack policy-ready.
 
 ## Current gate
 
 ```text
-REPRODUCIBILITY: PARTIAL (P04 comparison failed; remediation open)
+REPRODUCIBILITY: PASS (local patched P04 comparison)
 ```
 
 This status does not weaken the already passing clean-build, isolated
-autopkgtest, piuparts, or local APT-stack evidence, but it prevents a P05
-PASS claim.
+autopkgtest, piuparts, or local APT-stack evidence. P05 remains PARTIAL for
+the separate provider-ABI, Debian-policy, signing, and publication gates.

@@ -347,3 +347,25 @@ The build logs show random `/tmp/oct-*.o` names from `mkoctfile` in split debug
 data. This is recorded as a genuine draft P04 reproducibility defect. No
 override or numerical-source workaround was added, so reproducibility remains
 open and P05 cannot be marked PASS.
+
+### P04 reproducibility remediation follow-up (2026-09-20)
+
+The Debian P04 draft now carries the packaging-only quilt patch
+`reproducible-mkoctfile-debug-paths.patch`. It adds source/debug prefix maps to
+the released `mkoctfile` build so random temporary object names do not affect
+the generated extension's debug records. The upstream numerical source and
+released archive remain unchanged.
+
+Two independent clean resolute sbuilds of the patched source package produced
+identical artifacts:
+
+```text
+octave-mplapack-interop_0.5.0-1_amd64.deb
+  f633b94666ef11cae16a7331d6a216fec98b1412fdb52725a9dcc6216aa6d711
+octave-mplapack-interop-dbgsym_0.5.0-1_amd64.ddeb
+  6fc50a6f59bc5e3dffbcb21fe100d513a1073d5b33db95f8d7eb52388f7fc6e6
+```
+
+The local reproducibility item is now PASS for the patched draft. P02 provider
+ABI policy, Debian ownership/signing, and external PPA/submission gates remain
+open.

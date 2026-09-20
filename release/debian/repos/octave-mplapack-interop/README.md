@@ -38,3 +38,10 @@ solve/factorization, complex construction, eig/SVD, deterministic RNG, and
 binary serialization. It remains a draft because it has not run from a clean
 Debian binary-package testbed; the P03 runtime package and Debian QA toolchain
 are still unavailable.
+
+The Debian draft carries one packaging-only quilt patch,
+`reproducible-mkoctfile-debug-paths.patch`. It adds compiler/debug prefix maps
+around the released `mkoctfile` build so two clean P04 builds do not differ
+because of random temporary object names. It does not modify numerical source
+semantics or the released upstream archive and remains subject to Debian
+review.

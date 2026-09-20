@@ -14,7 +14,7 @@ P01  PARTIAL packaging boundary and license audit recorded
 P02  PARTIAL  clean chroot build succeeds; provider ABI/SONAME and Debian QA remain
 P03  PARTIAL  clean chroot build succeeds; policy, lifecycle, and Debian review remain
 P04  PARTIAL  clean chroot build succeeds with MPC 1.4.1; lifecycle/PPA review remain
-P05  PARTIAL  clean sbuild is available; lintian policy, autopkgtest, reproducibility, and signing remain
+P05  PARTIAL  clean sbuild/autopkgtest/piuparts/local APT and patched reproducibility pass locally; provider policy, lintian, signing remain
 U00  PENDING  staging PPA metadata and credentials
 U01  BLOCKED  Launchpad account, PPA, and upload key not configured
 U02  PENDING  requires U01
@@ -25,10 +25,12 @@ D02  BLOCKED  sponsor/RFS workflow requires Debian submission identity
 
 The local machine is Ubuntu 26.04 amd64 with Octave 11.1.0. It has the Debian
 build/QA toolchain and a registered `resolute-amd64-sbuild` schroot. Clean
-P02/P03/P04 source builds have completed there; sbuild's Lintian stage still
-fails on draft metadata/provider policy findings. No Debian identity, upload
-key, public submission, or Launchpad credential is configured, and no package
-policy/lifecycle PASS is claimed.
+P02/P03/P04 source builds, copied-rootfs autopkgtest, piuparts, local APT
+install/remove/reinstall, and two-build P04 reproducibility with the
+packaging-only prefix-map patch have completed there; sbuild's Lintian stage
+still fails on draft metadata/provider policy findings. No Debian identity,
+upload key, public submission, or Launchpad credential is configured, and no
+package policy/official lifecycle PASS is claimed.
 
 No ITP, Salsa repository, mentors upload, PPA upload, RFS, or public Debian
 submission has been attempted; ready-to-send ITP/team-contact drafts are now

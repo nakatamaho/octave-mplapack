@@ -1,0 +1,21 @@
+Description: Normalize source paths for reproducible mkoctfile builds
+ The Octave mkoctfile driver compiles a multi-source extension through
+ randomly named temporary object files.  Normalize the package source
+ directory in compiler/debug records so those temporary names do not make
+ otherwise identical extension binaries differ between clean builds.
+Forwarded: not-needed
+Author: octave-mplapack packaging team <noreply@example.invalid>
+Last-Update: 2026-09-20
+
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -70,3 +70,8 @@ MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
+ MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
+-PACKAGE_CXXFLAGS = -std=c++17 -DMPLAPACK_PKG_VERSION=$(MPLAPACK_VERSION)
++# mkoctfile uses random /tmp object names for multi-source builds.  Keep
++# source/debug records independent of the clean build directory and those
++# temporary names so Debian builds can be compared byte-for-byte.
++SOURCE_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
++PACKAGE_CXXFLAGS = -std=c++17 -DMPLAPACK_PKG_VERSION=$(MPLAPACK_VERSION) \
++  -ffile-prefix-map=$(SOURCE_DIR)=. -fdebug-prefix-map=$(SOURCE_DIR)=.
+ SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
