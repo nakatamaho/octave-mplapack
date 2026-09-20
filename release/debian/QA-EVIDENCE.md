@@ -371,3 +371,47 @@ not yet been completed.
 ITP and team-contact messages are prepared but unsent under
 `release/debian/itp/` and `release/debian/team-contact/`. No BTS number,
 Salsa URL, mentors upload, sponsor, Launchpad account, or PPA build is claimed.
+
+## Isolated package lifecycle follow-up (2026-09-20)
+
+The P04 installed-package smoke test was run with `autopkgtest` against a
+fresh copied rootfs of the registered Ubuntu 26.04/resolute testbed. The
+testbed is isolated and reproducible locally, but it is not an official Debian
+or Launchpad worker. The test control was corrected to use Ubuntu's `octave`
+binary provider (there is no separate `octave-cli` package in this suite), and
+the obsolete `Features: test-name=...` field was removed because autopkgtest
+rejects it together with `Tests:`. The smoke script disables only Octave's
+shadowed-function warnings so that the test's stdout/stderr contract is
+stable.
+
+The final run reported:
+
+```text
+autopkgtest: smoke PASS (superficial)
+```
+
+The run log and summary were saved under the temporary path
+`/tmp/reldeb00-autopkgtest-p04.eTUTRK/` during QA. The P04 test source is now
+part of the committed Debian skeleton; no upstream numerical source changed.
+
+The corrected P04 package was rebuilt in the clean `resolute-amd64-sbuild`
+chroot after those test-control changes. sbuild reported `Status: successful`,
+and the resulting package hash was:
+
+```text
+38e5db17c3371e373833ad3222d488a560297fe6ea35dac9a1815a587cf49f50  octave-mplapack-interop_0.5.0-1_amd64.deb
+```
+
+The local `piuparts` install/purge check was also rerun with
+`--distribution=resolute` against a copied resolute rootfs, avoiding the host
+suite autodetection. It reported:
+
+```text
+PASS: Installation and purging test.
+PASS: All tests.
+```
+
+The earlier piuparts run that autodetected the host's `stonking` suite is not
+used as evidence. These isolated lifecycle results strengthen local P04 QA;
+they do not establish Debian policy approval, reproducible builds, package
+ownership, signing, or PPA/publication readiness.

@@ -266,3 +266,27 @@ metadata and the known P02 provider SONAME/ldconfig findings. Thus this is
 stronger build evidence, not `P02/P03/P04/P05 PASS`; package lifecycle,
 autopkgtest, reproducibility, Debian ownership/signing, and PPA publication
 remain open.
+
+### Isolated P04 lifecycle follow-up (2026-09-20)
+
+After the clean-build run, the committed P04 autopkgtest control was made
+Ubuntu 26.04-compatible: it depends on `octave` rather than the unavailable
+separate `octave-cli` package, and it no longer combines `Tests:` with the
+unsupported `Features: test-name=...` field. The smoke test suppresses only
+Octave's shadowed-function warnings. Running `autopkgtest` in a fresh copied
+`resolute-amd64-sbuild` rootfs reported:
+
+```text
+smoke PASS (superficial)
+```
+
+The corrected source was rebuilt with clean resolute sbuild and again reported
+`Status: successful`; its P04 package hash is
+`38e5db17c3371e373833ad3222d488a560297fe6ea35dac9a1815a587cf49f50`.
+
+`piuparts --distribution=resolute` also passed installation and purging in a
+copied resolute rootfs. An earlier piuparts run that autodetected the host's
+`stonking` suite is excluded from evidence. These are isolated local package
+QA results, not Debian/Launchpad worker acceptance. P04 remains PARTIAL while
+package policy/ownership, reproducibility, signing, and publication remain
+open.

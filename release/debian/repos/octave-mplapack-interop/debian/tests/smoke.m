@@ -1,6 +1,7 @@
 % P04 draft autopkgtest for the installed mplapack-interop package.
 % This is package-level evidence only; P04 remains incomplete until the
 % Debian binary package and testbed lifecycle are available.
+warning ("off", "Octave:shadowed-function");
 pkg ("load", "mplapack-interop");
 
 assert (mpbits () == 512);

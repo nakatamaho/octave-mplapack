@@ -1,4 +1,3 @@
 Tests: smoke
-Depends: @, octave-cli, libmplapack-mpfr3
+Depends: @, octave, libmplapack-mpfr3
 Restrictions: superficial
-Features: test-name=mplapack-interop-public-smoke
