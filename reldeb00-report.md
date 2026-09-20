@@ -169,3 +169,21 @@ Known limitations: the P02 draft is not a Debian submission; provider
 ABI/SONAME policy, final package splits, full P03/P04 builds,
 lintian/autopkgtest/reproducibility, PPA publication, ITP/Salsa/mentors/RFS,
 and official acceptance remain undone.
+
+## Subsequent local-only packaging progress
+
+After the handoff/report commits above, the branch added the following
+review-only evidence without changing upstream numerical code:
+
+- `c45dbac` expanded the P04 installed-package smoke draft to cover real
+  arithmetic/solve, Cholesky, QR, pivoted QR, LU, complex construction,
+  eig/SVD, deterministic RNG, and binary serialization.
+- `bbf950e` recorded the fresh `dpkg-source -b` source-boundary result and
+  clarified that the unavailable `dh` executable prevents a binary build.
+- `01ae2a2` recorded the upstream BSD-2-Clause text in the P04 copyright
+  draft.
+
+The smoke script passed against an existing built development tree as an API
+compatibility check, and the repository format/tree/GitHub-math checks passed.
+This is not Debian binary-package or autopkgtest evidence: P04, P05, PPA,
+and public Debian submission remain partial or blocked as described above.
