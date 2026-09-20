@@ -98,6 +98,44 @@ The clean chroot uses Ubuntu MPC 1.3.1 by default; P04 succeeds only because
 the MPC 1.4.1 prerequisite was injected. No Launchpad/PPA upload or Debian
 autopkgtest result is claimed.
 
+## Current source-package generation audit
+
+On 2026-09-20, each current Debian draft was applied to a fresh copy of its
+released upstream archive and rebuilt with `dpkg-source -b` using Debian source
+format `3.0 (quilt)`. The four source packages generated successfully:
+
+```text
+gmpfrxx-mkii_1.4.1+dfsg-1.dsc
+mpclib3_1.4.1-1~ppa1.dsc
+mplapack_3.0.1-1.dsc
+octave-mplapack-interop_0.5.0-1.dsc
+```
+
+The gmpfrxx and interop quilt series applied without errors, including
+`provider-soname.patch` and
+`reproducible-mkoctfile-debug-paths.patch`. This is source-format evidence;
+it does not close Debian licensing, maintainer, symbols, or archive-review
+requirements.
+
+Source `lintian --pedantic` on these generated `.dsc` files reported only
+policy-review findings, not a source-build failure:
+
+```text
+gmpfrxx-mkii: debian-watch-not-mangling-version,
+              redundant-priority-optional-field,
+              redundant-rules-requires-root-no-field
+mpclib3:     license-problem-gfdl-non-official-text,
+              redundant-priority-optional-field,
+              redundant-rules-requires-root-no-field
+mplapack:    redundant-priority-optional-field,
+              redundant-rules-requires-root-no-field
+octave-mplapack-interop: no source lintian findings in this run
+```
+
+The findings remain open because final Debian maintainer identity, DEP-5
+coverage, source-repackaging policy, and team review are not available in the
+local lab. They must not be promoted to a Debian policy PASS.
+
 ## P02 packaging draft
 
 Using the released `gmpfrxx_mkII.1.4.1.tar.xz` archive, a local unprivileged
