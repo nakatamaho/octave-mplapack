@@ -22,10 +22,14 @@ third-party sources and optional backends, so Debian must explicitly select
 the MPFR-only/system-dependency configuration and complete the copyright and
 repackaging review before publishing.
 
-A clean unprivileged package build was not claimed: the source configuration
-and full compile are expensive and the required Debian QA toolchain is not
-available in the base environment. The authoritative source/archive facts are
-in `release/debian/PROVENANCE.md` and `release/debian/PACKAGING-AUDIT.md`.
+A later fresh build of the released archive with this committed skeleton
+reached the binary-package stage and produced the proposed MPFR runtime and
+development packages. The local host has newer libraries under `/usr/local`,
+so the final local `dpkg-shlibdeps` verification constrained
+`LD_LIBRARY_PATH` to the system multiarch directory. A clean PPA build must
+use only declared Debian Build-Depends; the local override is not part of the
+package contract. The authoritative source/archive facts are in
+`release/debian/PROVENANCE.md` and `release/debian/PACKAGING-AUDIT.md`.
 
 An isolated configure check with dependency tracking disabled and the released
 gmpfrxx headers completed successfully. A bounded five-minute MPFR-only build
@@ -34,9 +38,10 @@ timeout; it was not reported as a successful package build.
 
 The draft split is `libmplapack-mpfr3` for the MPFR shared libraries and
 `libmplapack-mpfr-dev` for headers, linker files, and pkg-config metadata.
-These names, the optimized-library policy, maintainer/changelog, copyright
-inventory, and final autopkgtest policy remain subject to P03 Debian-team
-review. The installed-package probe now covers a one-by-one real `Rgemm` and
-complex `Cgemm` compile/link/run path, but has not yet run against a Debian
-binary package. The draft deliberately does not claim a successful `debuild`,
-lintian, sbuild, or autopkgtest result.
+The draft packages pass local `lintian --pedantic` with only the expected
+initial-upload warning, and their inspected shared objects have the expected
+SONAMEs with no RPATH/RUNPATH. These names, the optimized-library policy,
+maintainer/changelog, copyright inventory, and final autopkgtest policy remain
+subject to P03 Debian-team review. No clean `sbuild`/testbed,
+reproducibility, or upload result is claimed; the package remains a review
+draft rather than a Debian submission.

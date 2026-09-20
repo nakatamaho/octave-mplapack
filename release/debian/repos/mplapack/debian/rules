@@ -25,3 +25,9 @@ override_dh_auto_configure:
 		--with-system-gmp=yes \
 		--with-system-mpfr=yes \
 		--with-system-mpc=yes
+	# The upstream MPFR library template embeds the install directory in DT_RUNPATH.
+	# Debian packages use the normal loader search path instead.
+	sed -i \
+		-e 's|-Wl,-rpath,\$$(libdir)||g' \
+		mplapack/reference/Makefile \
+		mpblas/optimized/mpfr/Makefile

@@ -42,11 +42,12 @@ provider described in `PACKAGING-AUDIT.md`.
 
 ## Debian toolchain
 
-`dpkg-buildpackage`, CMake, make, C++, Octave 11.1.0, and octave-dev are
-available. `debuild`, `dh`, `dh-octave`, `lintian`, `sbuild`, `autopkgtest`,
-`piuparts`, `reprotest`, `gbp`, `uscan`, `dput`, `reportbug`, and `debsign` are
-missing. Apt installation is unavailable to the unprivileged user. Therefore
-P05 is BLOCKED and no Debian package QA result is claimed.
+`dpkg-buildpackage`, CMake, make, C++, Octave 11.1.0, octave-dev, debhelper,
+`dh-octave`, `lintian`, and `autopkgtest` are now available in the local lab.
+`debuild`, `sbuild`, `piuparts`, `reprotest`, `gbp`, `uscan`, `dput`,
+`reportbug`, and `debsign`/upload-key support remain unavailable. No clean
+`sbuild`/autopkgtest testbed has been provisioned, so P05 is still PARTIAL and
+no Debian policy or submission PASS is claimed.
 
 The repository's `tools/local-ci.sh` was also started with the previously
 validated MPLAPACK prefix supplied only through `PKG_CONFIG_PATH`. That run
@@ -79,9 +80,9 @@ a fresh binary build produced:
 The package contains headers, CMake metadata, and
 `libgmpxx_mkII_default_context_provider.so`. The provider has an unversioned
 SONAME and the draft uses placeholder maintainer metadata, so this is not a
-release or Debian submission artifact. `lintian` could not yet run because
-the base environment lacks its Perl dependency set; P02 remains PARTIAL and
-P05 remains BLOCKED.
+release or Debian submission artifact. `lintian --pedantic` now runs in the
+local lab; its remaining provider SONAME/ldconfig findings are recorded below.
+P02 remains PARTIAL and P05 remains PARTIAL.
 
 The initial binary build exposed a draft staging defect: CMake installed
 directly into the package directory while the `.install` manifest expected
@@ -156,18 +157,19 @@ tools keep P02 PARTIAL.
 The MPLAPACK 3.0.1 source archive was inspected without modifying it. Its
 Autotools metadata exposes system GMP/MPFR/MPC switches, installs the MPFR
 headers and `mplapack_mpfr` pkg-config metadata, and declares libtool
-version-info `3:0:0` for the reference MPFR library. A full Debian source
-package build was not claimed because the configured source tree's generated
-dependency-file phase is lengthy in this unprivileged environment and the
-Debian QA toolchain is incomplete; P03 remains PARTIAL.
+version-info `3:0:0` for the reference MPFR library. The earlier bounded audit
+did not claim a package build because the generated dependency-file phase was
+lengthy and the Debian QA toolchain was incomplete; the later binary-draft
+evidence below supersedes that historical limitation. P03 remains PARTIAL
+for policy, maintainer, and clean-testbed reasons.
 
 With `--disable-dependency-tracking`, `--enable-mpfr`, all unrelated numeric
 backends/tests/examples disabled, system GMP/MPFR/MPC, and the released
 gmpfrxx headers, configuration completed successfully in an isolated tree.
 The MPFR-only build then compiled for five minutes and was stopped by an
 explicit timeout while compiling the large optimized/reference source set;
-there was no compiler diagnostic before the timeout. This is useful build
-boundary evidence, not a package build PASS.
+there was no compiler diagnostic before the timeout. This is retained as
+historical build-boundary evidence, not the final P03 result.
 
 The `mplapack-interop` 0.5.0 archive was inspected and contains the expected
 Octave package metadata, `src/Makefile`, tests, examples, and docs. Its Makefile
@@ -232,9 +234,41 @@ not establish P03 PASS.
 The P04 draft autopkgtest now has an installed-package smoke script covering
 real arithmetic/solve, Cholesky, non-pivoted and pivoted QR, LU, complex
 construction, eig, SVD, deterministic RNG, and binary serialization. It is
-still only test-source evidence: the package testbed, final P02/P03 binary
-packages, and Debian autopkgtest runner are unavailable, so no P04 or P05
-PASS is claimed.
+still only test-source evidence: no clean package testbed is available and the
+final P02/P03 binary identities are not frozen, so no P04 or P05 PASS is
+claimed.
+
+### Latest P03 binary-draft evidence
+
+Using the released `mplapack-3.0.1.tar.xz` archive and the committed Debian
+skeleton, a fresh unprivileged build reached the binary package stage after
+compiling the MPFR reference and optimized libraries. The local host has
+newer libraries under `/usr/local`; the verification run constrained
+`LD_LIBRARY_PATH` to the system multiarch directory for `dpkg-shlibdeps`. A
+clean PPA build is expected to use only declared Debian Build-Depends and does
+not rely on this local override.
+
+The resulting draft packages were:
+
+```text
+libmplapack-mpfr3_3.0.1-1_amd64.deb
+libmplapack-mpfr-dev_3.0.1-1_amd64.deb
+```
+
+Both packages passed `lintian --pedantic` with only the expected
+`initial-upload-closes-no-bugs` warnings. `readelf -d` showed SONAMEs
+`libmplapack_mpfr.so.3` and `libmplapack_mpfr_opt.so.3`, the expected
+GMP/MPFR/MPC and C++ runtime NEEDED entries, and no RPATH/RUNPATH. The latest
+local runtime package hash was:
+
+```text
+f42d1ba997e8e96a9d67a0180c1e8c344240f0201d4f953d6caf582e2de0ee67  libmplapack-mpfr3_3.0.1-1_amd64.deb
+```
+
+This is strong local binary/layout evidence, not a final Debian package PASS:
+the maintainer remains a placeholder, package names/splits remain proposals,
+clean-testbed and reproducibility checks remain undone, and no upload was
+attempted.
 
 ITP and team-contact messages are prepared but unsent under
 `release/debian/itp/` and `release/debian/team-contact/`. No BTS number,

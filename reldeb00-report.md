@@ -71,9 +71,10 @@ DEP-5 and Debian NEW review remain P02/P03 work.
 ## Local Debian QA
 
 ```text
-sbuild/lintian/autopkgtest/piuparts/reprotest: BLOCKED (not installed)
-local apt tool installation:                  BLOCKED (unprivileged apt lock)
-runtime:                                      installed pkg-config reports mplapack_mpfr 3.0.1
+debhelper/dh-octave/lintian/autopkgtest: available in the local lab
+sbuild/piuparts/reprotest/debuild/gbp/uscan/dput/reportbug/debsign: unavailable
+clean Debian testbed/reproducibility/upload: not provisioned
+runtime:                                installed pkg-config reports mplapack_mpfr 3.0.1
 ```
 
 The gmpfrxx 1.4.1 release was independently CMake-built and its upstream
@@ -182,6 +183,26 @@ review-only evidence without changing upstream numerical code:
   clarified that the unavailable `dh` executable prevents a binary build.
 - `01ae2a2` recorded the upstream BSD-2-Clause text in the P04 copyright
   draft.
+
+The subsequent P03 draft also adds a Debian packaging-only `dh_auto_configure`
+override which selects the MPFR/system-dependency build and removes the
+upstream MPFR template's installed-library `DT_RUNPATH`, plus a
+`debian/not-installed` manifest for static/libtool/misc files intentionally
+outside the proposed binary split. A fresh build from the released
+`mplapack-3.0.1.tar.xz` archive reached binary packages:
+
+```text
+libmplapack-mpfr3_3.0.1-1_amd64.deb
+libmplapack-mpfr-dev_3.0.1-1_amd64.deb
+```
+
+Local `lintian --pedantic` reported only the expected initial-upload warning;
+`readelf -d` showed the expected `.so.3` SONAMEs and no RPATH/RUNPATH. The
+runtime package hash was
+`f42d1ba997e8e96a9d67a0180c1e8c344240f0201d4f953d6caf582e2de0ee67`.
+This is stronger local binary evidence, but P03 remains PARTIAL because the
+maintainer is still a placeholder, package names/splits are proposals, no
+clean Debian testbed or reproducibility run exists, and no upload was made.
 
 The smoke script passed against an existing built development tree as an API
 compatibility check, and the repository format/tree/GitHub-math checks passed.
