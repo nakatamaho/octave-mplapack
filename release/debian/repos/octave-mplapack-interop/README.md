@@ -32,6 +32,9 @@ fields are not authoritative and were deliberately not committed; P04 still
 requires team review, final MPLAPACK package names, and package QA.
 
 The draft package is named `octave-mplapack-interop` and depends on the draft
-`libmplapack-mpfr-dev`/`libmplapack-mpfr3` split. The included autopkgtest is
-only a placeholder smoke test; the required P04 coverage (including the
-released archive's advanced/complex controls) remains pending P03/P04 review.
+`libmplapack-mpfr-dev`/`libmplapack-mpfr3` split. The included autopkgtest
+now contains the intended installed-package smoke coverage: real arithmetic,
+solve/factorization, complex construction, eig/SVD, deterministic RNG, and
+binary serialization. It remains a draft because it has not run from a clean
+Debian binary-package testbed; the P03 runtime package and Debian QA toolchain
+are still unavailable.

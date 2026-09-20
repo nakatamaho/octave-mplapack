@@ -152,9 +152,10 @@ octave-mplapack-interop_0.5.0-1.dsc
 
 The draft MPLAPACK source package used the proposed
 `libmplapack-mpfr3`/`libmplapack-mpfr-dev` split. The draft Octave package
-used `dh-octave` and a placeholder smoke test. These are syntax/source-boundary
-checks only; no binary build, lintian, sbuild, autopkgtest, install lifecycle,
-or Debian submission PASS is claimed. The extracted `dh-octave` clean step
+used `dh-octave` and now carries a broader installed-package smoke test. These
+are syntax/source-boundary and test-source checks only; no binary build,
+lintian, sbuild, autopkgtest, install lifecycle, or Debian submission PASS is
+claimed. The extracted `dh-octave` clean step
 also reports that the upstream tree has no top-level `clean` target; this
 requires P04 maintainer review rather than being hidden by the draft rules.
 
@@ -177,6 +178,13 @@ MPLAPACK draft backend probe PASS
 This is direct header/library evidence, not Debian binary-package QA. The
 probe has not yet been run from a clean Debian package installation and does
 not establish P03 PASS.
+
+The P04 draft autopkgtest now has an installed-package smoke script covering
+real arithmetic/solve, Cholesky, non-pivoted and pivoted QR, LU, complex
+construction, eig, SVD, deterministic RNG, and binary serialization. It is
+still only test-source evidence: the package testbed, final P02/P03 binary
+packages, and Debian autopkgtest runner are unavailable, so no P04 or P05
+PASS is claimed.
 
 ITP and team-contact messages are prepared but unsent under
 `release/debian/itp/` and `release/debian/team-contact/`. No BTS number,
