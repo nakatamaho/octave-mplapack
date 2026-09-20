@@ -1,0 +1,5 @@
+gmpfrxx-mkii (1.4.1-1) UNRELEASED; urgency=medium
+
+  * Initial Debian packaging draft for the gmpfrxx_mkII 1.4.1 release.
+
+ -- Pending Debian maintainer <debian@example.invalid>  Sun, 20 Sep 2026 00:00:00 +0000

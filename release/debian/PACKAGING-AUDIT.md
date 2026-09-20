@@ -42,6 +42,19 @@ The CMake audit also found MPFR TLS support, while the installed MPC probe did
 not expose an MPC TLS API. The Debian package must preserve the upstream
 precision-context contract and document this distinction.
 
+### P02 draft build evidence
+
+A local unprivileged lab build using `dpkg-buildpackage` produced a
+`libgmpfrxx-mkii-dev` draft from the 1.4.1 release archive. The draft installs
+the headers, CMake metadata, and the unversioned default-context provider in
+one development package. Two clean draft binary builds produced the same
+SHA256 (`548e6d4e4b04b7832672f8ee806b12d017b8e690524f60afb4fbee702a0188c`).
+The source package also built with Debian source format `3.0 (quilt)`.
+
+This does not close P02: the maintainer/team fields are placeholders, the
+provider has no versioned SONAME, dependency fields and Multi-Arch policy
+still require review, and `lintian`/`sbuild`/autopkgtest QA was not run.
+
 ## MPLAPACK 3.0.1
 
 The source archive bundles third-party GMP, MPFR, MPC, OpenBLAS, QD, LAPACK,

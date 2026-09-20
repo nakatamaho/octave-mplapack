@@ -3,8 +3,9 @@
 ## Result
 
 `PARTIAL` — local release provenance and package-name/architecture audits are
-complete, but Debian package QA and all public submission stages are blocked by
-the current environment and missing external identities.
+complete, and a non-submission P02 gmpfrxx packaging draft now builds in an
+unprivileged lab. Debian package QA and all public submission stages remain
+blocked by the current environment and missing external identities.
 
 ## Upstream release provenance
 
@@ -52,9 +53,12 @@ SONAMEs:                 gmpfrxx provider unversioned; MPLAPACK runtime .so.3
 Multi-Arch/symbols:      pending Debian package build and policy review
 ```
 
-The unversioned gmpfrxx provider is a concrete P02 ABI blocker. The full audit
-and license inventory are in `release/debian/PACKAGING-AUDIT.md` and
-`release/debian/ABI-AND-MULTIARCH.md`.
+The unversioned gmpfrxx provider is a concrete P02 ABI blocker. A draft
+`libgmpfrxx-mkii-dev` source/binary package was built locally, but it has
+placeholder maintainer metadata and is not Debian-ready. The full audit and
+license inventory are in `release/debian/PACKAGING-AUDIT.md` and
+`release/debian/ABI-AND-MULTIARCH.md`; build evidence is in
+`release/debian/QA-EVIDENCE.md`.
 
 ## Licensing
 
@@ -119,8 +123,9 @@ DEBIAN-OFFICIAL-ACCEPTED: NO
 UBUNTU-OFFICIAL-SYNCED:   NO
 ```
 
-Resume at P02 after the ABI and toolchain blockers are resolved. Do not repeat
-the release downloads or create duplicate ITP/RFS/PPA submissions. Do not begin
+Resume at P02 after the ABI and toolchain blockers are resolved. The current
+draft is evidence to refine, not a submission artifact. Do not repeat the
+release downloads or create duplicate ITP/RFS/PPA submissions. Do not begin
 unrelated numerical work.
 
 ## Final milestone record
@@ -148,7 +153,9 @@ requested that the long-running run be interrupted before completion. It is
 not a full local-CI PASS. Debian package QA/PPA/public submission remain NOT
 RUN or BLOCKED as recorded above.
 
-Gate: `R00 PASS`, `P00 PASS`, `P01 PARTIAL`, overall `RELDEB00 PARTIAL`
+Gate: `R00 PASS`, `P00 PASS`, `P01 PARTIAL`, `P02 PARTIAL`, overall `RELDEB00 PARTIAL`
 
-Known limitations: Debian source packages, lintian/autopkgtest/reproducibility,
-PPA publication, ITP/Salsa/mentors/RFS, and official acceptance remain undone.
+Known limitations: the P02 draft is not a Debian submission; provider
+ABI/SONAME policy, final package split, lintian/autopkgtest/reproducibility,
+P03/P04 source packages, PPA publication, ITP/Salsa/mentors/RFS, and official
+acceptance remain undone.

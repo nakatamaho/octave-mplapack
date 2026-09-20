@@ -11,7 +11,7 @@ P01  PARTIAL packaging boundary and license audit recorded
 ## Pending stages
 
 ```text
-P02  PENDING  gmpfrxx-mkii source package; provider ABI/SONAME decision needed
+P02  PARTIAL  local gmpfrxx-mkii source/binary draft builds; provider ABI/SONAME and Debian QA remain
 P03  PENDING  MPLAPACK source package; system-dependency/repackaging audit needed
 P04  PENDING  octave-mplapack-interop source package; depends on P02/P03
 P05  BLOCKED  debuild/sbuild/lintian/autopkgtest/piuparts/reprotest unavailable

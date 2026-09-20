@@ -54,3 +54,24 @@ passed the dependency probe, the M00–M21 native probes, M20 complex probes, an
 many public/NEIG checks, but it was intentionally interrupted before the full
 suite completed at the user's request. It is therefore evidence of useful
 progress, not a full local-CI PASS.
+
+## P02 packaging draft
+
+Using the released `gmpfrxx_mkII.1.4.1.tar.xz` archive, a local unprivileged
+lab with `dpkg-buildpackage` produced both a Debian source package and the
+draft binary package `libgmpfrxx-mkii-dev_1.4.1-1_amd64.deb`. The draft was
+configured with system GMP/MPFR/MPC and with examples, benchmarks, and tests
+disabled for the package build. The CMake build and install completed.
+
+Two clean draft binary builds produced:
+
+```text
+548e6d4e4b04b7832672f8ee806b12d017b8e690524f60afb4fbee702a0188c  libgmpfrxx-mkii-dev_1.4.1-1_amd64.deb
+```
+
+The package contains headers, CMake metadata, and
+`libgmpxx_mkII_default_context_provider.so`. The provider has an unversioned
+SONAME and the draft uses placeholder maintainer metadata, so this is not a
+release or Debian submission artifact. `lintian` could not yet run because
+the base environment lacks its Perl dependency set; P02 remains PARTIAL and
+P05 remains BLOCKED.
