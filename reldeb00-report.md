@@ -80,6 +80,12 @@ The gmpfrxx 1.4.1 release was independently CMake-built and its upstream
 CTest suite passed 156/156 tests in an isolated install. This is upstream
 smoke evidence, not a Debian package PASS.
 
+The committed test-only provider ABI/TLS probe also passed against the
+released gmpfrxx provider: ABI version/size, exported mode/token functions,
+independent 256/2048-bit worker contexts, 1024-bit main context, and reset
+behavior all matched the provider contract. This does not resolve the
+provider's unversioned SONAME packaging policy.
+
 ## Ubuntu staging PPA
 
 ```text

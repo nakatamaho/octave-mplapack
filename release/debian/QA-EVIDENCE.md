@@ -84,7 +84,21 @@ definitions are conditional on `MPLAPACK_BUILD_WITH_GMP`. `readelf -d` and
 `libgmpxx_mkII_default_context_provider.so` NEEDED entry and no
 `gmpxx_mkII_*` dynamic exports. Thus the standalone provider is not needed by
 the MPFR-only MPLAPACK/Octave runtime; only independent gmpfrxx external-
-provider consumers require that unresolved P02 package decision.
+ provider consumers require that unresolved P02 package decision.
+
+The committed non-installed probe
+`release/debian/probes/gmpfrxx-provider-abi.cpp` was compiled against the
+released gmpfrxx source/build and provider library with external-provider mode
+explicitly selected. It reported:
+
+```text
+gmpfrxx provider ABI/TLS PASS
+```
+
+The probe verifies ABI version 1, the context structure size, exported
+mode/token functions, independent 256/2048-bit worker-thread contexts, the
+1024-bit main-thread context, and reset behavior. This is ABI evidence only;
+it does not resolve the provider's unversioned SONAME packaging policy.
 
 ## P03/P04 source audits
 
