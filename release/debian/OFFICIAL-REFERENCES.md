@@ -4,10 +4,14 @@ References were retrieved or checked on 2026-09-20. These links are the policy
 starting points for later packaging work; they are not evidence that a package
 has been accepted.
 
+An HTTP check performed on the same date returned status 200 for every URL in
+the table. Page versions are recorded as observed from the live pages; they
+are not package-version requirements.
+
 | Topic | Official reference | Observed status |
 |---|---|---|
-| Debian Developer's Reference | https://www.debian.org/doc/manuals/developers-reference/ | version 14.15, released 2026-09-01 |
-| Debian Policy | https://www.debian.org/doc/debian-policy/ | version 4.7.4.1, released 2026-03-31 |
+| Debian Developer's Reference | https://www.debian.org/doc/manuals/developers-reference/ | version 14.16 observed 2026-09-20 |
+| Debian Policy | https://www.debian.org/doc/debian-policy/ | version 4.7.4.1 observed 2026-09-20 |
 | Mentors introduction | https://mentors.debian.net/intro-maintainers/ | sponsor/maintainer guidance |
 | Mentors RFS HOWTO | https://mentors.debian.net/sponsors/rfs-howto/ | RFS workflow guidance |
 | Debian Science | https://wiki.debian.org/Teams/DebianScience | candidate team route |
