@@ -89,6 +89,7 @@ dependency package, not an MPLAPACK or gmpfrxx source change.
 
 `R00 PASS — UPSTREAM RELEASE STACK FROZEN` for provenance purposes. The MPC
 prerequisite is now recorded explicitly because the target Ubuntu archive does
-not provide the API required by the released interop bridge. P02–P04 remain
-pending Debian source-package construction and QA; this document does not
-claim that any Debian package has been uploaded.
+not provide the API required by the released interop bridge. Local P02–P04
+source/binary drafts and smoke evidence exist, but Debian policy, clean-testbed
+QA, and publication remain pending; this document does not claim that any
+Debian package has been uploaded.
