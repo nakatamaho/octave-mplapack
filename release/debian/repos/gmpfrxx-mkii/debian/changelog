@@ -1,4 +1,4 @@
-gmpfrxx-mkii (1.4.1+dfsg-1) UNRELEASED; urgency=medium
+gmpfrxx-mkii (1.4.1+dfsg-1) resolute; urgency=medium
 
   * Initial Debian packaging draft for the gmpfrxx_mkII 1.4.1 release.
   * Repack the source as +dfsg without the unused reference/upstream snapshot.

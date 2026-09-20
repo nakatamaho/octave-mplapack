@@ -1,4 +1,4 @@
-mplapack (3.0.1-1) UNRELEASED; urgency=medium
+mplapack (3.0.1-1) resolute; urgency=medium
 
   * Draft Debian packaging for the MPFR backend.
   * This entry is not suitable for upload until P03 maintainer, copyright,

@@ -2,7 +2,7 @@ Source: mplapack
 Section: science
 Priority: optional
 Maintainer: Pending Debian maintainer <debian@example.invalid>
-Build-Depends: debhelper-compat (= 13), autoconf, automake, libtool, pkg-config, libgmp-dev, libmpfr-dev, libmpc-dev, libgmpfrxx-mkii-dev
+Build-Depends: debhelper-compat (= 13), autoconf, automake, libtool, pkgconf, libgmp-dev, libmpfr-dev, libmpc-dev, libgmpfrxx-mkii-dev
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
 Homepage: https://github.com/nakatamaho/mplapack

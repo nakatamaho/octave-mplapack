@@ -1,4 +1,27 @@
 #!/usr/bin/make -f
 
+export TMPDIR := $(CURDIR)/debian/.mkoctfile-tmp
+
+override_dh_auto_build:
+	mkdir -p $(TMPDIR)
+	dh_auto_build
+
+override_dh_auto_install:
+	mkdir -p $(TMPDIR)
+	dh_auto_install
+
+override_dh_strip:
+	set -eu; \
+	for file in $$(find debian -type f -name '*.oct'); do \
+		base=$$(readelf --string-dump=.debug_line_str --decompress "$$file" 2>/dev/null \
+			| sed -n 's/.*]  \(.*\/debian\/\.mkoctfile-tmp\/oct-[^/]*\)\/.*$$/\1/p' \
+			| head -n 1); \
+		if [ -n "$$base" ]; then \
+			debugedit -b "$$base" -d . "$$file"; \
+		fi; \
+		objcopy --remove-section=.note.gnu.build-id --remove-section=.gnu_debuglink "$$file"; \
+	done
+	dh_strip
+
 %:
 	dh $@ --buildsystem=octave

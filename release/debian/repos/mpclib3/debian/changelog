@@ -1,4 +1,4 @@
-mpclib3 (1.4.1-1~ppa1) UNRELEASED; urgency=medium
+mpclib3 (1.4.1-1~ppa1) resolute; urgency=medium
 
   * Package GNU MPC 1.4.1 for the MPLAPACK interop PPA dependency stack.
   * Provide the mpc_log2 API required by octave-mplapack-interop 0.5.0.

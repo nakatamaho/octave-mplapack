@@ -1,4 +1,4 @@
-octave-mplapack-interop (0.5.0-1) UNRELEASED; urgency=medium
+octave-mplapack-interop (0.5.0-1) resolute; urgency=medium
 
   * Draft Debian packaging for the released mplapack-interop archive.
   * This entry is not suitable for upload until P04 maintainer, copyright,

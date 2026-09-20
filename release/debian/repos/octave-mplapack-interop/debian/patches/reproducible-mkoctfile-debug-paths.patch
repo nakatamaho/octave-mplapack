@@ -9,8 +9,7 @@ Last-Update: 2026-09-20
 
 --- a/src/Makefile
 +++ b/src/Makefile
-@@ -70,3 +70,8 @@ MPLAPACK_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(MPLAPACK_PC) 2>/dev/null)
- MPLAPACK_LIBS ?= $(shell $(PKG_CONFIG) --libs $(MPLAPACK_PC) 2>/dev/null)
+@@ -73,2 +73,9 @@
 -PACKAGE_CXXFLAGS = -std=c++17 -DMPLAPACK_PKG_VERSION=$(MPLAPACK_VERSION)
 +# mkoctfile uses random /tmp object names for multi-source builds.  Keep
 +# source/debug records independent of the clean build directory and those
@@ -18,4 +17,28 @@ Last-Update: 2026-09-20
 +SOURCE_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 +PACKAGE_CXXFLAGS = -std=c++17 -DMPLAPACK_PKG_VERSION=$(MPLAPACK_VERSION) \
 +  -ffile-prefix-map=$(SOURCE_DIR)=. -fdebug-prefix-map=$(SOURCE_DIR)=.
++OBJECTS = $(SOURCE:.cc=.o)
++MKOCTFILE_CXXFLAGS := $(shell $(MKOCTFILE) -p ALL_CXXFLAGS 2>/dev/null)
  SANITIZER_FLAGS = -fsanitize=address,undefined -fno-omit-frame-pointer
+@@ -88,11 +95,14 @@
+ all: $(TARGET)
+-	$(RM) -r .build-m22
++	$(RM) -r .build-m22
+-
++
+-$(TARGET): $(SOURCE) $(HEADERS) | check-dependency
++$(TARGET): $(OBJECTS) $(HEADERS) | check-dependency
+-	@echo "Building $(TARGET) with MKOCTFILE=$(MKOCTFILE)"
++	@echo "Building $(TARGET) with MKOCTFILE=$(MKOCTFILE)"
+-	$(MKOCTFILE) $(PACKAGE_CXXFLAGS) $(MPLAPACK_CFLAGS) $(SOURCE) \
+-	  $(MPLAPACK_LIBS) -o $@
++	$(MKOCTFILE) $(OBJECTS) $(MPLAPACK_LIBS) -o $@
++
++%.o: %.cc $(HEADERS) | check-dependency
++	$(CXX) -fPIC $(MKOCTFILE_CXXFLAGS) $(PACKAGE_CXXFLAGS) \
++	  $(MPLAPACK_CFLAGS) -I. -c $< -o $@
+-
++
+ $(STORAGE_TEST): ../test/mp_scalar_storage_test.cc \
+   mp_scalar_storage.cc mp_scalar_storage.h mp_precision.cc mp_precision.h \
+   | check-deps

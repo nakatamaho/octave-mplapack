@@ -478,13 +478,18 @@ to the released `src/Makefile`; no numerical source or upstream archive was
 changed.
 
 Two independent clean resolute sbuilds of the patched source package produced
-byte-identical binary and split-debug artifacts:
+byte-identical binary artifacts.  The packaging rules normalize the extracted
+Octave source/debug tree with `debugedit` and clear the generated build-id
+before `dh_strip`; this draft therefore does not emit an automatic dbgsym
+package.  Debian maintainer policy must decide whether to retain that
+debug-symbol policy or replace it with an equivalent deterministic dbgsym
+configuration before submission:
 
 ```text
 octave-mplapack-interop_0.5.0-1_amd64.deb
-  f633b94666ef11cae16a7331d6a216fec98b1412fdb52725a9dcc6216aa6d711
-octave-mplapack-interop-dbgsym_0.5.0-1_amd64.ddeb
-  6fc50a6f59bc5e3dffbcb21fe100d513a1073d5b33db95f8d7eb52388f7fc6e6
+  c9e974a7141c5d9aa52f0b3caacf2f162f23dd6b08f5d0469860a6a1bf69b59f
+second independent build: identical SHA256
+automatic dbgsym: not emitted by this local draft
 ```
 
 This closes the local P04 reproducibility comparison, subject to Debian
@@ -554,3 +559,33 @@ The temporary build also completed cleanly with the provider `.so.1` split.
 This is the preferred next P02 packaging direction, but it still requires
 rebuilding the submitted source from a reproducible uscan/repack workflow and
 Debian review of copyright, watch, symbols, and maintainer metadata.
+
+## Target-suite metadata and latest integrated stack (2026-09-20)
+
+The local draft changelogs for P02, P03, MPC, and P04 now target Ubuntu
+`resolute`, and P03/P04 use `pkgconf` rather than the obsolete `pkg-config`
+virtual package. This is packaging metadata normalization only; it does not
+change released numerical sources.
+
+Fresh clean `resolute-amd64-sbuild` builds of the normalized P03 and P04
+sources completed successfully. Direct Lintian output was limited to the
+expected `initial-upload-closes-no-bugs` warnings for the draft packages.
+The resulting local artifact hashes were:
+
+```text
+libmplapack-mpfr3_3.0.1-1_amd64.deb
+  3e15639a2f9c35094909b77e15534f6f3c717eb51401c2eb53d4a57d7893bfe1
+libmplapack-mpfr-dev_3.0.1-1_amd64.deb
+  e74bb2a28fd1c02cf26099d7d54f3ce63c523a89b956aec9b57c88bc56356066
+octave-mplapack-interop_0.5.0-1_amd64.deb
+  c9e974a7141c5d9aa52f0b3caacf2f162f23dd6b08f5d0469860a6a1bf69b59f
+automatic dbgsym: not emitted by the current deterministic draft rules
+```
+
+A local relative-filename APT repository containing the latest P02 `+dfsg`
+provider/dev split, MPC 1.4.1, P03, and P04 artifacts was installed into the
+resolute rootfs copy. The complete stack was removed and reinstalled from the
+same repository; Octave multiplication, QR, LU, Cholesky, and the fresh
+512-bit default smoke all passed. The provider SONAME remained
+`libgmpxx_mkII_default_context_provider.so.1` after reinstall. This remains
+local evidence only and does not imply Debian or PPA acceptance.

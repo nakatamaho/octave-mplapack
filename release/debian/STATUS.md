@@ -12,9 +12,9 @@ P01  PARTIAL packaging boundary and license audit recorded
 
 ```text
 P02  PARTIAL  local `1.4.1+dfsg` source and `.so.1` provider split build cleanly; Debian ABI/metadata review remains
-P03  PARTIAL  clean chroot build succeeds; policy, lifecycle, and Debian review remain
-P04  PARTIAL  clean chroot build succeeds with MPC 1.4.1; lifecycle/PPA review remain
-P05  PARTIAL  clean sbuild/autopkgtest/piuparts/local APT and patched reproducibility pass locally; provider policy, lintian, signing remain
+P03  PARTIAL  clean `resolute` chroot build succeeds with target-suite metadata; policy, lifecycle, and Debian review remain
+P04  PARTIAL  clean `resolute` chroot build succeeds with MPC 1.4.1 and the reproducibility patch; lifecycle/PPA review remain
+P05  PARTIAL  clean sbuild/autopkgtest/piuparts/local APT and binary-package reproducibility pass locally; provider/debug-symbol policy, lintian, signing remain
 U00  PENDING  staging PPA metadata and credentials
 U01  BLOCKED  Launchpad account, PPA, and upload key not configured
 U02  PENDING  requires U01
@@ -26,11 +26,13 @@ D02  BLOCKED  sponsor/RFS workflow requires Debian submission identity
 The local machine is Ubuntu 26.04 amd64 with Octave 11.1.0. It has the Debian
 build/QA toolchain and a registered `resolute-amd64-sbuild` schroot. Clean
 P02/P03/P04 source builds, copied-rootfs autopkgtest, piuparts, local APT
-install/remove/reinstall, and two-build P04 reproducibility with the
-packaging-only prefix-map patch have completed there. The new P02 candidate
-also cleanly builds a versioned provider runtime split; direct binary Lintian
-has only the expected initial-upload warnings. Source-package metadata,
-licensing, Debian policy, and installed P03/P04 review remain open. No Debian
+install/remove/reinstall, and two-build P04 binary-package reproducibility with
+the packaging-only prefix-map/debugedit patch have completed there. The latest local APT
+stack uses the `1.4.1+dfsg` provider split and target-suite metadata; the
+reinstall smoke still passes. The new P02 candidate also cleanly builds a
+versioned provider runtime split; direct binary Lintian has only the expected
+initial-upload warnings. Source-package metadata, licensing, Debian policy,
+and installed P03/P04 review remain open. No Debian
 identity, upload key, public submission, or Launchpad credential is configured,
 and no official lifecycle PASS is claimed.
 
