@@ -1,8 +1,9 @@
 # Reproducibility handoff
 
-Reproducible-build comparison is still open for RELDEB00. Clean sbuild
-compilation has passed for P02, P03, MPC 1.4.1, and P04, but one clean build is
-not a reproducibility proof.
+Reproducible-build comparison is locally complete for the current P04 binary
+package draft, while Debian debug-symbol policy and the remaining package
+policy gates are still open. Clean sbuild compilation has passed for P02, P03,
+MPC 1.4.1, and P04.
 
 ## Completed evidence
 
@@ -59,26 +60,27 @@ retained as the before state.
 ## Packaging-only remediation and comparison (2026-09-20)
 
 The Debian draft now carries
-`debian/patches/reproducible-mkoctfile-debug-paths.patch`. It does not alter
-numerical code or the released upstream archive; it passes the source
-directory through `-ffile-prefix-map` and `-fdebug-prefix-map` when invoking
-the released `mkoctfile` build. This makes compiler/debug records independent
+`debian/patches/reproducible-mkoctfile-debug-paths.patch` and a packaging-only
+`dh_strip` normalization in `debian/rules`. It does not alter numerical code
+or the released upstream archive; it compiles stable per-source objects,
+normalizes the extracted source/debug root with `debugedit`, and clears the
+generated build-id before stripping. This makes the binary package independent
 of the clean build directory and random `/tmp/oct-*.o` names.
 
 Two independent clean resolute sbuilds of that patched source package
-completed successfully and produced identical hashes:
+completed successfully and produced the same binary-package hash:
 
 ```text
 octave-mplapack-interop_0.5.0-1_amd64.deb
-   f633b94666ef11cae16a7331d6a216fec98b1412fdb52725a9dcc6216aa6d711
+   c9e974a7141c5d9aa52f0b3caacf2f162f23dd6b08f5d0469860a6a1bf69b59f
 
-octave-mplapack-interop-dbgsym_0.5.0-1_amd64.ddeb
-   6fc50a6f59bc5e3dffbcb21fe100d513a1073d5b33db95f8d7eb52388f7fc6e6
+automatic dbgsym: not emitted by the current draft; Debian maintainer
+debug-symbol policy remains open
 ```
 
-The package and split-debug artifacts were byte-identical between the two
-clean builds. The patch is packaging-specific and remains subject to Debian
-review; it does not make P04 or the overall stack policy-ready.
+The ordinary binary package was byte-identical between the two clean builds.
+The packaging change is subject to Debian review, especially the final
+debug-symbol policy; it does not make P04 or the overall stack policy-ready.
 
 ## Current gate
 
