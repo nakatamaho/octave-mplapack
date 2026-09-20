@@ -42,6 +42,18 @@ The CMake audit also found MPFR TLS support, while the installed MPC probe did
 not expose an MPC TLS API. The Debian package must preserve the upstream
 precision-context contract and document this distinction.
 
+### Provider boundary clarified during P02/P03 audit
+
+MPLAPACK 3.0.1 does not consume the standalone gmpfrxx provider in the
+MPFR-only stack. The source list includes `mplapackinit.cpp`, but the provider
+definitions in that file are conditional on `MPLAPACK_BUILD_WITH_GMP`; the
+MPFR library is built with `MPLAPACK_BUILD_WITH_MPFR`. `readelf`/`nm` on the
+validated `libmplapack_mpfr.so.3` found no `gmpxx_mkII_*` dynamic exports and no
+NEEDED entry for the gmpfrxx provider. Consequently P03's MPLAPACK runtime
+package must depend on GMP/MPFR/MPC, but not on a separate gmpfrxx provider
+runtime package. The standalone provider still needs a Debian decision for
+independent gmpfrxx consumers, because its public SONAME remains unversioned.
+
 ### P02 draft build evidence
 
 A local unprivileged lab build using `dpkg-buildpackage` produced a

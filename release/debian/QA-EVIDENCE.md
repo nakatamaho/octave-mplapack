@@ -76,6 +76,16 @@ release or Debian submission artifact. `lintian` could not yet run because
 the base environment lacks its Perl dependency set; P02 remains PARTIAL and
 P05 remains BLOCKED.
 
+The dependency boundary was checked separately against the released MPLAPACK
+source and the validated MPFR shared library. `mpblas/reference/mplapackinit.cpp`
+is listed in the MPFR reference/optimized build sources, but its provider
+definitions are conditional on `MPLAPACK_BUILD_WITH_GMP`. `readelf -d` and
+`nm -D --defined-only` on `libmplapack_mpfr.so.3` showed no
+`libgmpxx_mkII_default_context_provider.so` NEEDED entry and no
+`gmpxx_mkII_*` dynamic exports. Thus the standalone provider is not needed by
+the MPFR-only MPLAPACK/Octave runtime; only independent gmpfrxx external-
+provider consumers require that unresolved P02 package decision.
+
 ## P03/P04 source audits
 
 The MPLAPACK 3.0.1 source archive was inspected without modifying it. Its

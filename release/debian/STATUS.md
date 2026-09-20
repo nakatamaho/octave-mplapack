@@ -33,3 +33,10 @@ No ITP, Salsa repository, mentors upload, PPA upload, RFS, or public Debian
 submission has been attempted. The next resumable stage is P02/P03 package
 policy closure after the gmpfrxx provider ABI decision and packaging toolchain
 are available; P04 must then be built against those packaged interfaces.
+
+Additional boundary evidence now separates the blockers: the standalone
+gmpfrxx provider has an unversioned public SONAME, but the released MPFR-only
+MPLAPACK library neither links that provider nor exports its ABI symbols.
+Therefore the provider ABI decision affects independent gmpfrxx consumers, not
+the `mplapack-interop` runtime dependency closure. This does not remove the
+need for Debian policy review of the standalone gmpfrxx package.

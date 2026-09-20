@@ -106,7 +106,10 @@ No public action was attempted. See `release/debian/PUBLIC-SUBMISSION-STATUS.md`
    `debuild`, `lintian`, `sbuild`, `autopkgtest`, `piuparts`, `reprotest`,
    `gbp`, `uscan`, `dput`, `reportbug`, and signing support) in a privileged
    Ubuntu/Debian build environment.
-2. Resolve the gmpfrxx provider's unversioned SONAME/ABI packaging decision.
+2. Resolve the standalone gmpfrxx provider's unversioned SONAME/ABI packaging
+   decision. The validated MPFR-only MPLAPACK library does not link that
+   provider, so this blocker is isolated to independent gmpfrxx consumers and
+   does not change the interop runtime dependency closure.
 3. Complete P02–P04 source packages using system dependencies and Debian
    copyright/repackaging policy.
 4. Obtain Debian team/sponsor/Salsa/mentors and Launchpad identities before
