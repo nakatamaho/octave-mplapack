@@ -43,11 +43,14 @@ provider described in `PACKAGING-AUDIT.md`.
 ## Debian toolchain
 
 `dpkg-buildpackage`, CMake, make, C++, Octave 11.1.0, octave-dev, debhelper,
-`dh-octave`, `lintian`, and `autopkgtest` are now available in the local lab.
-`debuild`, `sbuild`, `piuparts`, `reprotest`, `gbp`, `uscan`, `dput`,
-`reportbug`, and `debsign`/upload-key support remain unavailable. No clean
-`sbuild`/autopkgtest testbed has been provisioned, so P05 is still PARTIAL and
-no Debian policy or submission PASS is claimed.
+`dh-octave`, `lintian`, `autopkgtest`, `debuild`, `sbuild`, `piuparts`,
+`reprotest`, `gbp`, `uscan`, `dput`, and `reportbug` are now available in the
+local lab. `debsign` is installed, but no upload key or Debian identity is
+configured. A registered Ubuntu 26.04/resolute amd64 schroot is available as
+`resolute-amd64-sbuild`; sbuild is run with `--chroot-mode=schroot` because the
+host has no root subuid mapping. This enables clean build evidence, but does
+not provide Debian ownership, signing, autopkgtest policy acceptance, or PPA
+submission evidence.
 
 The repository's `tools/local-ci.sh` was also started with the previously
 validated MPLAPACK prefix supplied only through `PKG_CONFIG_PATH`. That run
@@ -55,6 +58,45 @@ passed the dependency probe, the M00–M21 native probes, M20 complex probes, an
 many public/NEIG checks, but it was intentionally interrupted before the full
 suite completed at the user's request. It is therefore evidence of useful
 progress, not a full local-CI PASS.
+
+## Clean resolute chroot build evidence
+
+On 2026-09-20, source packages were rebuilt in the clean `resolute-amd64-sbuild`
+chroot. Each sbuild reported `Status: successful`; the separate Lintian stage
+returned policy failures for the draft `UNRELEASED` changelogs and, for P02,
+the intentionally unresolved provider SONAME/ldconfig findings. These are
+recorded as clean-build evidence, not package-quality PASS.
+
+```text
+P02 gmpfrxx-mkii 1.4.1-1:       build successful; lintian policy fail
+P03 mplapack 3.0.1-1:           build successful; lintian policy fail
+P04 interop 0.5.0-1:            build successful; lintian policy fail
+MPC libmpc3/libmpc-dev 1.4.1:  build successful; 75/75 upstream MPC tests pass
+```
+
+The P04 chroot build injected the freshly built P02/P03 and MPC 1.4.1 binary
+packages. Its `dh_auto_test` ran the installed MPLAPACK interface probe and
+the released Octave native build; the output included:
+
+```text
+PASS: mplapack_mpfr 3.0.1
+PASS: MPLAPACK MPFR uniform-precision interface probe
+```
+
+Clean-build artifact hashes from this run were:
+
+```text
+29af87b6f00dd0a0b8d3a7577c43d238a34569c59c3263c001fd3ef0ac096202  libgmpfrxx-mkii-dev_1.4.1-1_amd64.deb
+557cb1bcf50aed5a579ae483dfa0bd4286156b354d0b5cef089297d12b6a45fc  libmplapack-mpfr3_3.0.1-1_amd64.deb
+f4c0a8b4993b4764b4a999752a63d6795a2ae0690a1e6ad63521225e820ec2f7  libmplapack-mpfr-dev_3.0.1-1_amd64.deb
+adf20ec07bb91cec50f9751cf1ea3ba53c307e28cc00d27fdea9bc8a42ce7fde  libmpc3_1.4.1-1~ppa1_amd64.deb
+ba66ea8a313979c5e229419031199cfb9add07ad008afa79692aac2f998c3815  libmpc-dev_1.4.1-1~ppa1_amd64.deb
+a104224be49f32167062bfb2f2b1e5ec991240894fb9fa5261f73b049202a965  octave-mplapack-interop_0.5.0-1_amd64.deb
+```
+
+The clean chroot uses Ubuntu MPC 1.3.1 by default; P04 succeeds only because
+the MPC 1.4.1 prerequisite was injected. No Launchpad/PPA upload or Debian
+autopkgtest result is claimed.
 
 ## P02 packaging draft
 
@@ -315,6 +357,16 @@ expected `undefined symbol: mpc_log2`; that failure is now a documented
 dependency gate rather than an unexplained P04 build failure. Clean Debian
 testbed, reproducibility, and PPA evidence remain pending, so P03/P04 and the
 overall controller stay PARTIAL.
+
+### Clean chroot follow-up
+
+The preceding local binary-draft hashes are retained as historical host-build
+evidence. The later clean `resolute-amd64-sbuild` run produced the hashes in
+the clean-build section above and supersedes the host-only build boundary for
+P02/P03/P04 compilation. Lintian still fails on draft-release metadata and
+the P02 provider packaging findings, so these stages remain PARTIAL. A clean
+package-install/autopkgtest lifecycle and reproducible-build comparison have
+not yet been completed.
 
 ITP and team-contact messages are prepared but unsent under
 `release/debian/itp/` and `release/debian/team-contact/`. No BTS number,

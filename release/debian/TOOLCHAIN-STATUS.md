@@ -15,11 +15,6 @@ debhelper / dh
 dh-octave
 lintian
 autopkgtest
-```
-
-Not installed:
-
-```text
 debuild
 sbuild
 piuparts
@@ -28,18 +23,26 @@ git-buildpackage / gbp
 uscan
 dput
 reportbug
-debsign
+debsign (tool only; no signing identity)
 ```
 
-The available tools support local binary/lintian and smoke evidence, but no
-clean `sbuild`/`autopkgtest` testbed, reproducibility run, Debian signing, or
-public upload. The apt-cache candidates observed for the Ubuntu 26.04 target
-include `dh-octave 1.14.1`, `debhelper-compat 13`, `devscripts 2.26.7`,
-`lintian 2.129.0ubuntu2.1`, `sbuild 0.91.2ubuntu3`, `autopkgtest 5.55`,
-`piuparts 1.6.0build1`, and `reprotest 0.7.32`.
+Installed but not usable for publication:
+
+```text
+upload key / Debian identity
+Launchpad account / PPA credentials
+```
+
+The `resolute-amd64-sbuild` schroot is registered for Ubuntu 26.04 amd64.
+Because the host has no root subuid mapping, invoke sbuild with
+`--chroot-mode=schroot`; default unshare mode is not a product failure. Clean
+P02/P03/P04 compilation has passed in that chroot, while Lintian still reports
+draft policy findings. The tools now support the next clean lifecycle,
+reproducibility, and package-policy checks, but they do not establish a
+publication or Debian-ownership PASS.
 
 ## Resume command
 
-After a clean Debian/Ubuntu testbed is available, resume at P02/P03 policy
-closure. Do not mark a package PASS from `dpkg-buildpackage` alone; run the
-required lintian, autopkgtest, lifecycle, and reproducibility checks.
+Resume at P02/P03 policy closure and then run the required Lintian,
+autopkgtest, lifecycle, and reproducibility checks. Do not mark a package PASS
+from a successful sbuild alone.

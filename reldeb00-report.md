@@ -3,10 +3,9 @@
 ## Result
 
 `PARTIAL` — local release provenance and package-name/architecture audits are
-complete, non-submission P02/P03/P04 packaging drafts build source metadata in
-an unprivileged lab, and provider/header smoke evidence is recorded. Debian
-package QA and all public submission stages remain blocked by the current
-environment and missing external identities.
+complete, and clean Ubuntu 26.04/resolute chroot builds now succeed for the
+P02, P03, P04, and MPC 1.4.1 prerequisite drafts. Debian policy/lifecycle QA,
+signing, and all public submission stages remain incomplete.
 
 ## Upstream release provenance
 
@@ -80,10 +79,10 @@ DEP-5 and Debian NEW review remain P02/P03 work.
 ## Local Debian QA
 
 ```text
-debhelper/dh-octave/lintian/autopkgtest: available in the local lab
-sbuild/piuparts/reprotest/debuild/gbp/uscan/dput/reportbug/debsign: unavailable
-clean Debian testbed/reproducibility/upload: not provisioned
-runtime:                                installed pkg-config reports mplapack_mpfr 3.0.1
+debhelper/dh-octave/lintian/autopkgtest/debuild/sbuild/piuparts/reprotest: available
+gbp/uscan/dput/reportbug/debsign: available; no identity/upload key configured
+clean testbed: Ubuntu 26.04/resolute amd64 schroot registered
+runtime:       installed pkg-config reports mplapack_mpfr 3.0.1
 ```
 
 The gmpfrxx 1.4.1 release was independently CMake-built and its upstream
@@ -239,3 +238,31 @@ Ubuntu MPC 1.3.1 fails predictably with `undefined symbol: mpc_log2`, so the
 MPC 1.4.1 prerequisite is a real PPA dependency gate. This is not Debian
 binary-package or autopkgtest evidence: P04, P05, PPA, and public Debian
 submission remain partial or blocked as described above.
+
+### Clean chroot follow-up (2026-09-20)
+
+The Debian toolchain was installed locally and an Ubuntu 26.04/resolute amd64
+schroot was registered as `resolute-amd64-sbuild`. Because the host has no
+root subuid mapping, sbuild was invoked with `--chroot-mode=schroot`. Clean
+source builds then completed with `Status: successful` for:
+
+```text
+gmpfrxx-mkii 1.4.1-1
+mplapack 3.0.1-1 (with the P02 development package)
+mpclib3 1.4.1-1~ppa1 (75/75 upstream MPC tests passed)
+octave-mplapack-interop 0.5.0-1 (with P02/P03/MPC 1.4.1 injected)
+```
+
+The P04 clean build output included the installed interface checks:
+
+```text
+PASS: mplapack_mpfr 3.0.1
+PASS: MPLAPACK MPFR uniform-precision interface probe
+```
+
+Clean-build hashes are recorded in `release/debian/QA-EVIDENCE.md`. The
+separate sbuild Lintian stage still fails on draft `UNRELEASED` changelog
+metadata and the known P02 provider SONAME/ldconfig findings. Thus this is
+stronger build evidence, not `P02/P03/P04/P05 PASS`; package lifecycle,
+autopkgtest, reproducibility, Debian ownership/signing, and PPA publication
+remain open.
