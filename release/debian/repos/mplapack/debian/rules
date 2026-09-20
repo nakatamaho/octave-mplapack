@@ -31,3 +31,16 @@ override_dh_auto_configure:
 		-e 's|-Wl,-rpath,\$$(libdir)||g' \
 		mplapack/reference/Makefile \
 		mpblas/optimized/mpfr/Makefile
+
+override_dh_auto_install:
+	dh_auto_install
+	# Ubuntu's libmpc-dev does not ship mpc.pc.  Keep the consumer .pc
+	# self-contained so P04 can resolve the direct MPLAPACK dependencies
+	# without inheriting a developer /usr/local pkg-config tree.
+	for pc in debian/libmplapack-mpfr-dev/usr/lib/*/pkgconfig/mplapack_mpfr*.pc; do \
+		case "$$pc" in *opt.pc) lib=mplapack_mpfr_opt;; *) lib=mplapack_mpfr;; esac; \
+		sed -i \
+			-e 's/^Requires:.*/Requires:/' \
+			-e "s|^Libs:.*|Libs: -L/usr/lib/$${DEB_HOST_MULTIARCH} -l$$lib -lmpc -lmpfr -lgmp|" \
+			"$$pc"; \
+	done

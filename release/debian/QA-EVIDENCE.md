@@ -248,6 +248,14 @@ newer libraries under `/usr/local`; the verification run constrained
 clean PPA build is expected to use only declared Debian Build-Depends and does
 not rely on this local override.
 
+The first P04 attempt also exposed that Ubuntu's `libmpc-dev` does not ship an
+`mpc.pc`, while the upstream MPLAPACK `.pc` files declare `Requires: mpc`. The
+P03 Debian rules now rewrite the installed consumer metadata to remove that
+non-portable `Requires` and emit direct `-lmpc -lmpfr -lgmp` flags. This keeps
+P04's `pkg-config` path independent of a developer `/usr/local` tree; the
+post-fix full P03 rebuild was interrupted after the packaging rule syntax was
+checked, so a clean testbed rebuild remains pending.
+
 The resulting draft packages were:
 
 ```text

@@ -204,6 +204,17 @@ This is stronger local binary evidence, but P03 remains PARTIAL because the
 maintainer is still a placeholder, package names/splits are proposals, no
 clean Debian testbed or reproducibility run exists, and no upload was made.
 
+With the locally installed draft P03 packages, a fresh P04 build of the
+released `mplapack-interop-0.5.0` archive reached and completed the real
+`dh-octave` binary stage, producing `octave-mplapack-interop_0.5.0-1_amd64.deb`.
+`lintian --pedantic` reported only the expected initial-upload warning. The
+first attempt was not clean-system evidence because the upstream MPLAPACK
+`.pc` file pulled `mpc` metadata from `/usr/local`; Ubuntu's `libmpc-dev` has
+no `mpc.pc`. The P03 packaging rules now normalize the installed `.pc` files
+to direct system link flags. The subsequent full P03 rebuild was interrupted
+after the packaging rule syntax check, so clean system-only P04/testbed
+evidence remains pending and the overall gate stays PARTIAL.
+
 The smoke script passed against an existing built development tree as an API
 compatibility check, and the repository format/tree/GitHub-math checks passed.
 This is not Debian binary-package or autopkgtest evidence: P04, P05, PPA,

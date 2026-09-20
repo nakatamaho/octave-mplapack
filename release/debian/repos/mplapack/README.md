@@ -31,6 +31,12 @@ use only declared Debian Build-Depends; the local override is not part of the
 package contract. The authoritative source/archive facts are in
 `release/debian/PROVENANCE.md` and `release/debian/PACKAGING-AUDIT.md`.
 
+The Debian install rule also normalizes the consumer pkg-config files: Ubuntu's
+`libmpc-dev` does not provide `mpc.pc`, so the upstream `Requires: mpc` form is
+replaced with direct `-lmpc -lmpfr -lgmp` link flags. This avoids inheriting a
+developer `/usr/local` pkg-config tree when the downstream Octave package is
+built.
+
 An isolated configure check with dependency tracking disabled and the released
 gmpfrxx headers completed successfully. A bounded five-minute MPFR-only build
 reached compilation of the optimized/reference sources before the explicit
