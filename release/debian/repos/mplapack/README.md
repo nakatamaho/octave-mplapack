@@ -25,3 +25,8 @@ A clean unprivileged package build was not claimed: the source configuration
 and full compile are expensive and the required Debian QA toolchain is not
 available in the base environment. The authoritative source/archive facts are
 in `release/debian/PROVENANCE.md` and `release/debian/PACKAGING-AUDIT.md`.
+
+An isolated configure check with dependency tracking disabled and the released
+gmpfrxx headers completed successfully. A bounded five-minute MPFR-only build
+reached compilation of the optimized/reference sources before the explicit
+timeout; it was not reported as a successful package build.

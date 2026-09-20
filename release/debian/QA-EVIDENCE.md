@@ -86,6 +86,14 @@ package build was not claimed because the configured source tree's generated
 dependency-file phase is lengthy in this unprivileged environment and the
 Debian QA toolchain is incomplete; P03 remains PARTIAL.
 
+With `--disable-dependency-tracking`, `--enable-mpfr`, all unrelated numeric
+backends/tests/examples disabled, system GMP/MPFR/MPC, and the released
+gmpfrxx headers, configuration completed successfully in an isolated tree.
+The MPFR-only build then compiled for five minutes and was stopped by an
+explicit timeout while compiling the large optimized/reference source set;
+there was no compiler diagnostic before the timeout. This is useful build
+boundary evidence, not a package build PASS.
+
 The `mplapack-interop` 0.5.0 archive was inspected and contains the expected
 Octave package metadata, `src/Makefile`, tests, examples, and docs. Its Makefile
 uses the installed `mplapack_mpfr` pkg-config module. The archive is the later
