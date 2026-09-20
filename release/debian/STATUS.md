@@ -11,7 +11,7 @@ P01  PARTIAL packaging boundary and license audit recorded
 ## Pending stages
 
 ```text
-P02  PARTIAL  local `.so.1` provider split builds cleanly; Debian ABI/metadata review remains
+P02  PARTIAL  local `1.4.1+dfsg` source and `.so.1` provider split build cleanly; Debian ABI/metadata review remains
 P03  PARTIAL  clean chroot build succeeds; policy, lifecycle, and Debian review remain
 P04  PARTIAL  clean chroot build succeeds with MPC 1.4.1; lifecycle/PPA review remain
 P05  PARTIAL  clean sbuild/autopkgtest/piuparts/local APT and patched reproducibility pass locally; provider policy, lintian, signing remain

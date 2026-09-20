@@ -532,3 +532,25 @@ The source-package Lintian run still reports the bundled-GMP license findings
 and the draft unreleased changelog. Placeholder maintainer metadata,
 symbols/Multi-Arch policy, and Debian review remain open, so P02 and the
 overall controller remain `PARTIAL`.
+
+## P02 `+dfsg` source repack experiment (2026-09-20)
+
+The source Lintian license findings were isolated to the unused upstream
+reference snapshot under `reference/upstream`, including bundled GMP GFDL
+documents with invariant sections. A temporary `1.4.1+dfsg-1` source build
+used the Debian `Files-Excluded: reference/upstream` policy and the
+`repacksuffix=+dfsg` watch option. The resulting source and binary Lintian
+run reported no errors; remaining output was limited to watch-file/package
+informational tags and the expected initial-upload warnings.
+
+The locally generated repacked orig archive was:
+
+```text
+SHA256: 94792367fa08f50967319f3294cf7376688eaf172869df1227f61d1c9476ba87
+size:   14792668 bytes
+```
+
+The temporary build also completed cleanly with the provider `.so.1` split.
+This is the preferred next P02 packaging direction, but it still requires
+rebuilding the submitted source from a reproducible uscan/repack workflow and
+Debian review of copyright, watch, symbols, and maintainer metadata.

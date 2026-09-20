@@ -2,6 +2,7 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: gmpfrxx_mkII
 Upstream-Contact: MPLAPACK contributors
 Source: https://github.com/nakatamaho/gmpfrxx_mkII/releases/tag/v1.4.1
+Files-Excluded: reference/upstream
 
 Files: *
 Copyright: 2026 Nakata Maho

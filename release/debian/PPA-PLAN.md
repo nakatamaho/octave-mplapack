@@ -28,7 +28,7 @@ must not depend on a private source worktree or `/tmp` prefix.
 ## Proposed package names
 
 ```text
-libgmpfrxx-mkii-dev
+libgmpfrxx-mkii-dev  (source candidate 1.4.1+dfsg)
 libgmpxx-mkii-default-context-provider1  (local SONAME .so.1 candidate)
 libmplapack-mpfr3
 libmplapack-mpfr-dev

@@ -35,6 +35,15 @@ Lintian for the local split candidate reports only the expected
 `initial-upload-closes-no-bugs` warnings; this does not constitute Debian
 archive acceptance.
 
+The Debian source candidate is now `1.4.1+dfsg-1`. `debian/watch` requests a
+`+dfsg` repack which excludes the unused `reference/upstream` snapshot from
+the source archive; this removes the bundled GFDL-invariant documentation
+from the Debian source package without changing the installed headers or
+provider. The locally generated repacked orig archive has SHA256
+`94792367fa08f50967319f3294cf7376688eaf172869df1227f61d1c9476ba87` and size
+`14792668` bytes. This is local packaging evidence, not a final Debian source
+artifact.
+
 ## Local provider SONAME candidate (2026-09-20)
 
 The split candidate was installed into the local resolute stack rootfs and

@@ -7,7 +7,7 @@ upload-ready.
 | Check | Status | Evidence / next action |
 |---|---|---|
 | Released source archives and SHA256 | PASS | `PROVENANCE.md`, `SHA256SUMS` |
-| P02 source skeleton | PASS | source-only `.dsc` generation; binary draft remains partial |
+| P02 source skeleton | PASS (local +dfsg candidate) | source-only `1.4.1+dfsg-1` repack/build; binary draft and Debian metadata remain partial |
 | P02 provider ABI/SONAME policy | PASS (local draft) | packaging-only target SOVERSION 1, split runtime provider, and direct binary Lintian pass; Debian ABI review remains |
 | P02 build-time/autopkgtest | PASS (local superficial) | split candidate clean resolute sbuild, copied-rootfs autopkgtest, provider smoke, and remove/reinstall pass; official policy/lifecycle remains pending |
 | P03 source skeleton | PASS | source-only `.dsc` generation from 3.0.1 archive |
