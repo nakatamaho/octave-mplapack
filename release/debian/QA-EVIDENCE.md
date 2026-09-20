@@ -226,11 +226,12 @@ silently ignored QA.
 
 Applied to a fresh copy of the release archive, the draft produced
 `gmpfrxx-mkii_1.4.1-1.dsc` with `dpkg-buildpackage -S -us -uc -d`. This is
-source-format and test-source evidence only. `uscan` could not be validated in
-the extracted temporary tool set because its `File::HomeDir` Perl dependency
-is absent; no watch-file PASS is claimed. The unversioned provider SONAME,
-placeholder maintainer, incomplete DEP-5 inventory, and missing Debian QA
-tools keep P02 PARTIAL.
+source-format and test-source evidence only. The watch file now uses the
+installed uscan version-4 syntax and parses without a format error, but the
+current GitHub release-page pattern does not yield a matching asset in this
+uscan run; no watch-file PASS is claimed. The unversioned provider SONAME,
+placeholder maintainer, incomplete DEP-5 inventory, and source-download
+pattern keep P02 PARTIAL.
 
 ## MPC prerequisite ABI finding
 
