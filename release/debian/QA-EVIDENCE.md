@@ -250,11 +250,12 @@ not rely on this local override.
 
 The first P04 attempt also exposed that Ubuntu's `libmpc-dev` does not ship an
 `mpc.pc`, while the upstream MPLAPACK `.pc` files declare `Requires: mpc`. The
-P03 Debian rules now rewrite the installed consumer metadata to remove that
-non-portable `Requires` and emit direct `-lmpc -lmpfr -lgmp` flags. This keeps
-P04's `pkg-config` path independent of a developer `/usr/local` tree; the
-post-fix full P03 rebuild was interrupted after the packaging rule syntax was
-checked, so a clean testbed rebuild remains pending.
+P03 Debian rules now rewrite the staged consumer metadata to remove that
+non-portable `Requires` and emit direct `-lmpc -lmpfr -lgmp` flags. The first
+post-fix build reached installation and exposed an incorrect pre-split path in
+that hook; the rules now target `debian/tmp`, where `dh_auto_install` actually
+stages the `.pc` files. A clean post-fix binary/testbed rebuild remains
+pending.
 
 The resulting draft packages were:
 
