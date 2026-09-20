@@ -99,3 +99,7 @@ Octave package metadata, `src/Makefile`, tests, examples, and docs. Its Makefile
 uses the installed `mplapack_mpfr` pkg-config module. The archive is the later
 0.5.0 complex/advanced release, not the historical real-only v0.1 candidate;
 P04 must preserve that fact. No P04 Debian package was built or submitted.
+The extracted `dh-octave_make` helper (dh-octave 1.14.1) did generate a
+candidate Debian skeleton from `DESCRIPTION` in a temporary copy. Its team,
+Salsa, and Homepage fields are Debian-policy proposals only and were not
+copied into the repository or treated as an official identity.

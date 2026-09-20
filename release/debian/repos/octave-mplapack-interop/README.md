@@ -24,3 +24,8 @@ v0.1 candidate. P04 must package the released 0.5.0 archive as-is and must
 not silently describe it as the v0.1 real-only API. No Debian build or QA PASS
 is claimed until P02/P03 and the `dh-octave`/lintian/lifecycle toolchain are
 available.
+
+The extracted `dh_octave_make` helper also generated a candidate skeleton from
+`DESCRIPTION` in a temporary copy. The generated Debian Octave team/Salsa
+fields are not authoritative and were deliberately not committed; P04 still
+requires team review, final MPLAPACK package names, and package QA.
