@@ -166,6 +166,18 @@ candidate Debian skeleton from `DESCRIPTION` in a temporary copy. Its team,
 Salsa, and Homepage fields are Debian-policy proposals only and were not
 copied into the repository or treated as an official identity.
 
+The P03 draft now also carries an installed-package backend probe and
+autopkgtest control. Against the controlled validated `mplapack_mpfr` prefix,
+the probe compiled and ran a one-by-one real `Rgemm` and complex `Cgemm` call:
+
+```text
+MPLAPACK draft backend probe PASS
+```
+
+This is direct header/library evidence, not Debian binary-package QA. The
+probe has not yet been run from a clean Debian package installation and does
+not establish P03 PASS.
+
 ITP and team-contact messages are prepared but unsent under
 `release/debian/itp/` and `release/debian/team-contact/`. No BTS number,
 Salsa URL, mentors upload, sponsor, Launchpad account, or PPA build is claimed.

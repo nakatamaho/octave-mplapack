@@ -35,6 +35,8 @@ timeout; it was not reported as a successful package build.
 The draft split is `libmplapack-mpfr3` for the MPFR shared libraries and
 `libmplapack-mpfr-dev` for headers, linker files, and pkg-config metadata.
 These names, the optimized-library policy, maintainer/changelog, copyright
-inventory, symbols file, and autopkgtest remain subject to P03 Debian-team
-review. The draft deliberately does not claim a successful `debuild`,
+inventory, and final autopkgtest policy remain subject to P03 Debian-team
+review. The installed-package probe now covers a one-by-one real `Rgemm` and
+complex `Cgemm` compile/link/run path, but has not yet run against a Debian
+binary package. The draft deliberately does not claim a successful `debuild`,
 lintian, sbuild, or autopkgtest result.

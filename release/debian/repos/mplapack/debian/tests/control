@@ -1,0 +1,4 @@
+Tests: mpfr-backend
+Depends: @, build-essential, pkg-config, libgmpfrxx-mkii-dev, libgmp-dev, libmpfr-dev, libmpc-dev
+Restrictions: superficial
+Features: test-name=mplapack-mpfr-backend
