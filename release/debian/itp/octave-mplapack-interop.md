@@ -26,8 +26,12 @@ Dependency relation:
 
 Local evidence:
  The release archive has been audited and a review-only `dh-octave` skeleton
- produces source metadata. Full binary build, Octave autopkgtest coverage,
- lintian, sbuild, and package lifecycle QA are still pending.
+ produces source metadata. A clean resolute amd64 sbuild, installed-package
+ smoke in a copied testbed, local APT install/remove/reinstall, direct binary
+ Lintian, and two-build binary-package reproducibility comparison pass
+ locally. The current draft does not emit automatic dbgsym packages and still
+ needs Debian debug-symbol policy, maintainer identity, official testbed
+ acceptance, and archive review.
 
 Maintenance request:
  Please advise whether the Debian Octave Group wants to maintain this package,

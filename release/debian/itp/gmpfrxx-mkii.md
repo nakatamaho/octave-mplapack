@@ -25,9 +25,11 @@ Dependency relation:
 
 Local evidence:
  The released archive's upstream tests passed 156/156. A review-only Debian
- source skeleton and provider-header smoke test are present in the local
- worktree; Debian maintainer metadata, DEP-5 review, lintian, sbuild, and
- autopkgtest are not complete.
+ source skeleton, provider-header smoke test, clean resolute amd64 sbuild,
+ copied-rootfs lifecycle/autopkgtest smoke, local APT install/remove/reinstall
+ smoke, and direct binary Lintian evidence are present. The provider split is
+ still a draft: maintainer identity, DEP-5 review, Debian ABI/symbols policy,
+ and official testbed/archive acceptance remain open.
 
 Maintenance request:
  Please advise whether Debian Science wants to maintain this package and how

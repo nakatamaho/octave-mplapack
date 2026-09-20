@@ -25,9 +25,11 @@ Dependency relation:
 
 Local evidence:
  The released archive has been audited and a review-only Autotools Debian
- skeleton produces source metadata. Full binary build, symbols/shlibs,
- copyright inventory, lintian, sbuild, and installed-package autopkgtest are
- still pending.
+ skeleton produces source metadata. A clean resolute amd64 sbuild reaches the
+ binary-package stage, and the installed MPFR backend probe passes in the
+ copied local testbed. Source copyright/DEP-5 inventory, symbols/shlibs and
+ Multi-Arch policy, maintainer identity, official autopkgtest, and archive
+ acceptance remain pending.
 
 Maintenance request:
  Please advise whether Debian Science wants to maintain this package and
