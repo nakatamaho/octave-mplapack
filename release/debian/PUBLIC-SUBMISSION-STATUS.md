@@ -17,3 +17,8 @@ provider ABI is not yet packageable without an explicit decision, and no
 Debian/Launchpad signing or sponsor credentials are configured. The artifacts
 under `release/debian/` are the resumable local handoff, not public submission
 evidence.
+
+Ready-to-send but unsent drafts are now under `release/debian/itp/` and
+`release/debian/team-contact/`. They contain no fabricated bug numbers or
+team approvals. Recheck WNPP and package availability immediately before any
+public filing.

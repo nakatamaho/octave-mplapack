@@ -165,3 +165,7 @@ The extracted `dh-octave_make` helper (dh-octave 1.14.1) did generate a
 candidate Debian skeleton from `DESCRIPTION` in a temporary copy. Its team,
 Salsa, and Homepage fields are Debian-policy proposals only and were not
 copied into the repository or treated as an official identity.
+
+ITP and team-contact messages are prepared but unsent under
+`release/debian/itp/` and `release/debian/team-contact/`. No BTS number,
+Salsa URL, mentors upload, sponsor, Launchpad account, or PPA build is claimed.

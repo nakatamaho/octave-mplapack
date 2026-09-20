@@ -30,7 +30,9 @@ The local machine is Ubuntu 26.04 amd64 with Octave 11.1.0. It has
 These are concrete environment blockers, not PASS results.
 
 No ITP, Salsa repository, mentors upload, PPA upload, RFS, or public Debian
-submission has been attempted. The next resumable stage is P02/P03 package
+submission has been attempted; ready-to-send ITP/team-contact drafts are now
+under `release/debian/itp/` and `release/debian/team-contact/`. The next
+resumable stage is P02/P03 package
 policy closure after the gmpfrxx provider ABI decision and packaging toolchain
 are available; P04 must then be built against those packaged interfaces.
 
