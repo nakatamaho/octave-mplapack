@@ -290,3 +290,26 @@ copied resolute rootfs. An earlier piuparts run that autodetected the host's
 QA results, not Debian/Launchpad worker acceptance. P04 remains PARTIAL while
 package policy/ownership, reproducibility, signing, and publication remain
 open.
+
+### Local APT stack follow-up (2026-09-20)
+
+A fresh copied resolute rootfs was given a local file APT repository containing
+the P02, P03, MPC 1.4.1, and P04 draft packages. After mounting `/proc` for
+Ubuntu maintainer scripts, APT installed the complete dependency stack without
+private prefixes, `LD_LIBRARY_PATH`, or source-tree paths. The installed smoke
+covered matrix multiplication, QR, LU, and the 512-bit default and reported:
+
+```text
+local apt stack smoke PASS
+```
+
+Removing and reinstalling `octave-mplapack-interop` from that same repository
+then reported:
+
+```text
+local apt reinstall smoke PASS
+```
+
+This is local file-repository evidence only; PPA apt-install QA, Debian policy
+review, reproducibility, signing, and public submission remain external or
+pending.

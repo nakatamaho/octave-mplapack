@@ -415,3 +415,38 @@ The earlier piuparts run that autodetected the host's `stonking` suite is not
 used as evidence. These isolated lifecycle results strengthen local P04 QA;
 they do not establish Debian policy approval, reproducible builds, package
 ownership, signing, or PPA/publication readiness.
+
+## Local APT dependency-stack follow-up (2026-09-20)
+
+A local file-repository test was run in a fresh copy of the resolute rootfs.
+The repository contained only the locally built P02, P03, MPC 1.4.1, and P04
+artifacts; its `Packages` index used relative filenames. With `/proc` mounted
+for package maintainer scripts, APT installed the complete stack without
+`LD_LIBRARY_PATH`, a private prefix, or source-tree paths:
+
+```text
+libgmpfrxx-mkii-dev 1.4.1-1
+libmpc-dev 1.4.1-1~ppa1
+libmpc3 1.4.1-1~ppa1
+libmplapack-mpfr-dev 3.0.1-1
+libmplapack-mpfr3 3.0.1-1
+octave-mplapack-interop 0.5.0-1
+```
+
+The installed package smoke passed real matrix multiplication, QR, LU, and
+the default 512-bit precision check:
+
+```text
+local apt stack smoke PASS
+```
+
+The interop package was then removed and reinstalled from the same local APT
+repository; the second installed smoke also passed:
+
+```text
+local apt reinstall smoke PASS
+```
+
+This closes the local APT/lifecycle evidence item for the draft stack. It does
+not replace PPA apt-install validation, Debian policy review, reproducibility,
+signing, or external publication.

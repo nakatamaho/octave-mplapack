@@ -22,6 +22,7 @@ upload-ready.
 | lintian --pedantic | PARTIAL | P03/P04 drafts have only the expected initial-upload warning; P02 provider ldconfig/SONAME findings remain |
 | autopkgtest | PASS (superficial) | copied Ubuntu 26.04/resolute rootfs smoke passed; this is not Launchpad/Debian acceptance |
 | piuparts | PASS (local) | resolute existing-rootfs install/purge test passed; package policy/ownership remains open |
+| local APT stack | PASS (local) | file-repository install of P02/P03/MPC/P04 plus remove/reinstall smoke passed in resolute rootfs |
 | reprotest/diffoscope | PENDING | reprotest installed; reproducibility run remains |
 | license/DEP-5 review | PENDING | draft files explicitly incomplete |
 | PPA Resolute build | BLOCKED | Launchpad account/PPA/upload key unavailable |
@@ -33,8 +34,9 @@ upload-ready.
 | NEW/sid acceptance | PENDING | downstream Debian process |
 | Ubuntu sync | N/A | no accepted Debian package yet |
 
-The isolated local piuparts/autopkgtest lifecycle checks now pass against an
-Ubuntu 26.04/resolute rootfs copy. The next local actions are reproducibility,
-P02 provider/package policy, and installed P03/P04 probe review without
-changing the released upstream numerical sources. No Debian/sid or publication
-identity is implied.
+The isolated local piuparts/autopkgtest lifecycle checks and the local APT
+dependency-stack install/remove/reinstall smoke now pass against an Ubuntu
+26.04/resolute rootfs copy. The next local actions are reproducibility, P02
+provider/package policy, and installed P03/P04 probe review without changing
+the released upstream numerical sources. No Debian/sid or publication identity
+is implied.
