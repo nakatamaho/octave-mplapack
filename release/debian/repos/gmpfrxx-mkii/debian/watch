@@ -1,0 +1,4 @@
+Version: 5
+opts="filenamemangle=s/.+\/v?([0-9].*)\.tar\.xz/gmpfrxx_mkII-$1.tar.xz/" \
+  https://github.com/nakatamaho/gmpfrxx_mkII/releases \
+  /download/v?P/gmpfrxx_mkII\.([0-9.]+)\.tar\.xz

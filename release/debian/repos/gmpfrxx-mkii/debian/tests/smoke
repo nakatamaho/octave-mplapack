@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+
+cxx=${CXX:-c++}
+"$cxx" -std=c++17 -pthread \
+  -DGMPXX_MKII_DEFAULT_CONTEXT_MODE=GMPXX_MKII_DEFAULT_CONTEXT_EXTERNAL_PROVIDER \
+  -o "$tmpdir/provider-smoke" \
+  "$(dirname "$0")/provider-smoke.cpp" \
+  -lgmpxx_mkII_default_context_provider -lgmp
+"$tmpdir/provider-smoke"

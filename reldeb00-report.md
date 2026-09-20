@@ -4,7 +4,7 @@
 
 `PARTIAL` — local release provenance and package-name/architecture audits are
 complete, non-submission P02/P03/P04 packaging drafts build source metadata in
-an unprivileged lab, and P03/P04 source/build boundaries are documented. Debian
+an unprivileged lab, and provider/header smoke evidence is recorded. Debian
 package QA and all public submission stages remain blocked by the current
 environment and missing external identities.
 

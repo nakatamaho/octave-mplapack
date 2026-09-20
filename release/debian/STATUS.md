@@ -11,7 +11,7 @@ P01  PARTIAL packaging boundary and license audit recorded
 ## Pending stages
 
 ```text
-P02  PARTIAL  local gmpfrxx-mkii source/binary draft builds; provider ABI/SONAME and Debian QA remain
+P02  PARTIAL  source/binary draft plus watch/autopkgtest skeleton; provider ABI/SONAME and Debian QA remain
 P03  PARTIAL  release/build-system audit and source-only draft skeleton; binary/policy QA remain
 P04  PARTIAL  archive/build-boundary and source-only draft skeleton; binary QA depends on P02/P03
 P05  BLOCKED  debuild/sbuild/lintian/autopkgtest/piuparts/reprotest unavailable

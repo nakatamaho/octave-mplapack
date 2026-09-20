@@ -100,6 +100,23 @@ mode/token functions, independent 256/2048-bit worker-thread contexts, the
 1024-bit main-thread context, and reset behavior. This is ABI evidence only;
 it does not resolve the provider's unversioned SONAME packaging policy.
 
+The P02 review skeleton now also carries `debian/watch`,
+`debian/upstream/metadata`, an install manifest, and a provider-header
+autopkgtest. The test source was compiled against the released gmpfrxx build
+and provider library in external-provider mode and reported:
+
+```text
+gmpfrxx draft provider smoke PASS
+```
+
+Applied to a fresh copy of the release archive, the draft produced
+`gmpfrxx-mkii_1.4.1-1.dsc` with `dpkg-buildpackage -S -us -uc -d`. This is
+source-format and test-source evidence only. `uscan` could not be validated in
+the extracted temporary tool set because its `File::HomeDir` Perl dependency
+is absent; no watch-file PASS is claimed. The unversioned provider SONAME,
+placeholder maintainer, incomplete DEP-5 inventory, and missing Debian QA
+tools keep P02 PARTIAL.
+
 ## P03/P04 source audits
 
 The MPLAPACK 3.0.1 source archive was inspected without modifying it. Its

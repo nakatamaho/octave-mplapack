@@ -22,3 +22,9 @@ placeholder.
 The exact draft package hash and source-build evidence are recorded in
 `release/debian/QA-EVIDENCE.md`; `lintian`, `sbuild`, and the remaining Debian
 QA tools were not available in the base environment.
+
+The committed `debian/watch`, `debian/upstream/metadata`, install manifest,
+and provider-header autopkgtest are review-only additions. The provider test
+requires the final package's unversioned provider-library policy and therefore
+does not constitute an autopkgtest PASS until that ABI/SONAME decision is
+accepted by Debian maintainers.
