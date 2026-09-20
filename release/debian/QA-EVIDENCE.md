@@ -166,6 +166,15 @@ committed `debian/` directory was checked with `dpkg-source -b` and produced
 `dh` executable; this remains source-boundary evidence only, not a P04 build
 or autopkgtest result.
 
+As an additional rootless check, Debian `debhelper`/`dh-octave` packages were
+downloaded and unpacked into a temporary prefix. With that prefix on `PATH`,
+`dpkg-buildpackage -b -d` reached the `dh_auto_install` stage, then stopped
+because the extracted helper refers to its system path
+`/usr/share/dh-octave/install-pkg.m`, which is intentionally not installed in
+the host filesystem. This confirms that the draft rules reach the real
+`dh-octave` install boundary; it is not a binary-package PASS and no host
+files were modified.
+
 The extracted `dh_octave_make` helper generated team/Salsa metadata in an
 earlier temporary copy. Those fields remain deliberately absent from the
 committed skeleton until Debian team ownership and package names are agreed.
