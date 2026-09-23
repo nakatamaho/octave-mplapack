@@ -1,3 +1,6 @@
+> Historical draft template only. The inquiry and follow-up have been sent;
+> current status is in `README.md`. Do not resend without checking for a reply.
+
 Subject: Packaging discussion: gmpfrxx-mkii and MPLAPACK 3.0.1
 
 Hello Debian Science team,

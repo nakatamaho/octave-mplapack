@@ -2,6 +2,12 @@
 
 Status: **PREPARED / NOT UPLOADED**.
 
+The Octave team's Debian source/binary name direction is now
+`octave-mplapack`; the 0.5.0 PPA version example and local P04 draft below
+still use the earlier `octave-mplapack-interop` candidate. Reconcile the
+source-package name and rerun package QA before treating this manifest as an
+upload candidate. No PPA upload is authorized by this draft manifest.
+
 ## Target
 
 ```text

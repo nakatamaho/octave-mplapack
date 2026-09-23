@@ -1,3 +1,8 @@
+> Historical draft only — do not file as written. The Debian Octave Group
+> directed both Debian source and binary names to `octave-mplapack`; reconcile
+> this draft after the team Salsa repository is created and before rechecking
+> WNPP/filing.
+
 ## ITP: octave-mplapack-interop -- multiple-precision MPLAPACK bindings for Octave
 
 Package: octave-mplapack-interop

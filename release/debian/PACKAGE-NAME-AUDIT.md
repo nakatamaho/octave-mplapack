@@ -39,3 +39,13 @@ the search and check current WNPP/mentors/Salsa state to avoid a race.
 
 `P00 PASS — PACKAGE NAMES AVAILABLE` (local audit). Team routing and public
 submission remain pending; see `TEAM-ROUTING.md`.
+
+## Debian Octave Group direction (2026-09-22)
+
+After this local name audit, Rafael Laboissière advised that both the Debian
+source and binary package names for the Octave package should be
+`octave-mplapack`. The earlier `octave-mplapack-interop` row records the
+2026-09-20 candidate audit, not the final team-directed name. Repeat the WNPP,
+Debian package, mentors, and Salsa collision checks for `octave-mplapack`
+immediately before filing. The Octave ITP draft and local package skeleton
+still need name reconciliation before Salsa import.

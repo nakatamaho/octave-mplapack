@@ -27,8 +27,8 @@ upload-ready.
 | license/DEP-5 review | PENDING | draft files explicitly incomplete |
 | PPA Resolute build | BLOCKED | Launchpad account/PPA/upload key unavailable |
 | PPA apt install | BLOCKED | requires published staging PPA |
-| ITP | PENDING | drafts in `itp/`; reporter identity and WNPP recheck required |
-| Salsa | BLOCKED | team namespace/maintainer identity unavailable |
+| ITP | PENDING | intentionally wait for Rafael to create the `octave-team` repository; then update the Octave name to `octave-mplapack` and recheck WNPP/identity |
+| Salsa | PARTIAL | Salsa account and SSH/host-key verification pass; team repo/access creation is pending Rafael; no packaging repo imported |
 | mentors | BLOCKED | signing key and account unavailable |
 | RFS | PENDING | file after sponsored-package artifacts exist |
 | NEW/sid acceptance | PENDING | downstream Debian process |

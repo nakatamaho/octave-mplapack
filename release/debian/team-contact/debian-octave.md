@@ -1,3 +1,8 @@
+> Historical draft template only. The actual Debian Octave Group exchange
+> and reply are summarized in `README.md`; do not send this text verbatim.
+> The team directed both Debian source and binary names to be
+> `octave-mplapack`, so this older draft's package name is stale.
+
 Subject: Packaging discussion: octave-mplapack-interop 0.5.0
 
 Hello Debian Octave Group,
