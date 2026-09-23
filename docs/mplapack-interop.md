@@ -15,7 +15,7 @@ Install the source package with Octave’s package manager:
     pkg install mplapack-interop-0.5.1.tar.gz
     pkg load mplapack-interop
 
-For a local dependency installation, the repository helper selects the official gmpfrxx_mkII `1.5.0` archive by default and repairs installed MPLAPACK `.pc` metadata on Ubuntu systems whose `libmpc-dev` package does not provide `mpc.pc`. The published 0.5.0 package remains the installer default. To test the local 0.5.1 archive, select `OCTAVE_CHANNEL=candidate`, provide `OCTAVE_TAR` with the archive path, and set `OCTAVE_SHA256`; see the installer help for the exact command. After starting the configured Octave session, load the package with:
+For a local dependency installation, the repository helper selects the official gmpfrxx_mkII `1.5.0` archive by default and repairs installed MPLAPACK `.pc` metadata on Ubuntu systems whose `libmpc-dev` package does not provide `mpc.pc`. The published 0.5.1 package is the installer default; set `OCTAVE_VERSION=0.5.0` to use the immutable previous release. After starting the configured Octave session, load the package with:
 
     pkg load mplapack-interop
 

@@ -1,6 +1,6 @@
 # D04R1 dependency release stack
 
-This repository-only manifest records the local `mplapack-interop` 0.5.1
+This repository-only manifest records the published `mplapack-interop` 0.5.1
 maintenance release. It is excluded from the source archive because it contains
 archive checksums and local filesystem paths. The published 0.5.0
 handoff in [`dependency-release-stack-r1.md`](dependency-release-stack-r1.md)
@@ -12,9 +12,9 @@ remains immutable.
 |---|---|---:|---|---|---|---:|---|
 | gmpfrxx_mkII | `github.com/nakatamaho/gmpfrxx_mkII` | 1.5.0 | `8b5728474d8be0d85d5a6de0870b9d0807f42ec1` / `v1.5.0` | `gmpfrxx_mkII.1.5.0.tar.xz` | `dad1378ee62354a3c5fe8d68c3abcc3766ada00d1f5ffe2edf6c4d08d5f790a9` | 15174480 | GMP, MPFR, MPC |
 | MPLAPACK | `github.com/nakatamaho/mplapack` | 3.0.1 | `953d7a4916554546937a753a30b0619691072841` / `v3.0.1` | `mplapack-3.0.1.tar.xz` | `47ebb653b21f0c62e8144c1e515e94d76965d9d0d4b7ba216b034d778570cbaa` | 85720132 | gmpfrxx 1.5.0; GMP, MPFR, MPC |
-| octave-mplapack (`mplapack-interop`) | local checkout of `github.com/nakatamaho/octave-mplapack` | 0.5.1 | local release commit and annotated tag `v0.5.1` recorded in `D04R1-report.md` | `mplapack-interop-0.5.1.tar.gz` | `6079487fff60b3480eb567d5fdcc5afb7133f3489a0ebef1090cbbdc2a86346f` | 819207 | MPLAPACK 3.0.1; gmpfrxx 1.5.0; GMP, MPFR, MPC; Octave |
+| octave-mplapack (`mplapack-interop`) | `github.com/nakatamaho/octave-mplapack` | 0.5.1 | main release commit and annotated tag `v0.5.1` recorded in `D04R1-report.md` | `mplapack-interop-0.5.1.tar.gz` | `50622b177d9e320ad8c02d4c15aae037a0643c27300a5ead529f4e829ad8d080` | `819039` | MPLAPACK 3.0.1; gmpfrxx 1.5.0; GMP, MPFR, MPC; Octave |
 
-The local source archive was built reproducibly with `SOURCE_DATE_EPOCH=0` by
+The published source archive was built reproducibly with `SOURCE_DATE_EPOCH=0` by
 `tools/build-package.sh`. The archive has one top-level directory,
 `mplapack-interop-0.5.1/`, and excludes this repository-only manifest, the
 D04/D04R1 handoff goals, and the local installer helper.
@@ -65,6 +65,6 @@ scope and timing are recorded in
 ## Release boundaries
 
 The published `v0.5.0` tag and archive are not modified. The 0.5.1 source
-archive and annotated tag `v0.5.1` are local only; there is no GitHub push or
-release asset. Debian packaging, Launchpad/PPA upload, and Octave registry
-submission remain separate follow-up work.
+archive is attached to the GitHub Release for annotated tag `v0.5.1`. Debian
+packaging, Launchpad/PPA upload, and Octave registry submission remain
+separate follow-up work.

@@ -12,9 +12,9 @@ set -eu
 # gmpfrxx_mkII 1.5.0, MPLAPACK 3.0.1, and the selected package archive with
 # curl when they are absent, builds the local gmpfrxx_mkII/MPLAPACK stack, and
 # installs the mplapack-interop Octave package into an isolated prefix.  The
-# default channel remains the frozen 0.5.0 release; the local 0.5.1 candidate
-# is available through the explicit OCTAVE_CHANNEL=candidate setting.  With no
-# arguments, the generated wrapper
+# default channel selects the published 0.5.1 release; the immutable 0.5.0
+# release remains selectable with OCTAVE_VERSION=0.5.0.  With no arguments,
+# the generated wrapper
 # starts the configured Octave environment and loads the package:
 #
 #   "$PREFIX/bin/octave-mplapack"
@@ -36,8 +36,8 @@ set -eu
 # Input archives are stored below SRC:
 #   gmpfrxx_mkII.1.5.0.tar.xz (default; 1.4.1 remains selectable)
 #   mplapack-3.0.1.tar.xz
-#   mplapack-interop-0.5.0.tar.gz (release channel)
-#   mplapack-interop-0.5.1.tar.gz (candidate channel)
+#   mplapack-interop-0.5.0.tar.gz (previous release)
+#   mplapack-interop-0.5.1.tar.gz (default release channel)
 #   mplapack-interop-0.5.0-dev.tar.gz (dev channel)
 #   mplapack-interop-0.4.0.tar.gz (historical channel)
 #
@@ -114,21 +114,22 @@ case "$OCTAVE_CHANNEL" in
             [ -n "${OCTAVE_SHA256:-}" ] || die "non-0.5.0-dev development archive requires OCTAVE_SHA256=<sha256>"
         fi
         ;;
-    candidate)
+    release)
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.1}"
         OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
-        OCTAVE_URL="${OCTAVE_URL:-}"
-        [ -n "${OCTAVE_SHA256:-}" ] || die "candidate channel requires OCTAVE_SHA256=<sha256>"
-        ;;
-    release)
-        OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.0}"
-        OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
-        if [ "$OCTAVE_VERSION" = "0.5.0" ]; then
-            OCTAVE_SHA256="${OCTAVE_SHA256:-3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04}"
-            OCTAVE_URL="${OCTAVE_URL:-https://github.com/nakatamaho/octave-mplapack/releases/download/v0.5.0/mplapack-interop-0.5.0.tar.gz}"
-        else
-            die "release channel is fixed to mplapack-interop 0.5.0"
-        fi
+        case "$OCTAVE_VERSION" in
+            0.5.0)
+                OCTAVE_SHA256="${OCTAVE_SHA256:-3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04}"
+                OCTAVE_URL="${OCTAVE_URL:-https://github.com/nakatamaho/octave-mplapack/releases/download/v0.5.0/mplapack-interop-0.5.0.tar.gz}"
+                ;;
+            0.5.1)
+                OCTAVE_SHA256="${OCTAVE_SHA256:-50622b177d9e320ad8c02d4c15aae037a0643c27300a5ead529f4e829ad8d080}"
+                OCTAVE_URL="${OCTAVE_URL:-https://github.com/nakatamaho/octave-mplapack/releases/download/v0.5.1/mplapack-interop-0.5.1.tar.gz}"
+                ;;
+            *)
+                die "unsupported release version: $OCTAVE_VERSION (use 0.5.0 or 0.5.1)"
+                ;;
+        esac
         ;;
     historical)
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.4.0}"
@@ -141,7 +142,7 @@ case "$OCTAVE_CHANNEL" in
         fi
         ;;
     *)
-        die "OCTAVE_CHANNEL must be candidate, release, dev, or historical"
+        die "OCTAVE_CHANNEL must be release, dev, or historical"
         ;;
 esac
 
@@ -596,9 +597,8 @@ Optional environment switches:
   sh ~/install-local-octave-mplapack.sh
       Use the reproducible 0.5.0-dev archive for development testing.
 
-  OCTAVE_CHANNEL=candidate OCTAVE_TAR="$HOME/src/mplapack-interop-0.5.1.tar.gz" \\
-  OCTAVE_SHA256=<sha256> sh ~/install-local-octave-mplapack.sh
-      Use the local 0.5.1 maintenance candidate.  No public URL is assumed.
+  OCTAVE_VERSION=0.5.0 sh ~/install-local-octave-mplapack.sh
+      Use the immutable 0.5.0 release.
 
   OCTAVE_CHANNEL=historical
       Use the immutable D03 0.4.0 archive.

@@ -2,12 +2,13 @@
 
 ## Mission
 
-Prepare the local `mplapack-interop 0.5.1` maintenance release as a commit
-and annotated tag, without modifying the immutable `v0.5.0` tag/archive or any
+Prepare and publish the `mplapack-interop 0.5.1` maintenance release by
+merging the release work into `main`, creating an annotated tag and GitHub
+Release asset, without modifying the immutable `v0.5.0` tag/archive or any
 upstream MPLAPACK source. The maintenance release closes the Ubuntu 26.04
 local-installer failure caused by missing `mpc.pc` metadata and removes the
-direct complex `mpc_log2` symbol dependency from the Octave bridge. Public
-GitHub, Debian, and PPA uploads remain deferred.
+direct complex `mpc_log2` symbol dependency from the Octave bridge. Debian/PPA
+packaging and uploads remain deferred.
 
 ## Accepted inputs
 
@@ -29,15 +30,16 @@ installation. The upstream MPLAPACK archive remains untouched.
 - fail early when MPLAPACK `pkg-config --cflags/--libs` metadata is unusable;
 - normalize installed MPLAPACK `.pc` files for Ubuntu's missing `mpc.pc`;
 - update user, developer, backend, and release metadata for 0.5.1;
-- build a reproducible 0.5.1 source archive, commit the release, and create
-  the local annotated tag `v0.5.1`.
+- build a reproducible 0.5.1 source archive, update `NEWS.md`, merge to
+  `main`, and publish the archive as a GitHub Release asset under annotated
+  tag `v0.5.1`.
 
 ## Explicit non-goals
 
 - no changes to upstream MPLAPACK or gmpfrxx source;
 - no modification or replacement of the published `v0.5.0` tag/archive;
-- no GitHub push/release, Debian/PPA package upload, Launchpad operation, or
-  Octave registry submission;
+- no Debian/PPA package upload, Launchpad operation, or Octave registry
+  submission;
 - no new public numerical API or binary64 fallback.
 
 ## Gates
@@ -48,5 +50,6 @@ installation. The upstream MPLAPACK archive remains untouched.
 4. `pkg-config`, installed-header, dependency-probe, complex-log2, and
    unresolved-symbol evidence;
 5. documentation/example consistency checks;
-6. annotated local `v0.5.1` tag and handoff report; public GitHub,
-   Debian/PPA, and registry uploads remain NOT RUN.
+6. `main` contains the release, annotated tag `v0.5.1` and GitHub Release
+   asset are published, and the handoff report records evidence; Debian/PPA
+   and registry uploads remain NOT RUN.

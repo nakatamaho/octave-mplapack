@@ -1,11 +1,12 @@
 # octave-mplapack
 
-**Local maintenance release: `mplapack-interop 0.5.1` (2026-09-23).**
-The source is recorded in the local annotated tag `v0.5.1`; the published
-`v0.5.0` tag and archive remain immutable. GitHub/PPA uploads are deferred.
-This maintenance release closes the Ubuntu 26.04 installer compatibility
-issue and provides GNU Octave access to real and complex arbitrary-precision
-linear algebra through the native `mp` type.
+**Released: `mplapack-interop 0.5.1` (2026-09-23).**
+The source is available on
+[GitHub](https://github.com/nakatamaho/octave-mplapack/releases/tag/v0.5.1).
+The published `v0.5.0` tag and archive remain immutable. This maintenance
+release closes the Ubuntu 26.04 installer compatibility issue and provides
+GNU Octave access to real and complex arbitrary-precision linear algebra
+through the native `mp` type.
 
 ## Quick start
 
@@ -25,12 +26,10 @@ curl -fsSL https://raw.githubusercontent.com/nakatamaho/octave-mplapack/main/too
 
 Run these two commands in order; do not paste them onto one shell line. The
 second command does not use `sudo`, and writes under your home directory. The
-installer selects gmpfrxx_mkII 1.5.0 and the published 0.5.0 package by
+installer selects gmpfrxx_mkII 1.5.0 and the published 0.5.1 package by
 default. It also repairs installed MPLAPACK `.pc` metadata on Ubuntu systems
-where `libmpc-dev` does not provide `mpc.pc`. To test the local 0.5.1 archive,
-select it explicitly with `OCTAVE_CHANNEL=candidate`, `OCTAVE_TAR`, and
-`OCTAVE_SHA256`. The installer prints the wrapper path. With the default
-paths, start it from the shell as follows:
+where `libmpc-dev` does not provide `mpc.pc`. The installer prints the wrapper
+path. With the default paths, start it from the shell as follows:
 
 ```sh
 $HOME/.local/share/mplapack-interop/stack/bin/octave-mplapack
@@ -58,16 +57,16 @@ instead of the wrapper and want to control the notice yourself, run
 
 ### 0.5.1 — 2026-09-23
 
-- The installer now uses gmpfrxx_mkII 1.5.0 by default. The published 0.5.0
-  package remains the default; the local 0.5.1 archive is an explicit candidate.
+- The installer now uses gmpfrxx_mkII 1.5.0 and the published 0.5.1 source
+  archive by default. The immutable 0.5.0 release remains selectable.
 - Installed MPLAPACK `.pc` metadata is normalized downstream so
   `pkg-config --cflags --libs mplapack_mpfr` works without a system `mpc.pc`.
 - Complex `log2` uses gmpfrxx `mpfrxx::log2` over MPC rather than a direct
   `mpc_log2` symbol dependency.
 - The new runnable `examples/18_complex_log2.m` covers the native complex path.
 
-The published 0.5.0 tag and archive remain immutable. The 0.5.1 commit and
-tag are local; GitHub, Debian, and PPA uploads are deferred.
+The published 0.5.0 tag and archive remain immutable. Debian/PPA packaging
+and uploads remain separate follow-up work.
 
 ### 0.5.0 — 2026-09-15
 
@@ -305,12 +304,11 @@ The published `mplapack-interop 0.5.0` source remains identified by tag
 `v0.5.0`, freeze commit `7187a0f6c5a40a4d5774f4f913b166ccb6a5dffa`, and
 archive SHA256
 `3c4e992516deb1266918c1c5bf6542cc9e1b7f301aeeb1f354dd64f2558f9e04`.
-The local 0.5.1 maintenance release uses the official MPLAPACK 3.0.1 archive
-with gmpfrxx_mkII 1.5.0; its source archive identity and validation evidence
-are recorded in
+The published 0.5.1 maintenance release uses the official MPLAPACK 3.0.1
+archive with gmpfrxx_mkII 1.5.0; its source archive identity and validation
+evidence are recorded in
 [`docs/dependency-release-stack-r2.md`](docs/dependency-release-stack-r2.md).
-The archive and annotated tag are local only; GitHub, Debian, and PPA uploads
-are deferred.
+Debian/PPA packaging and upload work remain separate.
 
 ## Public API baseline
 

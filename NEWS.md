@@ -2,11 +2,12 @@
 
 ## mplapack-interop 0.5.1 (2026-09-23)
 
-This maintenance release fixes the Ubuntu 26.04 local-install path and keeps
-all `mp` values on the native MPFR/MPC backend.
+This maintenance release fixes the Ubuntu 26.04 install path and keeps all
+`mp` values on the native MPFR/MPC backend. It is published as the GitHub
+release and annotated tag `v0.5.1`.
 
-- The local installer selects the official gmpfrxx_mkII 1.5.0 archive by
-  default and still permits an explicit 1.4.1 selection.
+- The installer defaults to the published 0.5.1 package and official
+  gmpfrxx_mkII 1.5.0 archive; gmpfrxx 1.4.1 remains selectable.
 - Installed MPLAPACK `.pc` metadata is normalized downstream for systems whose
   `libmpc-dev` package does not provide `mpc.pc`; `pkg-config --cflags --libs`
   now exposes the MPLAPACK include and explicit GMP/MPFR/MPC libraries.
@@ -15,9 +16,8 @@ all `mp` values on the native MPFR/MPC backend.
 - The dependency probe checks the MPC log2 precision contract, and the clean
   installer smoke covers real and complex operations.
 
-The 0.5.1 source is committed and tagged locally as `v0.5.1`; the earlier
-0.5.0 tag and archive remain immutable. GitHub, Debian, and PPA uploads are
-deferred.
+The published `v0.5.0` tag and archive remain immutable. Debian/PPA packaging
+and uploads remain separate follow-up work.
 
 ## mplapack-interop 0.5.0 (2026-09-15)
 

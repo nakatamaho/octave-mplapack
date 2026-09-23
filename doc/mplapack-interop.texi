@@ -31,9 +31,9 @@ a dense, two-dimensional @code{mp} value with MPFR real storage and MPC
 complex storage. MPLAPACK is used for the supported dense linear-algebra
 drivers; other operations use package-owned MPFR/MPC algorithms.
 
-This is the @code{0.5.1} maintenance release. Its source is committed and
-tagged locally as @code{v0.5.1}; the earlier published @code{v0.5.0} tag and
-archive remain immutable. GitHub, Debian, and PPA uploads are deferred. The
+This is the @code{0.5.1} maintenance release, published under the annotated
+GitHub tag @code{v0.5.1}. The earlier published @code{v0.5.0} tag and archive
+remain immutable. Debian/PPA packaging and uploads are deferred. The
 dependency stack uses the official MPLAPACK @code{3.0.1} release and
 gmpfrxx_mkII @code{1.5.0}; see the D04R1 release-stack handoff for exact
 source identities and checksums.
@@ -92,11 +92,9 @@ pkg load mplapack-interop
 For a local dependency installation, the repository helper selects the
 official gmpfrxx_mkII @code{1.5.0} archive by default and repairs installed
 MPLAPACK @code{.pc} metadata on Ubuntu systems whose @code{libmpc-dev} package
-does not provide @code{mpc.pc}. The published 0.5.0 package remains the
-installer default. To test the local 0.5.1 archive, select
-@code{OCTAVE_CHANNEL=candidate}, provide @code{OCTAVE_TAR} with the archive
-path, and set @code{OCTAVE_SHA256}; see the installer help for the exact
-command. After starting the configured Octave session, load the package with:
+does not provide @code{mpc.pc}. The published 0.5.1 package is the installer
+default; set @code{OCTAVE_VERSION=0.5.0} to use the immutable previous
+release. After starting the configured Octave session, load the package with:
 
 @verbatim
 pkg load mplapack-interop
