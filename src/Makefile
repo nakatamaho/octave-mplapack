@@ -646,6 +646,12 @@ check-deps:
 	  echo "FAIL: pkg-config command not found: $(PKG_CONFIG)" >&2; exit 1; }
 	@$(PKG_CONFIG) --atleast-version=3.0.0 "$(MPLAPACK_PC)" || { \
 	  echo "FAIL: $(MPLAPACK_PC) >= 3.0.0 is required" >&2; exit 1; }
+	@test -n "$(MPLAPACK_CFLAGS)" || { \
+	  echo "FAIL: $(MPLAPACK_PC) --cflags failed; inspect its dependency metadata" >&2; \
+	  $(PKG_CONFIG) --cflags "$(MPLAPACK_PC)"; exit 1; }
+	@test -n "$(MPLAPACK_LIBS)" || { \
+	  echo "FAIL: $(MPLAPACK_PC) --libs failed; inspect its dependency metadata" >&2; \
+	  $(PKG_CONFIG) --libs "$(MPLAPACK_PC)"; exit 1; }
 	@test -f "$$($(PKG_CONFIG) --variable=includedir $(MPLAPACK_PC))/mplapack_mpfr_precision.h" || { \
 	  echo "FAIL: installed MPLAPACK MPFR precision scope header is required" >&2; exit 1; }
 	@case "$(MPLAPACK_VERSION)" in \

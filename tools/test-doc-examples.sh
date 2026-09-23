@@ -58,6 +58,7 @@ for example in examples/01_scalar_precision.m \
               examples/13_nonsymmetric_eig_suite.m \
               examples/14_neig_tier_s.m \
               examples/15_neig_tier_a.m \
+              examples/18_complex_log2.m \
               examples/14_svd_tier_s.m \
               examples/15_svd_tier_a.m \
               examples/16_svd_verified.m; do
@@ -88,7 +89,7 @@ done < <(find examples/tiered -type f -name '*.m' | LC_ALL=C sort)
 
 help_list=(mp mpbits mpdigits mplapack_version \
   fminbnd fminsearch fsolve fzero integral interp1 interp2 mprand mprng \
-  @mp/abs @mp/chol @mp/eig @mp/lu @mp/mldivide @mp/mrdivide @mp/norm \
+  @mp/abs @mp/chol @mp/eig @mp/log2 @mp/lu @mp/mldivide @mp/mrdivide @mp/norm \
   @mp/qr @mp/svd @mp/schur @mp/qz @mp/saveobj @mp/loadobj)
 for name in "${help_list[@]}"; do
   echo "HELP: $name"

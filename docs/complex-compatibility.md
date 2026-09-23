@@ -69,9 +69,11 @@ until N05. Destructive LAPACK calls receive operation-owned copies.
 
 S01 adds native MPFR/MPC element-wise power and the audited elementary
 functions (`sqrt`, `exp`, `expm1`, `log`, `log1p`, `log10`, `log2`, the
-trigonometric and hyperbolic families, and `cbrt`). Real-domain crossings
-promote to MPC with Octave-compatible principal branches; no builtin
-binary64 numerical fallback is used.
+trigonometric and hyperbolic families, and `cbrt`). Complex `log2` is routed
+through the gmpfrxx `mpfrxx::log2` MPC compatibility wrapper, so the binding
+does not require a direct `mpc_log2` symbol. Real-domain crossings promote to
+MPC with Octave-compatible principal branches; no builtin binary64 numerical
+fallback is used.
 
 S02 adds native MPFR/MPC reductions and extrema. Complex reductions preserve
 MPC storage and precision; complex `sumsq` returns a real MPFR magnitude sum.

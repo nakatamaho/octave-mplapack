@@ -24,6 +24,7 @@ copies.
 | structured `eig` | `__mplapack_core__("eig",...)` | `Rsyevd` | `Cheevd` | exact represented symmetry/Hermiticity selects path |
 | general `eig` | `__mplapack_core__("eig",...)` | `Rgeevx` | `Cgeevx` | balance mode and left vectors are native |
 | generalized `eig` | `__mplapack_core__("geig",...)` | `Rsygvd`/`Rggev` | `Chegvd`/`Cggev` | definite or QZ path; alpha/beta retained |
+| `log2` | `__mplapack_core__("script_elementary",...)` | MPFR `log2` | gmpfrxx `mpfrxx::log2` over MPC | stored `p_op`; principal branch; no direct `mpc_log2` dependency |
 | `hess` | `__mplapack_core__("hess",...)` | `GEHRD`/`ORGHR` | `GEHRD`/`UNGHR` | Householder data and factors own `p_op` |
 | `schur` | `__mplapack_core__("schur",...)` | `GEES` | `GEES` | Schur vectors are non-unique; source is copied |
 | `qz` | `__mplapack_core__("qz",...)` | `GGES` | `GGES` | generalized factors use owned A/B buffers |

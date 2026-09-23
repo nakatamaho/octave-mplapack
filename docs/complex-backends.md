@@ -93,7 +93,9 @@ rerouted through a complex kernel.
   install/load/unload/reinstall smoke;
 - First milestone requiring it: C00 complex precision scaffold.
 
-No `gmpfrxx_mkII` fix was required through C12.
+No `gmpfrxx_mkII` fix was required through C12. D04R1 uses the official
+1.5.0 release interface and routes complex `log2` through
+`mpfrxx::log2`; the binding does not link directly to `mpc_log2`.
 
 The C00–C12 development goal did not freeze an upstream release. D04 now
 uses the official MPLAPACK 3.0.1 release source baseline

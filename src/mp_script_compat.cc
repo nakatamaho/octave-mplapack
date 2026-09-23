@@ -280,6 +280,19 @@ work_precision (mpfr_prec_t precision)
 }
 
 void
+apply_complex_log2_via_gmpfrxx (mpc_ptr destination, mpc_srcptr source)
+{
+  const mpfr_prec_t real_precision = mpfr_get_prec (mpc_realref (source));
+  const mpfr_prec_t imag_precision = mpfr_get_prec (mpc_imagref (source));
+  auto operand = mpfrxx::mpc_class::with_precision (real_precision,
+                                                     imag_precision);
+  const mpc_rnd_t rounding = mpfrxx::mpc_class::default_rounding ();
+  (void) mpc_set (operand.mpc_data (), source, rounding);
+  const auto result = mpfrxx::log2 (operand);
+  (void) mpc_set (destination, result.mpc_data (), rounding);
+}
+
+void
 apply_complex_elementary (mpc_ptr destination, mpc_srcptr source,
                           MpScriptElementaryOperation operation)
 {
@@ -290,7 +303,9 @@ apply_complex_elementary (mpc_ptr destination, mpc_srcptr source,
     case MpScriptElementaryOperation::exp: mpc_exp (destination, source, rounding); return;
     case MpScriptElementaryOperation::log: mpc_log (destination, source, rounding); return;
     case MpScriptElementaryOperation::log10: mpc_log10 (destination, source, rounding); return;
-    case MpScriptElementaryOperation::log2: mpc_log2 (destination, source, rounding); return;
+    case MpScriptElementaryOperation::log2:
+      apply_complex_log2_via_gmpfrxx (destination, source);
+      return;
     case MpScriptElementaryOperation::sin: mpc_sin (destination, source, rounding); return;
     case MpScriptElementaryOperation::cos: mpc_cos (destination, source, rounding); return;
     case MpScriptElementaryOperation::tan: mpc_tan (destination, source, rounding); return;

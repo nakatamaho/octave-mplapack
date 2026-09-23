@@ -56,6 +56,7 @@ an existing value or override `p_op`.
 | structured eig | `eig(A)` for real symmetric or complex Hermitian input; matrix/vector outputs | `Rsyevd`/`Cheevd` |
 | general eig | standard real/complex `eig`, matrix/vector/balance/nobalance forms, and `[V,D,W]` | `Rgeevx`/`Cgeevx` |
 | generalized eig | `eig(A,B)` with `matrix`/`vector`, `chol`/`qz`, and `[V,D,W]` forms | `Rsygvd`/`Chegvd` or `Rggev`/`Cggev` |
+| elementary | `log2(mp_complex)` and the audited scalar/element-wise family | gmpfrxx `mpfrxx::log2` over MPC; stored `p_op` |
 | mixed structural | horizontal/vertical concat; real/complex assignment | MPC destination at max stored precision |
 
 For LU, one output is the packed factor. Two outputs return `A=L*U`; three

@@ -12,10 +12,10 @@ Use this package when the input data, intermediate values, or requested toleranc
 
 Install the source package with Octave’s package manager:
 
-    pkg install mplapack-interop-0.5.0.tar.gz
+    pkg install mplapack-interop-0.5.1.tar.gz
     pkg load mplapack-interop
 
-For a local dependency installation, the repository helper starts a configured session at `/home/docker/opt/octave-mplapack-stack/bin/octave-mplapack`. After starting Octave, load the package with:
+For a local dependency installation, the repository helper selects the official gmpfrxx_mkII `1.5.0` archive by default and repairs installed MPLAPACK `.pc` metadata on Ubuntu systems whose `libmpc-dev` package does not provide `mpc.pc`. The published 0.5.0 package remains the installer default. To test the local 0.5.1 archive, select `OCTAVE_CHANNEL=candidate`, provide `OCTAVE_TAR` with the archive path, and set `OCTAVE_SHA256`; see the installer help for the exact command. After starting the configured Octave session, load the package with:
 
     pkg load mplapack-interop
 
@@ -322,7 +322,7 @@ The focused API and backend notes are maintained in `docs/eig.md`, `docs/general
 
 ## Elementary and special functions
 
-The supported scalar/element-wise elementary family includes `sqrt`, `cbrt`, `exp`, `expm1`, `log`, `log1p`, `log10`, `log2`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `hypot`, and `atan2`. Real domain crossings use the documented MPC promotion rules.
+The supported scalar/element-wise elementary family includes `sqrt`, `cbrt`, `exp`, `expm1`, `log`, `log1p`, `log10`, `log2`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `hypot`, and `atan2`. Real domain crossings use the documented MPC promotion rules. Real `log2` uses MPFR directly; complex `log2` uses the gmpfrxx `mpfrxx::log2` MPC compatibility wrapper at the stored operation precision and does not require a direct `mpc_log2` symbol.
 
 The supported MPFR-backed special family is `gamma`, `gammaln`, `lgamma`, `erf`, and `erfc`. Poles, signed zeros, infinities, NaNs, and domain branches are tested explicitly. Other special-function families are deferred and rejected cleanly.
 
@@ -428,7 +428,7 @@ Precision unexpectedly looks low
 Construct from decimal text, set `mpbits` before construction, and remember that changing the default cannot restore information lost by a previous binary64 constructor.
 
 Version or dependency mismatch
-Use `mplapack_version ()` and `pkg-config`. D04 currently records MPLAPACK 3.0.1 as a release candidate, not a completed release.
+Use `mplapack_version ()` and `pkg-config`. The 0.5.1 maintenance stack records MPLAPACK 3.0.1 and gmpfrxx_mkII 1.5.0. If `pkg-config --cflags --libs mplapack_mpfr` fails because the host lacks `mpc.pc`, use the local installer or apply its downstream metadata normalization; do not add a fake `mpc.pc`.
 
 Graphics overflow or underflow
 Perform scaling or logarithms in `mp`, then explicitly convert the final display data.

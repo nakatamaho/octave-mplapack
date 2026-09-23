@@ -9,11 +9,12 @@ set -eu
 # with SRC, BUILD, and PREFIX.
 #
 # This script verifies the selected source archives, downloads the official
-# gmpfrxx_mkII 1.4.1, MPLAPACK 3.0.1, and the 0.5.0 package archive with curl
-# when they are absent, builds the local gmpfrxx_mkII/MPLAPACK stack, and installs the mplapack-interop Octave
-# package into an isolated prefix.  The default channel is the frozen
-# 0.5.0 release.  The development package remains available through the
-# explicit OCTAVE_CHANNEL=dev setting.  With no arguments, the generated wrapper
+# gmpfrxx_mkII 1.5.0, MPLAPACK 3.0.1, and the selected package archive with
+# curl when they are absent, builds the local gmpfrxx_mkII/MPLAPACK stack, and
+# installs the mplapack-interop Octave package into an isolated prefix.  The
+# default channel remains the frozen 0.5.0 release; the local 0.5.1 candidate
+# is available through the explicit OCTAVE_CHANNEL=candidate setting.  With no
+# arguments, the generated wrapper
 # starts the configured Octave environment and loads the package:
 #
 #   "$PREFIX/bin/octave-mplapack"
@@ -33,9 +34,10 @@ set -eu
 # OCTAVE_CHANNEL=historical.
 #
 # Input archives are stored below SRC:
-#   gmpfrxx_mkII.1.4.1.tar.xz
+#   gmpfrxx_mkII.1.5.0.tar.xz (default; 1.4.1 remains selectable)
 #   mplapack-3.0.1.tar.xz
-#   mplapack-interop-0.5.0.tar.gz (default channel)
+#   mplapack-interop-0.5.0.tar.gz (release channel)
+#   mplapack-interop-0.5.1.tar.gz (candidate channel)
 #   mplapack-interop-0.5.0-dev.tar.gz (dev channel)
 #   mplapack-interop-0.4.0.tar.gz (historical channel)
 #
@@ -67,12 +69,30 @@ else
     JOBS="${JOBS:-1}"
 fi
 
-GMPFRXX_TAR="${GMPFRXX_TAR:-$SRC/gmpfrxx_mkII.1.4.1.tar.xz}"
-GMPFRXX_URL="${GMPFRXX_URL:-https://github.com/nakatamaho/gmpfrxx_mkII/releases/download/v1.4.1/gmpfrxx_mkII.1.4.1.tar.xz}"
+GMPFRXX_VERSION="${GMPFRXX_VERSION:-1.5.0}"
+case "$GMPFRXX_VERSION" in
+    1.4.1)
+        GMPFRXX_TAR="${GMPFRXX_TAR:-$SRC/gmpfrxx_mkII.1.4.1.tar.xz}"
+        GMPFRXX_URL="${GMPFRXX_URL:-https://github.com/nakatamaho/gmpfrxx_mkII/releases/download/v1.4.1/gmpfrxx_mkII.1.4.1.tar.xz}"
+        GMPFRXX_SHA256=395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4
+        GMPFRXX_SOURCE_COMMIT=32a7fb797202cdf92312ed9d133f96fdbcda590a
+        ;;
+    1.5.0)
+        GMPFRXX_TAR="${GMPFRXX_TAR:-$SRC/gmpfrxx_mkII.1.5.0.tar.xz}"
+        GMPFRXX_URL="${GMPFRXX_URL:-https://github.com/nakatamaho/gmpfrxx_mkII/releases/download/v1.5.0/gmpfrxx_mkII.1.5.0.tar.xz}"
+        GMPFRXX_SHA256=dad1378ee62354a3c5fe8d68c3abcc3766ada00d1f5ffe2edf6c4d08d5f790a9
+        GMPFRXX_SOURCE_COMMIT=8b5728474d8be0d85d5a6de0870b9d0807f42ec1
+        ;;
+    *)
+        printf '\nERROR: unsupported gmpfrxx_mkII version: %s (use 1.4.1 or 1.5.0)\n' \
+            "$GMPFRXX_VERSION" >&2
+        exit 1
+        ;;
+esac
+
 MPLAPACK_TAR="${MPLAPACK_TAR:-$SRC/mplapack-3.0.1.tar.xz}"
 MPLAPACK_URL="${MPLAPACK_URL:-https://github.com/nakatamaho/mplapack/releases/download/v3.0.1/mplapack-3.0.1.tar.xz}"
 
-GMPFRXX_SHA256=395b9c4bd5819cf0f61758cee5f7eb400e25e2959b51a75d40a922ed41d711c4
 # Current D04 MPLAPACK 3.0.1 official release identity (2026-09-15).
 MPLAPACK_SHA256=47ebb653b21f0c62e8144c1e515e94d76965d9d0d4b7ba216b034d778570cbaa
 MPLAPACK_SOURCE_COMMIT=953d7a4916554546937a753a30b0619691072841
@@ -93,6 +113,12 @@ case "$OCTAVE_CHANNEL" in
         else
             [ -n "${OCTAVE_SHA256:-}" ] || die "non-0.5.0-dev development archive requires OCTAVE_SHA256=<sha256>"
         fi
+        ;;
+    candidate)
+        OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.1}"
+        OCTAVE_TAR="${OCTAVE_TAR:-$SRC/mplapack-interop-${OCTAVE_VERSION}.tar.gz}"
+        OCTAVE_URL="${OCTAVE_URL:-}"
+        [ -n "${OCTAVE_SHA256:-}" ] || die "candidate channel requires OCTAVE_SHA256=<sha256>"
         ;;
     release)
         OCTAVE_VERSION="${OCTAVE_VERSION:-0.5.0}"
@@ -115,7 +141,7 @@ case "$OCTAVE_CHANNEL" in
         fi
         ;;
     *)
-        die "OCTAVE_CHANNEL must be release, dev, or historical"
+        die "OCTAVE_CHANNEL must be candidate, release, dev, or historical"
         ;;
 esac
 
@@ -160,7 +186,7 @@ download_archive_if_missing() {
 
 download_archive_if_missing \
     "$GMPFRXX_TAR" "$GMPFRXX_URL" \
-    "official gmpfrxx_mkII 1.4.1 release archive"
+    "official gmpfrxx_mkII $GMPFRXX_VERSION release archive"
 download_archive_if_missing \
     "$MPLAPACK_TAR" "$MPLAPACK_URL" \
     "official MPLAPACK 3.0.1 release archive"
@@ -253,10 +279,10 @@ export LIBRARY_PATH="$PREFIX/lib:$PREFIX/lib64${LIBRARY_PATH:+:$LIBRARY_PATH}"
 export CPATH="$PREFIX/include${CPATH:+:$CPATH}"
 
 # ----------------------------------------------------------------------
-# 3. gmpfrxx_mkII 1.4.1
+# 3. gmpfrxx_mkII
 # ----------------------------------------------------------------------
 
-say "Building gmpfrxx_mkII 1.4.1"
+say "Building gmpfrxx_mkII $GMPFRXX_VERSION"
 
 GXX_SRC="$BUILD/gmpfrxx-src"
 GXX_BUILD="$BUILD/gmpfrxx-build"
@@ -315,16 +341,50 @@ export LDFLAGS="-L$PREFIX/lib -L$PREFIX/lib64 ${LDFLAGS:-}"
 make -j"$JOBS"
 make install
 
+# Ubuntu's libmpc-dev does not install mpc.pc.  The upstream MPLAPACK
+# metadata currently declares mpc/mpfr/gmp through Requires:, which makes
+# pkg-config --cflags fail before a consumer can see MPLAPACK's own include
+# directory.  Normalize only the installed local metadata; do not modify the
+# MPLAPACK source archive.  The Debian packaging uses the same downstream
+# policy in its staged install rule.
+normalize_mplapack_pkgconfig ()
+{
+    pc="$1"
+    [ -f "$pc" ] || return 0
+
+    pc_libdir="$(CDPATH= cd "$(dirname "$pc")/.." && pwd)"
+    case "$pc" in
+        *_opt.pc) pc_library=mplapack_mpfr_opt ;;
+        *)        pc_library=mplapack_mpfr ;;
+    esac
+    sed -i \
+        -e 's/^Requires:.*/Requires:/' \
+        -e "s|^Libs:.*|Libs: -L$pc_libdir -l$pc_library -lmpc -lmpfr -lgmp|" \
+        "$pc"
+}
+
+normalize_mplapack_pkgconfig "$PREFIX/lib/pkgconfig/mplapack_mpfr.pc"
+normalize_mplapack_pkgconfig "$PREFIX/lib/pkgconfig/mplapack_mpfr_opt.pc"
+normalize_mplapack_pkgconfig "$PREFIX/lib64/pkgconfig/mplapack_mpfr.pc"
+normalize_mplapack_pkgconfig "$PREFIX/lib64/pkgconfig/mplapack_mpfr_opt.pc"
+
 # ----------------------------------------------------------------------
 # 5. MPLAPACK installation checks
 # ----------------------------------------------------------------------
 
 say "Checking installed MPLAPACK"
 
+echo "gmpfrxx source candidate: $GMPFRXX_SOURCE_COMMIT ($GMPFRXX_VERSION)"
 echo "MPLAPACK source candidate: $MPLAPACK_SOURCE_COMMIT"
 
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/lib64/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 export LD_LIBRARY_PATH="$PREFIX/lib:$PREFIX/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+if ! pkg-config --cflags --libs mplapack_mpfr >/dev/null 2>&1; then
+    say "MPLAPACK pkg-config diagnostics"
+    pkg-config --cflags --libs mplapack_mpfr || true
+    die "installed mplapack_mpfr metadata is not consumable"
+fi
 
 MPL_VER="$(pkg-config --modversion mplapack_mpfr)"
 [ "$MPL_VER" = "3.0.1" ] || die "unexpected mplapack_mpfr version: $MPL_VER"
@@ -535,6 +595,10 @@ Optional environment switches:
   OCTAVE_SHA256=fa64e3da0bcdb3c1b2ddcb9c88d99b373c43129d34cfbbbc69a4515cb657d61f \
   sh ~/install-local-octave-mplapack.sh
       Use the reproducible 0.5.0-dev archive for development testing.
+
+  OCTAVE_CHANNEL=candidate OCTAVE_TAR="$HOME/src/mplapack-interop-0.5.1.tar.gz" \\
+  OCTAVE_SHA256=<sha256> sh ~/install-local-octave-mplapack.sh
+      Use the local 0.5.1 maintenance candidate.  No public URL is assumed.
 
   OCTAVE_CHANNEL=historical
       Use the immutable D03 0.4.0 archive.
