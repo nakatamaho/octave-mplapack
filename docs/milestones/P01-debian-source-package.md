@@ -39,7 +39,7 @@ license and dependency declarations match the source.
 # Gate
 
 `GP01` passes when a policy-valid Debian source package can be generated from
-the repository. This gate is planned and is not passed by M00.
+the repository. Result: PASS; see the root-level [`P01-report.md`](../../P01-report.md).
 
 # Expected commit
 

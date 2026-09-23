@@ -44,7 +44,7 @@ documented gate passes.
 | C11L | Mandatory complex LU | Passed |
 | C12 | Real+complex release closure | Passed |
 | P00 | Packaging design | Planned |
-| P01 | Debian source package | Planned |
+| P01 | Debian source package | Passed (GP01) |
 | P02 | Local Debian build | Planned |
 | P03 | PPA staging | Planned |
 | P04 | PPA autopkgtest | Planned |
