@@ -1,0 +1,17 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: MPLAPACK
+Source: https://github.com/nakatamaho/mplapack/releases/tag/v3.0.1
+
+Files: *
+Copyright: MPLAPACK contributors
+License: BSD-2-Clause-and-upstream-notices
+ MPLAPACK is distributed under a BSD-style two-clause license. The upstream
+ source also contains the LAPACK/BLAS notices and third-party source trees;
+ this draft record is intentionally incomplete until P03 performs the full
+ per-file copyright and license inventory.
+
+Files: debian/*
+Copyright: 2026 Pending Debian maintainer
+License: BSD-2-Clause-and-upstream-notices
+ The Debian packaging is distributed under the same terms as the upstream
+ project pending final team review.

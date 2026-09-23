@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+
+cxx=${CXX:-c++}
+pkg=${MPLAPACK_PC:-mplapack_mpfr}
+flags=$(pkg-config --cflags --libs "$pkg")
+# shellcheck disable=SC2086
+"$cxx" -std=c++17 -pthread -o "$tmpdir/mpfr-backend" \
+  "$(dirname "$0")/mpfr-backend.cpp" $flags
+"$tmpdir/mpfr-backend"

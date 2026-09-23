@@ -1,0 +1,27 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: MPC
+Upstream-Contact: GNU MPC developers
+Source: https://ftp.gnu.org/gnu/mpc/
+
+Files: *
+Copyright: 2002-2026 INRIA and contributors
+License: LGPL-3+
+ GNU MPC is free software; you can redistribute it and/or modify it under
+ the terms of the GNU Lesser General Public License as published by the Free
+ Software Foundation, version 3 or (at your option) any later version.
+ .
+ GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ more details.
+ .
+ On Debian systems, the complete license text is available in
+ /usr/share/common-licenses/LGPL-3.
+
+Files: debian/*
+Copyright: 2026 Pending Debian maintainer
+License: public-domain
+ The Debian packaging files are released into the public domain.
+
+License: public-domain
+ This work has been dedicated to the public domain.

@@ -1,0 +1,47 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --buildsystem=autoconf
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		--disable-dependency-tracking \
+		--disable-openmp \
+		--disable-test \
+		--disable-benchmark \
+		--disable-examples \
+		--disable-cuda \
+		--disable-debug \
+		--disable-optimization \
+		--disable-gmp \
+		--enable-mpfr \
+		--disable-qd \
+		--disable-dd \
+		--disable-double \
+		--disable-binary128 \
+		--disable-binary80 \
+		--enable-gmpfrxx-mkII \
+		--with-gmpfrxx-mkII=/usr \
+		--with-system-gmp=yes \
+		--with-system-mpfr=yes \
+		--with-system-mpc=yes
+	# The upstream MPFR library template embeds the install directory in DT_RUNPATH.
+	# Debian packages use the normal loader search path instead.
+	sed -i \
+		-e 's|-Wl,-rpath,\$$(libdir)||g' \
+		mplapack/reference/Makefile \
+		mpblas/optimized/mpfr/Makefile
+
+override_dh_auto_install:
+	dh_auto_install
+	# Ubuntu's libmpc-dev does not ship mpc.pc.  Keep the consumer .pc
+	# self-contained so P04 can resolve the direct MPLAPACK dependencies
+	# without inheriting a developer /usr/local pkg-config tree.
+	multiarch=$$(dpkg-architecture -qDEB_HOST_MULTIARCH); \
+	for pc in debian/tmp/usr/lib/*/pkgconfig/mplapack_mpfr*.pc; do \
+		case "$$pc" in *opt.pc) lib=mplapack_mpfr_opt;; *) lib=mplapack_mpfr;; esac; \
+		sed -i \
+			-e 's/^Requires:.*/Requires:/' \
+			-e "s|^Libs:.*|Libs: -L/usr/lib/$$multiarch -l$$lib -lmpc -lmpfr -lgmp|" \
+			"$$pc"; \
+	done

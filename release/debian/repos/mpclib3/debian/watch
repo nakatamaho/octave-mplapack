@@ -1,0 +1,2 @@
+version=4
+https://ftp.gnu.org/gnu/mpc/ mpc-([\d\.]+)\.tar\.xz debian uupdate

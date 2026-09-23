@@ -1,0 +1,3 @@
+usr/include/*
+usr/lib/*/cmake/gmpfrxx_mkII
+usr/lib/*/libgmpxx_mkII_default_context_provider.so

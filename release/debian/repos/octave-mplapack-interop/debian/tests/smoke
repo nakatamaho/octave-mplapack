@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+# Draft P04 installed-package smoke.  The test is intentionally run through
+# Octave's package loader; it must not add the source checkout to path().
+test_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+test_tmp=${AUTOPKGTEST_TMP:-${TMPDIR:-/tmp}}
+export MPLAPACK_TEST_TMPDIR="$test_tmp"
+
+exec octave-cli --no-gui --quiet "$test_dir/smoke.m"

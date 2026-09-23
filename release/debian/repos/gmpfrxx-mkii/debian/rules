@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --buildsystem=cmake
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		-DGMPFRXX_MKII_COMPONENTS=GMP,MPFR,MPC \
+		-DGMPFRXX_MKII_BUILD_EXAMPLES=OFF \
+		-DGMPFRXX_MKII_BUILD_BENCHMARKS=OFF \
+		-DBUILD_TESTING=OFF
+
+override_dh_auto_install:
+	dh_auto_install --destdir=debian/tmp

@@ -1,0 +1,6 @@
+mpclib3 (1.4.1-1~ppa1) resolute; urgency=medium
+
+  * Package GNU MPC 1.4.1 for the MPLAPACK interop PPA dependency stack.
+  * Provide the mpc_log2 API required by octave-mplapack-interop 0.5.0.
+
+ -- Pending Debian maintainer <debian@example.invalid>  Sun, 20 Sep 2026 00:00:00 +0000

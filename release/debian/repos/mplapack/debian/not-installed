@@ -1,0 +1,5 @@
+usr/lib/*/libmplapack_mpfr.a
+usr/lib/*/libmplapack_mpfr.la
+usr/lib/*/libmplapack_mpfr_opt.a
+usr/lib/*/libmplapack_mpfr_opt.la
+usr/misc/*

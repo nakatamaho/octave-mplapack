@@ -1,0 +1,4 @@
+usr/include/mplapack
+usr/lib/*/libmplapack_mpfr.so
+usr/lib/*/libmplapack_mpfr_opt.so
+usr/lib/*/pkgconfig/mplapack_mpfr*.pc

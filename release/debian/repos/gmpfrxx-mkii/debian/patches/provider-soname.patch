@@ -1,0 +1,18 @@
+Description: Give the default-context provider a Debian-tracked ABI SONAME
+ The provider exports the versioned v1 context API and is a dedicated shared
+ owner.  Set the CMake target version/SOVERSION so Debian can split the
+ runtime provider from the development headers and let dh_makeshlibs track
+ the ABI instead of shipping an unversioned shared object.
+Forwarded: not-needed
+Author: octave-mplapack packaging team <noreply@example.invalid>
+Last-Update: 2026-09-20
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -248,4 +248,6 @@
+ set_target_properties(gmpxx_mkII_default_context_provider PROPERTIES
+     EXPORT_NAME default_context_provider
++    VERSION ${PROJECT_VERSION}
++    SOVERSION 1
+ )
+ add_library(gmpxx_mkII::default_context_provider ALIAS gmpxx_mkII_default_context_provider)
