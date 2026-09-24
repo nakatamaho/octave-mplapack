@@ -45,7 +45,7 @@ documented gate passes.
 | C12 | Real+complex release closure | Passed |
 | P00 | Packaging design | Planned |
 | P01 | Debian source package | Passed (GP01) |
-| P02 | Local Debian build | Planned |
+| P02 | Local Debian build | Passed (GP02) |
 | P03 | PPA staging | Planned |
 | P04 | PPA autopkgtest | Planned |
 | P05 | PPA stable | Planned |
