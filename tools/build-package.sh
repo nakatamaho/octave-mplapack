@@ -140,7 +140,32 @@ while IFS= read -r source_path; do
   cp "$source_path" "$package_root/$source_path"
 done < "$manifest"
 
-archive_epoch=${SOURCE_DATE_EPOCH:-0}
+# Archive timestamps come from SOURCE_DATE_EPOCH, or from the last commit in a
+# Git checkout.  Never fall back to the Unix epoch: Debian rejects packages
+# whose files carry 1970 timestamps.
+if [ -n "${SOURCE_DATE_EPOCH:-}" ]; then
+  archive_epoch=$SOURCE_DATE_EPOCH
+elif archive_epoch=$(git -C "$repo_root" log -1 --format=%ct 2>/dev/null) &&
+    [ -n "$archive_epoch" ]; then
+  :
+else
+  echo "FAIL: set SOURCE_DATE_EPOCH or build from a Git checkout" >&2
+  exit 1
+fi
+
+case $archive_epoch in
+  ''|*[!0-9]*)
+    echo "FAIL: invalid SOURCE_DATE_EPOCH: $archive_epoch" >&2
+    exit 1
+    ;;
+esac
+
+# 315532800 is 1980-01-01T00:00:00Z.
+if [ "$archive_epoch" -lt 315532800 ]; then
+  echo "FAIL: SOURCE_DATE_EPOCH predates 1980: $archive_epoch" >&2
+  exit 1
+fi
+
 tar_path=$stage_root/$package_dir.tar
 tar --sort=name --format=ustar --owner=0 --group=0 --numeric-owner \
   --mtime="@$archive_epoch" -C "$stage_root" -cf "$tar_path" "$package_dir"

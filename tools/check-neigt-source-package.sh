@@ -14,10 +14,12 @@ build_one() {
   local label=$1
   local checkout="$work_root/$label"
   mkdir -p "$checkout"
+  local epoch
+  epoch=$(git log -1 --format=%ct HEAD)
   git archive --format=tar HEAD | tar -xf - -C "$checkout"
   (
     cd "$checkout"
-    SOURCE_DATE_EPOCH=0 tools/build-package.sh >/dev/null
+    SOURCE_DATE_EPOCH=$epoch tools/build-package.sh >/dev/null
   )
   cp "$checkout/dist/$(sed -n 's/^Name: *//p' "$checkout/DESCRIPTION")-$(sed -n 's/^Version: *//p' "$checkout/DESCRIPTION").tar.gz" \
      "$work_root/$label.tar.gz"

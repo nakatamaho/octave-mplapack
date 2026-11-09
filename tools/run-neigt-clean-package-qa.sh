@@ -20,10 +20,11 @@ mkdir -p "$qa_home" "$pkg_prefix" "$pkg_arch_prefix" \
          "$source_checkout" "$source_extract"
 trap 'rm -rf "$work_root"' EXIT
 
+source_epoch=$(git log -1 --format=%ct HEAD)
 git archive --format=tar HEAD | tar -xf - -C "$source_checkout"
 (
   cd "$source_checkout"
-  SOURCE_DATE_EPOCH=0 tools/build-package.sh >/dev/null
+  SOURCE_DATE_EPOCH=$source_epoch tools/build-package.sh >/dev/null
 )
 package_name=$(sed -n 's/^Name: *//p' "$source_checkout/DESCRIPTION")
 package_version=$(sed -n 's/^Version: *//p' "$source_checkout/DESCRIPTION")

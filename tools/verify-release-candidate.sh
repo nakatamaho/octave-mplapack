@@ -8,6 +8,7 @@ cd "$repo_root"
 commit=${1:-HEAD}
 git rev-parse --verify "$commit^{commit}" >/dev/null
 commit_sha=$(git rev-parse "$commit^{commit}")
+commit_epoch=$(git log -1 --format=%ct "$commit_sha")
 
 package_name=$(sed -n 's/^Name: *//p' DESCRIPTION)
 package_version=$(sed -n 's/^Version: *//p' DESCRIPTION)
@@ -28,7 +29,7 @@ for label in A B; do
     | tar -xf - -C "$checkout"
   (
     cd "$checkout/source"
-    SOURCE_DATE_EPOCH=0 tools/build-package.sh
+    SOURCE_DATE_EPOCH=$commit_epoch tools/build-package.sh
   )
   archive=$checkout/source/dist/$package_dir.tar.gz
   [ -f "$archive" ] || {
