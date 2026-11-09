@@ -1,5 +1,5 @@
 PROJECT_NAME           = "mplapack-interop"
-PROJECT_NUMBER         = "0.5.1"
+PROJECT_NUMBER         = "0.5.2"
 OUTPUT_DIRECTORY       = docs/.build/doxygen
 CREATE_SUBDIRS         = NO
 INPUT                  = src docs/doxygen

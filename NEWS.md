@@ -1,5 +1,15 @@
 # News
 
+## mplapack-interop 0.5.2 (2026-11-10)
+
+This maintenance release fixes the file timestamps in the source archive.
+The code is unchanged from 0.5.1.
+
+- Every file in the 0.5.1 archive was dated 1970-01-01, which Debian
+  rejected (Debian bug #1153471). Archive timestamps now come from the
+  release commit, and the packaging script refuses dates before 1980.
+- The installer still defaults to the published 0.5.1 package.
+
 ## mplapack-interop 0.5.1 (2026-09-23)
 
 This maintenance release fixes the Ubuntu 26.04 install path and keeps all

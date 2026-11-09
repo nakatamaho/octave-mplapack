@@ -1,8 +1,8 @@
 # octave-mplapack
 
-**Released: `mplapack-interop 0.5.1` (2026-09-23).**
+**Released: `mplapack-interop 0.5.2` (2026-11-10).**
 The source is available on
-[GitHub](https://github.com/nakatamaho/octave-mplapack/releases/tag/v0.5.1).
+[GitHub](https://github.com/nakatamaho/octave-mplapack/releases/tag/v0.5.2).
 The published `v0.5.0` tag and archive remain immutable. This maintenance
 release closes the Ubuntu 26.04 installer compatibility issue and provides
 GNU Octave access to real and complex arbitrary-precision linear algebra
@@ -54,6 +54,12 @@ instead of the wrapper and want to control the notice yourself, run
 `warning ('off', 'Octave:shadowed-function')` before `pkg load mplapack-interop`.
 
 ## News
+
+### 0.5.2 — 2026-11-10
+
+- The source archive now dates its files from the release commit instead of
+  1970-01-01, which Debian rejected. The code is unchanged from 0.5.1.
+- The installer still defaults to the published 0.5.1 package.
 
 ### 0.5.1 — 2026-09-23
 

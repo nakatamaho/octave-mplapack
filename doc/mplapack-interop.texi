@@ -31,9 +31,9 @@ a dense, two-dimensional @code{mp} value with MPFR real storage and MPC
 complex storage. MPLAPACK is used for the supported dense linear-algebra
 drivers; other operations use package-owned MPFR/MPC algorithms.
 
-This is the @code{0.5.1} maintenance release, published under the annotated
-GitHub tag @code{v0.5.1}. The earlier published @code{v0.5.0} tag and archive
-remain immutable. Debian/PPA packaging and uploads are deferred. The
+This is the @code{0.5.2} maintenance release, published under the annotated
+GitHub tag @code{v0.5.2}. The earlier published @code{v0.5.0} and
+@code{v0.5.1} tags and archives remain immutable. Debian/PPA packaging and uploads are deferred. The
 dependency stack uses the official MPLAPACK @code{3.0.1} release and
 gmpfrxx_mkII @code{1.5.0}; see the D04R1 release-stack handoff for exact
 source identities and checksums.
@@ -85,7 +85,7 @@ Octave values when binary64 is sufficient or when a deferred API is needed.
 Install the source package with Octave's package manager:
 
 @verbatim
-pkg install mplapack-interop-0.5.1.tar.gz
+pkg install mplapack-interop-0.5.2.tar.gz
 pkg load mplapack-interop
 @end verbatim
 
@@ -982,7 +982,7 @@ remember that changing the default cannot restore information lost by a
 previous binary64 constructor.
 
 @item Version or dependency mismatch
-Use @code{mplapack_version ()} and @code{pkg-config}. The 0.5.1
+Use @code{mplapack_version ()} and @code{pkg-config}. The 0.5.2
 maintenance stack records MPLAPACK 3.0.1 and gmpfrxx_mkII 1.5.0. If
 @code{pkg-config --cflags --libs mplapack_mpfr} fails because the host lacks
 @code{mpc.pc}, use the local installer or apply its downstream metadata

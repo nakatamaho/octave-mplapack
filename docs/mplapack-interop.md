@@ -12,7 +12,7 @@ Use this package when the input data, intermediate values, or requested toleranc
 
 Install the source package with Octave’s package manager:
 
-    pkg install mplapack-interop-0.5.1.tar.gz
+    pkg install mplapack-interop-0.5.2.tar.gz
     pkg load mplapack-interop
 
 For a local dependency installation, the repository helper selects the official gmpfrxx_mkII `1.5.0` archive by default and repairs installed MPLAPACK `.pc` metadata on Ubuntu systems whose `libmpc-dev` package does not provide `mpc.pc`. The published 0.5.1 package is the installer default; set `OCTAVE_VERSION=0.5.0` to use the immutable previous release. After starting the configured Octave session, load the package with:
@@ -428,7 +428,7 @@ Precision unexpectedly looks low
 Construct from decimal text, set `mpbits` before construction, and remember that changing the default cannot restore information lost by a previous binary64 constructor.
 
 Version or dependency mismatch
-Use `mplapack_version ()` and `pkg-config`. The 0.5.1 maintenance stack records MPLAPACK 3.0.1 and gmpfrxx_mkII 1.5.0. If `pkg-config --cflags --libs mplapack_mpfr` fails because the host lacks `mpc.pc`, use the local installer or apply its downstream metadata normalization; do not add a fake `mpc.pc`.
+Use `mplapack_version ()` and `pkg-config`. The 0.5.2 maintenance stack records MPLAPACK 3.0.1 and gmpfrxx_mkII 1.5.0. If `pkg-config --cflags --libs mplapack_mpfr` fails because the host lacks `mpc.pc`, use the local installer or apply its downstream metadata normalization; do not add a fake `mpc.pc`.
 
 Graphics overflow or underflow
 Perform scaling or logarithms in `mp`, then explicitly convert the final display data.
